@@ -16,5 +16,5 @@ ExternalProject_Add(ep_zlib
         -DINSTALL_PKGCONFIG_DIR=${THIRD_PARTY_LIB_PATH}/lib/pkgconfig
         -DZLIB_COMPAT=ON
         -DZLIB_ENABLE_TESTS=OFF
-        #PATCH_COMMAND patch < ${CMAKE_CURRENT_LIST_DIR}/patches/zlib-ng-2-fixes.patch
+         PATCH_COMMAND patch < ${CMAKE_CURRENT_LIST_DIR}/patches/zlib-ng-2-fixes.patch
 )
