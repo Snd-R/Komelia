@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -73,8 +74,11 @@ class OkHttpKomgaEventSource(
     }
 
     private fun reconnect() {
-        connectionLock.withLock {
-            if (isActive) connect()
+        scope.launch {
+            if (isActive) {
+                delay(10000)
+                connect()
+            }
         }
     }
 

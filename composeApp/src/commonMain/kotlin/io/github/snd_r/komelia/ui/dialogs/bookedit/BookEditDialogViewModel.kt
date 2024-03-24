@@ -5,15 +5,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.dialogs.PosterEditState
+import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.BookThumbnail
+import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookMetadataUpdateRequest
+import io.github.snd_r.komga.book.KomgaBookThumbnail
 import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.common.KomgaWebLink
 import io.github.snd_r.komga.common.patch
 import io.github.snd_r.komga.common.patchLists
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import kotlin.io.path.readBytes
 
 class BookEditDialogViewModel(
     val book: KomgaBook,
@@ -21,7 +28,6 @@ class BookEditDialogViewModel(
     private val bookClient: KomgaBookClient,
     private val notifications: AppNotifications,
 ) {
-
     var title by mutableStateOf(book.metadata.title)
 
     var titleLock by mutableStateOf(book.metadata.titleLock)
@@ -50,17 +56,35 @@ class BookEditDialogViewModel(
             .plus(book.metadata.authors.groupBy { it.role })
     )
 
+    private val posterState = PosterEditState()
+
     private val generalTab = GeneralTab(this)
     private val authorsTab = AuthorsTab(this)
     private val tagsTab = TagsTab(this)
     private val linksTab = LinksTab(this)
-    private val posterTab = PosterTab(this)
+    private val posterTab = PosterTab(posterState)
     var currentTab by mutableStateOf<DialogTab>(generalTab)
+
+    suspend fun initialize() {
+        notifications.runCatchingToNotifications {
+            posterState.thumbnails.clear()
+            posterState.thumbnails.addAll(
+                bookClient.getBookThumbnails(book.id).map { BookThumbnail(it) }
+            )
+        }
+    }
 
     fun tabs(): List<DialogTab> = listOf(generalTab, authorsTab, tagsTab, linksTab, posterTab)
 
     suspend fun saveChanges() {
+        notifications.runCatchingToNotifications {
+            saveMetadataChanges()
+            saveThumbnailChanges()
+            onDialogDismiss()
+        }
+    }
 
+    private suspend fun saveMetadataChanges() {
         val bookMetadata = book.metadata
         val newAuthors = authors.flatMap { (_, authorsForRole) -> authorsForRole }
         val newReleaseDate = if (releaseDate.isNotBlank()) LocalDate.parse(releaseDate) else null
@@ -86,9 +110,33 @@ class BookEditDialogViewModel(
             linksLock = patch(bookMetadata.linksLock, linksLock),
         )
 
-        notifications.runCatchingToNotifications {
-            bookClient.updateMetadata(book.id, request)
-            onDialogDismiss()
+        bookClient.updateMetadata(book.id, request)
+    }
+
+    private suspend fun saveThumbnailChanges() {
+        withContext(Dispatchers.IO) {
+            posterState.userUploadedThumbnails.forEach { thumb ->
+                bookClient.uploadBookThumbnail(
+                    bookId = book.id,
+                    file = thumb.path.readBytes(),
+                    selected = thumb.selected
+                )
+            }
+
+            posterState.thumbnails
+                .firstOrNull { it.markedSelected && it.markedSelected != it.selected }
+                ?.let { thumb -> bookClient.selectBookThumbnail(book.id, thumb.id) }
+
+            posterState.thumbnails
+                .filter { it.markedDeleted }
+                .forEach { thumb -> bookClient.deleteBookThumbnail(book.id, thumb.id) }
         }
     }
 }
+
+data class BookThumbnailExisting(
+    val selected: Boolean,
+    val deleted: Boolean,
+    val data: KomgaBookThumbnail
+)
+

@@ -4,6 +4,7 @@ package io.github.snd_r.komga.series
 
 import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.common.KomgaReadingDirection
+import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.KomgaWebLink
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.serializers.KomgaReadingDirectionSerializer
@@ -89,10 +90,14 @@ data class KomgaAlternativeTitle(
 
 @Serializable
 data class KomgaSeriesThumbnail(
-    val id: String,
-    val seriesId: String,
+    val id: KomgaThumbnailId,
+    val seriesId: KomgaSeriesId,
     val type: String,
     val selected: Boolean,
+    val mediaType: String,
+    val fileSize: Long,
+    val width: Int,
+    val height: Int,
 )
 
 @Serializable

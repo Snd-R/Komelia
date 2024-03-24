@@ -2,16 +2,15 @@ package io.github.snd_r.komga.series
 
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.common.KomgaPageRequest
+import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.Page
 import io.github.snd_r.komga.common.toParams
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
-import kotlin.time.TimedValue
-import kotlin.time.measureTime
-import kotlin.time.measureTimedValue
 
 class KomgaSeriesClient(private val ktor: HttpClient) {
 
@@ -116,5 +115,36 @@ class KomgaSeriesClient(private val ktor: HttpClient) {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+    }
+
+    suspend fun getSeriesThumbnails(seriesId: KomgaSeriesId): List<KomgaSeriesThumbnail> {
+        return ktor.get("api/v1/series/$seriesId/thumbnails").body()
+    }
+
+    suspend fun uploadSeriesThumbnail(
+        seriesId: KomgaSeriesId,
+        file: ByteArray,
+        filename: String = "",
+        selected: Boolean = true
+    ): KomgaSeriesThumbnail {
+        return ktor.post("api/v1/series/$seriesId/thumbnails") {
+            contentType(ContentType.MultiPart.FormData)
+            setBody(
+                MultiPartFormDataContent(formData {
+                    append("file", file, Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
+                    })
+                    append("selected", selected)
+                })
+            )
+        }.body()
+    }
+
+    suspend fun selectSeriesThumbnail(seriesId: KomgaSeriesId, thumbnailId: KomgaThumbnailId) {
+        ktor.put("api/v1/series/$seriesId/thumbnails/$thumbnailId/selected")
+    }
+
+    suspend fun deleteSeriesThumbnail(seriesId: KomgaSeriesId, thumbnailId: KomgaThumbnailId) {
+        ktor.delete("api/v1/series/$seriesId/thumbnails/$thumbnailId")
     }
 }

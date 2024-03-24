@@ -3,6 +3,7 @@
 package io.github.snd_r.komga.book
 
 import io.github.snd_r.komga.common.KomgaAuthor
+import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.KomgaWebLink
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.serializers.LocalDateSerializer
@@ -67,12 +68,17 @@ data class KomgaBookMetadata(
     val lastModified: ZonedDateTime,
 )
 
+
 @Serializable
 data class KomgaBookThumbnail(
-    val id: String,
-    val bookId: String,
+    val id: KomgaThumbnailId,
+    val bookId: KomgaBookId,
     val type: String,
     val selected: Boolean,
+    val mediaType: String,
+    val fileSize: Long,
+    val width: Int,
+    val height: Int
 )
 
 @Serializable

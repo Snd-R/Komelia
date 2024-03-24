@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.dialogs.seriesedit
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.Dp
@@ -19,8 +20,9 @@ fun SeriesEditDialog(
 ) {
     val viewModelFactory = LocalViewModelFactory.current
     val vm = remember { viewModelFactory.getSeriesEditDialogViewModel(series, onDismissRequest) }
-    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(series) { vm.initialize() }
 
+    val coroutineScope = rememberCoroutineScope()
     TabDialog(
         title = "Edit ${series.metadata.title}",
         dialogSize = DpSize(800.dp, Dp.Unspecified),
@@ -29,13 +31,11 @@ fun SeriesEditDialog(
         controlButtons = {
             DialogControlButtons(
                 confirmationText = "Save Changes",
-                onConfirmClick = {
-                    coroutineScope.launch { vm.saveChanges() }
-                },
+                onConfirmClick = { coroutineScope.launch { vm.saveChanges() } },
                 onDismissRequest = onDismissRequest
             )
         },
         onTabChange = { vm.currentTab = it },
-        onDismissRequest = onDismissRequest
+        onDismissRequest = { onDismissRequest() }
     )
 }

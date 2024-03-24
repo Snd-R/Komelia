@@ -27,7 +27,7 @@ import io.github.snd_r.komga.common.KomgaWebLink
 
 
 @Composable
-fun LinksTabContent(
+fun LinksEditContent(
     links: List<KomgaWebLink>,
     onLinkAdd: () -> Unit,
     onLinkChange: (index: Int, title: KomgaWebLink) -> Unit,

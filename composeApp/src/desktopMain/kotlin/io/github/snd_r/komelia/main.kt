@@ -32,8 +32,8 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import ch.qos.logback.classic.LoggerContext
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.MainView
+import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
 import io.github.snd_r.komelia.ui.log.LogbackFlowAppender
 import kotlinx.coroutines.flow.MutableSharedFlow

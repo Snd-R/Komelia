@@ -24,16 +24,31 @@ import io.github.snd_r.komelia.ui.platform.cursorForHand
 fun ItemCard(
     modifier: Modifier,
     onClick: (() -> Unit)? = null,
+    image: @Composable () -> Unit
+) {
+    val clickable =
+        if (onClick != null) Modifier.clickable(onClick = onClick).cursorForHand()
+        else Modifier
+
+    Card(
+        shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp),
+        modifier = modifier.aspectRatio(0.703f).then(clickable)
+    ) {
+        image()
+    }
+}
+
+@Composable
+fun ItemCardWithContent(
+    modifier: Modifier,
+    image: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val clickable = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Card(
         shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp),
         modifier = modifier
-            .aspectRatio(0.703f)
-            .cursorForHand()
-            .then(clickable)
     ) {
+        Box(modifier = Modifier.aspectRatio(0.703f)) { image() }
         content()
     }
 }

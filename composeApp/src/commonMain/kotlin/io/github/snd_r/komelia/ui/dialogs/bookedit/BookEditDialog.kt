@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.dialogs.bookedit
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.Dp
@@ -21,6 +22,7 @@ fun BookEditDialog(
     val viewModelFactory = LocalViewModelFactory.current
     val coroutineScope = rememberCoroutineScope()
     val vm = remember { viewModelFactory.getBookEditDialogViewModel(book, onDismissRequest) }
+    LaunchedEffect(book) { vm.initialize() }
 
     TabDialog(
         title = "Edit ${book.metadata.title}",

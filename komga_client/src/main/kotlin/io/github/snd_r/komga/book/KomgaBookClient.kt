@@ -1,12 +1,14 @@
 package io.github.snd_r.komga.book
 
 import io.github.snd_r.komga.common.KomgaPageRequest
+import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.Page
 import io.github.snd_r.komga.common.toParams
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 
 
@@ -116,5 +118,36 @@ class KomgaBookClient(private val ktor: HttpClient) {
         ktor.put("/api/v1/books/thumbnails") {
             parameter("for_bigger_result_only", forBiggerResultOnly)
         }
+    }
+
+    suspend fun getBookThumbnails(bookId: KomgaBookId): List<KomgaBookThumbnail> {
+        return ktor.get("api/v1/books/$bookId/thumbnails").body()
+    }
+
+    suspend fun uploadBookThumbnail(
+        bookId: KomgaBookId,
+        file: ByteArray,
+        filename: String = "",
+        selected: Boolean = true
+    ): KomgaBookThumbnail {
+        return ktor.post("api/v1/books/$bookId/thumbnails") {
+            contentType(ContentType.MultiPart.FormData)
+            setBody(
+                MultiPartFormDataContent(formData {
+                    append("file", file, Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
+                    })
+                    append("selected", selected)
+                })
+            )
+        }.body()
+    }
+
+    suspend fun selectBookThumbnail(bookId: KomgaBookId, thumbnailId: KomgaThumbnailId) {
+        ktor.put("api/v1/books/$bookId/thumbnails/$thumbnailId/selected")
+    }
+
+    suspend fun deleteBookThumbnail(bookId: KomgaBookId, thumbnailId: KomgaThumbnailId) {
+        ktor.delete("api/v1/books/$bookId/thumbnails/$thumbnailId")
     }
 }

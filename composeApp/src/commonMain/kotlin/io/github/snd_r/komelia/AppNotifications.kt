@@ -9,6 +9,8 @@ import io.github.snd_r.komelia.AppNotification.Success
 import io.github.snd_r.komga.common.toErrorResponse
 import io.github.snd_r.komga.common.toViolationResponse
 import io.ktor.client.plugins.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -51,22 +53,22 @@ class AppNotifications {
             KotlinLogging.logger {}.warn(e) {}
             throw e
         } catch (e: Exception) {
-            KotlinLogging.logger {}.error(e) {}
+            KotlinLogging.logger {}.catching(e)
             toErrorNotification(e)
             return Result.failure(e)
         }
     }
 
-    suspend inline fun toErrorNotification(exception: Exception) {
+    suspend fun toErrorNotification(exception: Exception) {
         when (exception) {
             is ClientRequestException -> {
-                val errorMessage = exception.toErrorResponse()?.message
-                    ?: exception.toViolationResponse()?.violations?.firstOrNull()
-                        ?.let { "${it.fieldName}: ${it.message}" }
-                    ?: exception.message
+                val contentType = exception.response.headers[HttpHeaders.ContentType]
+                val errorMessage = when (contentType) {
+                    "application/json" -> parseJsonErrorMessage(exception)
+                    else -> errorMessageFromStatusCode(exception.response.status)
+                }
 
                 add(Error(errorMessage))
-
             }
 
             else -> {
@@ -74,6 +76,23 @@ class AppNotifications {
             }
         }
 
+    }
+}
+
+private suspend fun parseJsonErrorMessage(exception: ClientRequestException): String {
+    return exception.toErrorResponse()?.message
+        ?: exception.toViolationResponse()
+            ?.violations?.firstOrNull()?.let { "${it.fieldName}: ${it.message}" }
+        ?: exception.response.bodyAsText()
+}
+
+private fun errorMessageFromStatusCode(statusCode: HttpStatusCode): String {
+    return when (statusCode.value) {
+        400 -> "Bad Request"
+        404 -> "Not Found"
+        413 -> "Content Too Large"
+        418 -> "I'm a teapot"
+        else -> HttpStatusCode.fromValue(statusCode.value).description
     }
 }
 

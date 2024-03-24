@@ -398,7 +398,7 @@ fun Books(
                     onBookReadClick = onBookReadClick,
                     loadPlaceholder = {
                         for (i in 0 until booksPageSize) {
-                            ItemCard(Modifier.width(bookCardWidth), onClick = {}, content = {})
+                            ItemCard(Modifier.width(bookCardWidth), onClick = {}, image = {})
                         }
                     },
                     isLoading = booksLoading,

@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.dialogs.PosterEditState
+import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
+import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komga.common.KomgaWebLink
 import io.github.snd_r.komga.common.patch
@@ -13,6 +16,9 @@ import io.github.snd_r.komga.series.KomgaAlternativeTitle
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.series.KomgaSeriesMetadataUpdateRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.io.path.readBytes
 
 class SeriesEditDialogViewModel(
     val series: KomgaSeries,
@@ -64,19 +70,38 @@ class SeriesEditDialogViewModel(
         .also { it.addAll(series.metadata.alternateTitles) }
     var alternateTitlesLock by mutableStateOf(series.metadata.alternateTitlesLock)
 
+    private val posterState = PosterEditState()
+
     private val generalTab = GeneralTab(this)
     private val alternativeTitlesTab = AlternativeTitlesTab(this)
     private val tagsTab = TagsTab(this)
     private val linksTab = LinksTab(this)
-    private val posterTab = PosterTab(this)
+    private val posterTab = PosterTab(posterState)
     private val sharingTab = SharingTab(this)
 
     var currentTab by mutableStateOf<DialogTab>(generalTab)
+
+    suspend fun initialize() {
+        notifications.runCatchingToNotifications {
+            posterState.thumbnails.clear()
+            posterState.thumbnails.addAll(
+                seriesClient.getSeriesThumbnails(series.id).map { SeriesThumbnail(it) }
+            )
+        }
+    }
 
     fun tabs(): List<DialogTab> = listOf(generalTab, alternativeTitlesTab, tagsTab, linksTab, posterTab, sharingTab)
 
 
     suspend fun saveChanges() {
+        notifications.runCatchingToNotifications {
+            saveMetadataChanges()
+            saveThumbnailChanges()
+            onDialogDismiss()
+        }
+    }
+
+    private suspend fun saveMetadataChanges() {
         val seriesMetadata = series.metadata
         val request = KomgaSeriesMetadataUpdateRequest(
             status = patch(seriesMetadata.status, status),
@@ -109,9 +134,23 @@ class SeriesEditDialogViewModel(
             alternateTitlesLock = patch(seriesMetadata.alternateTitlesLock, alternateTitlesLock),
         )
 
-        notifications.runCatchingToNotifications {
-            seriesClient.updateSeries(series.id, request)
-            onDialogDismiss()
+        seriesClient.updateSeries(series.id, request)
+    }
+
+    private suspend fun saveThumbnailChanges() {
+        withContext(Dispatchers.IO) {
+            posterState.userUploadedThumbnails.forEach { thumb ->
+                seriesClient.uploadSeriesThumbnail(
+                    seriesId = series.id,
+                    file = thumb.path.readBytes(),
+                    selected = thumb.selected
+                )
+            }
+
+            posterState.thumbnails.firstOrNull { it.markedSelected && it.markedSelected != it.selected }
+                ?.let { thumb -> seriesClient.selectSeriesThumbnail(series.id, thumb.id) }
+            posterState.thumbnails.filter { it.markedDeleted }
+                .forEach { thumb -> seriesClient.deleteSeriesThumbnail(series.id, thumb.id) }
         }
     }
 }

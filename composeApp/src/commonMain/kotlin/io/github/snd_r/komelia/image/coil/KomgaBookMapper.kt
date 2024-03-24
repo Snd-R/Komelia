@@ -5,7 +5,7 @@ import coil3.request.Options
 import io.github.snd_r.komelia.ui.common.images.BookThumbnailRequest
 import kotlinx.coroutines.flow.StateFlow
 
-class KomgaBookThumbnailMapper(private val serverUrl: StateFlow<String>) : Mapper<BookThumbnailRequest, String> {
+class KomgaBookMapper(private val serverUrl: StateFlow<String>) : Mapper<BookThumbnailRequest, String> {
 
     override fun map(data: BookThumbnailRequest, options: Options): String {
         return "${serverUrl.value}/api/v1/books/${data.bookId}/thumbnail"

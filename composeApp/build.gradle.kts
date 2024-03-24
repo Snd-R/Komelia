@@ -57,7 +57,6 @@ kotlin {
 
             implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
             implementation("io.ktor:ktor-client-logging:$ktorVersion")
-
             implementation("com.squareup.okhttp3:okhttp:4.12.0")
             implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
@@ -73,9 +72,12 @@ kotlin {
             implementation("io.github.dokar3:sonner:0.3.1")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha01")
 
+            implementation("com.darkrockstudios:mpfilepicker:3.1.0")
+
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
             implementation("org.apache.commons:commons-lang3:3.14.0")
             implementation("org.jsoup:jsoup:1.17.2")
+            implementation("org.apache.tika:tika-core:2.9.1")
 
             implementation(project(":komga_client"))
         }

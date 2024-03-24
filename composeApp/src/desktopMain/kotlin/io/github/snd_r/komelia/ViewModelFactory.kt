@@ -10,11 +10,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.VipsImageDecoder
+import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
-import io.github.snd_r.komelia.image.coil.KomgaBookThumbnailMapper
-import io.github.snd_r.komelia.image.coil.KomgaCollectionThumbnailMapper
-import io.github.snd_r.komelia.image.coil.KomgaReadListThumbnailMapper
+import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
+import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
+import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.coil.PathMapper
 import io.github.snd_r.komelia.settings.ActorMessage
 import io.github.snd_r.komelia.settings.FileSystemSettingsActor
 import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
@@ -59,7 +61,6 @@ actual suspend fun createViewModelFactory(
 
     return ViewModelFactory(
         komgaClientFactory = komgaClientFactory,
-//        komgaEventSource = komgaClientFactory.komgaEventSource(),
         settingsRepository = settingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
@@ -124,10 +125,12 @@ private fun createCoil(url: StateFlow<String>, ktorClient: HttpClient): ImageLoa
     return ImageLoader.Builder(PlatformContext.INSTANCE)
         .components {
             add(KomgaBookPageMapper(url))
+            add(KomgaSeriesMapper(url))
+            add(KomgaBookMapper(url))
+            add(KomgaCollectionMapper(url))
+            add(KomgaReadListMapper(url))
             add(KomgaSeriesThumbnailMapper(url))
-            add(KomgaBookThumbnailMapper(url))
-            add(KomgaCollectionThumbnailMapper(url))
-            add(KomgaReadListThumbnailMapper(url))
+            add(PathMapper())
 //            add(DesktopImageDecoder.Factory())
             add(VipsImageDecoder.Factory())
             add(KtorNetworkFetcherFactory(httpClient = ktorClient))
