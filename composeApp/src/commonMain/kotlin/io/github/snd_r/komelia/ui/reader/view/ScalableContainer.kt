@@ -6,18 +6,16 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntSize
+import io.github.snd_r.komelia.platform.onPointerEvent
 import io.github.snd_r.komelia.ui.reader.PageSpreadScaleState
 import kotlin.math.pow
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ScalableContainer(
     scaleTransformations: PageSpreadScaleState.Transformation,

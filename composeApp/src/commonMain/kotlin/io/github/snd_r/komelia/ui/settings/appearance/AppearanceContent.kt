@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
 import kotlin.math.roundToInt
 
 @Composable

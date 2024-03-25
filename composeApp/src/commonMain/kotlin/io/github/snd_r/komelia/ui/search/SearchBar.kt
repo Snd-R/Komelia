@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.library.KomgaLibrary

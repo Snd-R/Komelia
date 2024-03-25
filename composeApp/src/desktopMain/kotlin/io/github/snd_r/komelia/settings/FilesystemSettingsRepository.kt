@@ -33,11 +33,11 @@ class FilesystemSettingsRepository(
         return actor.getState().map { it.appearance.cardWidth.dp }
     }
 
-    override suspend fun putCardWidth(height: Dp) {
+    override suspend fun putCardWidth(cardWidth: Dp) {
         val ack = CompletableDeferred<AppSettings>()
 
         actor.send(Transform(ack) { settings ->
-            settings.copy(appearance = settings.appearance.copy(cardWidth = height.value.toInt()))
+            settings.copy(appearance = settings.appearance.copy(cardWidth = cardWidth.value.toInt()))
         })
 
         ack.await()

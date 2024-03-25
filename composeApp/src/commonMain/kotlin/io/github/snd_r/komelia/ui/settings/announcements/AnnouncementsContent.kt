@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.announcements.KomgaJsonFeed.KomgaAnnouncement
 import org.jsoup.Jsoup
 

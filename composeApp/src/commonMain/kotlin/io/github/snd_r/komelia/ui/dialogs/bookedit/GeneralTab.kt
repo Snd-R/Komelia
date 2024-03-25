@@ -21,8 +21,8 @@ import io.github.snd_r.komelia.ui.common.LockableTextField
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komelia.ui.platform.ScrollBarConfig
-import io.github.snd_r.komelia.ui.platform.verticalScrollWithScrollbar
+import io.github.snd_r.komelia.platform.ScrollBarConfig
+import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*

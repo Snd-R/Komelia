@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

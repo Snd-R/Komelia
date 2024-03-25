@@ -21,7 +21,7 @@ class KeyringSecretsRepository : SecretsRepository {
         }
     }
 
-    override fun getCookie(url: String): String? {
+    override suspend fun getCookie(url: String): String? {
         return try {
             keyring.getPassword(KEYRING_SERVICE_NAME, url)
         } catch (e: PasswordAccessException) {
@@ -29,11 +29,11 @@ class KeyringSecretsRepository : SecretsRepository {
         }
     }
 
-    override fun setCookie(url: String, cookie: String) {
+    override suspend fun setCookie(url: String, cookie: String) {
         keyring.setPassword(KEYRING_SERVICE_NAME, url, cookie)
     }
 
-    override fun deleteCookie(url: String) {
+    override suspend fun deleteCookie(url: String) {
         keyring.deletePassword(KEYRING_SERVICE_NAME, url)
     }
 

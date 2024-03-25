@@ -38,7 +38,7 @@ import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.series.KomgaSeries
 
 @Composable

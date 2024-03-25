@@ -18,7 +18,7 @@ import androidx.compose.ui.state.ToggleableState.Indeterminate
 import androidx.compose.ui.state.ToggleableState.Off
 import androidx.compose.ui.state.ToggleableState.On
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
 
 
 @Composable

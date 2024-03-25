@@ -39,7 +39,7 @@ class LoginScreen : Screen {
                 onLogin = vm::loginWithCredentials
             )
 
-            is Success -> navigator.replaceAll(MainScreen(navigator))
+            is Success -> navigator.replaceAll(MainScreen())
         }
     }
 }

@@ -25,15 +25,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.CustomTheme
-import io.github.snd_r.komelia.ui.platform.HorizontalScrollbar
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
-import io.github.snd_r.komelia.ui.platform.copyToClipboard
+import io.github.snd_r.komelia.platform.HorizontalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import kotlinx.coroutines.launch
 
 
@@ -46,6 +47,8 @@ fun ErrorView(
     onExit: () -> Unit
 ) {
     CustomTheme(windowHeight, windowWidth) {
+        val clipboardManager = LocalClipboardManager.current
+
         Surface {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -63,7 +66,7 @@ fun ErrorView(
                         state = tooltipState
                     ) {
                         Button(onClick = {
-                            copyToClipboard(stacktrace)
+                            clipboardManager.setText(AnnotatedString(stacktrace))
                             scope.launch { tooltipState.show() }
                         }) {
                             Text("Copy stacktrace to clipboard")
@@ -88,11 +91,13 @@ fun ErrorView(
 private fun ColumnScope.StackTrace(
     stacktrace: String,
 ) {
+    val clipboardManager = LocalClipboardManager.current
+
     Row(
         Modifier.padding(horizontal = 50.dp, vertical = 10.dp)
             .weight(1f)
             .background(AppTheme.colors.material.surfaceVariant)
-            .clickable { copyToClipboard(stacktrace) }
+            .clickable { clipboardManager.setText(AnnotatedString(stacktrace)) }
 
     ) {
         val verticalScroll = rememberScrollState()

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option java_package = "io.github.snd_r.komelia.settings";
+option java_multiple_files = true;
+
+import "google/protobuf/wrappers.proto";
+
+
+message AppSettings {
+  ServerSettings server = 1;
+  UserSettings user = 2;
+  AppearanceSettings appearance = 3;
+  ReaderSettings reader = 4;
+}
+
+message ServerSettings{
+  string url = 1;
+}
+
+message UserSettings{
+  string username = 1;
+  optional string rememberMe = 2;
+}
+
+message AppearanceSettings{
+  optional int32 cardWidth = 1;
+}
+
+message ReaderSettings{
+  PBLayoutScaleType scaleType = 1;
+  PBReadingDirection readingDirection = 2;
+  PBPageDisplayLayout pageLayout = 3;
+  optional bool upsample = 4;
+}
+
+enum PBLayoutScaleType{
+  SCREEN = 0;
+  FIT_WIDTH = 1;
+  FIT_HEIGHT = 2;
+  ORIGINAL = 3;
+}
+
+enum PBReadingDirection{
+  LEFT_TO_RIGHT = 0;
+  RIGHT_TO_LEFT = 1;
+}
+
+enum PBPageDisplayLayout{
+  SINGLE_PAGE = 0;
+  DOUBLE_PAGES = 1;
+}

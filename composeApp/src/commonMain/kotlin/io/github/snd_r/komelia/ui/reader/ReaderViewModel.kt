@@ -172,7 +172,7 @@ class HorizontalPagesReaderViewModel(
             }
         } else {
             val currentBook = requireNotNull(book)
-            navigator replace MainScreen(navigator, BookScreen(currentBook.id))
+            navigator replace MainScreen(BookScreen(currentBook.id))
         }
     }
 
@@ -483,6 +483,7 @@ class HorizontalPagesReaderViewModel(
 
 
 }
+
 data class PageMetadata(
     val bookId: KomgaBookId,
     val pageNumber: Int,

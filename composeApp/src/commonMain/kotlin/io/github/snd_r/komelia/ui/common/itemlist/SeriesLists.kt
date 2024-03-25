@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.cards.SeriesDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.platform.HorizontalScrollbar
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.HorizontalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesId
 

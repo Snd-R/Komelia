@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.platform
+package io.github.snd_r.komelia.platform
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier

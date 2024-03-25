@@ -40,7 +40,7 @@ import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialog
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialog
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialog
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import io.github.snd_r.komga.user.KomgaUser
 import io.github.snd_r.komga.user.KomgaUserId

@@ -1,3 +1,4 @@
+import com.google.protobuf.gradle.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,7 +7,7 @@ plugins {
     id("org.jetbrains.compose")
     kotlin("plugin.serialization")
 
-    id("com.google.devtools.ksp").version("1.9.22-1.0.17")
+    id("com.google.protobuf") version "0.9.4"
     id("dev.hydraulic.conveyor") version "1.9"
 }
 
@@ -22,16 +23,14 @@ dependencies {
 }
 
 kotlin {
+    jvmToolchain(17)
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
+        compilations.all { kotlinOptions { jvmTarget = "11" } }
     }
 
-    jvm("desktop")
-    jvmToolchain(21)
+    jvm("desktop") {
+        compilations.all { kotlinOptions { jvmTarget = "21" } }
+    }
 
     val coilVersion = "3.0.0-alpha06"
     val ktorVersion = "3.0.0-beta-1"
@@ -60,14 +59,13 @@ kotlin {
             implementation("com.squareup.okhttp3:okhttp:4.12.0")
             implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-
             implementation("io.coil-kt.coil3:coil:$coilVersion")
             implementation("io.coil-kt.coil3:coil-compose:$coilVersion")
             implementation("io.coil-kt.coil3:coil-network-ktor:$coilVersion")
 
-            implementation("cafe.adriel.voyager:voyager-screenmodel-desktop:$voyagerVersion")
-            implementation("cafe.adriel.voyager:voyager-navigator-desktop:$voyagerVersion")
-            implementation("cafe.adriel.voyager:voyager-tab-navigator-desktop:$voyagerVersion")
+            implementation("cafe.adriel.voyager:voyager-screenmodel:$voyagerVersion")
+            implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+            implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
 
             implementation("io.github.dokar3:sonner:0.3.1")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha01")
@@ -88,7 +86,11 @@ kotlin {
             api("androidx.core:core-ktx:1.12.0")
 
             implementation("com.github.tony19:logback-android:3.0.0")
-            implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+            implementation("androidx.datastore:datastore:1.0.0")
+            implementation("com.google.protobuf:protobuf-javalite:3.21.11")
+            implementation("com.google.protobuf:protobuf-kotlin-lite:3.21.11")
+
             implementation("androidx.window:window:1.2.0")
         }
 
@@ -123,10 +125,13 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+    sourceSets["main"].proto {
+        srcDir("src/androidMain/proto")
+    }
 
     defaultConfig {
         applicationId = "io.github.snd_r.komelia"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -145,10 +150,31 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    dependencies {
-        debugImplementation("libs.compose.ui.tooling:1.6.2")
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+
+    protobuf {
+        protoc {
+            artifact = "com.google.protobuf:protoc:3.24.1"
+        }
+        generateProtoTasks {
+            all().forEach { task ->
+                task.builtins {
+                    id("java") {
+                        option("lite")
+                    }
+                    id("kotlin") {
+                        option("lite")
+                    }
+                }
+            }
+        }
     }
 }
+
 
 compose.desktop {
     application {

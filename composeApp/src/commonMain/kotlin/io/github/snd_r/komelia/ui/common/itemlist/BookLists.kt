@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.cards.BookImageCard
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import io.github.snd_r.komelia.ui.platform.HorizontalScrollbar
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.HorizontalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 

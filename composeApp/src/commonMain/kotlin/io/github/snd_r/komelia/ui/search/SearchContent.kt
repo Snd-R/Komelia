@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesDetailedListCard
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.series.KomgaSeries

@@ -64,8 +64,8 @@ import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialog
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
 import io.github.snd_r.komelia.ui.series.BooksLayout.LIST

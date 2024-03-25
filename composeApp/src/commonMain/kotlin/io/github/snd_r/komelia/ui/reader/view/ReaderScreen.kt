@@ -56,13 +56,11 @@ class ReaderScreen(
             settingsState = vm,
             onSeriesBackClick = {
                 navigator replace MainScreen(
-                    rootNavigator = navigator,
                     SeriesScreen(book.seriesId)
                 )
             },
             onBookBackClick = {
                 navigator replace MainScreen(
-                    rootNavigator = navigator,
                     BookScreen(book.id)
                 )
 

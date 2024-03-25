@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.compose.LocalPlatformContext
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.ToasterState
@@ -49,6 +50,7 @@ fun MainView(
 ) {
     CustomTheme(windowHeight, windowWidth) {
         val focusManager = LocalFocusManager.current
+        val context = LocalPlatformContext.current
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -58,7 +60,7 @@ fun MainView(
 
             val viewModelFactory = remember { mutableStateOf<ViewModelFactory?>(null) }
             LaunchedEffect(Unit) {
-                viewModelFactory.value = createViewModelFactory(this)
+                viewModelFactory.value = createViewModelFactory(this, context)
             }
             val actualViewModelFactory = viewModelFactory.value
 

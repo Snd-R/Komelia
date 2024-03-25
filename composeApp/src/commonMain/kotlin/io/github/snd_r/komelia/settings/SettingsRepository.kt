@@ -15,7 +15,7 @@ interface SettingsRepository {
 
     fun getCardWidth(): Flow<Dp>
 
-    suspend fun putCardWidth(height: Dp)
+    suspend fun putCardWidth(cardWidth: Dp)
 
     fun getCurrentUser(): Flow<String>
 

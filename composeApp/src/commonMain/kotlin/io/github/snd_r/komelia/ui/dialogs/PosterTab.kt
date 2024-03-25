@@ -1,11 +1,9 @@
 package io.github.snd_r.komelia.ui.dialogs
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,8 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -35,28 +31,26 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.MultipleFilePicker
 import io.github.snd_r.komelia.image.ImageTypeDetector
+import io.github.snd_r.komelia.platform.ExternalDragAndDropArea
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.cards.ThumbnailEditCard
 import io.github.snd_r.komelia.ui.common.cards.ThumbnailUploadCard
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.ThumbnailToBeUploaded
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komelia.ui.platform.cursorForHand
 import io.github.snd_r.komga.book.KomgaBookThumbnail
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.series.KomgaSeriesThumbnail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.net.URI
 import java.nio.file.Path
 import kotlin.io.path.fileSize
-import kotlin.io.path.toPath
 import kotlin.math.roundToInt
 
 class PosterTab(private val state: PosterEditState) : DialogTab {
@@ -199,13 +193,10 @@ class PosterEditState {
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalLayoutApi::class)
-fun PosterEditContent(
-    posterState: PosterEditState
-) {
+@OptIn(ExperimentalLayoutApi::class)
+fun PosterEditContent(posterState: PosterEditState) {
     val coroutineScope = rememberCoroutineScope()
     var showFilePicker by remember { mutableStateOf(false) }
-    var isDragging by remember { mutableStateOf(false) }
 
     MultipleFilePicker(show = showFilePicker) { files ->
         if (files != null) {
@@ -214,28 +205,10 @@ fun PosterEditContent(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .sizeIn(minWidth = 500.dp, minHeight = 500.dp)
-            .fillMaxSize()
-            .background(
-                if (isDragging) MaterialTheme.colorScheme.secondary.copy(alpha = .5f)
-                else MaterialTheme.colorScheme.surface
-            ).onExternalDrag(
-                onDragStart = { isDragging = true },
-                onDragExit = { isDragging = false },
-                onDrag = {},
-                onDrop = { state ->
-                    val dragData = state.dragData
-                    if (dragData is DragData.FilesList) {
-                        val paths = dragData.readFiles().map { URI(it).toPath() }
-                        coroutineScope.launch { posterState.onThumbnailUpload(paths) }
-                    }
-//                    if (dragData is DragData.Image)
-                    isDragging = false
-                })
+    ExternalDragAndDropArea(
+        onFileUpload = { coroutineScope.launch { posterState.onThumbnailUpload(it) } },
+        modifier = Modifier.sizeIn(minWidth = 500.dp, minHeight = 500.dp).fillMaxSize()
     ) {
-
         Box(
             modifier = Modifier
                 .padding(bottom = 10.dp)
@@ -243,34 +216,7 @@ fun PosterEditContent(
                 .cursorForHand(),
             contentAlignment = Alignment.Center,
         ) {
-            val color = MaterialTheme.colorScheme.surfaceVariant
-            Canvas(
-                Modifier
-                    .height(100.dp)
-                    .fillMaxWidth()
-                    .clip(RectangleShape)
-            ) {
-                val step = 50.dp
-                val angleDegrees = 45f
-                val stepPx = step.toPx()
-                val stepsCount = (size.width / stepPx).roundToInt()
-                val actualStep = size.width / stepsCount
-                val dotSize = Size(width = actualStep / 2, height = size.height * 2)
-                for (i in -1..stepsCount) {
-                    val rect = Rect(
-                        offset = Offset(x = i * actualStep, y = (size.height - dotSize.height) / 2),
-                        size = dotSize,
-                    )
-                    rotate(angleDegrees, pivot = rect.center) {
-                        drawRect(
-                            color,
-                            topLeft = rect.topLeft,
-                            size = rect.size,
-                        )
-                    }
-                }
-            }
-
+            StripedBar(Modifier.height(100.dp).fillMaxWidth().clip(RectangleShape))
             Text(
                 "Choose an image - drag and drop",
                 textDecoration = TextDecoration.Underline,
@@ -292,7 +238,6 @@ fun PosterEditContent(
                 )
             }
 
-
             posterState.thumbnails.forEach { thumb ->
                 ThumbnailEditCard(
                     thumbnail = thumb,
@@ -303,7 +248,32 @@ fun PosterEditContent(
             }
 
         }
-
     }
 }
 
+
+@Composable
+private fun StripedBar(modifier: Modifier) {
+    val color = MaterialTheme.colorScheme.surfaceVariant
+    Canvas(modifier) {
+        val step = 50.dp
+        val angleDegrees = 45f
+        val stepPx = step.toPx()
+        val stepsCount = (size.width / stepPx).roundToInt()
+        val actualStep = size.width / stepsCount
+        val dotSize = Size(width = actualStep / 2, height = size.height * 2)
+        for (i in -1..stepsCount) {
+            val rect = Rect(
+                offset = Offset(x = i * actualStep, y = (size.height - dotSize.height) / 2),
+                size = dotSize,
+            )
+            rotate(angleDegrees, pivot = rect.center) {
+                drawRect(
+                    color,
+                    topLeft = rect.topLeft,
+                    size = rect.size,
+                )
+            }
+        }
+    }
+}

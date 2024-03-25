@@ -4,7 +4,6 @@ import io.github.snd_r.komelia.settings.SecretsRepository
 import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.runBlocking
 
 private const val rememberMeCookie = "remember-me"
 
@@ -14,12 +13,11 @@ class RememberMePersistingCookieStore(
 ) : CookiesStorage {
     private val delegate = AcceptAllCookiesStorage()
 
-    init {
+    suspend fun loadRememberMeCookie() {
         val url = URLBuilder(serverUrl.value).build()
-
         secretsRepository.getCookie(serverUrl.value)
             ?.let { parseServerSetCookieHeader(it) }
-            ?.let { runBlocking { delegate.addCookie(url, it) } }
+            ?.let { delegate.addCookie(url, it) }
     }
 
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {

@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.qos.logback.classic.spi.ILoggingEvent
 import io.github.snd_r.komelia.ui.common.CustomTheme
-import io.github.snd_r.komelia.ui.platform.HorizontalScrollbar
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.HorizontalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import kotlinx.coroutines.flow.SharedFlow
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

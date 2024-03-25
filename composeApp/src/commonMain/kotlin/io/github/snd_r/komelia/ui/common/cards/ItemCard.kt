@@ -18,7 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.AppTheme
-import io.github.snd_r.komelia.ui.platform.cursorForHand
+import io.github.snd_r.komelia.platform.cursorForHand
+
+const val defaultCardWidth = 240
 
 @Composable
 fun ItemCard(

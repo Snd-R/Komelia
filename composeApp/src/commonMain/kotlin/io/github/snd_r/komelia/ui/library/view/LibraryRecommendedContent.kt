@@ -29,7 +29,7 @@ import io.github.snd_r.komelia.ui.common.itemlist.BookCardSlider
 import io.github.snd_r.komelia.ui.common.itemlist.SeriesCardSlider
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.series.KomgaSeries

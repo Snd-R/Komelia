@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.platform
+package io.github.snd_r.komelia.platform
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
@@ -11,10 +11,6 @@ expect fun Modifier.onPointerEvent(
     pass: PointerEventPass = PointerEventPass.Main,
     onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
 ): Modifier
-
-//expect fun Modifier.onHover(
-//    onHover: () -> Unit
-//): Modifier
 
 expect fun Modifier.cursorForHorizontalResize(): Modifier
 

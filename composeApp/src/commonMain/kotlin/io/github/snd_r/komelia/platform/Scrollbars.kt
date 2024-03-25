@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.platform
+package io.github.snd_r.komelia.platform
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateFloatAsState

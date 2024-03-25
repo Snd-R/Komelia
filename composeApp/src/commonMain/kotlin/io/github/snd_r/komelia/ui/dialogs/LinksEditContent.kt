@@ -21,8 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
-import io.github.snd_r.komelia.ui.platform.ScrollBarConfig
-import io.github.snd_r.komelia.ui.platform.verticalScrollWithScrollbar
+import io.github.snd_r.komelia.platform.ScrollBarConfig
+import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komga.common.KomgaWebLink
 
 

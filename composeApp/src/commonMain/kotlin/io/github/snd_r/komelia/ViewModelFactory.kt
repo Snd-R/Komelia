@@ -60,8 +60,7 @@ class ViewModelFactory(
     private val secretsRepository: SecretsRepository,
     private val imageLoader: ImageLoader,
     private val imageLoaderContext: PlatformContext,
-
-) {
+    ) {
     private val defaultScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
@@ -337,4 +336,5 @@ class ViewModelFactory(
 
 expect suspend fun createViewModelFactory(
     scope: CoroutineScope,
+    context: PlatformContext
 ): ViewModelFactory

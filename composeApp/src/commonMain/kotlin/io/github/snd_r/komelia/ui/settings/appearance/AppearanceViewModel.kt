@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.settings.SettingsRepository
-import io.github.snd_r.komelia.settings.defaultCardWidth
+import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

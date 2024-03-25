@@ -37,13 +37,15 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
+import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komelia.ui.platform.VerticalScrollbar
-import io.github.snd_r.komelia.ui.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsTab
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
 import io.github.snd_r.komelia.ui.settings.appearance.AppearanceScreen
@@ -52,12 +54,13 @@ import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
 import kotlinx.coroutines.flow.SharedFlow
 
-class SettingsScreen(private val rootNavigator: Navigator) : Screen {
+class SettingsScreen() : Screen {
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val navigationViewModel = rememberScreenModel {
-            viewModelFactory.getSettingsNavigationViewModel(rootNavigator)
+            viewModelFactory.getSettingsNavigationViewModel(navigator)
         }
 
         Navigator(AccountSettingsTab()) { navigator ->
@@ -66,7 +69,7 @@ class SettingsScreen(private val rootNavigator: Navigator) : Screen {
                 navMenuContent = { SettingsNavigation(navigator, onLogout = navigationViewModel::logout) },
                 screenContent = { CurrentScreen() },
                 enableScroll = enableScroll,
-                onDismiss = { rootNavigator.pop() }
+                onDismiss = { navigator.pop() }
             )
         }
     }

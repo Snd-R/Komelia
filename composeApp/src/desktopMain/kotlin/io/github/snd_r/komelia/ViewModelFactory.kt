@@ -42,6 +42,7 @@ import kotlin.io.path.createDirectories
 
 actual suspend fun createViewModelFactory(
     scope: CoroutineScope,
+    context: PlatformContext
 ): ViewModelFactory {
     setLogLevel()
     VipsDecoder.load()
@@ -64,7 +65,7 @@ actual suspend fun createViewModelFactory(
         settingsRepository = settingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
-        imageLoaderContext = PlatformContext.INSTANCE
+        imageLoaderContext = context
     )
 }
 

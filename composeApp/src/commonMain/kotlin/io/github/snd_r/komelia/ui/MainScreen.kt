@@ -18,7 +18,6 @@ import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreen
 
 class MainScreen(
-    private val rootNavigator: Navigator,
     private val defaultScreen: Screen = DashboardScreen()
 ) : Screen {
 
@@ -50,7 +49,7 @@ class MainScreen(
                         onLibrariesClick = { navigator.replaceAll(LibraryScreen()) },
 
                         onLibraryClick = { navigator.replaceAll(LibraryScreen(it)) },
-                        onSettingsClick = { rootNavigator.push(SettingsScreen(rootNavigator)) },
+                        onSettingsClick = { navigator.parent!!.push(SettingsScreen()) },
                         taskQueueStatus = vm.komgaTaskQueueStatus.collectAsState().value
                     )
                     CurrentScreen()
