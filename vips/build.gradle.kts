@@ -1,7 +1,7 @@
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm")
     id("de.undercouch.download") version "5.6.0"
 }
 

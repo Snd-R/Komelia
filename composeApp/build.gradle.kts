@@ -67,8 +67,8 @@ kotlin {
             implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
             implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
 
-            implementation("io.github.dokar3:sonner:0.3.1")
-            implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha01")
+            implementation("io.github.dokar3:sonner:0.3.5")
+            implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha02")
 
             implementation("com.darkrockstudios:mpfilepicker:3.1.0")
 
