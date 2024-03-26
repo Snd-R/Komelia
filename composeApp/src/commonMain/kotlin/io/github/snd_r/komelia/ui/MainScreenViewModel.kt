@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+private val logger = KotlinLogging.logger(){}
 class MainScreenViewModel(
     private val libraryClient: KomgaLibraryClient,
     private val appNotifications: AppNotifications,
@@ -47,6 +49,8 @@ class MainScreenViewModel(
         private set
 
     fun toggleNavBar() {
+        logger.info { libraries }
+        logger.info { libraries.value }
         isNavBarOpen = !isNavBarOpen
     }
 

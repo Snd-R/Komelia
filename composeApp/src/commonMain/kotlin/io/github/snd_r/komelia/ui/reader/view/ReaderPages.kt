@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import coil3.annotation.ExperimentalCoilApi
 import coil3.request.ErrorResult
 import coil3.request.SuccessResult
-import io.github.snd_r.komelia.platform.CoilImage
+import io.github.snd_r.komelia.platform.ReaderImage
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.reader.Page
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
@@ -31,7 +31,7 @@ fun ReaderPages(
     Box(contentAlignment = Alignment.Center) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             pages.forEach {
-                ReaderImage(it, Modifier.weight(1f, false))
+                ReaderPage(it, Modifier.weight(1f, false))
 
             }
         }
@@ -40,18 +40,17 @@ fun ReaderPages(
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ReaderImage(
+fun ReaderPage(
     page: Page,
     modifier: Modifier
 ) {
-
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
     )
     {
         when (val result = page.imageResult) {
-            is SuccessResult -> CoilImage(result.image)
+            is SuccessResult -> ReaderImage(result.image)
             is ErrorResult -> Text("Error :${result.throwable.message}", color = MaterialTheme.colorScheme.error)
             null -> LoadingMaxSizeIndicator()
         }

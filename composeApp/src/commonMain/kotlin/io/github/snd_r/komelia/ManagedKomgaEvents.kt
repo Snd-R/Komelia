@@ -17,6 +17,8 @@ import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesDeleted
 import io.github.snd_r.komga.sse.KomgaEventSource
 import io.github.snd_r.komga.user.KomgaUser
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,13 +32,13 @@ private val logger = KotlinLogging.logger {}
 class ManagedKomgaEvents(
     authenticatedUser: StateFlow<KomgaUser?>,
     private val eventSource: KomgaEventSource,
-    private val scope: CoroutineScope,
     private val memoryCache: MemoryCache?,
     private val diskCache: DiskCache?,
 
     private val libraryClient: KomgaLibraryClient,
     private val librariesFlow: MutableStateFlow<List<KomgaLibrary>>
 ) {
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
         authenticatedUser.onEach { newUser ->

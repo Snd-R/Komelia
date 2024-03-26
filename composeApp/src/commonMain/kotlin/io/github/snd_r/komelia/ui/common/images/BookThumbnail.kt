@@ -7,11 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.size.Precision
 import io.github.snd_r.komelia.ui.LocalKomgaEvents
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookEvent
@@ -32,6 +34,7 @@ fun BookThumbnail(
             .data(requestData)
             .memoryCacheKey(bookId.value)
             .diskCacheKey(bookId.value)
+            .precision(Precision.EXACT)
             .crossfade(true)
             .build()
     }
@@ -54,6 +57,7 @@ fun BookThumbnail(
         modifier = modifier,
         placeholder = NoopPainter,
         contentScale = contentScale,
+        filterQuality = FilterQuality.None
     )
 
 }

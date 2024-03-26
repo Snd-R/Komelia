@@ -7,11 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.size.Precision
 import io.github.snd_r.komelia.ui.LocalKomgaEvents
 import io.github.snd_r.komga.collection.KomgaCollectionId
 import io.github.snd_r.komga.sse.KomgaEvent
@@ -33,6 +35,7 @@ fun CollectionThumbnail(
             .data(requestData)
             .memoryCacheKey(collectionId.value)
             .diskCacheKey(collectionId.value)
+            .precision(Precision.EXACT)
             .crossfade(true)
             .build()
     }
@@ -55,6 +58,7 @@ fun CollectionThumbnail(
         modifier = modifier,
         contentScale = contentScale,
 //        placeholder = NoopPainter
+        filterQuality = FilterQuality.None
     )
 }
 

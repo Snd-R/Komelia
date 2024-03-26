@@ -90,12 +90,12 @@ fun DescriptionChips(
         ) {
             chipValues.forEach {
                 MetadataChip(onClick = { onChipClick(it) }) {
-                    Text(it, fontSize = 12.sp, lineHeight = 0.sp)
+                    Text(it, style = MaterialTheme.typography.labelMedium)
                 }
             }
             secondaryValues?.filter { it !in chipValues }?.forEach {
                 MetadataChip(borderColor = MaterialTheme.colorScheme.primary, onClick = { onChipClick(it) }) {
-                    Text(it, fontSize = 12.sp, lineHeight = 0.sp)
+                    Text(it, style = MaterialTheme.typography.labelMedium)
                 }
             }
 

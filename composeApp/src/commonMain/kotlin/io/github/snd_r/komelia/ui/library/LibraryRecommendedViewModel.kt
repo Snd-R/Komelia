@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -38,14 +37,14 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class LibraryRecommendedViewModel(
-    private val library: StateFlow<KomgaLibrary>?,
     private val seriesClient: KomgaSeriesClient,
     private val bookClient: KomgaBookClient,
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
+    libraryFlow: Flow<KomgaLibrary?>?,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-
+    val library = libraryFlow?.stateIn(screenModelScope, Eagerly, null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     var keepReadingBooks = mutableStateListOf<KomgaBook>()
@@ -158,13 +157,13 @@ class LibraryRecommendedViewModel(
         komgaEvents.collect { event ->
             when (event) {
                 is BookEvent -> {
-                    if (library == null || event.libraryId == library.value.id) {
+                    if (library == null || event.libraryId == library.value?.id) {
                         reloadJobsFlow.tryEmit(Unit)
                     }
                 }
 
                 is SeriesEvent -> {
-                    if (library == null || event.libraryId == library.value.id) {
+                    if (library == null || event.libraryId == library.value?.id) {
                         reloadJobsFlow.tryEmit(Unit)
                     }
                 }

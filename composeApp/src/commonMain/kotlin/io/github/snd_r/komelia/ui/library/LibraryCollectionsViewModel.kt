@@ -25,22 +25,21 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class LibraryCollectionsViewModel(
-    val library: StateFlow<KomgaLibrary>?,
     private val collectionClient: KomgaCollectionClient,
     private val appNotifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
+    libraryFlow: Flow<KomgaLibrary?>?,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-
-    val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
+    val library = libraryFlow?.stateIn(screenModelScope, Eagerly, null)
+    val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
     var collections: List<KomgaCollection> by mutableStateOf(emptyList())
         private set
     var totalPages by mutableStateOf(1)
@@ -92,7 +91,7 @@ class LibraryCollectionsViewModel(
             if (totalCollections > pageSize) mutableState.value = Loading
 
             val pageRequest = KomgaPageRequest(page = page - 1, size = pageSize)
-            val libraryIds = if (library != null) listOf(library.value.id) else emptyList()
+            val libraryIds = if (library != null) listOf(requireNotNull(library.value?.id)) else emptyList()
             val collectionsPage = collectionClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest)
 
             currentPage = collectionsPage.number + 1

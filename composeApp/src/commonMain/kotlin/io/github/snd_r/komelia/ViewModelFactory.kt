@@ -44,15 +44,11 @@ import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesId
 import io.github.snd_r.komga.sse.KomgaEvent
 import io.github.snd_r.komga.user.KomgaUser
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.map
+
 
 class ViewModelFactory(
     private val komgaClientFactory: KomgaClientFactory,
@@ -60,15 +56,13 @@ class ViewModelFactory(
     private val secretsRepository: SecretsRepository,
     private val imageLoader: ImageLoader,
     private val imageLoaderContext: PlatformContext,
-    ) {
-    private val defaultScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+) {
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
 
     private val komgaEventSource = ManagedKomgaEvents(
         authenticatedUser = authenticatedUser,
         eventSource = komgaClientFactory.komgaEventSource(),
-        scope = defaultScope,
         memoryCache = imageLoader.memoryCache,
         diskCache = imageLoader.diskCache,
         libraryClient = komgaClientFactory.libraryClient(),
@@ -80,7 +74,7 @@ class ViewModelFactory(
         libraryId: KomgaLibraryId?,
     ): LibraryViewModel {
         return LibraryViewModel(
-            library = libraryId?.let { getLibrary(it) },
+            libraryFlow = libraryId?.let { getLibrary(it) },
             libraryClient = komgaClientFactory.libraryClient(),
             collectionClient = komgaClientFactory.collectionClient(),
             readListsClient = komgaClientFactory.readListClient(),
@@ -91,7 +85,7 @@ class ViewModelFactory(
 
     fun getLibraryRecommendationViewModel(libraryId: KomgaLibraryId?): LibraryRecommendedViewModel {
         return LibraryRecommendedViewModel(
-            library = libraryId?.let { getLibrary(it) },
+            libraryFlow = libraryId?.let { getLibrary(it) },
             seriesClient = komgaClientFactory.seriesClient(),
             bookClient = komgaClientFactory.bookClient(),
             appNotifications = appNotifications,
@@ -137,10 +131,10 @@ class ViewModelFactory(
 
     fun getSeriesBrowseViewModel(libraryId: KomgaLibraryId?): SeriesListViewModel {
         return SeriesListViewModel(
-            library = libraryId?.let { getLibrary(it) },
             seriesClient = komgaClientFactory.seriesClient(),
             notifications = appNotifications,
             komgaEvents = komgaEventSource.events,
+            libraryFlow = libraryId?.let { getLibrary(it) },
             cardWidthFlow = settingsRepository.getCardWidth()
         )
     }
@@ -280,20 +274,20 @@ class ViewModelFactory(
 
     fun getLibraryCollectionsViewModel(libraryId: KomgaLibraryId?): LibraryCollectionsViewModel {
         return LibraryCollectionsViewModel(
-            library = libraryId?.let { getLibrary(it) },
             collectionClient = komgaClientFactory.collectionClient(),
             appNotifications = appNotifications,
             events = komgaEventSource.events,
+            libraryFlow = libraryId?.let { getLibrary(it) },
             cardWidthFlow = settingsRepository.getCardWidth(),
         )
     }
 
     fun getLibraryReadListsViewModel(libraryId: KomgaLibraryId?): LibraryReadListsViewModel {
         return LibraryReadListsViewModel(
-            library = libraryId?.let { getLibrary(it) },
             readListClient = komgaClientFactory.readListClient(),
             appNotifications = appNotifications,
             komgaEvents = komgaEventSource.events,
+            libraryFlow = libraryId?.let { getLibrary(it) },
             cardWidthFlow = settingsRepository.getCardWidth(),
         )
 
@@ -326,15 +320,9 @@ class ViewModelFactory(
 
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
 
-    private fun getLibrary(id: KomgaLibraryId): StateFlow<KomgaLibrary>? {
-        val library = libraries.value.firstOrNull { it.id == id } ?: return null
-
-        return libraries.mapNotNull { libraries -> libraries.firstOrNull { it.id == id } }
-            .stateIn(defaultScope, SharingStarted.Eagerly, library)
+    private fun getLibrary(id: KomgaLibraryId): Flow<KomgaLibrary?> {
+        return libraries.map { libraries -> libraries.firstOrNull { it.id == id } }
     }
 }
 
-expect suspend fun createViewModelFactory(
-    scope: CoroutineScope,
-    context: PlatformContext
-): ViewModelFactory
+expect suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory

@@ -41,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalUriHandler
@@ -49,6 +50,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.ExpandableText
@@ -64,8 +67,6 @@ import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialog
-import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
 import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
@@ -212,9 +213,10 @@ fun Series(
                 modifier = Modifier
                     .heightIn(min = 100.dp, max = 400.dp)
                     .widthIn(min = 300.dp, max = 500.dp)
-                    .animateContentSize()
+                    .animateContentSize(),
+                contentScale = ContentScale.Fit
             )
-            SeriesInfo(series, Modifier.weight(1f, false).widthIn(min = 500.dp))
+            SeriesInfo(series, Modifier.weight(1f, false).widthIn(min = 200.dp))
         }
         SeriesInfoLower(series)
     }
@@ -227,7 +229,7 @@ fun SeriesInfo(
 ) {
     val contentSize = when (LocalWindowSize.current) {
         WindowSize.COMPACT, WindowSize.MEDIUM -> Modifier.padding(10.dp, 0.dp)
-        WindowSize.EXPANDED -> Modifier.padding(20.dp, 0.dp).fillMaxSize(0.8f)
+        WindowSize.EXPANDED -> Modifier.padding(20.dp, 0.dp).fillMaxSize()
         WindowSize.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.7f)
     }
 
@@ -244,7 +246,7 @@ fun SeriesInfo(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SuggestionChip(
                 onClick = {},
-                label = { Text(series.metadata.status.name, lineHeight = 0.sp) },
+                label = { Text(series.metadata.status.name) },
                 border = null,
                 colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = when (series.metadata.status) {

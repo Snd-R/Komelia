@@ -7,4 +7,4 @@ import coil3.annotation.ExperimentalCoilApi
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-expect fun CoilImage(image: Image)
+expect fun ReaderImage(image: Image)

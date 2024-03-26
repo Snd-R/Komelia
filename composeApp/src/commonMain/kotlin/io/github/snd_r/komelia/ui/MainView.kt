@@ -6,9 +6,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
@@ -16,13 +15,13 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.PlatformContext
 import coil3.compose.LocalPlatformContext
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.ToasterState
 import com.dokar.sonner.listenMany
 import com.dokar.sonner.rememberToasterState
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ViewModelFactory
 import io.github.snd_r.komelia.createViewModelFactory
@@ -31,8 +30,11 @@ import io.github.snd_r.komelia.ui.common.CustomTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komga.sse.KomgaEvent
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.*
 
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
@@ -40,7 +42,16 @@ val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set"
 val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Kev events are not set") }
 
-private val logger = KotlinLogging.logger {}
+private object ViewModelFactoryHolder {
+    val instance: MutableStateFlow<ViewModelFactory?> = MutableStateFlow(null)
+    private val mutex = Mutex()
+
+    suspend fun createInstance(context: PlatformContext) {
+        mutex.withLock {
+            if (instance.value == null) instance.value = createViewModelFactory(context)
+        }
+    }
+}
 
 @Composable
 fun MainView(
@@ -58,12 +69,12 @@ fun MainView(
         ) {
             val notificationToaster = rememberToasterState()
 
-            val viewModelFactory = remember { mutableStateOf<ViewModelFactory?>(null) }
+            val viewModelFactory = ViewModelFactoryHolder.instance.collectAsState()
             LaunchedEffect(Unit) {
-                viewModelFactory.value = createViewModelFactory(this, context)
+                ViewModelFactoryHolder.createInstance(context)
             }
-            val actualViewModelFactory = viewModelFactory.value
 
+            val actualViewModelFactory = viewModelFactory.value
             if (actualViewModelFactory != null) {
                 CompositionLocalProvider(
                     LocalViewModelFactory provides actualViewModelFactory,

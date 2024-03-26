@@ -11,7 +11,7 @@ import coil3.annotation.ExperimentalCoilApi
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-actual fun CoilImage(image: Image) {
+actual fun ReaderImage(image: Image) {
     val context = LocalContext.current
     Image(
         bitmap = image.asDrawable(context.resources).toBitmap().asImageBitmap(),

@@ -42,6 +42,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.ScrollBarConfig
+import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.common.LocalWindowSize
@@ -51,9 +54,6 @@ import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialog
-import io.github.snd_r.komelia.platform.ScrollBarConfig
-import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.library.KomgaLibrary
 

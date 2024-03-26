@@ -28,21 +28,24 @@ import io.github.snd_r.komga.sse.KomgaEvent.ReadListAdded
 import io.github.snd_r.komga.sse.KomgaEvent.ReadListDeleted
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(
-    val library: StateFlow<KomgaLibrary>?,
+    libraryFlow: Flow<KomgaLibrary?>?,
     private val libraryClient: KomgaLibraryClient,
     private val collectionClient: KomgaCollectionClient,
     private val readListsClient: KomgaReadListClient,
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
+    val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
 
     var currentTab by mutableStateOf(BROWSE)
 

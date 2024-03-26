@@ -9,7 +9,7 @@ import coil3.annotation.ExperimentalCoilApi
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-actual fun CoilImage(image: Image) {
+actual fun ReaderImage(image: Image) {
     Image(
         bitmap = image.toBitmap().asComposeImageBitmap(),
         contentDescription = null,

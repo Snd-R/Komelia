@@ -27,29 +27,27 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.cookies.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 
-actual suspend fun createViewModelFactory(
-    scope: CoroutineScope,
-    context: Context,
-): ViewModelFactory {
+private val stateFlowScope = CoroutineScope(Dispatchers.Default)
+actual suspend fun createViewModelFactory(context: Context): ViewModelFactory {
 
     val datastore = DataStoreFactory.create(
         serializer = AppSettingsSerializer,
         produceFile = { context.dataStoreFile("settings.pb") },
         corruptionHandler = null,
         migrations = listOf(),
-        scope = scope
     )
 
     val settingsRepository = AndroidSettingsRepository(datastore)
     val secretsRepository = AndroidSecretsRepository(datastore)
 
-    val baseUrl = settingsRepository.getServerUrl().stateIn(scope)
+    val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
 
     val okHttpClient = createOkHttpClient()
     val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository).also { it.loadRememberMeCookie() }
@@ -70,7 +68,7 @@ actual suspend fun createViewModelFactory(
         settingsRepository = settingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
-        imageLoaderContext = context
+        imageLoaderContext = context,
     )
 }
 

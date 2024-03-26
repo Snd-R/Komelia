@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -47,13 +46,13 @@ import kotlinx.coroutines.launch
 private val logger = KotlinLogging.logger {}
 
 class SeriesListViewModel(
-    val library: StateFlow<KomgaLibrary>?,
     private val seriesClient: KomgaSeriesClient,
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
+    libraryFlow: Flow<KomgaLibrary?>?,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
-
+    val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
     var series by mutableStateOf<List<KomgaSeries>>(emptyList())
         private set
@@ -148,7 +147,7 @@ class SeriesListViewModel(
     }
 
     private fun onSeriesChange(event: SeriesEvent) {
-        if (library == null || event.libraryId == library.value.id) {
+        if (library == null || event.libraryId == library.value?.id) {
             reloadJobsFlow.tryEmit(Unit)
         }
     }

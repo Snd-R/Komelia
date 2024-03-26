@@ -31,6 +31,7 @@ import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.cookies.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import okhttp3.OkHttpClient
@@ -40,20 +41,20 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 
-actual suspend fun createViewModelFactory(
-    scope: CoroutineScope,
-    context: PlatformContext
-): ViewModelFactory {
+private val stateFlowScope = CoroutineScope(Dispatchers.Default)
+actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory {
     setLogLevel()
     VipsDecoder.load()
 
     val settingsRepository = createSettingsRepository()
     val secretsRepository = KeyringSecretsRepository()
 
-    val baseUrl = settingsRepository.getServerUrl().stateIn(scope)
+    val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
 
     val okHttpClient = createOkHttpClient()
     val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
+    cookiesStorage.loadRememberMeCookie()
+
     val ktorClient = createKtorClient(baseUrl, okHttpClient, cookiesStorage)
     val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, okHttpClient, cookiesStorage)
 
@@ -65,7 +66,7 @@ actual suspend fun createViewModelFactory(
         settingsRepository = settingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
-        imageLoaderContext = context
+        imageLoaderContext = context,
     )
 }
 

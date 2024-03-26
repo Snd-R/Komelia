@@ -57,10 +57,10 @@ import kotlinx.coroutines.flow.SharedFlow
 class SettingsScreen() : Screen {
     @Composable
     override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
+        val parentNavigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val navigationViewModel = rememberScreenModel {
-            viewModelFactory.getSettingsNavigationViewModel(navigator)
+            viewModelFactory.getSettingsNavigationViewModel(parentNavigator)
         }
 
         Navigator(AccountSettingsTab()) { navigator ->
@@ -69,7 +69,7 @@ class SettingsScreen() : Screen {
                 navMenuContent = { SettingsNavigation(navigator, onLogout = navigationViewModel::logout) },
                 screenContent = { CurrentScreen() },
                 enableScroll = enableScroll,
-                onDismiss = { navigator.pop() }
+                onDismiss = { parentNavigator.pop() }
             )
         }
     }
