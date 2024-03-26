@@ -111,9 +111,9 @@ kotlin {
             implementation("com.github.javakeyring:java-keyring:1.0.4")
             implementation(project(":vips"))
 
-//            implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
-//            runtimeOnly("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
-//            runtimeOnly("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
+            implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
+            runtimeOnly("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
+            runtimeOnly("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
         }
     }
 }

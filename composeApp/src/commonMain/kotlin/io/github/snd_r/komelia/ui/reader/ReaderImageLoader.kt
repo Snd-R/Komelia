@@ -77,7 +77,10 @@ class ReaderImageLoader(
                 val maxPageSize = scaledPageSizes[index]
                 val request = ImageRequest.Builder(imageLoaderContext)
                     .data(page)
-                    .size(width = maxPageSize.width, height = maxPageSize.height)
+                    .size(
+                        if (scaleType == LayoutScaleType.ORIGINAL) Size.ORIGINAL
+                        else Size(width = maxPageSize.width, height = maxPageSize.height)
+                    )
                     .memoryCacheKeyExtra("size_cache", coilCacheKeyFor(maxPageSize, allowUpsample))
                     .precision(Precision.EXACT)
                     .build()
@@ -212,6 +215,12 @@ class ReaderImageLoader(
 
     private fun coilCacheKeyFor(pageMaxSize: IntSize, allowUpsample: Boolean): String {
         return "${pageMaxSize}_upsampled-${allowUpsample}"
+    }
+
+    fun clearCache() {
+        imageLoader.diskCache?.clear()
+        imageLoader.memoryCache?.clear()
+        imageLoadJobs.invalidateAll()
     }
 
 }

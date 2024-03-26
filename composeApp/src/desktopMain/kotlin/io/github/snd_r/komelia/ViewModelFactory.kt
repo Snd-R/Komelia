@@ -9,7 +9,8 @@ import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
-import io.github.snd_r.komelia.image.VipsImageDecoder
+import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.image.DesktopDecoder
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
 import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
@@ -50,6 +51,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
     val secretsRepository = KeyringSecretsRepository()
 
     val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
+    val decoderType = settingsRepository.getDecoderType().stateIn(stateFlowScope)
 
     val okHttpClient = createOkHttpClient()
     val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
@@ -58,7 +60,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
     val ktorClient = createKtorClient(baseUrl, okHttpClient, cookiesStorage)
     val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, okHttpClient, cookiesStorage)
 
-    val coil = createCoil(baseUrl, ktorClient)
+    val coil = createCoil(baseUrl, ktorClient, decoderType)
     SingletonImageLoader.setSafe { coil }
 
     return ViewModelFactory(
@@ -122,7 +124,11 @@ private fun createKomgaClientFactory(
         .build()
 }
 
-private fun createCoil(url: StateFlow<String>, ktorClient: HttpClient): ImageLoader {
+private fun createCoil(
+    url: StateFlow<String>,
+    ktorClient: HttpClient,
+    decoderState: StateFlow<SamplerType>
+): ImageLoader {
 
     return ImageLoader.Builder(PlatformContext.INSTANCE)
         .components {
@@ -134,7 +140,9 @@ private fun createCoil(url: StateFlow<String>, ktorClient: HttpClient): ImageLoa
             add(KomgaSeriesThumbnailMapper(url))
             add(PathMapper())
 //            add(DesktopImageDecoder.Factory())
-            add(VipsImageDecoder.Factory())
+//            add(VipsImageDecoder.Factory())
+//            add(SkiaImageDecoder.Factory())
+            add(DesktopDecoder.Factory(decoderState))
             add(KtorNetworkFetcherFactory(httpClient = ktorClient))
         }
         .memoryCache(

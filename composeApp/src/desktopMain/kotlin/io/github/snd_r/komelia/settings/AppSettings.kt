@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.settings
 
+import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout.SINGLE_PAGE
@@ -15,8 +16,8 @@ data class AppSettings(
     val user: UserSettings = UserSettings(),
     val appearance: AppearanceSettings = AppearanceSettings(),
     val reader: ReaderSettings = ReaderSettings(),
-
-    )
+    val decoder: DecoderSettings = DecoderSettings()
+)
 
 @Serializable
 data class ServerSettings(
@@ -39,4 +40,9 @@ data class ReaderSettings(
     val upsample: Boolean = false,
     val readingDirection: ReadingDirection = LEFT_TO_RIGHT,
     val pageLayout: PageDisplayLayout = SINGLE_PAGE
+)
+
+@Serializable
+data class DecoderSettings(
+    val type: SamplerType = SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
 )

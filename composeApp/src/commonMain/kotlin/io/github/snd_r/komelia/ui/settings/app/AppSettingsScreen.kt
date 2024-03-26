@@ -1,20 +1,22 @@
-package io.github.snd_r.komelia.ui.settings.appearance
+package io.github.snd_r.komelia.ui.settings.app
 
 import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 
-class AppearanceScreen : Screen {
+class AppSettingsScreen : Screen {
 
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getAppearanceViewModel() }
 
-        AppearanceContent(
+        AppSettingsContent(
             cardWidth = vm.cardWidth,
-            onCardWidthChange = vm::onCardWidthChange
+            onCardWidthChange = vm::onCardWidthChange,
+            decoder = vm.decoder,
+            onDecoderTypeChange = vm::onDecoderChange
         )
     }
 }

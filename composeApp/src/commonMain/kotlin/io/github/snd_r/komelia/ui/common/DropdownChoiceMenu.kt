@@ -40,32 +40,36 @@ fun <T> DropdownChoiceMenu(
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
+    Surface {
+        ExposedDropdownMenuBox(
+            expanded = isExpanded,
+            onExpandedChange = { isExpanded = it },
 //        modifier = modifier
-    ) {
-        InputField(
-            value = selectedOption.toString(),
-            modifier = Modifier
-                .menuAnchor()
-                .then(modifier),
-            label = label,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-            color = inputFieldColor,
-            contentPadding = contentPadding
-        )
+        ) {
+            InputField(
+                value = selectedOption.toString(),
+                modifier = Modifier
+                    .menuAnchor()
+                    .then(modifier),
+                label = label,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                color = inputFieldColor,
+                contentPadding = contentPadding
+            )
 
-        ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-            options.forEach {
-                DropdownMenuItem(
-                    text = { Text(it.toString()) },
-                    onClick = {
-                        onOptionChange(it)
-                        isExpanded = false
-                    }
-                )
+            ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
+
+                options.forEach {
+                    DropdownMenuItem(
+                        text = { Text(it.toString()) },
+                        onClick = {
+                            onOptionChange(it)
+                            isExpanded = false
+                        }, modifier = Modifier.cursorForHand()
+                    )
+                }
             }
+
         }
     }
 }

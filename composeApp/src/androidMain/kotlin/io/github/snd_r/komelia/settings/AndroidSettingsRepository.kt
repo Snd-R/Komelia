@@ -3,10 +3,12 @@ package io.github.snd_r.komelia.settings
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
+import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
 
@@ -115,5 +117,12 @@ class AndroidSettingsRepository(
                 reader = reader.copy { this.pageLayout = PBPageDisplayLayout.valueOf(pageLayout.name) }
             }
         }
+    }
+
+    override fun getDecoderType(): Flow<SamplerType> {
+        return flowOf(SamplerType.DEFAULT)
+    }
+
+    override suspend fun putDecoderType(type: SamplerType) {
     }
 }

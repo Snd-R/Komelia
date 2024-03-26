@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.image
 
-/*
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asCoilImage
@@ -22,7 +21,6 @@ import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ColorInfo
 import org.jetbrains.skia.ColorType
-import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
 import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage
@@ -32,7 +30,7 @@ import kotlin.time.measureTimedValue
 private val logger = KotlinLogging.logger {}
 
 @OptIn(ExperimentalCoilApi::class)
-class DesktopImageDecoder(
+class ImageIODecoder(
     private val source: ImageSource,
     private val options: Options,
 ) : Decoder {
@@ -42,46 +40,12 @@ class DesktopImageDecoder(
         return imageIoResample(bytes, options)
     }
 
-    private fun skiaDecode(bytes: ByteArray): DecodeResult {
-        logger.info { "Using Skia Decoder" }
-        val result = measureTimedValue {
-            val image = Image.makeFromEncoded(bytes)
-            val bitmap = image.toBitmap()
-            bitmap.setImmutable()
-            DecodeResult(
-                image = bitmap.asCoilImage(),
-                isSampled = false,
-            )
-        }
-        logger.info { "Time spend ${result.duration}" }
-        return result.value
-    }
-
-    private fun imageIoDecode(bytes: ByteArray): DecodeResult {
-        logger.info { "Using ImageIO Decoder" }
-        val result = measureTimedValue {
-            val image = ImageIO.read(bytes.inputStream())
-            val bitmap = image.toBitmap()
-//            bitmap.setImmutable()
-            DecodeResult(
-                image = bitmap.asCoilImage(),
-                isSampled = false,
-            )
-        }
-        logger.info { "Time spent ${result.duration}" }
-        return result.value
-    }
-
     private fun imageIoResample(bytes: ByteArray, options: Options): DecodeResult {
         val result = measureTimedValue {
             val image = ImageIO.read(bytes.inputStream())
 
             val srcWidth = image.width
             val srcHeight = image.height
-
-            val optionsWidth = options.size.widthPx(options.scale) { srcWidth }
-            val optionsHeight = options.size.heightPx(options.scale) { srcHeight }
-
             var multiplier = DecodeUtils.computeSizeMultiplier(
                 srcWidth = srcWidth,
                 srcHeight = srcHeight,
@@ -98,10 +62,6 @@ class DesktopImageDecoder(
 
             val dstWidth = (multiplier * srcWidth).toInt()
             val dstHeight = (multiplier * srcHeight).toInt()
-            logger.info {
-                "scale ${options.scale} options dimensions $optionsWidth x $optionsHeight\n" +
-                        "scale dimensions $dstWidth x $dstHeight"
-            }
 
             val resampled = ResampleOp(dstWidth, dstHeight, ResampleOp.FILTER_LANCZOS)
                 .filter(image, null)
@@ -117,15 +77,6 @@ class DesktopImageDecoder(
         logger.info { "Time spent ${result.duration}" }
 
         return result.value
-    }
-
-    private fun Image.toBitmap(): Bitmap {
-        val bitmap = Bitmap()
-        bitmap.allocPixels(ImageInfo.makeN32(width, height, ColorAlphaType.PREMUL))
-        val canvas = org.jetbrains.skia.Canvas(bitmap)
-        canvas.drawImage(this, 0f, 0f)
-        bitmap.setImmutable()
-        return bitmap
     }
 
     fun BufferedImage.toBitmap(): Bitmap {
@@ -207,10 +158,9 @@ class DesktopImageDecoder(
             options: Options,
             imageLoader: ImageLoader,
         ): Decoder {
-            return DesktopImageDecoder(result.source, options)
+            return ImageIODecoder(result.source, options)
         }
     }
 }
 
 
-*/

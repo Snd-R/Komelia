@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -34,10 +37,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import coil3.annotation.ExperimentalCoilApi
+import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
-import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReaderPageState
@@ -67,7 +71,8 @@ fun SettingsMenu(
                 .pointerInput(Unit) {}
                 .width(350.dp)
                 .padding(20.dp)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             SettingsContent(
@@ -79,6 +84,8 @@ fun SettingsMenu(
                 onSeriesPress = onSeriesPress,
                 onBookClick = onBookClick
             )
+
+            Spacer(Modifier.height(30.dp))
 
         }
     }
@@ -154,6 +161,16 @@ private fun ColumnScope.SettingsContent(
             )
         }
     }
+    val decoder = settingsState.decoder
+    if (decoder != null)
+        DropdownChoiceMenu(
+            selectedOption = decoder,
+            options = SamplerType.entries,
+            onOptionChange = settingsState::onDecoderChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Image Decoder/Sampler") },
+            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+        )
 
     HorizontalDivider(Modifier.padding(top = 60.dp))
 

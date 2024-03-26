@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.settings.ActorMessage.Transform
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
@@ -122,6 +123,24 @@ class FilesystemSettingsRepository(
             settings.copy(
                 reader = settings.reader.copy(
                     pageLayout = pageLayout
+                )
+            )
+        })
+
+        ack.await()
+    }
+
+    override fun getDecoderType(): Flow<SamplerType> {
+        return actor.getState().map { it.decoder.type }
+    }
+
+    override suspend fun putDecoderType(type: SamplerType) {
+        val ack = CompletableDeferred<AppSettings>()
+
+        actor.send(Transform(ack) { settings ->
+            settings.copy(
+                decoder = settings.decoder.copy(
+                    type = type
                 )
             )
         })

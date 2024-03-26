@@ -16,6 +16,6 @@ actual fun ReaderImage(image: Image) {
     Image(
         bitmap = image.asDrawable(context.resources).toBitmap().asImageBitmap(),
         contentDescription = null,
-        filterQuality = FilterQuality.High
+        filterQuality = FilterQuality.None
     )
 }

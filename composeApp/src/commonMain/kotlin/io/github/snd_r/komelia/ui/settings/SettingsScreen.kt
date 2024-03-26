@@ -48,7 +48,7 @@ import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsTab
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
-import io.github.snd_r.komelia.ui.settings.appearance.AppearanceScreen
+import io.github.snd_r.komelia.ui.settings.app.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
@@ -178,9 +178,9 @@ fun SettingsNavigation(navigator: Navigator, onLogout: () -> Unit) {
 
         Text("App Settings")
         NavigationButton(
-            label = "Appearance",
-            onClick = { navigator.replaceAll(AppearanceScreen()) },
-            isSelected = currentTab is AppearanceScreen
+            label = "General",
+            onClick = { navigator.replaceAll(AppSettingsScreen()) },
+            isSelected = currentTab is AppSettingsScreen
         )
 
         HorizontalDivider(Modifier.padding(vertical = 10.dp))

@@ -14,6 +14,7 @@ import coil3.request.ImageResult
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
@@ -84,6 +85,8 @@ class HorizontalPagesReaderViewModel(
         private set
     override var allowUpsample: Boolean by mutableStateOf(false)
         private set
+    override var decoder: SamplerType? by mutableStateOf(null)
+        private set
 
     private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var imageLoadJobs: Map<SpreadIndex, SpreadImageLoadJob> = emptyMap()
@@ -98,6 +101,7 @@ class HorizontalPagesReaderViewModel(
             scaleType = settingsRepository.getReaderScaleType().first()
             readingDirection = settingsRepository.getReaderReadingDirection().first()
             allowUpsample = settingsRepository.getReaderUpsample().first()
+            decoder = settingsRepository.getDecoderType().first()
 
             loadBook(bookId)
         }
@@ -475,12 +479,18 @@ class HorizontalPagesReaderViewModel(
         appNotifications.add(AppNotification.Normal("Changed reading direction to $readingDirection"))
     }
 
+    override fun onDecoderChange(type: SamplerType) {
+        this.decoder = type
+        readerImageLoader.clearCache()
+        loadPage(currentSpreadIndex.value)
+        screenModelScope.launch { settingsRepository.putDecoderType(type) }
+    }
+
     private fun spreadIndexOf(page: PageMetadata): SpreadIndex {
         return pageSpreads.value.indexOfFirst { spread ->
             spread.any { it.pageNumber == page.pageNumber }
         }
     }
-
 
 }
 
@@ -547,6 +557,7 @@ interface ReaderSettingsState {
     val scaleType: LayoutScaleType
     val allowUpsample: Boolean
     val readingDirection: ReadingDirection
+    val decoder: SamplerType?
 
     fun onLayoutChange(layout: PageDisplayLayout)
     fun onLayoutCycle()
@@ -558,6 +569,7 @@ interface ReaderSettingsState {
     fun onAllowUpsampleChange(upsample: Boolean)
 
     fun onReadingDirectionChange(readingDirection: ReadingDirection)
+    fun onDecoderChange(type: SamplerType)
 }
 
 interface ReaderPageState {

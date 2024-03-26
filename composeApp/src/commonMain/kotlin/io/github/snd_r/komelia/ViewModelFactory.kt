@@ -28,7 +28,7 @@ import io.github.snd_r.komelia.ui.series.SeriesListViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
-import io.github.snd_r.komelia.ui.settings.appearance.AppearanceViewModel
+import io.github.snd_r.komelia.ui.settings.app.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
@@ -267,8 +267,8 @@ class ViewModelFactory(
         )
     }
 
-    fun getAppearanceViewModel(): AppearanceViewModel {
-        return AppearanceViewModel(settingsRepository)
+    fun getAppearanceViewModel(): AppSettingsViewModel {
+        return AppSettingsViewModel(settingsRepository, imageLoader)
     }
 
 
