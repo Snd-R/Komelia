@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.ui.search.SearchBar
@@ -15,10 +16,11 @@ import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.series.KomgaSeriesId
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppBar(
-    onMenuButtonPress: () -> Unit,
+    onMenuButtonPress: suspend () -> Unit,
     query: String,
     onQueryChange: (String) -> Unit,
     isLoading: Boolean,
@@ -52,13 +54,14 @@ fun AppBar(
 
 @Composable
 fun NavBarButton(
-    onMenuButtonPress: () -> Unit,
+    onMenuButtonPress: suspend () -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     Box(
         contentAlignment = Alignment.CenterStart
     ) {
         IconButton(
-            onClick = onMenuButtonPress,
+            onClick = { coroutineScope.launch { onMenuButtonPress() } },
         ) {
             Icon(
                 Icons.Rounded.Menu,

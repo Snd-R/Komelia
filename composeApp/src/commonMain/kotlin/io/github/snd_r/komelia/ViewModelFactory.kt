@@ -3,7 +3,6 @@ package io.github.snd_r.komelia
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
-import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.MainScreenViewModel
@@ -95,7 +94,7 @@ class ViewModelFactory(
         )
     }
 
-    fun getNavigationViewModel(navigator: Navigator, width: WindowWidth): MainScreenViewModel {
+    fun getNavigationViewModel(navigator: Navigator): MainScreenViewModel {
         return MainScreenViewModel(
             libraryClient = komgaClientFactory.libraryClient(),
             appNotifications = appNotifications,
@@ -108,7 +107,6 @@ class ViewModelFactory(
                 libraries = libraries
             ),
             libraries = libraries,
-            width = width
         )
     }
 

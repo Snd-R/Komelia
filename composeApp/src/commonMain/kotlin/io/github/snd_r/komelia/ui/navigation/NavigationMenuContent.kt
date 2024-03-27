@@ -61,7 +61,6 @@ import io.github.snd_r.komga.sse.KomgaEvent.TaskQueueStatus
 
 @Composable
 fun NavBarContent(
-    isOpen: Boolean,
     currentScreen: Screen,
     libraries: List<KomgaLibrary>,
     libraryActions: LibraryMenuActions,
@@ -71,7 +70,6 @@ fun NavBarContent(
     onSettingsClick: () -> Unit,
     taskQueueStatus: TaskQueueStatus?,
 ) {
-    if (isOpen) {
         Surface(Modifier.width(230.dp)) {
             NavMenu(
                 currentScreen = currentScreen,
@@ -88,7 +86,6 @@ fun NavBarContent(
                 }
             }
         }
-    }
 }
 
 @Composable

@@ -1,14 +1,11 @@
 package io.github.snd_r.komelia.ui
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
@@ -31,8 +28,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-private val logger = KotlinLogging.logger() {}
-
 class MainScreenViewModel(
     private val libraryClient: KomgaLibraryClient,
     private val appNotifications: AppNotifications,
@@ -40,7 +35,6 @@ class MainScreenViewModel(
     private val komgaEvents: SharedFlow<KomgaEvent>,
     val searchBarState: SearchBarState,
     val libraries: StateFlow<List<KomgaLibrary>>,
-    width: WindowWidth
 ) : ScreenModel {
 
     init {
@@ -48,11 +42,12 @@ class MainScreenViewModel(
     }
 
     val komgaTaskQueueStatus = MutableStateFlow<TaskQueueStatus?>(null)
-    var isNavBarOpen by mutableStateOf(width == WindowWidth.FULL)
-        private set
 
-    fun toggleNavBar() {
-        isNavBarOpen = !isNavBarOpen
+    val navBarState = DrawerState(DrawerValue.Closed)
+
+    suspend fun toggleNavBar() {
+        if (navBarState.currentValue == DrawerValue.Closed) navBarState.open()
+        else navBarState.close()
     }
 
     fun getLibraryActions(): LibraryMenuActions {

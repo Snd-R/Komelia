@@ -1,9 +1,12 @@
 package io.github.snd_r.komelia.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.DrawerValue.Closed
+import androidx.compose.material3.DrawerValue.Open
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -29,7 +32,15 @@ class MainScreen(
         val width = LocalWindowWidth.current
 
         Navigator(defaultScreen) { navigator ->
-            val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel(navigator, width) }
+            val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel(navigator) }
+
+            LaunchedEffect(width) {
+                when (width) {
+                    FULL -> vm.navBarState.snapTo(Open)
+                    else -> vm.navBarState.snapTo(Closed)
+                }
+            }
+
             Column {
                 AppBar(
                     onMenuButtonPress = { vm.toggleNavBar() },
@@ -44,26 +55,34 @@ class MainScreen(
                 )
 
                 when (width) {
+                    // is not working properly https://issuetracker.google.com/issues/218286829#comment6
+//                    FULL -> DismissibleNavigationDrawer(
+//                        drawerState = vm.navBarState,
+//                        drawerContent = { NavBar(vm, navigator) },
+//                        content = { CurrentScreen() }
+//                    )
                     FULL -> Row {
-                        NavBar(vm, navigator)
+                        if (vm.navBarState.targetValue == Open) NavBar(vm, navigator)
                         CurrentScreen()
                     }
 
-                    else -> Box {
-                        CurrentScreen()
-                        NavBar(vm, navigator)
-                    }
+                    else -> ModalNavigationDrawer(
+                        drawerState = vm.navBarState,
+                        drawerContent = { NavBar(vm, navigator) },
+                        content = { CurrentScreen() }
+                    )
+
+
                 }
             }
-
         }
+
     }
 
     @Composable
     private fun NavBar(vm: MainScreenViewModel, navigator: Navigator) {
         NavBarContent(
             currentScreen = navigator.lastItem,
-            isOpen = vm.isNavBarOpen,
             libraries = vm.libraries.collectAsState().value,
             libraryActions = vm.getLibraryActions(),
             onHomeClick = { navigator.replaceAll(DashboardScreen()) },
