@@ -24,13 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.qos.logback.classic.spi.ILoggingEvent
-import io.github.snd_r.komelia.ui.common.CustomTheme
 import io.github.snd_r.komelia.platform.HorizontalScrollbar
 import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.coroutines.flow.SharedFlow
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -39,11 +38,9 @@ private val timestampFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZon
 
 @Composable
 fun LogView(
-    windowHeight: Dp,
-    windowWidth: Dp,
     logsFlow: SharedFlow<ILoggingEvent>,
 ) {
-    CustomTheme(windowHeight, windowWidth) {
+    MaterialTheme(colorScheme = AppTheme.dark) {
         Surface(Modifier.fillMaxSize()) {
             LogsContent(logsFlow)
         }

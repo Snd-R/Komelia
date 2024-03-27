@@ -30,7 +30,6 @@ object ImageTypeDetector {
 
     private fun isSupportedImageType(stream: InputStream, metadata: Metadata = Metadata()): Boolean {
         val mimeType = tika.detector.detect(stream, metadata)
-        println(mimeType)
         return mimeType.toString() in supportedImageMimeTypes
     }
 }

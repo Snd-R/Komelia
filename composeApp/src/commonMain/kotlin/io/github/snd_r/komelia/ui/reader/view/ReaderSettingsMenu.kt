@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import coil3.annotation.ExperimentalCoilApi
 import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
@@ -67,7 +66,7 @@ fun SettingsMenu(
     ) {
         Column(
             modifier = Modifier
-                .background(AppTheme.colors.material.surfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .pointerInput(Unit) {}
                 .width(350.dp)
                 .padding(20.dp)
@@ -222,7 +221,7 @@ private fun ReturnLink(icon: ImageVector, text: String, onClick: () -> Unit) {
 
         Text(
             text = text,
-            color = AppTheme.colors.material.tertiary,
+            color = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.fillMaxWidth()
         )
     }

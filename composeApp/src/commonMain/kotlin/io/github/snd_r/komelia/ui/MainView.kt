@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -12,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.PlatformContext
@@ -25,8 +25,9 @@ import com.dokar.sonner.rememberToasterState
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ViewModelFactory
 import io.github.snd_r.komelia.createViewModelFactory
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.toToast
-import io.github.snd_r.komelia.ui.common.CustomTheme
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komga.sse.KomgaEvent
@@ -41,6 +42,7 @@ val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewMo
 val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }
 val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Kev events are not set") }
+val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 
 private object ViewModelFactoryHolder {
     val instance: MutableStateFlow<ViewModelFactory?> = MutableStateFlow(null)
@@ -55,11 +57,10 @@ private object ViewModelFactoryHolder {
 
 @Composable
 fun MainView(
-    windowHeight: Dp,
-    windowWidth: Dp,
+    windowWidth: WindowWidth,
     keyEvents: SharedFlow<KeyEvent>
 ) {
-    CustomTheme(windowHeight, windowWidth) {
+    MaterialTheme(colorScheme = AppTheme.dark) {
         val focusManager = LocalFocusManager.current
         val context = LocalPlatformContext.current
         Surface(
@@ -81,6 +82,7 @@ fun MainView(
                     LocalToaster provides notificationToaster,
                     LocalKomgaEvents provides actualViewModelFactory.getKomgaEvents(),
                     LocalKeyEvents provides keyEvents,
+                    LocalWindowWidth provides windowWidth
                 ) {
                     Navigator(LoginScreen())
                     AppNotifications(actualViewModelFactory.getAppNotifications())

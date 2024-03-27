@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,7 +32,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.PasswordTextField
 import io.github.snd_r.komga.user.KomgaUser
 import kotlinx.coroutines.launch
@@ -63,7 +63,7 @@ fun PasswordChangeDialog(
                 .width(400.dp)
                 .height(400.dp)
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-            border = BorderStroke(1.dp, AppTheme.colors.material.surfaceVariant)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(40.dp),

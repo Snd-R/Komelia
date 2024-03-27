@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -16,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialog
 import io.github.snd_r.komga.book.KomgaBook
@@ -47,7 +47,7 @@ fun BookActionsMenu(
                 showDeleteDialog = false
                 onDismissRequest()
             },
-            buttonConfirmColor = AppTheme.colors.material.error
+            buttonConfirmColor = MaterialTheme.colorScheme.error
         )
     }
 
@@ -121,7 +121,7 @@ fun BookActionsMenu(
         val deleteInteractionSource = remember { MutableInteractionSource() }
         val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
         val deleteColor =
-            if (deleteIsHovered.value) Modifier.background(AppTheme.colors.material.errorContainer)
+            if (deleteIsHovered.value) Modifier.background(MaterialTheme.colorScheme.errorContainer)
             else Modifier
         DropdownMenuItem(
             text = { Text("Delete") },

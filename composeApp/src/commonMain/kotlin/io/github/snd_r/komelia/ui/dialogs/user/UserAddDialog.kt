@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.PasswordTextField
 import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
@@ -93,7 +92,7 @@ fun UserAddDialog(
         Surface(
             Modifier
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-            border = BorderStroke(1.dp, AppTheme.colors.material.surfaceVariant)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(20.dp),

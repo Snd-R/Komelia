@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 
 @Composable
@@ -32,7 +31,7 @@ fun ConfirmationDialog(
     buttonCancel: String = "Cancel",
     buttonConfirm: String = "Confirm",
     buttonAlternate: String? = null,
-    buttonConfirmColor: Color = AppTheme.colors.material.secondary,
+    buttonConfirmColor: Color = MaterialTheme.colorScheme.secondary,
     onDialogConfirm: () -> Unit,
     onDialogConfirmAlternate: () -> Unit = {},
     onDialogDismiss: () -> Unit,

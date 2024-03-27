@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.platform.cursorForHand
 
 const val defaultCardWidth = 240
@@ -74,7 +73,7 @@ fun CardGradientOverlay() {
 
 @Composable
 fun overlayBorderModifier() =
-    Modifier.border(BorderStroke(3.dp, AppTheme.colors.material.tertiary), RoundedCornerShape(5.dp))
+    Modifier.border(BorderStroke(3.dp, MaterialTheme.colorScheme.tertiary), RoundedCornerShape(5.dp))
 
 
 @Composable

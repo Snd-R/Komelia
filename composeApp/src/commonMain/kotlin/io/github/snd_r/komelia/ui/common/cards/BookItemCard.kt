@@ -48,11 +48,10 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.AppTheme
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.book.KomgaBook
 
 @Composable
@@ -144,9 +143,9 @@ private fun BookImageOverlay(
             val readProgress = book.readProgress
             if (readProgress != null && !readProgress.completed) {
                 LinearProgressIndicator(
-                    progress = {getReadProgressPercentage(book)},
-                    color = AppTheme.colors.material.tertiary,
-                    trackColor = AppTheme.colors.material.tertiary.copy(alpha = 0.5f),
+                    progress = { getReadProgressPercentage(book) },
+                    color = MaterialTheme.colorScheme.tertiary,
+                    trackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
                     modifier = Modifier.height(6.dp).fillMaxWidth().background(Color.Black),
                 )
             }
@@ -157,7 +156,7 @@ private fun BookImageOverlay(
 
 @Composable
 private fun BookUnreadTick() {
-    val color = AppTheme.colors.material.tertiary
+    val color = MaterialTheme.colorScheme.tertiary
     Canvas(modifier = Modifier.size(30.dp)) {
         val trianglePath = Path().apply {
             moveTo(0f, 0f)
@@ -223,7 +222,7 @@ private fun BookHoverOverlay(
                     Box {
                         IconButton(
                             onClick = { isActionsMenuExpanded = true },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = AppTheme.colors.material.surface)
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Icon(Icons.Default.MoreVert, null)
                         }
@@ -339,7 +338,7 @@ private fun BookDetailedListTitle(
                 var isMenuExpanded by remember { mutableStateOf(false) }
                 IconButton(
                     onClick = { isMenuExpanded = true },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = AppTheme.colors.material.surfaceVariant)
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Icon(Icons.Default.MoreVert, null)
                 }

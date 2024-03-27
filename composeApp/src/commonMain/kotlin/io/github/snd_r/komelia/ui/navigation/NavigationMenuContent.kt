@@ -49,19 +49,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import io.github.snd_r.komelia.ui.common.AppTheme
+import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
 import io.github.snd_r.komelia.ui.library.DashboardScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
-import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.sse.KomgaEvent.TaskQueueStatus
 
 @Composable
-fun RegularNavBar(
+fun NavBarContent(
     isOpen: Boolean,
     currentScreen: Screen,
     libraries: List<KomgaLibrary>,
@@ -73,7 +72,7 @@ fun RegularNavBar(
     taskQueueStatus: TaskQueueStatus?,
 ) {
     if (isOpen) {
-        Box(Modifier.width(230.dp)) {
+        Surface(Modifier.width(230.dp)) {
             NavMenu(
                 currentScreen = currentScreen,
                 libraries = libraries,
@@ -201,8 +200,8 @@ private fun NavButton(
                 .fillMaxWidth()
                 .height(40.dp)
                 .background(
-                    if (isSelected) AppTheme.colors.material.surfaceVariant
-                    else AppTheme.colors.material.surface
+                    if (isSelected) MaterialTheme.colorScheme.surfaceVariant
+                    else MaterialTheme.colorScheme.surface
                 )
         ) {
 

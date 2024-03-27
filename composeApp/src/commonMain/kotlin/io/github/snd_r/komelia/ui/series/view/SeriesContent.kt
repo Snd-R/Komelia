@@ -51,14 +51,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.common.LocalWindowSize
 import io.github.snd_r.komelia.ui.common.Pagination
-import io.github.snd_r.komelia.ui.common.WindowSize
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.BookImageCard
 import io.github.snd_r.komelia.ui.common.cards.ItemCard
@@ -102,10 +102,10 @@ fun SeriesContent(
     onBookPageNumberClick: (Int) -> Unit,
     onBackButtonClick: () -> Unit,
 ) {
-    val contentPadding = when (LocalWindowSize.current) {
-        WindowSize.COMPACT, WindowSize.MEDIUM -> Modifier.padding(5.dp)
-        WindowSize.EXPANDED -> Modifier.padding(start = 20.dp, end = 20.dp)
-        WindowSize.FULL -> Modifier.padding(start = 30.dp, end = 30.dp)
+    val contentPadding = when (LocalWindowWidth.current) {
+        WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.padding(5.dp)
+        WindowWidth.EXPANDED -> Modifier.padding(start = 20.dp, end = 20.dp)
+        WindowWidth.FULL -> Modifier.padding(start = 30.dp, end = 30.dp)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -227,10 +227,10 @@ fun SeriesInfo(
     series: KomgaSeries,
     modifier: Modifier
 ) {
-    val contentSize = when (LocalWindowSize.current) {
-        WindowSize.COMPACT, WindowSize.MEDIUM -> Modifier.padding(10.dp, 0.dp)
-        WindowSize.EXPANDED -> Modifier.padding(20.dp, 0.dp).fillMaxSize()
-        WindowSize.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.7f)
+    val contentSize = when (LocalWindowWidth.current) {
+        WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.padding(10.dp, 0.dp)
+        WindowWidth.EXPANDED -> Modifier.padding(10.dp, 0.dp)
+        WindowWidth.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.8f)
     }
 
     Column(

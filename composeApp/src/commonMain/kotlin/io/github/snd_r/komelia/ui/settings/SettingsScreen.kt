@@ -44,7 +44,6 @@ import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsTab
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
@@ -54,7 +53,7 @@ import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
 import kotlinx.coroutines.flow.SharedFlow
 
-class SettingsScreen() : Screen {
+class SettingsScreen : Screen {
     @Composable
     override fun Content() {
         val parentNavigator = LocalNavigator.currentOrThrow
@@ -212,8 +211,8 @@ private fun NavigationButton(
     onClick: () -> Unit,
 ) {
     val containerColor =
-        if (isSelected) AppTheme.colors.material.surfaceContainer
-        else AppTheme.colors.material.surfaceVariant
+        if (isSelected) MaterialTheme.colorScheme.surfaceContainer
+        else MaterialTheme.colorScheme.surfaceVariant
 
     Surface(
         onClick = onClick,

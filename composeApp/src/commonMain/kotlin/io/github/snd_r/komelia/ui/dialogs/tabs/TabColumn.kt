@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -24,7 +25,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabRowDefaults.Indicator
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabRowDefaults.tabIndicatorOffset
 
@@ -107,7 +107,7 @@ object TabRowDefaults {
     fun Indicator(
         modifier: Modifier = Modifier,
         width: Dp = 3.dp,
-        color: Color = AppTheme.colors.material.secondary
+        color: Color = MaterialTheme.colorScheme.secondary
     ) {
         Box(
             modifier

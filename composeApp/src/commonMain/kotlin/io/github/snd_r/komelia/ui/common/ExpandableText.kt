@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,7 +52,7 @@ fun ExpandableText(
                 onClick = { isExpanded = !isExpanded },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RectangleShape,
-                colors = ButtonDefaults.textButtonColors(contentColor = AppTheme.colors.material.onSurface)
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text(
                     text = (if (isExpanded) "Collapse" else "Expand").uppercase()

@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
 import io.github.snd_r.komga.library.KomgaLibrary
@@ -75,7 +75,7 @@ fun LibraryActionsMenu(
             confirmText = "Yes, delete the library \"${library.name}\"",
             onDialogConfirm = { actions.delete(library) },
             onDialogDismiss = { deleteLibraryDialog = false },
-            buttonConfirmColor = AppTheme.colors.material.error
+            buttonConfirmColor = MaterialTheme.colorScheme.error
         )
 
     DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
@@ -90,7 +90,7 @@ fun LibraryActionsMenu(
         val deepScanInteractionSource = remember { MutableInteractionSource() }
         val deepScanIsHovered = deepScanInteractionSource.collectIsHoveredAsState()
         val deepScanColor =
-            if (deepScanIsHovered.value) Modifier.background(AppTheme.colors.material.onTertiary)
+            if (deepScanIsHovered.value) Modifier.background(MaterialTheme.colorScheme.onTertiary)
             else Modifier
 
         DropdownMenuItem(
@@ -135,7 +135,7 @@ fun LibraryActionsMenu(
         val deleteScanInteractionSource = remember { MutableInteractionSource() }
         val deleteScanIsHovered = deleteScanInteractionSource.collectIsHoveredAsState()
         val deleteScanColor =
-            if (deleteScanIsHovered.value) Modifier.background(AppTheme.colors.material.errorContainer)
+            if (deleteScanIsHovered.value) Modifier.background(MaterialTheme.colorScheme.errorContainer)
             else Modifier
         DropdownMenuItem(
             text = { Text("Delete") },

@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.images.ReadListThumbnail
 import io.github.snd_r.komelia.ui.common.menus.ReadListActionsMenu
 import io.github.snd_r.komga.readlist.KomgaReadList
@@ -83,7 +82,7 @@ private fun ReadListCardHoverOverlay(
                 Box {
                     IconButton(
                         onClick = { isActionsMenuExpanded = true },
-                        colors = IconButtonDefaults.iconButtonColors(containerColor = AppTheme.colors.material.surface)
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) { Icon(Icons.Default.MoreVert, contentDescription = null) }
 
                     ReadListActionsMenu(

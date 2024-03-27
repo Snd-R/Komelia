@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.login
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +17,6 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
 import kotlinx.coroutines.launch
 
@@ -75,7 +75,7 @@ fun LoginContent(
             )
 
             if (errorMessage != null) {
-                Text(errorMessage, style = TextStyle(color = AppTheme.colors.material.error))
+                Text(errorMessage, style = TextStyle(color = MaterialTheme.colorScheme.error))
             }
 
             Button(onClick = { coroutineScope.launch { onLogin() } }) {

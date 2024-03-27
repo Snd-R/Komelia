@@ -1,4 +1,5 @@
-import com.google.protobuf.gradle.*
+import com.google.protobuf.gradle.id
+import com.google.protobuf.gradle.proto
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {

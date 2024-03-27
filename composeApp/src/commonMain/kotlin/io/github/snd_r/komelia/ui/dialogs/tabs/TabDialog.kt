@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import io.github.snd_r.komelia.ui.common.AppTheme
 
 
 @Composable
@@ -67,8 +66,8 @@ fun TabDialog(
                 .verticalScroll(scrollState)
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
                 .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessLow)),
-            colors = CardDefaults.cardColors(containerColor = AppTheme.colors.material.surface),
-            border = BorderStroke(1.dp, AppTheme.colors.material.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column {
                 Text(
@@ -132,9 +131,9 @@ fun NavigationItems(
                 val selected = index == currentIndex
                 val enabled = tab.options().enabled
                 val color = when {
-                    !enabled -> AppTheme.colors.material.surfaceVariant
-                    selected -> AppTheme.colors.material.secondary
-                    else -> AppTheme.colors.material.primary
+                    !enabled -> MaterialTheme.colorScheme.surfaceVariant
+                    selected -> MaterialTheme.colorScheme.secondary
+                    else -> MaterialTheme.colorScheme.primary
                 }
 
                 TabNavigationItem(

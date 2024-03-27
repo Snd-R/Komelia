@@ -8,6 +8,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
@@ -30,14 +31,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-private val logger = KotlinLogging.logger(){}
+private val logger = KotlinLogging.logger() {}
+
 class MainScreenViewModel(
     private val libraryClient: KomgaLibraryClient,
     private val appNotifications: AppNotifications,
     private val navigator: Navigator,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     val searchBarState: SearchBarState,
-    val libraries: StateFlow<List<KomgaLibrary>>
+    val libraries: StateFlow<List<KomgaLibrary>>,
+    width: WindowWidth
 ) : ScreenModel {
 
     init {
@@ -45,12 +48,10 @@ class MainScreenViewModel(
     }
 
     val komgaTaskQueueStatus = MutableStateFlow<TaskQueueStatus?>(null)
-    var isNavBarOpen by mutableStateOf(true)
+    var isNavBarOpen by mutableStateOf(width == WindowWidth.FULL)
         private set
 
     fun toggleNavBar() {
-        logger.info { libraries }
-        logger.info { libraries.value }
         isNavBarOpen = !isNavBarOpen
     }
 

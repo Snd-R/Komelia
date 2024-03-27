@@ -32,6 +32,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import ch.qos.logback.classic.LoggerContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
@@ -135,10 +136,10 @@ private fun ApplicationScope.MainAppContent(
         }
     ) {
         window.minimumSize = Dimension(540, 540)
-        val horizontalInsets = window.insets.top + window.insets.bottom
+        val verticalInsets = window.insets.left + window.insets.right
+        val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
         MainView(
-            windowHeight = windowState.size.height - horizontalInsets.dp,
-            windowWidth = windowState.size.width,
+            windowWidth = widthClass,
             keyEvents = keyEvents
         )
     }
@@ -166,8 +167,6 @@ private fun ApplicationScope.MainAppContent(
             window.minimumSize = Dimension(540, 540)
             val horizontalInsets = window.insets.top + window.insets.bottom
             LogView(
-                windowHeight = windowState.size.height - horizontalInsets.dp,
-                windowWidth = windowState.size.width,
                 logsFlow = logFlowAppender.logEventsFlow
             )
         }
@@ -197,8 +196,6 @@ private fun errorApp(
             val horizontalInsets = window.insets.top + window.insets.bottom
             ErrorView(
                 exception = error,
-                windowHeight = windowState.size.height - horizontalInsets.dp,
-                windowWidth = windowState.size.width,
                 onRestart = {
                     onRestart()
                     exitApplication()

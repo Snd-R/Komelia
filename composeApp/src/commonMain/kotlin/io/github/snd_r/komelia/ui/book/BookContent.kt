@@ -43,13 +43,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.ScrollBarConfig
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.ExpandableText
-import io.github.snd_r.komelia.ui.common.LocalWindowSize
 import io.github.snd_r.komelia.ui.common.ScrollableItemsRow
-import io.github.snd_r.komelia.ui.common.WindowSize
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
@@ -68,11 +68,7 @@ fun BookContent(
 ) {
 
     val scrollState: ScrollState = rememberScrollState()
-    val contentPadding = when (LocalWindowSize.current) {
-        WindowSize.COMPACT, WindowSize.MEDIUM -> Modifier.padding(5.dp)
-        WindowSize.EXPANDED -> Modifier.padding(20.dp)
-        WindowSize.FULL -> Modifier.padding(30.dp)
-    }
+    val contentPadding = Modifier.padding(5.dp)
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (book == null || library == null) return
@@ -219,11 +215,12 @@ private fun BookInfoUpperPanel(
             }
         }
 
-        val contentSize = when (LocalWindowSize.current) {
-            WindowSize.COMPACT, WindowSize.MEDIUM -> Modifier.padding(10.dp, 0.dp)
-            WindowSize.EXPANDED -> Modifier.padding(20.dp, 0.dp).fillMaxSize(0.8f)
-            WindowSize.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.7f)
+        val contentSize = when (LocalWindowWidth.current) {
+            WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.padding(10.dp, 0.dp)
+            WindowWidth.EXPANDED -> Modifier.padding(20.dp, 0.dp)
+            WindowWidth.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.7f)
         }
+
         Column(
             modifier = contentSize.weight(1f, false).widthIn(min = 500.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)

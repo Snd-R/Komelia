@@ -34,11 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.AppTheme
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.series.KomgaSeries
 
 @Composable
@@ -112,7 +111,7 @@ private fun SeriesCardHoverOverlay(
                 Box {
                     IconButton(
                         onClick = { isActionsMenuExpanded = true },
-                        colors = IconButtonDefaults.iconButtonColors(containerColor = AppTheme.colors.material.surface)
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Icon(Icons.Default.MoreVert, contentDescription = null)
                     }
@@ -151,10 +150,10 @@ private fun SeriesImageOverlay(
                 contentAlignment = Alignment.TopEnd
             ) {
                 Box(
-                    modifier = Modifier.size(30.dp).background(AppTheme.colors.material.tertiary),
+                    modifier = Modifier.size(30.dp).background(MaterialTheme.colorScheme.tertiary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("${series.booksUnreadCount}", color = AppTheme.colors.material.primary)
+                    Text("${series.booksUnreadCount}", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }

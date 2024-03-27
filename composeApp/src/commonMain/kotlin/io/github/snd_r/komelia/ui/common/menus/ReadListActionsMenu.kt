@@ -15,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komga.readlist.KomgaReadList
 
@@ -41,7 +40,7 @@ fun ReadListActionsMenu(
                 showDeleteDialog = false
                 onDismissRequest()
             },
-            buttonConfirmColor = AppTheme.colors.material.error
+            buttonConfirmColor = MaterialTheme.colorScheme.error
         )
     }
 

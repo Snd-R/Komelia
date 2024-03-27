@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
@@ -28,13 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.snd_r.komelia.ui.common.AppTheme
-import io.github.snd_r.komelia.ui.common.CustomTheme
 import io.github.snd_r.komelia.platform.HorizontalScrollbar
 import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.coroutines.launch
 
 
@@ -42,11 +41,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun ErrorView(
     exception: Throwable,
-    windowHeight: Dp, windowWidth: Dp,
     onRestart: () -> Unit,
     onExit: () -> Unit
 ) {
-    CustomTheme(windowHeight, windowWidth) {
+    MaterialTheme(colorScheme = AppTheme.dark) {
         val clipboardManager = LocalClipboardManager.current
 
         Surface {
@@ -96,7 +94,7 @@ private fun ColumnScope.StackTrace(
     Row(
         Modifier.padding(horizontal = 50.dp, vertical = 10.dp)
             .weight(1f)
-            .background(AppTheme.colors.material.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { clipboardManager.setText(AnnotatedString(stacktrace)) }
 
     ) {
