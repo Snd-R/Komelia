@@ -4,14 +4,18 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komga.book.KomgaBookId
+import io.github.snd_r.komga.collection.KomgaCollectionId
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryClient
+import io.github.snd_r.komga.readlist.KomgaReadListId
 import io.github.snd_r.komga.series.KomgaSeriesId
 import io.github.snd_r.komga.sse.KomgaEvent
 import io.github.snd_r.komga.sse.KomgaEvent.LibraryEvent
 import io.github.snd_r.komga.sse.KomgaEvent.TaskQueueStatus
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookAdded
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookDeleted
+import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailCollectionEvent
+import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailReadListEvent
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesAdded
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesDeleted
 import io.github.snd_r.komga.sse.KomgaEventSource
@@ -64,6 +68,9 @@ class ManagedKomgaEvents(
                 is ThumbnailSeriesAdded -> removeSeriesThumbnailCache(event.seriesId)
                 is ThumbnailSeriesDeleted -> removeSeriesThumbnailCache(event.seriesId)
 
+                is ThumbnailCollectionEvent -> removeCollectionThumbnailCache(event.collectionId)
+                is ThumbnailReadListEvent -> removeReadListThumbnailCache(event.readListId)
+
                 is LibraryEvent -> updateLibraries()
 
                 else -> {}
@@ -80,12 +87,31 @@ class ManagedKomgaEvents(
     }
 
     private fun removeSeriesThumbnailCache(seriesId: KomgaSeriesId) {
-        memoryCache?.remove(MemoryCache.Key(seriesId.value))
+        removeMemCacheValues(seriesId.value)
         diskCache?.remove((seriesId.value))
     }
 
     private fun removeBookThumbnailCache(bookId: KomgaBookId) {
-        memoryCache?.remove(MemoryCache.Key(bookId.value))
+        removeMemCacheValues(bookId.value)
         diskCache?.remove((bookId.value))
+    }
+
+    private fun removeCollectionThumbnailCache(collectionId: KomgaCollectionId) {
+        removeMemCacheValues(collectionId.value)
+        diskCache?.remove((collectionId.value))
+    }
+
+    private fun removeReadListThumbnailCache(readListId: KomgaReadListId) {
+        removeMemCacheValues(readListId.value)
+        diskCache?.remove((readListId.value))
+
+    }
+
+    private fun removeMemCacheValues(key: String) {
+        memoryCache?.remove(MemoryCache.Key(key))
+        memoryCache?.remove(MemoryCache.Key(key, mapOf("scale" to "Fit")))
+        memoryCache?.remove(MemoryCache.Key(key, mapOf("scale" to "Crop")))
+        memoryCache?.remove(MemoryCache.Key(key, mapOf("scale" to "")))
+
     }
 }

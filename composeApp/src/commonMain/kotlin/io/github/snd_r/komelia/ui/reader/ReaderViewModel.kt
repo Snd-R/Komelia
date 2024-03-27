@@ -59,6 +59,8 @@ class HorizontalPagesReaderViewModel(
 ) : StateScreenModel<LoadState<KomgaBook>>(Uninitialized),
     ReaderSettingsState, ReaderZoomState, ReaderPageState {
     private val readerImageLoader = ReaderImageLoader(imageLoader, imageLoaderContext)
+    private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val resampleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     var book: KomgaBook? by mutableStateOf(null)
         private set
@@ -70,10 +72,9 @@ class HorizontalPagesReaderViewModel(
 
     override val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
     override val currentSpreadIndex = MutableStateFlow(0)
-
     private val currentSpreadScale = PageSpreadScaleState()
+    private val containerSize = MutableStateFlow<IntSize?>(null)
     override val scaleTransformation = currentSpreadScale.transformation
-    private var containerSize = MutableStateFlow<IntSize?>(null)
 
     override var layout by mutableStateOf(SINGLE_PAGE)
         private set
@@ -87,11 +88,6 @@ class HorizontalPagesReaderViewModel(
         private set
     override var decoder: SamplerType? by mutableStateOf(null)
         private set
-
-    private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private var imageLoadJobs: Map<SpreadIndex, SpreadImageLoadJob> = emptyMap()
-
-    private val resampleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 
     fun initialize(bookId: KomgaBookId) {
@@ -311,7 +307,6 @@ class HorizontalPagesReaderViewModel(
     }
 
     private fun initSpreadMap() {
-        imageLoadJobs = emptyMap()
         pageSpreads.value = when (layout) {
             SINGLE_PAGE -> bookPages.map { listOf(it) }
             DOUBLE_PAGES -> buildSpreadMapForDoublePages(bookPages, layoutOffset)

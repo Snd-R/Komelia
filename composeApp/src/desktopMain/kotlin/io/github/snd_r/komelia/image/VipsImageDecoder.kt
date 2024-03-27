@@ -8,9 +8,7 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import coil3.size.Dimension
 import coil3.size.Scale
-import coil3.size.Size
 import coil3.size.isOriginal
 import coil3.size.pxOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -43,14 +41,10 @@ class VipsImageDecoder(
         val bytes = source.source().use { it.readByteArray() }
 
         val result = measureTimedValue {
-            val shouldNotSample = options.size.isOriginal || hasUndefinedDimensions(options.size)
-
-            val decoded = if (shouldNotSample) {
-                VipsDecoder.vipsDecode(bytes)
-            } else {
+            val decoded = if (options.size.isOriginal) VipsDecoder.vipsDecode(bytes)
+            else {
                 val dstWidth = options.size.width.pxOrElse { vipsMaxSize }
                 val dstHeight = options.size.height.pxOrElse { vipsMaxSize }
-
                 val crop = options.scale == Scale.FILL
                 VipsDecoder.vipsDecodeAndResize(bytes, dstWidth, dstHeight, crop)
             }
@@ -60,7 +54,7 @@ class VipsImageDecoder(
 
             DecodeResult(
                 image = bitmap.asCoilImage(),
-                isSampled = !shouldNotSample
+                isSampled = !options.size.isOriginal
             )
         }
 
@@ -112,9 +106,6 @@ class VipsImageDecoder(
         bitmap.installPixels(image.data)
         return bitmap
     }
-
-    private fun hasUndefinedDimensions(size: Size) =
-        size.width is Dimension.Undefined && size.height is Dimension.Undefined
 
     class Factory : Decoder.Factory {
 

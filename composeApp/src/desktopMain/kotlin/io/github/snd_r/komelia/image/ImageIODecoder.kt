@@ -57,14 +57,17 @@ class ImageIODecoder(
                 multiplier = multiplier.coerceAtMost(1.0)
             }
 
-            if (multiplier == 1.0) return DecodeResult(image = image.toBitmap().asCoilImage(), isSampled = false)
-
+            if (multiplier == 1.0) {
+                return@measureTimedValue DecodeResult(
+                    image = image.toBitmap().asCoilImage(),
+                    isSampled = false
+                )
+            }
 
             val dstWidth = (multiplier * srcWidth).toInt()
             val dstHeight = (multiplier * srcHeight).toInt()
 
-            val resampled = ResampleOp(dstWidth, dstHeight, ResampleOp.FILTER_LANCZOS)
-                .filter(image, null)
+            val resampled = ResampleOp(dstWidth, dstHeight, ResampleOp.FILTER_LANCZOS).filter(image, null)
 
             val bitmap = resampled.toBitmap()
             bitmap.setImmutable()

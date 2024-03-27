@@ -7,13 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.size.Precision
 import io.github.snd_r.komelia.ui.LocalKomgaEvents
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookEvent
@@ -27,37 +21,23 @@ fun BookThumbnail(
 ) {
     val komgaEvents = LocalKomgaEvents.current
     var requestData by remember(bookId) { mutableStateOf(BookThumbnailRequest(bookId)) }
-
-    val context = LocalPlatformContext.current
-    val request = remember(requestData) {
-        ImageRequest.Builder(context)
-            .data(requestData)
-            .memoryCacheKey(bookId.value)
-            .diskCacheKey(bookId.value)
-            .precision(Precision.EXACT)
-            .crossfade(true)
-            .build()
-    }
-
     LaunchedEffect(bookId) {
         komgaEvents.collect {
             val eventBookId = when (it) {
                 is ThumbnailBookEvent -> it.bookId
                 else -> null
             }
-            if (eventBookId == bookId) {
+            if (bookId == eventBookId) {
                 requestData = BookThumbnailRequest(bookId)
             }
         }
     }
 
-    AsyncImage(
-        model = request,
-        contentDescription = null,
-        modifier = modifier,
-        placeholder = NoopPainter,
+    ThumbnailImage(
+        data = requestData,
+        cacheKey = bookId.value,
         contentScale = contentScale,
-        filterQuality = FilterQuality.None
+        modifier = modifier
     )
 
 }
