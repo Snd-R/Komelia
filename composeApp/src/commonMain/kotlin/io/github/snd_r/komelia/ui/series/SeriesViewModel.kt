@@ -49,7 +49,7 @@ class SeriesViewModel(
 
     var books by mutableStateOf<List<KomgaBook>>(emptyList())
     var booksLoading by mutableStateOf(false)
-    var booksPageSize by mutableStateOf(50)
+    var booksPageSize by mutableStateOf(20)
     var booksLayout by mutableStateOf(GRID)
 
     var totalBookPages by mutableStateOf(1)

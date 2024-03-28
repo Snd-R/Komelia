@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.settings
+package io.github.snd_r.komelia.ui.settings.navigation
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope

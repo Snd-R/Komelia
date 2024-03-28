@@ -30,6 +30,7 @@ import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
+import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
 import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
@@ -256,8 +257,8 @@ class ViewModelFactory(
         return AnnouncementsViewModel(appNotifications, komgaClientFactory.announcementClient())
     }
 
-    fun getSettingsNavigationViewModel(rootNavigator: Navigator): io.github.snd_r.komelia.ui.settings.SettingsNavigationViewModel {
-        return io.github.snd_r.komelia.ui.settings.SettingsNavigationViewModel(
+    fun getSettingsNavigationViewModel(rootNavigator: Navigator): SettingsNavigationViewModel {
+        return SettingsNavigationViewModel(
             rootNavigator = rootNavigator,
             appNotifications = appNotifications,
             userClient = komgaClientFactory.userClient(),

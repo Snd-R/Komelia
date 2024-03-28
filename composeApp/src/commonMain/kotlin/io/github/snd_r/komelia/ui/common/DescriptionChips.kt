@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.common
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -108,13 +110,15 @@ fun DescriptionChips(
 @Composable
 fun MetadataChip(
     borderColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    color: Color = Color.Unspecified,
     onClick: () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     Box(
         modifier = Modifier
-            .border(1.dp, borderColor, RoundedCornerShape(10.dp))
+            .border(Dp.Hairline, borderColor, RoundedCornerShape(10.dp))
             .clip(RoundedCornerShape(10.dp))
+            .background(color)
             .clickable { onClick() }
             .padding(10.dp, 5.dp),
         contentAlignment = Alignment.Center

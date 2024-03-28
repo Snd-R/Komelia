@@ -7,6 +7,7 @@ import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
+import io.github.snd_r.komelia.ui.series.BooksLayout
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -124,5 +125,21 @@ class AndroidSettingsRepository(
     }
 
     override suspend fun putDecoderType(type: SamplerType) {
+    }
+
+    override fun getPageLoadSize(): Flow<Int> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun putPageLoadSize(size: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getBookListLayout(): Flow<BooksLayout> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun putBookListLayout(layout: BooksLayout) {
+        TODO("Not yet implemented")
     }
 }

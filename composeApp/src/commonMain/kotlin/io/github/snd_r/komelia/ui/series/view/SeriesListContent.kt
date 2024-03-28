@@ -9,16 +9,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
-import io.github.snd_r.komelia.ui.common.PaginationWithSizeOptions
 import io.github.snd_r.komelia.ui.common.itemlist.PlaceHolderLazyCardGrid
 import io.github.snd_r.komelia.ui.common.itemlist.SeriesLazyCardGrid
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
@@ -48,13 +51,8 @@ fun SeriesListContent(
     Column(verticalArrangement = Arrangement.Center) {
         ToolBar(
             seriesTotalCount = seriesTotalCount,
-            sortOrder = sortOrder,
-            onSortOrderChange = onSortOrderChange,
-            totalPages = totalPages,
-            currentPage = currentPage,
             pageSize = pageSize,
-            onPageChange = onPageChange,
-            onPageSizeChange = onPageSizeChange
+            onPageSizeChange = onPageSizeChange,
         )
 
 
@@ -68,7 +66,10 @@ fun SeriesListContent(
                 series = series,
                 seriesMenuActions = seriesActions,
                 minSize = minSize,
-                onSeriesClick = onSeriesClick
+                onSeriesClick = onSeriesClick,
+                totalPages = totalPages,
+                currentPage = currentPage,
+                onPageChange = onPageChange
             )
         }
     }
@@ -77,18 +78,13 @@ fun SeriesListContent(
 @Composable
 private fun ToolBar(
     seriesTotalCount: Int,
-    sortOrder: KomgaSeriesSort,
-    onSortOrderChange: (KomgaSeriesSort) -> Unit,
-
-    totalPages: Int,
-    currentPage: Int,
     pageSize: Int,
-    onPageChange: (Int) -> Unit,
     onPageSizeChange: (Int) -> Unit,
 ) {
 
     Row(
         horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
     ) {
         SuggestionChip(
@@ -97,25 +93,21 @@ private fun ToolBar(
             modifier = Modifier.padding(end = 10.dp)
         )
 
-        PaginationWithSizeOptions(
-            totalPages = totalPages,
-            currentPage = currentPage,
-            onPageChange = onPageChange,
-            navigationButtons = false,
-            pageSize = pageSize,
-            onPageSizeChange = onPageSizeChange,
-            spacer = { Spacer(Modifier.weight(1f)) }
-        )
+        Spacer(Modifier.weight(1f))
 
         DropdownChoiceMenu(
-            selectedOption = sortOrder,
-            options = KomgaSeriesSort.entries,
-            onOptionChange = onSortOrderChange,
-            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
+            selectedOption = pageSize,
+            options = listOf(8, 50, 100, 200, 500),
+            onOptionChange = onPageSizeChange,
             contentPadding = PaddingValues(5.dp),
             modifier = Modifier
-                .widthIn(min = 200.dp)
+                .widthIn(min = 70.dp)
                 .clip(RoundedCornerShape(5.dp))
+                .padding(end = 10.dp)
         )
+
+        IconButton(onClick = {}) {
+            Icon(Icons.Default.FilterList, null)
+        }
     }
 }

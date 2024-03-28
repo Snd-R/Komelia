@@ -62,7 +62,7 @@ class SeriesListViewModel(
         private set
     var currentSeriesPage by mutableStateOf(1)
         private set
-    var pageLoadSize by mutableStateOf(100)
+    var pageLoadSize by mutableStateOf(50)
         private set
 
     var sortOrder by mutableStateOf(TITLE_ASC)

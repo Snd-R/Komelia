@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -11,15 +12,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DisabledVisible
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Book
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,15 +44,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.ScrollBarConfig
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.ExpandableText
-import io.github.snd_r.komelia.ui.common.ScrollableItemsRow
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
@@ -68,8 +72,6 @@ fun BookContent(
 ) {
 
     val scrollState: ScrollState = rememberScrollState()
-    val contentPadding = Modifier.padding(5.dp)
-
     Column(modifier = Modifier.fillMaxSize()) {
         if (book == null || library == null) return
         BookToolBar(
@@ -78,23 +80,22 @@ fun BookContent(
             onBackButtonClick = onBackButtonClick
         )
 
+        val contentPadding = when (LocalWindowWidth.current) {
+            COMPACT, MEDIUM -> Modifier.padding(10.dp, 5.dp)
+            EXPANDED -> Modifier.padding(20.dp, 5.dp)
+            FULL -> Modifier.padding(30.dp, 5.dp)
+        }
+
         Column(
-            modifier = Modifier
+            modifier = contentPadding
                 .fillMaxWidth()
-                .verticalScrollWithScrollbar(
-                    state = scrollState,
-                    scrollbarConfig = ScrollBarConfig(
-                        indicatorColor = MaterialTheme.colorScheme.onSurface,
-                        alpha = .8f
-                    )
-                ).then(contentPadding),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+                .verticalScroll(state = scrollState),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.Start
         ) {
             BookInfoUpperPanel(library, book, onBookReadPress)
             BookLowerPanelInfo(book)
         }
-
     }
 }
 
@@ -105,24 +106,34 @@ fun BookToolBar(
     onBackButtonClick: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(
-            onClick = { onBackButtonClick() }
-        ) {
-            Icon(
-                Icons.Default.ArrowBack,
-                contentDescription = null,
-            )
+        IconButton(onClick = { onBackButtonClick() }) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
         }
+        BoxWithConstraints {
+            val maxWidth = maxWidth
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    book.metadata.title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = maxWidth - 100.dp)
+                )
+                ToolbarBookActions(book, bookMenuActions)
+            }
+        }
+    }
+}
 
+@Composable
+private fun ToolbarBookActions(
+    book: KomgaBook,
+    bookMenuActions: BookMenuActions,
+) {
+    Row {
         Box {
             var expandActions by remember { mutableStateOf(false) }
-            IconButton(
-                onClick = { expandActions = true }
-            ) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = null,
-                )
+            IconButton(onClick = { expandActions = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = null)
             }
             BookActionsMenu(
                 book = book,
@@ -133,22 +144,20 @@ fun BookToolBar(
         }
 
         var showEditDialog by remember { mutableStateOf(false) }
-        IconButton(
-            onClick = { showEditDialog = true }
-        ) {
-            Icon(
-                Icons.Default.Edit,
-                contentDescription = null,
-            )
+        IconButton(onClick = { showEditDialog = true }) {
+            Icon(Icons.Default.Edit, null)
         }
         if (showEditDialog) {
             BookEditDialog(book = book, onDismissRequest = { showEditDialog = false })
         }
+    }
+}
 
-        Spacer(modifier = Modifier.weight(1.0f))
-
-
-
+@Composable
+private fun ToolbarBooksNavigation() {
+    Row(
+        horizontalArrangement = Arrangement.End,
+    ) {
         IconButton(
             onClick = {}
         ) {
@@ -175,7 +184,6 @@ fun BookToolBar(
                 contentDescription = null,
             )
         }
-
     }
 }
 
@@ -186,7 +194,7 @@ private fun BookInfoUpperPanel(
     book: KomgaBook,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
 ) {
-    FlowRow {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Column {
             BookThumbnail(
                 book.id,
@@ -195,61 +203,58 @@ private fun BookInfoUpperPanel(
                     .widthIn(min = 300.dp, max = 500.dp)
                     .animateContentSize()
             )
-            val readProgress = book.readProgress
-            if (readProgress != null) {
-                if (!readProgress.completed) {
-                    Text(
-                        "Read progress ${readProgress.page} / ${book.media.pagesCount}",
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        "${book.media.pagesCount - readProgress.page} pages left",
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Spacer(Modifier.height(5.dp))
-                }
-                Text(
-                    "Last read on ${readProgress.readDate}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
+
         }
 
-        val contentSize = when (LocalWindowWidth.current) {
-            WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.padding(10.dp, 0.dp)
-            WindowWidth.EXPANDED -> Modifier.padding(20.dp, 0.dp)
-            WindowWidth.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.7f)
-        }
+        val contentSize =
+            if (LocalWindowWidth.current == FULL) Modifier.fillMaxSize(.7f)
+            else Modifier
 
         Column(
-            modifier = contentSize.weight(1f, false).widthIn(min = 500.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            modifier = contentSize.weight(1f, false).widthIn(min = 200.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    book.seriesTitle,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f, false)
-                )
+            Text(
+                text = "\"${book.seriesTitle}\" series",
+                style = MaterialTheme.typography.titleMedium,
+            )
+
+            Column {
+                val readProgress = book.readProgress
+                if (readProgress != null) {
+                    if (!readProgress.completed) {
+                        Text(
+                            "Read progress ${readProgress.page} / ${book.media.pagesCount}; ${book.media.pagesCount - readProgress.page} pages left",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Text(
+                        "Last read on ${readProgress.readDate}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
-
-            Text(book.metadata.title, style = MaterialTheme.typography.titleMedium)
-
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column {
                 Text(
                     text = "book #${book.metadata.number} · ${book.media.pagesCount} pages",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
 
                 book.metadata.releaseDate?.let {
                     Text(
                         text = "release date: $it",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            HorizontalDivider()
+            ExpandableText(book.metadata.summary, style = MaterialTheme.typography.bodyMedium)
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
                 FilledTonalButton(
                     onClick = { onBookReadPress(true) },
                     shape = RoundedCornerShape(10.dp),
@@ -275,7 +280,11 @@ private fun BookInfoUpperPanel(
                     ),
                 ) {
                     Row {
-                        Icon(Icons.Default.DisabledVisible, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.DisabledVisible,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Text("READ Incognito", style = MaterialTheme.typography.labelMedium)
                     }
                 }
@@ -292,19 +301,17 @@ private fun BookInfoUpperPanel(
                 }
             }
 
-
-            ExpandableText(book.metadata.summary, style = MaterialTheme.typography.bodyMedium)
         }
     }
-
 }
+
 
 @Composable
 private fun BookLowerPanelInfo(book: KomgaBook) {
     Column(
-        modifier = Modifier.padding(0.dp, 30.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
         book.metadata.authors.groupBy { it.role }.forEach { (role, authors) ->
             DescriptionChips(role.uppercase(), authors.map { it.name })
         }
@@ -314,15 +321,26 @@ private fun BookLowerPanelInfo(book: KomgaBook) {
 
         DescriptionChips("Links".uppercase(), book.metadata.links.map { it.label })
 
-        ScrollableItemsRow("SIZE") {
+
+        Row {
+            Text("SIZE", style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(150.dp))
             Text(book.size, style = MaterialTheme.typography.bodySmall)
         }
-        ScrollableItemsRow("FORMAT") { Text(book.media.mediaType, style = MaterialTheme.typography.bodySmall) }
 
-        book.metadata.isbn.ifBlank { null }?.let {
-            ScrollableItemsRow("ISBN") { Text(it, style = MaterialTheme.typography.bodySmall) }
+        Row {
+            Text("FORMAT", style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(150.dp))
+            Text(book.media.mediaType, style = MaterialTheme.typography.bodySmall)
+        }
+        book.metadata.isbn.ifBlank { null }?.let { isbn ->
+            Row {
+                Text("ISBN", style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(150.dp))
+                Text(isbn, style = MaterialTheme.typography.bodySmall)
+            }
         }
 
-        ScrollableItemsRow("FILE") { Text(book.url, style = MaterialTheme.typography.bodySmall) }
+        Row {
+            Text("FILE", style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(150.dp))
+            Text(book.url, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }

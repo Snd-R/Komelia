@@ -59,7 +59,7 @@ class HorizontalPagesReaderViewModel(
 ) : StateScreenModel<LoadState<KomgaBook>>(Uninitialized),
     ReaderSettingsState, ReaderZoomState, ReaderPageState {
     private val readerImageLoader = ReaderImageLoader(imageLoader, imageLoaderContext)
-    private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val resampleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     var book: KomgaBook? by mutableStateOf(null)

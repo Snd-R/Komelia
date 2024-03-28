@@ -14,8 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.cards.ReadListImageCard
 import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.ui.common.cards.ReadListImageCard
 import io.github.snd_r.komga.readlist.KomgaReadList
 import io.github.snd_r.komga.readlist.KomgaReadListId
 
@@ -31,9 +31,9 @@ fun ReadListLazyCardGrid(
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize),
             state = scrollState,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(horizontal = 20.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 10.dp)
         ) {
             items(readLists) {
                 ReadListImageCard(

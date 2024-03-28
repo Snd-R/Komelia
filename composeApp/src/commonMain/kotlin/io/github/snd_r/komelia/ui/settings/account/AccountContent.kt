@@ -2,7 +2,8 @@ package io.github.snd_r.komelia.ui.settings.account
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +35,6 @@ fun AccountSettingsContent(user: KomgaUser) {
         HorizontalDivider()
         PasswordDetails(user)
     }
-
 }
 
 @Composable
@@ -45,11 +45,12 @@ private fun EmailDetails(user: KomgaUser) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RolesDetails(user: KomgaUser) {
     Column {
         Text("Roles:", fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             user.roles.forEach { role ->
                 SuggestionChip(
                     onClick = {},

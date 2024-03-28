@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
@@ -47,8 +49,13 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.common.MetadataChip
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
@@ -266,7 +273,6 @@ fun BookDetailedListCard(
     ) {
         Row(
             Modifier
-//                .fillMaxWidth()
                 .heightIn(max = 220.dp)
                 .padding(10.dp)
         ) {
@@ -287,71 +293,79 @@ private fun BookDetailedListDetails(
     bookMenuActions: BookMenuActions?,
     onBookReadClick: (() -> Unit)? = null,
 ) {
-
+    val width = LocalWindowWidth.current
     Column(Modifier.padding(start = 10.dp)) {
-        BookDetailedListTitle(book, bookMenuActions)
-        Row(
-            modifier = Modifier.padding(vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        Text(
+            book.metadata.title,
+            fontWeight = FontWeight.Bold,
+            maxLines = when (width) {
+                COMPACT, MEDIUM -> 2
+                else -> 4
+            }
+        )
+
+        LazyRow(
+            modifier = Modifier.padding(vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("${book.media.pagesCount} pages", style = MaterialTheme.typography.bodySmall)
+            item { Text("${book.media.pagesCount} pages", style = MaterialTheme.typography.bodySmall) }
+            items(book.metadata.tags) {
+                MetadataChip(
+                    borderColor = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                }
+            }
         }
 
         Text(
             book.metadata.summary,
-            maxLines = 4,
+            maxLines = when (width) {
+                COMPACT, MEDIUM -> 3
+                else -> 4
+            },
             style = MaterialTheme.typography.bodyMedium,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.widthIn(max = 1500.dp)
         )
 
-        if (onBookReadClick != null) {
-            Spacer(Modifier.weight(1f))
-            FilledTonalButton(
-                modifier = Modifier.padding(horizontal = 5.dp),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                onClick = { onBookReadClick() },
-                contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
-
-            ) {
-                Icon(Icons.AutoMirrored.Rounded.MenuBook, null)
-                Spacer(Modifier.width(10.dp))
-
-                Text("Read")
-            }
-
-        }
-
-    }
-
-}
-
-@Composable
-private fun BookDetailedListTitle(
-    book: KomgaBook,
-    bookMenuActions: BookMenuActions?,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-
-        if (bookMenuActions != null) {
-            Box {
-                var isMenuExpanded by remember { mutableStateOf(false) }
-                IconButton(
-                    onClick = { isMenuExpanded = true },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Icon(Icons.Default.MoreVert, null)
-                }
-                BookActionsMenu(
-                    book = book,
-                    actions = bookMenuActions,
-                    expanded = isMenuExpanded,
-                    onDismissRequest = { isMenuExpanded = false },
-                )
-            }
-        }
-
-        Text(book.metadata.title, fontWeight = FontWeight.Bold)
         Spacer(Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.Start) {
+            if (onBookReadClick != null) {
+                FilledTonalButton(
+                    modifier = Modifier.padding(horizontal = 5.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    onClick = { onBookReadClick() },
+                    contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
+
+                ) {
+                    Icon(Icons.AutoMirrored.Rounded.MenuBook, null)
+                    Spacer(Modifier.width(10.dp))
+
+                    Text("Read")
+                }
+            }
+            if (bookMenuActions != null) {
+                Box {
+                    var isMenuExpanded by remember { mutableStateOf(false) }
+                    IconButton(
+                        onClick = { isMenuExpanded = true },
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Icon(Icons.Default.MoreVert, null)
+                    }
+                    BookActionsMenu(
+                        book = book,
+                        actions = bookMenuActions,
+                        expanded = isMenuExpanded,
+                        onDismissRequest = { isMenuExpanded = false },
+                    )
+                }
+            }
+        }
+
     }
 }

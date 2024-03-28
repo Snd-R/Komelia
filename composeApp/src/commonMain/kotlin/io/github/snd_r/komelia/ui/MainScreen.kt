@@ -12,6 +12,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.library.DashboardScreen
@@ -62,13 +63,13 @@ class MainScreen(
 //                        content = { CurrentScreen() }
 //                    )
                     FULL -> Row {
-                        if (vm.navBarState.targetValue == Open) NavBar(vm, navigator)
+                        if (vm.navBarState.targetValue == Open) NavBar(vm, navigator, width)
                         CurrentScreen()
                     }
 
                     else -> ModalNavigationDrawer(
                         drawerState = vm.navBarState,
-                        drawerContent = { NavBar(vm, navigator) },
+                        drawerContent = { NavBar(vm, navigator, width) },
                         content = { CurrentScreen() }
                     )
 
@@ -80,7 +81,11 @@ class MainScreen(
     }
 
     @Composable
-    private fun NavBar(vm: MainScreenViewModel, navigator: Navigator) {
+    private fun NavBar(
+        vm: MainScreenViewModel,
+        navigator: Navigator,
+        width: WindowWidth
+    ) {
         NavBarContent(
             currentScreen = navigator.lastItem,
             libraries = vm.libraries.collectAsState().value,

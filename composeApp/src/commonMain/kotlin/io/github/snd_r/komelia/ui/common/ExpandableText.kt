@@ -28,6 +28,8 @@ fun ExpandableText(
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current
 ) {
+    if (text.isBlank()) return
+
     var isExpanded by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val isExpandable by remember { derivedStateOf { textLayoutResult?.didOverflowHeight ?: false } }

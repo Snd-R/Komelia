@@ -5,6 +5,7 @@ import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
+import io.github.snd_r.komelia.ui.series.BooksLayout
 import kotlinx.coroutines.flow.Flow
 
 
@@ -41,4 +42,10 @@ interface SettingsRepository {
     fun getDecoderType(): Flow<SamplerType>
 
     suspend fun putDecoderType(type: SamplerType)
+
+    fun getPageLoadSize(): Flow<Int>
+    suspend fun putPageLoadSize(size: Int)
+
+    fun getBookListLayout(): Flow<BooksLayout>
+    suspend fun putBookListLayout(layout: BooksLayout)
 }

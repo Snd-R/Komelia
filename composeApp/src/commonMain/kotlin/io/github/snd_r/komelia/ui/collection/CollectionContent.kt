@@ -68,7 +68,10 @@ fun CollectionContent(
             series = series,
             seriesMenuActions = seriesActions,
             minSize = cardMinSize,
-            onSeriesClick = onSeriesClick
+            onSeriesClick = onSeriesClick,
+            totalPages = totalPages,
+            currentPage = currentPage,
+            onPageChange = onPageChange
         )
     }
 }

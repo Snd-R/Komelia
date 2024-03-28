@@ -102,7 +102,7 @@ class ReaderImageLoader(
         scaleType: LayoutScaleType,
         allowUpsample: Boolean
     ): Int {
-        return Objects.hash(pages, containerSize, layout, scaleType, allowUpsample)
+        return Objects.hash(pages, containerSize.width,containerSize.height, layout, scaleType, allowUpsample)
     }
 
     @OptIn(ExperimentalCoilApi::class)

@@ -1,20 +1,28 @@
 package io.github.snd_r.komelia.ui.library
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,15 +32,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
@@ -62,34 +74,69 @@ class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
             viewModelFactory.getLibraryViewModel(libraryId)
         }
         LaunchedEffect(libraryId) { vm.initialize() }
+        val width = LocalWindowWidth.current
 
-        when (val state = vm.state.collectAsState().value) {
-            is Error -> ErrorContent(
-                message = state.exception.message ?: "Unknown Error",
-                onReload = vm::reload
-            )
+        val state = vm.state.collectAsState().value
+        if (state is Error) {
+            ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
+            return
+        }
 
-            else -> {
-                Column {
-                    LibraryToolBar(
-                        library = vm.library?.value,
-                        currentTab = vm.currentTab,
-                        libraryActions = vm.libraryActions(),
-                        collectionsCount = vm.collectionsCount,
-                        readListsCount = vm.readListsCount,
-                        onRecommendedClick = vm::toRecommendedTab,
-                        onBrowseClick = vm::toBrowseTab,
-                        onCollectionsClick = vm::toCollectionsTab,
-                        onReadListsClick = vm::toReadListsTab
-                    )
-                    when (vm.currentTab) {
-                        BROWSE -> BrowseTab()
-                        RECOMMENDED -> RecommendedTab()
-                        COLLECTIONS -> CollectionsTab()
-                        READ_LISTS -> ReadListsTab()
+        when (width) {
+            COMPACT -> Column {
+                CompactLibraryToolBar(
+                    library = vm.library?.value,
+                    libraryActions = vm.libraryActions(),
+                )
+                BoxWithConstraints {
+                    val maxHeight = maxHeight
+                    Column {
+                        CurrentTab(vm.currentTab, Modifier.height(maxHeight - 50.dp))
+                        CompactLibraryNavigation(
+                            currentTab = vm.currentTab,
+                            collectionsCount = vm.collectionsCount,
+                            readListsCount = vm.readListsCount,
+                            onRecommendedClick = vm::toRecommendedTab,
+                            onBrowseClick = vm::toBrowseTab,
+                            onCollectionsClick = vm::toCollectionsTab,
+                            onReadListsClick = vm::toReadListsTab,
+                            modifier = Modifier.height(50.dp)
+                        )
                     }
                 }
+            }
 
+            else -> Column {
+                LibraryToolBar(
+                    library = vm.library?.value,
+                    currentTab = vm.currentTab,
+                    libraryActions = vm.libraryActions(),
+                    collectionsCount = vm.collectionsCount,
+                    readListsCount = vm.readListsCount,
+                    onRecommendedClick = vm::toRecommendedTab,
+                    onBrowseClick = vm::toBrowseTab,
+                    onCollectionsClick = vm::toCollectionsTab,
+                    onReadListsClick = vm::toReadListsTab
+                )
+                CurrentTab(vm.currentTab)
+            }
+
+
+        }
+
+    }
+
+    @Composable
+    private fun CurrentTab(
+        tab: LibraryTab,
+        modifier: Modifier = Modifier
+    ) {
+        Box(modifier) {
+            when (tab) {
+                BROWSE -> BrowseTab()
+                RECOMMENDED -> RecommendedTab()
+                COLLECTIONS -> CollectionsTab()
+                READ_LISTS -> ReadListsTab()
             }
         }
 
@@ -257,12 +304,9 @@ fun LibraryToolBar(
     onReadListsClick: () -> Unit,
 ) {
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-
-        val title = library?.let { library.name } ?: "All Libraries"
-        Text(title, Modifier.align(Alignment.CenterVertically))
 
         var showOptionsMenu by remember { mutableStateOf(false) }
         if (library != null) {
@@ -284,8 +328,10 @@ fun LibraryToolBar(
                 )
             }
         }
+        val title = library?.let { library.name } ?: "All Libraries"
+        Text(title, Modifier.align(Alignment.CenterVertically))
 
-        Spacer(Modifier.width(30.dp))
+        Spacer(Modifier.widthIn(max = 30.dp))
 
         val chipColors = FilterChipDefaults.filterChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -329,5 +375,113 @@ fun LibraryToolBar(
                 border = null,
             )
 
+    }
+}
+
+
+@Composable
+fun CompactLibraryToolBar(
+    library: KomgaLibrary?,
+    libraryActions: LibraryMenuActions,
+) {
+
+    Row {
+        var showOptionsMenu by remember { mutableStateOf(false) }
+        if (library != null) {
+            Box {
+                IconButton(
+                    onClick = { showOptionsMenu = true }
+                ) {
+                    Icon(Icons.Rounded.MoreVert, contentDescription = null)
+                }
+
+                LibraryActionsMenu(
+                    library = library,
+                    actions = libraryActions,
+                    expanded = showOptionsMenu,
+                    onDismissRequest = { showOptionsMenu = false }
+                )
+            }
+        }
+        val title = library?.let { library.name } ?: "All Libraries"
+        Text(title, Modifier.align(Alignment.CenterVertically))
+
+
+    }
+}
+
+@Composable
+fun CompactLibraryNavigation(
+    currentTab: LibraryTab,
+    collectionsCount: Int,
+    readListsCount: Int,
+    onRecommendedClick: () -> Unit,
+    onBrowseClick: () -> Unit,
+    onCollectionsClick: () -> Unit,
+    onReadListsClick: () -> Unit,
+    modifier: Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        CompactNavButton(
+            text = "Recommended",
+            icon = Icons.Default.Star,
+            onClick = onRecommendedClick,
+            isSelected = currentTab == RECOMMENDED,
+            modifier = Modifier.weight(1f)
+        )
+        CompactNavButton(
+            text = "Browse",
+            icon = Icons.Default.Star,
+            onClick = onBrowseClick,
+            isSelected = currentTab == BROWSE,
+            modifier = Modifier.weight(1f)
+        )
+        if (collectionsCount > 0)
+            CompactNavButton(
+                text = "Collections",
+                icon = Icons.Default.Star,
+                onClick = onCollectionsClick,
+                isSelected = currentTab == COLLECTIONS,
+                modifier = Modifier.weight(1f)
+            )
+        if (readListsCount > 0)
+            CompactNavButton(
+                text = "Read Lists",
+                icon = Icons.Default.Star,
+                onClick = onReadListsClick,
+                isSelected = currentTab == READ_LISTS,
+                modifier = Modifier.weight(1f)
+            )
+    }
+}
+
+@Composable
+private fun CompactNavButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    isSelected: Boolean,
+    modifier: Modifier
+) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor =
+        if (isSelected) MaterialTheme.colorScheme.secondary
+        else contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable { onClick() }
+                .cursorForHand()
+                .padding(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, null)
+            Text(text, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }

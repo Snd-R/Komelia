@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,11 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialog
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialog
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialog
-import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import io.github.snd_r.komga.user.KomgaUser
 import io.github.snd_r.komga.user.KomgaUserId
@@ -121,11 +123,12 @@ private fun UserCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun UserRoles(user: KomgaUser) {
     Column {
         Text("Roles:", fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             user.roles.forEach { role ->
                 SuggestionChip(
                     onClick = {},
@@ -172,6 +175,7 @@ private fun UserInfo(
 
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun UserActions(
     currentUser: KomgaUser,
@@ -184,7 +188,7 @@ private fun UserActions(
     var showEditDialog by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         val contentPadding = PaddingValues(horizontal = 15.dp, vertical = 8.dp)
 
         if (!isSelf)

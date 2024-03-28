@@ -7,6 +7,7 @@ import io.github.snd_r.komelia.settings.ActorMessage.Transform
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
+import io.github.snd_r.komelia.ui.series.BooksLayout
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -146,5 +147,21 @@ class FilesystemSettingsRepository(
         })
 
         ack.await()
+    }
+
+    override fun getPageLoadSize(): Flow<Int> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun putPageLoadSize(size: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getBookListLayout(): Flow<BooksLayout> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun putBookListLayout(layout: BooksLayout) {
+        TODO("Not yet implemented")
     }
 }
