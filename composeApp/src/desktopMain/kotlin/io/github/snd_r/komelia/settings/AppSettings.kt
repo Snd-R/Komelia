@@ -6,6 +6,7 @@ import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.series.BooksLayout
 import kotlinx.serialization.Serializable
 
 const val defaultCardWidth = 240
@@ -31,7 +32,10 @@ data class UserSettings(
 
 @Serializable
 data class AppearanceSettings(
-    val cardWidth: Int = defaultCardWidth
+    val cardWidth: Int = defaultCardWidth,
+    val seriesPageLoadSize: Int = 20,
+    val bookPageLoadSize: Int = 20,
+    val bookListLayout: BooksLayout = BooksLayout.GRID
 )
 
 @Serializable

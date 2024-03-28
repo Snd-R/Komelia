@@ -127,19 +127,50 @@ class AndroidSettingsRepository(
     override suspend fun putDecoderType(type: SamplerType) {
     }
 
-    override fun getPageLoadSize(): Flow<Int> {
-        TODO("Not yet implemented")
+    override fun getSeriesPageLoadSize(): Flow<Int> {
+        return dataStore.data.map { it.appearance.seriesPageLoadSize }
     }
 
-    override suspend fun putPageLoadSize(size: Int) {
-        TODO("Not yet implemented")
+    override suspend fun putSeriesPageLoadSize(size: Int) {
+        dataStore.updateData { current ->
+            current.copy {
+                appearance = appearance.copy { seriesPageLoadSize = size }
+            }
+        }
+    }
+
+    override fun getBookPageLoadSize(): Flow<Int> {
+        return dataStore.data.map { it.appearance.bookPageLoadSize }
+    }
+
+    override suspend fun putBookPageLoadSize(size: Int) {
+        dataStore.updateData { current ->
+            current.copy {
+                appearance = appearance.copy { bookPageLoadSize = size }
+            }
+        }
     }
 
     override fun getBookListLayout(): Flow<BooksLayout> {
-        TODO("Not yet implemented")
+        return dataStore.data.map {
+            when (it.appearance.bookListLayout) {
+                PBBooksLayout.LIST, PBBooksLayout.UNRECOGNIZED, null -> BooksLayout.LIST
+                PBBooksLayout.GRID -> BooksLayout.GRID
+            }
+        }
     }
 
     override suspend fun putBookListLayout(layout: BooksLayout) {
-        TODO("Not yet implemented")
+        dataStore.updateData { current ->
+            current.copy {
+                appearance = appearance.copy {
+                    bookListLayout = when (layout) {
+                        BooksLayout.GRID -> PBBooksLayout.GRID
+                        BooksLayout.LIST -> PBBooksLayout.LIST
+                    }
+                }
+            }
+        }
     }
+
 }

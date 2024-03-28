@@ -117,7 +117,7 @@ class ViewModelFactory(
         bookClient = komgaClientFactory.bookClient(),
         notifications = appNotifications,
         events = komgaEventSource.events,
-        cardWidthFlow = settingsRepository.getCardWidth(),
+        settingsRepository = settingsRepository,
     )
 
     fun getBookViewModel(bookId: KomgaBookId): BookViewModel {
@@ -135,6 +135,7 @@ class ViewModelFactory(
             seriesClient = komgaClientFactory.seriesClient(),
             notifications = appNotifications,
             komgaEvents = komgaEventSource.events,
+            settingsRepository = settingsRepository,
             libraryFlow = libraryId?.let { getLibrary(it) },
             cardWidthFlow = settingsRepository.getCardWidth()
         )

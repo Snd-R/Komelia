@@ -24,6 +24,9 @@ message UserSettings{
 
 message AppearanceSettings{
   optional int32 cardWidth = 1;
+  int32 seriesPageLoadSize = 2;
+  int32 bookPageLoadSize = 3;
+  PBBooksLayout bookListLayout = 4;
 }
 
 message ReaderSettings{
@@ -48,4 +51,9 @@ enum PBReadingDirection{
 enum PBPageDisplayLayout{
   SINGLE_PAGE = 0;
   DOUBLE_PAGES = 1;
+}
+
+enum PBBooksLayout{
+  LIST = 0;
+  GRID = 1;
 }

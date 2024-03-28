@@ -3,11 +3,11 @@ package io.github.snd_r.komelia.ui.series
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -28,9 +28,12 @@ import io.github.snd_r.komga.sse.KomgaEvent.BookEvent
 import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressEvent
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -40,17 +43,17 @@ class SeriesViewModel(
     private val seriesId: KomgaSeriesId,
     private val notifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
-    cardWidthFlow: Flow<Dp>,
+    private val settingsRepository: SettingsRepository,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
-    val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
+    val cardWidth = settingsRepository.getCardWidth().stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
+    val booksPageSize = MutableStateFlow(20)
+    val booksLayout = MutableStateFlow(GRID)
 
     var series by mutableStateOf<KomgaSeries?>(null)
 
     var books by mutableStateOf<List<KomgaBook>>(emptyList())
     var booksLoading by mutableStateOf(false)
-    var booksPageSize by mutableStateOf(20)
-    var booksLayout by mutableStateOf(GRID)
 
     var totalBookPages by mutableStateOf(1)
     var currentBookPage by mutableStateOf(1)
@@ -59,8 +62,21 @@ class SeriesViewModel(
         if (state.value !is Uninitialized) return
 
         screenModelScope.launch {
+            booksPageSize.value = settingsRepository.getSeriesPageLoadSize().first()
+            booksLayout.value = settingsRepository.getBookListLayout().first()
             loadSeries()
             loadBooksPage(1)
+
+            settingsRepository.getSeriesPageLoadSize()
+                .onEach {
+                    if (booksPageSize.value != it) {
+                        booksPageSize.value = it
+                        loadBooksPage(1)
+                    }
+                }.launchIn(screenModelScope)
+
+            settingsRepository.getBookListLayout()
+                .onEach { booksLayout.value = it }.launchIn(screenModelScope)
         }
 
         screenModelScope.launch { registerEventListener() }
@@ -97,7 +113,7 @@ class SeriesViewModel(
             val pageResponse = seriesClient.getBooks(
                 seriesId, KomgaPageRequest(
                     page = page - 1,
-                    size = booksPageSize,
+                    size = booksPageSize.value,
                 )
             )
             books = pageResponse.content
@@ -110,13 +126,20 @@ class SeriesViewModel(
     }
 
     fun onBookPageSizeChange(pageSize: Int) {
-        booksPageSize = pageSize
-        screenModelScope.launch { loadBooksPage(1) }
+        booksPageSize.value = pageSize
+        screenModelScope.launch {
+            settingsRepository.putBookPageLoadSize(pageSize)
+            loadBooksPage(1)
+        }
     }
 
     fun seriesMenuActions() = SeriesMenuActions(seriesClient, notifications, screenModelScope)
     fun bookMenuActions() = BookMenuActions(bookClient, notifications, screenModelScope)
 
+    fun onBookLayoutChange(layout: BooksLayout) {
+        booksLayout.value = layout
+        screenModelScope.launch { settingsRepository.putBookListLayout(layout) }
+    }
 
     private suspend fun onBookReadProgressChanged(eventBookId: KomgaBookId) {
         if (books.any { it.id == eventBookId }) {

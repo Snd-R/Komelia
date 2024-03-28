@@ -9,6 +9,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -36,8 +37,10 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -49,11 +52,13 @@ class SeriesListViewModel(
     private val seriesClient: KomgaSeriesClient,
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
+    private val settingsRepository: SettingsRepository,
     libraryFlow: Flow<KomgaLibrary?>?,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
     val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
+    val pageLoadSize = MutableStateFlow(50)
     var series by mutableStateOf<List<KomgaSeries>>(emptyList())
         private set
     var totalSeriesPages by mutableStateOf(1)
@@ -61,8 +66,6 @@ class SeriesListViewModel(
     var totalSeriesCount by mutableStateOf(0)
         private set
     var currentSeriesPage by mutableStateOf(1)
-        private set
-    var pageLoadSize by mutableStateOf(50)
         private set
 
     var sortOrder by mutableStateOf(TITLE_ASC)
@@ -76,7 +79,18 @@ class SeriesListViewModel(
             delay(1000)
         }.launchIn(screenModelScope)
 
-        screenModelScope.launch { loadSeriesPage(1) }
+        screenModelScope.launch {
+            pageLoadSize.value = settingsRepository.getSeriesPageLoadSize().first()
+            loadSeriesPage(1)
+
+            settingsRepository.getSeriesPageLoadSize()
+                .onEach {
+                    if (pageLoadSize.value != it) {
+                        pageLoadSize.value = it
+                        loadSeriesPage(1)
+                    }
+                }.launchIn(screenModelScope)
+        }
 
         screenModelScope.launch { startEventListener() }
     }
@@ -88,7 +102,8 @@ class SeriesListViewModel(
     fun seriesMenuActions() = SeriesMenuActions(seriesClient, notifications, screenModelScope)
 
     fun onPageSizeChange(pageSize: Int) {
-        pageLoadSize = pageSize
+        pageLoadSize.value = pageSize
+        screenModelScope.launch { settingsRepository.putSeriesPageLoadSize(pageSize) }
         notifications.runCatchingToNotifications(screenModelScope) {
             loadSeriesPage(1)
         }
@@ -110,7 +125,7 @@ class SeriesListViewModel(
 
             val query = library?.value?.let { KomgaSeriesQuery(libraryIds = listOf(it.id)) }
             val pageRequest = KomgaPageRequest(
-                size = pageLoadSize,
+                size = pageLoadSize.value,
                 page = page - 1,
                 sort = sortOrder.query
             )

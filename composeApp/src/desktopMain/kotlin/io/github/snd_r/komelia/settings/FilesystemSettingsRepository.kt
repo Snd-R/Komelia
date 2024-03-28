@@ -149,19 +149,49 @@ class FilesystemSettingsRepository(
         ack.await()
     }
 
-    override fun getPageLoadSize(): Flow<Int> {
-        TODO("Not yet implemented")
+    override fun getSeriesPageLoadSize(): Flow<Int> {
+        return actor.getState().map { it.appearance.seriesPageLoadSize }
     }
 
-    override suspend fun putPageLoadSize(size: Int) {
-        TODO("Not yet implemented")
+    override suspend fun putSeriesPageLoadSize(size: Int) {
+        val ack = CompletableDeferred<AppSettings>()
+
+        actor.send(Transform(ack) { settings ->
+            settings.copy(appearance = settings.appearance.copy(seriesPageLoadSize = size))
+        })
+
+        ack.await()
+    }
+
+    override fun getBookPageLoadSize(): Flow<Int> {
+        return actor.getState().map { it.appearance.bookPageLoadSize }
+    }
+
+    override suspend fun putBookPageLoadSize(size: Int) {
+        val ack = CompletableDeferred<AppSettings>()
+
+        actor.send(Transform(ack) { settings ->
+            settings.copy(appearance = settings.appearance.copy(bookPageLoadSize = size))
+        })
+
+        ack.await()
     }
 
     override fun getBookListLayout(): Flow<BooksLayout> {
-        TODO("Not yet implemented")
+        return actor.getState().map { it.appearance.bookListLayout }
     }
 
     override suspend fun putBookListLayout(layout: BooksLayout) {
-        TODO("Not yet implemented")
+        val ack = CompletableDeferred<AppSettings>()
+
+        actor.send(Transform(ack) { settings ->
+            settings.copy(
+                appearance = settings.appearance.copy(
+                    bookListLayout = layout
+                )
+            )
+        })
+
+        ack.await()
     }
 }

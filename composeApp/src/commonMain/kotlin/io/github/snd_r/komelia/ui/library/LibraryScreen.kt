@@ -172,7 +172,7 @@ class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
 
                     currentPage = vm.currentSeriesPage,
                     totalPages = vm.totalSeriesPages,
-                    pageSize = vm.pageLoadSize,
+                    pageSize = vm.pageLoadSize.collectAsState().value,
                     onPageSizeChange = vm::onPageSizeChange,
                     onPageChange = vm::onPageChange,
 

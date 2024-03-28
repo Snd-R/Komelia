@@ -41,10 +41,10 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
                     books = vm.books,
                     booksLoading = vm.booksLoading,
                     bookCardWidth = vm.cardWidth.collectAsState().value,
-                    booksLayout = vm.booksLayout,
-                    onBooksLayoutChange = vm::booksLayout::set,
+                    booksLayout = vm.booksLayout.collectAsState().value,
+                    onBooksLayoutChange = vm::onBookLayoutChange,
 
-                    booksPageSize = vm.booksPageSize,
+                    booksPageSize = vm.booksPageSize.collectAsState().value,
                     onBooksPageSizeChange = vm::onBookPageSizeChange,
 
                     bookMenuActions = vm.bookMenuActions(),

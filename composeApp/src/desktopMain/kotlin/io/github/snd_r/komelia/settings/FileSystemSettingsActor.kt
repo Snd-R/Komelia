@@ -1,8 +1,14 @@
 package io.github.snd_r.komelia.settings
 
+import com.akuleshov7.ktoml.TomlIndentation.NONE
+import com.akuleshov7.ktoml.TomlInputConfig
+import com.akuleshov7.ktoml.TomlOutputConfig
 import com.akuleshov7.ktoml.file.TomlFileReader
 import com.akuleshov7.ktoml.file.TomlFileWriter
 import dev.dirs.ProjectDirectories
+import io.github.snd_r.komelia.settings.ActorMessage.Transform
+import io.github.snd_r.komelia.settings.State.Initialized
+import io.github.snd_r.komelia.settings.State.UnInitialized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,9 +21,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import io.github.snd_r.komelia.settings.ActorMessage.Transform
-import io.github.snd_r.komelia.settings.State.Initialized
-import io.github.snd_r.komelia.settings.State.UnInitialized
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -36,8 +39,8 @@ class FileSystemSettingsActor {
     private val configFile = Path.of(
         ProjectDirectories.from("io.github.snd_r.komelia", "", "Komelia").configDir
     ).resolve("komelia.toml")
-    private val tomlFileReader = TomlFileReader()
-    private val tomlFileWriter = TomlFileWriter()
+    private val tomlFileReader = TomlFileReader(inputConfig = TomlInputConfig.compliant(ignoreUnknownNames = true))
+    private val tomlFileWriter = TomlFileWriter(outputConfig = TomlOutputConfig.compliant(indentation = NONE))
 
     private val queue = scope.actor<ActorMessage> {
         for (message in channel) {

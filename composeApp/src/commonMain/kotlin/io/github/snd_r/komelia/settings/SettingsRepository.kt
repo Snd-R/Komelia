@@ -43,8 +43,12 @@ interface SettingsRepository {
 
     suspend fun putDecoderType(type: SamplerType)
 
-    fun getPageLoadSize(): Flow<Int>
-    suspend fun putPageLoadSize(size: Int)
+    fun getSeriesPageLoadSize(): Flow<Int>
+    suspend fun putSeriesPageLoadSize(size: Int)
+
+    fun getBookPageLoadSize(): Flow<Int>
+
+    suspend fun putBookPageLoadSize(size: Int)
 
     fun getBookListLayout(): Flow<BooksLayout>
     suspend fun putBookListLayout(layout: BooksLayout)
