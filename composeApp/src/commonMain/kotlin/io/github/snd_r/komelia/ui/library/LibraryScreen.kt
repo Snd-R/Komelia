@@ -120,10 +120,7 @@ class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
                 )
                 CurrentTab(vm.currentTab)
             }
-
-
         }
-
     }
 
     @Composable

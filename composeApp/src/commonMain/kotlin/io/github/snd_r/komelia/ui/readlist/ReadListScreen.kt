@@ -8,6 +8,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -49,5 +50,8 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
                 cardMinSize = vm.cardWidth.collectAsState().value,
             )
         }
+
+        BackPressHandler { navigator.pop() }
+
     }
 }

@@ -25,6 +25,7 @@ import com.dokar.sonner.rememberToasterState
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ViewModelFactory
 import io.github.snd_r.komelia.createViewModelFactory
+import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.toToast
 import io.github.snd_r.komelia.ui.common.AppTheme
@@ -84,11 +85,15 @@ fun MainView(
                     LocalKeyEvents provides keyEvents,
                     LocalWindowWidth provides windowWidth
                 ) {
-                    Navigator(LoginScreen())
+                    Navigator(
+                        screen = LoginScreen(),
+                        onBackPressed = null
+                    )
                     AppNotifications(actualViewModelFactory.getAppNotifications())
                 }
             } else LoadingMaxSizeIndicator()
 
+            BackPressHandler {}
         }
     }
 }

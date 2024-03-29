@@ -8,6 +8,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
@@ -22,6 +23,7 @@ import io.github.snd_r.komelia.ui.navigation.NavBarContent
 import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreen
+import kotlinx.coroutines.launch
 
 class MainScreen(
     private val defaultScreen: Screen = DashboardScreen()
@@ -32,7 +34,10 @@ class MainScreen(
         val viewModelFactory = LocalViewModelFactory.current
         val width = LocalWindowWidth.current
 
-        Navigator(defaultScreen) { navigator ->
+        Navigator(
+            screen = defaultScreen,
+            onBackPressed = null
+        ) { navigator ->
             val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel(navigator) }
 
             LaunchedEffect(width) {
@@ -86,14 +91,24 @@ class MainScreen(
         navigator: Navigator,
         width: WindowWidth
     ) {
+        val coroutineScope = rememberCoroutineScope()
         NavBarContent(
             currentScreen = navigator.lastItem,
             libraries = vm.libraries.collectAsState().value,
             libraryActions = vm.getLibraryActions(),
-            onHomeClick = { navigator.replaceAll(DashboardScreen()) },
-            onLibrariesClick = { navigator.replaceAll(LibraryScreen()) },
+            onHomeClick = {
+                navigator.replaceAll(DashboardScreen())
+                if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
+            },
+            onLibrariesClick = {
+                navigator.replaceAll(LibraryScreen())
+                if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
+            },
 
-            onLibraryClick = { navigator.replaceAll(LibraryScreen(it)) },
+            onLibraryClick = {
+                navigator.replaceAll(LibraryScreen(it))
+                if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
+            },
             onSettingsClick = { navigator.parent!!.push(SettingsScreen()) },
             taskQueueStatus = vm.komgaTaskQueueStatus.collectAsState().value
         )

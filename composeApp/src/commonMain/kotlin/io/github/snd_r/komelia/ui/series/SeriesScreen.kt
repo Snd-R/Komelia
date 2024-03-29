@@ -6,7 +6,9 @@ import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.BookScreen
@@ -15,6 +17,7 @@ import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
+import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.series.KomgaSeriesId
 
 class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
@@ -24,7 +27,6 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(seriesId.value) { viewModelFactory.getSeriesViewModel(seriesId) }
-
         LaunchedEffect(seriesId) { vm.initialize() }
 
         when (val state = vm.state.collectAsState().value) {
@@ -55,19 +57,20 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
 
                     onBookPageNumberClick = { vm.onLoadBookPage(it) },
 
-                    onBackButtonClick = {
-                        val libraryId = vm.series?.libraryId
-                        val success = navigator.popUntil {
-                            (it is LibraryScreen && it.libraryId == libraryId) || it is CollectionScreen
-                        }
-                        if (!success) {
-                            libraryId?.let { navigator replaceAll LibraryScreen(it) }
-                        }
-
-                    },
+                    onBackButtonClick = { onBackPress(navigator, vm.series?.libraryId) },
                 )
             }
         }
 
+        BackPressHandler { onBackPress(navigator, vm.series?.libraryId) }
+    }
+
+    private fun onBackPress(navigator: Navigator, libraryId: KomgaLibraryId?) {
+        val success = navigator.popUntil {
+            (it is LibraryScreen && it.libraryId == libraryId) || it is CollectionScreen
+        }
+        if (!success) {
+            libraryId?.let { navigator replaceAll LibraryScreen(it) }
+        }
     }
 }
