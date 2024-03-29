@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.MultipleFilePicker
 import io.github.snd_r.komelia.image.ImageTypeDetector
@@ -47,6 +49,7 @@ import io.github.snd_r.komga.book.KomgaBookThumbnail
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.series.KomgaSeriesThumbnail
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
@@ -62,11 +65,16 @@ class PosterTab(private val state: PosterEditState) : DialogTab {
 
     @Composable
     override fun Content() {
-        PosterEditContent(posterState = state)
+        val widthState = state.cardWidth.collectAsState(null)
+
+        val cardWidth = widthState.value
+        if (cardWidth != null) PosterEditContent(posterState = state, cardWidth = cardWidth)
     }
 }
 
-class PosterEditState {
+class PosterEditState(
+    val cardWidth: Flow<Dp>,
+) {
     val thumbnails = mutableStateListOf<KomgaThumbnail>()
     val userUploadedThumbnails = mutableStateListOf<ThumbnailToBeUploaded>()
 
@@ -194,7 +202,10 @@ class PosterEditState {
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-fun PosterEditContent(posterState: PosterEditState) {
+fun PosterEditContent(
+    posterState: PosterEditState,
+    cardWidth: Dp,
+) {
     val coroutineScope = rememberCoroutineScope()
     var showFilePicker by remember { mutableStateOf(false) }
 
@@ -234,7 +245,7 @@ fun PosterEditContent(posterState: PosterEditState) {
                     thumbnail = thumb,
                     onDelete = { posterState.onUploadThumbnailDelete(thumb.path) },
                     onSelect = { posterState.onUploadThumbnailSelect(thumb.path) },
-                    modifier = Modifier.width(140.dp)
+                    modifier = Modifier.width(cardWidth)
                 )
             }
 
@@ -243,7 +254,7 @@ fun PosterEditContent(posterState: PosterEditState) {
                     thumbnail = thumb,
                     onDelete = { posterState.onExistingThumbnailDelete(thumb) },
                     onSelect = { posterState.onExistingThumbnailSelect(thumb) },
-                    modifier = Modifier.width(140.dp)
+                    modifier = Modifier.width(cardWidth)
                 )
             }
 

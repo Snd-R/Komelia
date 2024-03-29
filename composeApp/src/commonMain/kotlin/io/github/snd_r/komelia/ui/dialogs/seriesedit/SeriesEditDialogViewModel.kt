@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
@@ -17,6 +18,7 @@ import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.series.KomgaSeriesMetadataUpdateRequest
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlin.io.path.readBytes
 
@@ -25,6 +27,7 @@ class SeriesEditDialogViewModel(
     val onDialogDismiss: () -> Unit,
     private val seriesClient: KomgaSeriesClient,
     private val notifications: AppNotifications,
+    cardWidth: Flow<Dp>,
 ) {
     var title by mutableStateOf(series.metadata.title)
     var titleLock by mutableStateOf(series.metadata.titleLock)
@@ -70,7 +73,7 @@ class SeriesEditDialogViewModel(
         .also { it.addAll(series.metadata.alternateTitles) }
     var alternateTitlesLock by mutableStateOf(series.metadata.alternateTitlesLock)
 
-    private val posterState = PosterEditState()
+    private val posterState = PosterEditState(cardWidth)
 
     private val generalTab = GeneralTab(this)
     private val alternativeTitlesTab = AlternativeTitlesTab(this)

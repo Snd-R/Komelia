@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberBasicTooltipState
@@ -54,7 +56,14 @@ fun ThumbnailEditCard(
 ) {
     ItemCardWithContent(
         modifier,
-        image = { ThumbnailImage(data = thumbnail, cacheKey = thumbnail.id.value, contentScale = ContentScale.Crop) }
+        image = {
+            ThumbnailImage(
+                data = thumbnail,
+                cacheKey = thumbnail.id.value,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     ) {
         val (icon, tooltip) = when (thumbnail.type) {
             USER_UPLOADED -> Icons.Default.CloudDone to "User uploaded"
@@ -72,7 +81,8 @@ fun ThumbnailEditCard(
             size = IntSize(thumbnail.width, thumbnail.height),
             mediaType = thumbnail.mediaType,
             typeIcon = icon,
-            typeTooltip = tooltip
+            typeTooltip = tooltip,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
 }
@@ -88,7 +98,6 @@ fun ThumbnailUploadCard(
         modifier,
         image = { AsyncImage(model = thumbnail.path, contentDescription = null, contentScale = ContentScale.Crop) }
     ) {
-
         ThumbnailCardContent(
             onDelete = onDelete,
             onSelect = onSelect,
@@ -97,7 +106,10 @@ fun ThumbnailUploadCard(
             filesize = thumbnail.size,
             typeIcon = Icons.Default.CloudUpload,
             typeTooltip = "To be uploaded",
-            modifier = Modifier.background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .3f))
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .3f))
         )
 
     }

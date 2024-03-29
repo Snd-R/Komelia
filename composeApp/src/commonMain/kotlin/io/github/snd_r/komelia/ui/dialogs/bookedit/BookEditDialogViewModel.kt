@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.BookThumbnail
@@ -18,6 +19,7 @@ import io.github.snd_r.komga.common.KomgaWebLink
 import io.github.snd_r.komga.common.patch
 import io.github.snd_r.komga.common.patchLists
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import kotlin.io.path.readBytes
@@ -27,6 +29,7 @@ class BookEditDialogViewModel(
     val onDialogDismiss: () -> Unit,
     private val bookClient: KomgaBookClient,
     private val notifications: AppNotifications,
+    cardWidth: Flow<Dp>,
 ) {
     var title by mutableStateOf(book.metadata.title)
 
@@ -56,7 +59,7 @@ class BookEditDialogViewModel(
             .plus(book.metadata.authors.groupBy { it.role })
     )
 
-    private val posterState = PosterEditState()
+    private val posterState = PosterEditState(cardWidth)
 
     private val generalTab = GeneralTab(this)
     private val authorsTab = AuthorsTab(this)

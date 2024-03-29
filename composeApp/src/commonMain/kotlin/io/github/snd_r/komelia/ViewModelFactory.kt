@@ -177,14 +177,16 @@ class ViewModelFactory(
             onDialogDismiss = onDismissRequest,
             seriesClient = komgaClientFactory.seriesClient(),
             notifications = appNotifications,
+            cardWidth = settingsRepository.getCardWidth(),
         )
 
     fun getBookEditDialogViewModel(book: KomgaBook, onDismissRequest: () -> Unit) =
         BookEditDialogViewModel(
-            book,
-            onDismissRequest,
-            komgaClientFactory.bookClient(),
-            appNotifications
+            book = book,
+            onDialogDismiss = onDismissRequest,
+            bookClient = komgaClientFactory.bookClient(),
+            notifications = appNotifications,
+            cardWidth = settingsRepository.getCardWidth(),
         )
 
     fun getFileBrowserDialogViewModel() =
