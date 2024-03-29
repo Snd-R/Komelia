@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import io.github.snd_r.komelia.ui.common.images.ThumbnailImage
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.ThumbnailToBeUploaded
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.ThumbnailType.GENERATED
@@ -53,7 +54,7 @@ fun ThumbnailEditCard(
 ) {
     ItemCardWithContent(
         modifier,
-        image = { AsyncImage(model = thumbnail, contentDescription = null, contentScale = ContentScale.Crop) }
+        image = { ThumbnailImage(data = thumbnail, cacheKey = thumbnail.id.value, contentScale = ContentScale.Crop) }
     ) {
         val (icon, tooltip) = when (thumbnail.type) {
             USER_UPLOADED -> Icons.Default.CloudDone to "User uploaded"

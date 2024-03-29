@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatAlignCenter
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,8 +19,6 @@ import io.github.snd_r.komelia.ui.common.LockableTextField
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komelia.platform.ScrollBarConfig
-import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
@@ -70,17 +66,11 @@ private fun GeneralTabContent(
     isbn: StateHolder<String>,
     isbnLock: StateHolder<Boolean>,
 ) {
-    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .heightIn(max = 600.dp)
             .padding(end = 20.dp)
             .fillMaxWidth()
-//            .fillMaxSize()
-            .verticalScrollWithScrollbar(
-                state = scrollState,
-                scrollbarConfig = ScrollBarConfig(indicatorColor = MaterialTheme.colorScheme.onSurface)
-            )
     ) {
         LockableTextField(
             text = title.value,

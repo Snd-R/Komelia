@@ -13,6 +13,8 @@ import coil3.size.Precision
 import coil3.size.Size
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.reactivecircus.cache4k.Cache
+import io.github.reactivecircus.cache4k.CacheEvent
+import io.github.reactivecircus.cache4k.CacheEventListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -28,7 +30,7 @@ class ReaderImageLoader(
     private val imageLoaderContext: PlatformContext,
 ) {
     private val imageLoadJobs = Cache.Builder<SpreadHash, SpreadImageLoadJob>()
-        .maximumCacheSize(6)
+        .maximumCacheSize(3)
         .build()
 
     fun launchImageLoadJob(
@@ -223,6 +225,12 @@ class ReaderImageLoader(
         imageLoadJobs.invalidateAll()
     }
 
+    object EventListener: CacheEventListener<SpreadHash, SpreadImageLoadJob>{
+        override fun onEvent(event: CacheEvent<SpreadHash, SpreadImageLoadJob>) {
+            TODO("Not yet implemented")
+        }
+
+    }
 }
 
 private fun IntSize.coerceAtMost(other: IntSize): IntSize {

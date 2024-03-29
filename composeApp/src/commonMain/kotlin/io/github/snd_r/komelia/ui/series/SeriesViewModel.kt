@@ -62,12 +62,12 @@ class SeriesViewModel(
         if (state.value !is Uninitialized) return
 
         screenModelScope.launch {
-            booksPageSize.value = settingsRepository.getSeriesPageLoadSize().first()
+            booksPageSize.value = settingsRepository.getBookPageLoadSize().first()
             booksLayout.value = settingsRepository.getBookListLayout().first()
             loadSeries()
             loadBooksPage(1)
 
-            settingsRepository.getSeriesPageLoadSize()
+            settingsRepository.getBookPageLoadSize()
                 .onEach {
                     if (booksPageSize.value != it) {
                         booksPageSize.value = it

@@ -78,20 +78,14 @@ class LibraryEditDialogViewModel(
 
     fun tabs(): List<DialogTab> = listOf(generalTab, scannerTab, optionsTab, metadataTab)
 
-    fun toGeneralTab() {
-        currentTab = generalTab
-    }
-
-    fun toScannerTab() {
-        currentTab = scannerTab
-    }
-
-    fun toOptionsTab() {
-        currentTab = optionsTab
-    }
-
-    fun toMetadataTab() {
-        currentTab = metadataTab
+    suspend fun onNextTabSwitch() {
+        if (currentTab == metadataTab) {
+            onConfirmEdit()
+        } else {
+            val tabs = tabs()
+            val currentIndex = tabs.indexOf(currentTab)
+            currentTab = tabs[currentIndex + 1]
+        }
     }
 
     fun setLibraryName(name: String) {
@@ -126,7 +120,7 @@ class LibraryEditDialogViewModel(
     }
 
 
-    suspend fun confirmEdit() {
+    suspend fun onConfirmEdit() {
         if (!stateIsValid()) {
             currentTab = generalTab
             return

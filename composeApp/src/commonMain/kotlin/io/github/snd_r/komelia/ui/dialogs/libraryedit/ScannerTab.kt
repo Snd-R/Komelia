@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -28,7 +28,6 @@ import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
-import io.github.snd_r.komelia.ui.dialogs.tabs.DialogControlButtons
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komga.library.ScanInterval
@@ -39,29 +38,22 @@ internal class ScannerTab(
 
     override fun options() = TabItem(
         title = "SCANNER",
-        icon = Icons.Default.ManageSearch
+        icon = Icons.AutoMirrored.Filled.ManageSearch
     )
 
     @Composable
     override fun Content() {
-        Column {
-            ScannerTabContent(
-                emptyTrashAfterScan = StateHolder(vm.emptyTrashAfterScan, vm::emptyTrashAfterScan::set),
-                scanForceModifiedTime = StateHolder(vm.scanForceModifiedTime, vm::scanForceModifiedTime::set),
-                scanOnStartup = StateHolder(vm.scanOnStartup, vm::scanOnStartup::set),
-                scanInterval = OptionsStateHolder(vm.scanInterval, ScanInterval.entries, vm::scanInterval::set),
-                oneshotsDirectory = StateHolder(vm.oneshotsDirectory, vm::oneshotsDirectory::set),
-                scanCbx = StateHolder(vm.scanCbx, vm::scanCbx::set),
-                scanEpub = StateHolder(vm.scanEpub, vm::scanEpub::set),
-                scanPdf = StateHolder(vm.scanPdf, vm::scanPdf::set),
-                excludeDirectories = StateHolder(vm.scanDirectoryExclusions, vm::scanDirectoryExclusions::set),
-            )
-            DialogControlButtons(
-                confirmationText = "Next",
-                onConfirmClick = vm::toOptionsTab,
-                onDismissRequest = vm.onDialogDismiss
-            )
-        }
+        ScannerTabContent(
+            emptyTrashAfterScan = StateHolder(vm.emptyTrashAfterScan, vm::emptyTrashAfterScan::set),
+            scanForceModifiedTime = StateHolder(vm.scanForceModifiedTime, vm::scanForceModifiedTime::set),
+            scanOnStartup = StateHolder(vm.scanOnStartup, vm::scanOnStartup::set),
+            scanInterval = OptionsStateHolder(vm.scanInterval, ScanInterval.entries, vm::scanInterval::set),
+            oneshotsDirectory = StateHolder(vm.oneshotsDirectory, vm::oneshotsDirectory::set),
+            scanCbx = StateHolder(vm.scanCbx, vm::scanCbx::set),
+            scanEpub = StateHolder(vm.scanEpub, vm::scanEpub::set),
+            scanPdf = StateHolder(vm.scanPdf, vm::scanPdf::set),
+            excludeDirectories = StateHolder(vm.scanDirectoryExclusions, vm::scanDirectoryExclusions::set),
+        )
     }
 }
 

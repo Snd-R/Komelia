@@ -7,16 +7,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.ChildSwitchingCheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.StateHolder
-import io.github.snd_r.komelia.ui.dialogs.tabs.DialogControlButtons
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import kotlinx.coroutines.launch
 
 internal class MetadataTab(
     private val vm: LibraryEditDialogViewModel,
@@ -29,29 +26,24 @@ internal class MetadataTab(
 
     @Composable
     override fun Content() {
-        Column {
-            MetadataTabContent(
-                importComicInfoBook = StateHolder(vm.importComicInfoBook, vm::importComicInfoBook::set),
-                importComicInfoSeries = StateHolder(vm.importComicInfoSeries, vm::importComicInfoSeries::set),
-                importComicInfoSeriesAppendVolume = StateHolder(
-                    vm.importComicInfoSeriesAppendVolume,
-                    vm::importComicInfoSeriesAppendVolume::set
-                ),
-                importComicInfoCollection = StateHolder(
-                    vm.importComicInfoCollection,
-                    vm::importComicInfoCollection::set
-                ),
-                importComicInfoReadList = StateHolder(vm.importComicInfoReadList, vm::importComicInfoReadList::set),
-                importEpubBook = StateHolder(vm.importEpubBook, vm::importEpubBook::set),
-                importEpubSeries = StateHolder(vm.importEpubSeries, vm::importEpubSeries::set),
-                importMylarSeries = StateHolder(vm.importMylarSeries, vm::importMylarSeries::set),
-                importLocalArtwork = StateHolder(vm.importLocalArtwork, vm::importLocalArtwork::set),
-                importBarcodeIsbn = StateHolder(vm.importBarcodeIsbn, vm::importBarcodeIsbn::set),
-            )
-            val coroutineScope = rememberCoroutineScope()
-            val confirmText = if(vm.library!=null) "Edit" else "Add"
-            DialogControlButtons(confirmText, { coroutineScope.launch { vm.confirmEdit() } }, vm.onDialogDismiss)
-        }
+        MetadataTabContent(
+            importComicInfoBook = StateHolder(vm.importComicInfoBook, vm::importComicInfoBook::set),
+            importComicInfoSeries = StateHolder(vm.importComicInfoSeries, vm::importComicInfoSeries::set),
+            importComicInfoSeriesAppendVolume = StateHolder(
+                vm.importComicInfoSeriesAppendVolume,
+                vm::importComicInfoSeriesAppendVolume::set
+            ),
+            importComicInfoCollection = StateHolder(
+                vm.importComicInfoCollection,
+                vm::importComicInfoCollection::set
+            ),
+            importComicInfoReadList = StateHolder(vm.importComicInfoReadList, vm::importComicInfoReadList::set),
+            importEpubBook = StateHolder(vm.importEpubBook, vm::importEpubBook::set),
+            importEpubSeries = StateHolder(vm.importEpubSeries, vm::importEpubSeries::set),
+            importMylarSeries = StateHolder(vm.importMylarSeries, vm::importMylarSeries::set),
+            importLocalArtwork = StateHolder(vm.importLocalArtwork, vm::importLocalArtwork::set),
+            importBarcodeIsbn = StateHolder(vm.importBarcodeIsbn, vm::importBarcodeIsbn::set),
+        )
     }
 }
 

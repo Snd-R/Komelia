@@ -32,7 +32,7 @@ class AndroidSettingsRepository(
         return dataStore.data
             .map {
                 val width = it.appearance.cardWidth
-                if (width <= 0) 180.dp
+                if (width <= 0) 170.dp
                 else width.dp
             }
     }
@@ -128,7 +128,11 @@ class AndroidSettingsRepository(
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {
-        return dataStore.data.map { it.appearance.seriesPageLoadSize }
+        return dataStore.data.map {
+            val pageSize = it.appearance.seriesPageLoadSize
+            if (pageSize <= 0) 20
+            else pageSize
+        }
     }
 
     override suspend fun putSeriesPageLoadSize(size: Int) {
@@ -140,7 +144,11 @@ class AndroidSettingsRepository(
     }
 
     override fun getBookPageLoadSize(): Flow<Int> {
-        return dataStore.data.map { it.appearance.bookPageLoadSize }
+        return dataStore.data.map {
+            val pageSize = it.appearance.bookPageLoadSize
+            if (pageSize <= 0) 20
+            else pageSize
+        }
     }
 
     override suspend fun putBookPageLoadSize(size: Int) {

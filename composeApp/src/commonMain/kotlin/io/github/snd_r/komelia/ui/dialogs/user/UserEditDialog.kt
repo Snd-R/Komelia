@@ -21,8 +21,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
@@ -32,7 +30,6 @@ import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
-import io.github.snd_r.komelia.ui.dialogs.tabs.DialogControlButtons
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
@@ -54,21 +51,15 @@ fun UserEditDialog(
 
     TabDialog(
         title = "Edit User",
-        dialogSize = DpSize(650.dp, Dp.Unspecified),
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
-        controlButtons = {
-            DialogControlButtons(
-                confirmationText = "Save Changes",
-                onConfirmClick = {
-                    coroutineScope.launch {
-                        vm.saveChanges()
-                        afterConfirm()
-                        onDismiss()
-                    }
-                },
-                onDismissRequest = onDismiss
-            )
+        confirmationText = "Save Changes",
+        onConfirm = {
+            coroutineScope.launch {
+                vm.saveChanges()
+                afterConfirm()
+                onDismiss()
+            }
         },
         onTabChange = { vm.currentTab = it },
         onDismissRequest = onDismiss

@@ -61,7 +61,7 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
                             (it is LibraryScreen && it.libraryId == libraryId) || it is CollectionScreen
                         }
                         if (!success) {
-                            libraryId?.let { navigator push LibraryScreen(it) }
+                            libraryId?.let { navigator replaceAll LibraryScreen(it) }
                         }
 
                     },

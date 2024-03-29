@@ -11,7 +11,6 @@ import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
-import io.github.snd_r.komelia.ui.dialogs.tabs.DialogControlButtons
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komga.library.SeriesCover
@@ -27,21 +26,14 @@ internal class OptionsTab(
 
     @Composable
     override fun Content() {
-        Column {
-            OptionsTabContent(
-                hashFiles = StateHolder(vm.hashFiles, vm::hashFiles::set),
-                hashPages = StateHolder(vm.hashPages, vm::hashPages::set),
-                analyzeDimensions = StateHolder(vm.analyzeDimensions, vm::analyzeDimensions::set),
-                repairExtensions = StateHolder(vm.repairExtensions, vm::repairExtensions::set),
-                convertToCbz = StateHolder(vm.convertToCbz, vm::convertToCbz::set),
-                seriesCover = OptionsStateHolder(vm.seriesCover, SeriesCover.entries, vm::seriesCover::set),
-            )
-            DialogControlButtons(
-                confirmationText = "Next",
-                onConfirmClick = vm::toMetadataTab,
-                onDismissRequest = vm.onDialogDismiss
-            )
-        }
+        OptionsTabContent(
+            hashFiles = StateHolder(vm.hashFiles, vm::hashFiles::set),
+            hashPages = StateHolder(vm.hashPages, vm::hashPages::set),
+            analyzeDimensions = StateHolder(vm.analyzeDimensions, vm::analyzeDimensions::set),
+            repairExtensions = StateHolder(vm.repairExtensions, vm::repairExtensions::set),
+            convertToCbz = StateHolder(vm.convertToCbz, vm::convertToCbz::set),
+            seriesCover = OptionsStateHolder(vm.seriesCover, SeriesCover.entries, vm::seriesCover::set),
+        )
     }
 }
 

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -15,7 +14,6 @@ import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -26,8 +24,6 @@ import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komelia.platform.ScrollBarConfig
-import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komga.series.KomgaAlternativeTitle
 
 internal class AlternativeTitlesTab(
@@ -59,19 +55,11 @@ private fun AlternativeTitlesTabContent(
     onTitleRemove: (index: Int) -> Unit,
     alternativeTitlesLock: StateHolder<Boolean>,
 ) {
-    val scrollState = rememberScrollState()
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         modifier = Modifier
             .heightIn(min = 100.dp, max = 600.dp)
             .fillMaxWidth()
-            .verticalScrollWithScrollbar(
-                state = scrollState,
-                scrollbarConfig = ScrollBarConfig(
-                    indicatorColor = MaterialTheme.colorScheme.onSurface,
-                    alpha = .8f
-                )
-            )
     ) {
         alternativeTitles.forEachIndexed { index, altTitle ->
             Row {
@@ -103,5 +91,6 @@ private fun AlternativeTitlesTabContent(
             Icon(Icons.Default.Add, contentDescription = null)
         }
     }
+
 }
 

@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogContent
-import io.github.snd_r.komelia.ui.dialogs.tabs.DialogControlButtons
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 
@@ -32,21 +31,12 @@ class GeneralTab(
         icon = Icons.Default.Category
     )
 
-
     @Composable
     override fun Content() {
-        Column {
-            GeneralTabContent(
-                name = StateHolder(vm.libraryName.value, vm::setLibraryName, vm.libraryNameError),
-                rootFolder = StateHolder(vm.rootFolder.value, vm::setRootFolder, vm.rootFolderError),
-            )
-
-            DialogControlButtons(
-                confirmationText = "Next",
-                onConfirmClick = vm::toScannerTab,
-                onDismissRequest = vm.onDialogDismiss
-            )
-        }
+        GeneralTabContent(
+            name = StateHolder(vm.libraryName.value, vm::setLibraryName, vm.libraryNameError),
+            rootFolder = StateHolder(vm.rootFolder.value, vm::setRootFolder, vm.rootFolderError),
+        )
     }
 }
 

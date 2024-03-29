@@ -97,7 +97,7 @@ private fun ToolBar(
 
         DropdownChoiceMenu(
             selectedOption = pageSize,
-            options = listOf(8, 50, 100, 200, 500),
+            options = listOf(20, 50, 100, 200, 500),
             onOptionChange = onPageSizeChange,
             contentPadding = PaddingValues(5.dp),
             modifier = Modifier

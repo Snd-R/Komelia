@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -24,11 +26,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
 
+@Composable
 fun Modifier.scrollbar(
     state: ScrollState,
     direction: Orientation,
     indicatorThickness: Dp = 8.dp,
-    indicatorColor: Color = Color.LightGray,
+    indicatorColor: Color = MaterialTheme.colorScheme.background.copy(alpha = .8f),
     alpha: Float = if (state.isScrollInProgress) 0.8f else 0f,
     alphaAnimationSpec: AnimationSpec<Float> = tween(
         delayMillis = if (state.isScrollInProgress) 0 else 1500,
@@ -108,6 +111,7 @@ data class ScrollBarConfig(
     val padding: PaddingValues = PaddingValues(all = 0.dp)
 )
 
+@Composable
 fun Modifier.verticalScrollWithScrollbar(
     state: ScrollState,
     enabled: Boolean = true,
@@ -129,6 +133,7 @@ fun Modifier.verticalScrollWithScrollbar(
     .verticalScroll(state, enabled, flingBehavior, reverseScrolling)
 
 
+@Composable
 fun Modifier.horizontalScrollWithScrollbar(
     state: ScrollState,
     enabled: Boolean = true,
