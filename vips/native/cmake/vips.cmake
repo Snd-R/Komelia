@@ -17,6 +17,7 @@ ExternalProject_Add(ep_vips
         -Djpeg=enabled
         -Dwebp=enabled
         -Dspng=enabled
+        -Dtiff=enabled
         -Dexamples=false
         -Dcplusplus=false
         -Dintrospection=disabled
@@ -37,7 +38,6 @@ ExternalProject_Add(ep_vips
         -Dopenslide=disabled
         -Dnifti=disabled
         -Dmatio=disabled
-        -Dtiff=disabled
         <BINARY_DIR> <SOURCE_DIR>
         BUILD_COMMAND
         ${FIX_ANDROID_BUILD} ${Ninja_EXECUTABLE} -C <BINARY_DIR>
@@ -52,4 +52,5 @@ ExternalProject_Add(ep_vips
         ep_mozjpeg
         ep_spng
         ep_webp
+        ep_tiff
 )

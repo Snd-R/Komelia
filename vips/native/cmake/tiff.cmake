@@ -12,4 +12,8 @@ ExternalProject_Add(ep_tiff
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_FIND_ROOT_PATH=${CMAKE_FIND_ROOT_PATH}
+        DEPENDS
+        ep_zlib
+        ep_mozjpeg
+        ep_webp
 )

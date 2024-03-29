@@ -71,11 +71,6 @@ if (USE_SUPERBUILD)
         include("cmake/mozjpeg.cmake")
     endif ()
 
-    #find_package(Tiff PATHS ${THIRD_PARTY_LIB_PATH} NO_DEFAULT_PATH)
-    #if(NOT Tiff_FOUND)
-    #    include("cmake/tiff.cmake")
-    #endif()
-
     find_package(WebP PATHS ${THIRD_PARTY_LIB_PATH} NO_DEFAULT_PATH)
     if (NOT WebP_FOUND)
         include("cmake/webp.cmake")
@@ -85,6 +80,11 @@ if (USE_SUPERBUILD)
     if (NOT SPNG_FOUND)
         include("cmake/spng.cmake")
     endif ()
+
+    find_package(Tiff PATHS ${THIRD_PARTY_LIB_PATH} NO_DEFAULT_PATH)
+    if(NOT Tiff_FOUND)
+        include("cmake/tiff.cmake")
+    endif()
 
     find_package(FFTW3 PATHS ${THIRD_PARTY_LIB_PATH} NO_DEFAULT_PATH)
     if (NOT FFTW3_FOUND)
