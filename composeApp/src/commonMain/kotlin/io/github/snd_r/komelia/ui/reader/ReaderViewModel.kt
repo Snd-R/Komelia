@@ -73,7 +73,7 @@ class HorizontalPagesReaderViewModel(
     override val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
     override val currentSpreadIndex = MutableStateFlow(0)
     private val currentSpreadScale = PageSpreadScaleState()
-    private val containerSize = MutableStateFlow<IntSize?>(null)
+    override val containerSize = MutableStateFlow<IntSize?>(null)
     override val scaleTransformation = currentSpreadScale.transformation
 
     override var layout by mutableStateOf(SINGLE_PAGE)
@@ -579,6 +579,7 @@ interface ReaderPageState {
 
 interface ReaderZoomState {
     val scaleTransformation: StateFlow<Transformation>
+    val containerSize: StateFlow<IntSize?>
     fun onContentSizeChange(areaSize: IntSize)
     fun addZoom(zoomMultiplier: Float, focus: Offset)
     fun addPan(pan: Offset)

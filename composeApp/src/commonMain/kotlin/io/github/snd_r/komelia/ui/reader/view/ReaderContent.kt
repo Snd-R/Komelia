@@ -21,7 +21,6 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.ReaderPageState
 import io.github.snd_r.komelia.ui.reader.ReaderSettingsState
@@ -31,8 +30,6 @@ import io.github.snd_r.komelia.ui.reader.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.flow.SharedFlow
-
-private val logger = KotlinLogging.logger {}
 
 @Composable
 fun PagedReaderContent(
@@ -47,7 +44,6 @@ fun PagedReaderContent(
     var showNavMenu by remember { mutableStateOf(false) }
     var showNavHelpDialog by remember { mutableStateOf(false) }
 
-    var contentAreaSize by remember { mutableStateOf(IntSize.Zero) }
     var isCtrlPressed by remember { mutableStateOf(false) }
 
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
@@ -63,25 +59,16 @@ fun PagedReaderContent(
         )
     }
 
-    Box(
-        Modifier.onSizeChanged {
-            zoomState.onContentSizeChange(it)
-            contentAreaSize = it
-        }
-    ) {
-
+    Box(Modifier.onSizeChanged { zoomState.onContentSizeChange(it) }) {
         ControlsOverlay(
             readingDirection = settingsState.readingDirection,
             onNexPageClick = pageState::nextPage,
             onPrevPageClick = pageState::previousPage,
-            contentAreaSize = contentAreaSize,
+            contentAreaSize = zoomState.containerSize.collectAsState().value ?: IntSize.Zero,
             onNavMenuToggle = { showNavMenu = !showNavMenu },
         ) {
             ScalableContainer(
-                areaSize = contentAreaSize,
-                scaleTransformations = zoomState.scaleTransformation.collectAsState().value,
-                addZoom = zoomState::addZoom,
-                addPan = zoomState::addPan,
+                zoomState = zoomState,
                 isCtrlPressed = isCtrlPressed,
             ) {
                 ReaderPages(
