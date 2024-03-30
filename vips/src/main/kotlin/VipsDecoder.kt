@@ -35,6 +35,7 @@ object VipsDecoder {
         "webp",
         "jpeg",
         "spng",
+        "tiff",
         "heif",
         "vips",
         "komelia",

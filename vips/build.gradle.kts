@@ -17,7 +17,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 val linuxBuildDir = "$projectDir/native/build"
@@ -150,7 +150,6 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libglib-2.0-0.dll",
         "libgmodule-2.0-0.dll",
         "libgobject-2.0-0.dll",
-//        "libgthread-2.0-0.dll",
         "libheif.dll",
         "libhwy.dll",
         "libintl-8.dll",

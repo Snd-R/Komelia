@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "io.github.snd-r"
-version = "0.1"
+version = "0.2"
 
 dependencies {
     // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
@@ -24,13 +24,13 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
     androidTarget {
         compilations.all { kotlinOptions { jvmTarget = "11" } }
     }
 
     jvm("desktop") {
-        compilations.all { kotlinOptions { jvmTarget = "21" } }
+        compilations.all { kotlinOptions { jvmTarget = "17" } }
     }
 
     val coilVersion = "3.0.0-alpha06"
@@ -113,8 +113,8 @@ kotlin {
             implementation(project(":vips"))
 
             implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
-            runtimeOnly("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
-            runtimeOnly("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
+            implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
+            implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
         }
     }
 }
@@ -208,10 +208,19 @@ tasks.register<Zip>("repackageUberJar") {
     val output = File(file.parentFile, "${file.nameWithoutExtension}-repacked.jar")
     archiveFileName.set(output.absolutePath)
     destinationDirectory.set(file.parentFile.absoluteFile)
-    exclude("META-INF/*.SF")
-    exclude("META-INF/*.RSA")
-    exclude("META-INF/*.DSA")
-    from(project.zipTree(file))
+
+    from(project.zipTree(file)) {
+        exclude("META-INF/*.SF")
+        exclude("META-INF/*.RSA")
+        exclude("META-INF/*.DSA")
+        exclude("META-INF/services/javax.imageio.spi.ImageReaderSpi")
+    }
+
+    // ImageIO plugins include workaround https://github.com/JetBrains/compose-multiplatform/issues/4505
+    from("$projectDir/javax.imageio.spi.ImageReaderSpi") {
+        into("META-INF/services")
+    }
+
     doLast {
         delete(file)
         output.renameTo(file)
