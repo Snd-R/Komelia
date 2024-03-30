@@ -9,8 +9,8 @@ import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
-import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.image.DesktopDecoder
+import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
 import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
@@ -42,10 +42,15 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 
+private val logger = KotlinLogging.logger {}
 private val stateFlowScope = CoroutineScope(Dispatchers.Default)
 actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory {
     setLogLevel()
-    VipsDecoder.load()
+    try {
+        VipsDecoder.load()
+    } catch (e: UnsatisfiedLinkError) {
+        logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
+    }
 
     val settingsRepository = createSettingsRepository()
     val secretsRepository = KeyringSecretsRepository()

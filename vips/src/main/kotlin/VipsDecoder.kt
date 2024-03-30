@@ -21,9 +21,9 @@ object VipsDecoder {
         "z",
         "ffi",
         "glib-2.0",
-        "gio-2.0",
         "gmodule-2.0",
         "gobject-2.0",
+        "gio-2.0",
         "dav1d",
         "expat",
         "fftw3",
@@ -80,6 +80,7 @@ object VipsDecoder {
 
     @Suppress("UnsafeDynamicallyLoadedCode")
     private fun loadLibs(libs: List<String>) {
+        logger.info(System.getProperty("java.library.path"))
         for (libName in libs) {
             try {
                 val filename = System.mapLibraryName(libName)
@@ -106,7 +107,7 @@ object VipsDecoder {
 
                     javaPathFile != null -> {
                         System.load(javaPathFile.absolutePathString())
-                        logger.info("loaded bundled native library $filename")
+                        logger.info("loaded native library from java path $filename")
                     }
                 }
 
