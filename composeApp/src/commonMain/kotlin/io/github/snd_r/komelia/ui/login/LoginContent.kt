@@ -34,9 +34,7 @@ fun LoginContent(
     onLogin: suspend () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    Box(
-        contentAlignment = Alignment.Center,
-    ) {
+    Box(contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Login")
 
@@ -49,7 +47,8 @@ fun LoginContent(
                 modifier = Modifier
                     .withTextFieldKeyMapping()
                     .focusRequester(first)
-                    .focusProperties { next = second }
+                    .focusProperties { next = second },
+                placeholder = { Text("http://localhost:25600") }
             )
 
             OutlinedTextField(

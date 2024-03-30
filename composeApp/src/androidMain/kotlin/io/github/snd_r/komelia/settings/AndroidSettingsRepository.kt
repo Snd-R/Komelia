@@ -32,7 +32,7 @@ class AndroidSettingsRepository(
         return dataStore.data
             .map {
                 val width = it.appearance.cardWidth
-                if (width <= 0) 170.dp
+                if (width <= 0) 150.dp
                 else width.dp
             }
     }

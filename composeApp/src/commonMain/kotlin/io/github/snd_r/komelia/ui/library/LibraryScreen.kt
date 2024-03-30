@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.LocalLibrary
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.FilterChip
@@ -304,7 +307,6 @@ fun LibraryToolBar(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-
         var showOptionsMenu by remember { mutableStateOf(false) }
         if (library != null) {
             Box {
@@ -328,7 +330,7 @@ fun LibraryToolBar(
         val title = library?.let { library.name } ?: "All Libraries"
         Text(title, Modifier.align(Alignment.CenterVertically))
 
-        Spacer(Modifier.widthIn(max = 30.dp))
+        Spacer(Modifier.width(5.dp))
 
         val chipColors = FilterChipDefaults.filterChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -431,7 +433,7 @@ fun CompactLibraryNavigation(
         )
         CompactNavButton(
             text = "Browse",
-            icon = Icons.Default.Star,
+            icon = Icons.Default.LocalLibrary,
             onClick = onBrowseClick,
             isSelected = currentTab == BROWSE,
             modifier = Modifier.weight(1f)
@@ -439,7 +441,7 @@ fun CompactLibraryNavigation(
         if (collectionsCount > 0)
             CompactNavButton(
                 text = "Collections",
-                icon = Icons.Default.Star,
+                icon = Icons.AutoMirrored.Filled.List,
                 onClick = onCollectionsClick,
                 isSelected = currentTab == COLLECTIONS,
                 modifier = Modifier.weight(1f)
@@ -447,7 +449,7 @@ fun CompactLibraryNavigation(
         if (readListsCount > 0)
             CompactNavButton(
                 text = "Read Lists",
-                icon = Icons.Default.Star,
+                icon = Icons.Default.Collections,
                 onClick = onReadListsClick,
                 isSelected = currentTab == READ_LISTS,
                 modifier = Modifier.weight(1f)

@@ -41,6 +41,7 @@ fun LinksEditContent(
                     value = link.label,
                     onValueChange = { onLinkChange(index, link.copy(label = it)) },
                     label = { Text("Label") },
+                    maxLines = 1,
                     modifier = Modifier.weight(.3f).withTextFieldKeyMapping()
                 )
 
@@ -50,6 +51,7 @@ fun LinksEditContent(
                     value = link.url,
                     onValueChange = { onLinkChange(index, link.copy(url = it)) },
                     label = { Text("URL") },
+                    maxLines = 1,
                     modifier = Modifier.weight(.7f).withTextFieldKeyMapping()
                 )
 

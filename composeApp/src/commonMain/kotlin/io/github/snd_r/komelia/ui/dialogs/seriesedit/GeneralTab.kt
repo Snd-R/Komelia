@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.ui.dialogs.seriesedit
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -82,7 +81,6 @@ private fun GeneralTabContent(
     totalBookCountLock: StateHolder<Boolean>,
 ) {
     Column(
-//        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
@@ -126,6 +124,7 @@ private fun GeneralTabContent(
                 errorMessage = language.errorMessage,
                 label = "Language",
                 lock = languageLock,
+                maxLines = 1,
                 modifier = Modifier.weight(.5f),
             )
         }
@@ -148,6 +147,7 @@ private fun GeneralTabContent(
                 errorMessage = publisher.errorMessage,
                 label = "Publisher",
                 lock = publisherLock,
+                maxLines = 1,
                 modifier = Modifier.weight(.5f)
             )
 
@@ -164,6 +164,7 @@ private fun GeneralTabContent(
                 errorMessage = ageRating.errorMessage,
                 label = "Age Rating",
                 lock = ageRatingLock,
+                maxLines = 1,
                 modifier = Modifier.weight(.5f)
             )
         }
@@ -183,6 +184,7 @@ private fun GeneralTabContent(
                 errorMessage = totalBookCount.errorMessage,
                 label = "Total Book Count",
                 lock = totalBookCountLock,
+                maxLines = 1,
                 modifier = Modifier.fillMaxWidth().weight(.5f)
             )
 
@@ -191,13 +193,3 @@ private fun GeneralTabContent(
 
     }
 }
-
-@Composable
-private fun TabContainer(content: @Composable () -> Unit) {
-    Box(
-        Modifier
-    ) {
-        content()
-    }
-}
-

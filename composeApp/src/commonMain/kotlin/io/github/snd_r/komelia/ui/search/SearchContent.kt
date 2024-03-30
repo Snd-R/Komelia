@@ -21,10 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesDetailedListCard
-import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.series.KomgaSeries
@@ -39,7 +42,7 @@ fun SearchContent(
     onBackClick: () -> Unit,
     onBookClick: (KomgaBookId) -> Unit,
 ) {
-    Column(Modifier.padding(horizontal = 50.dp)) {
+    Column {
         SearchToolBar(onBackClick)
         SearchResultsContent(
             query,
@@ -84,11 +87,16 @@ private fun SearchResults(
     onSeriesClick: (KomgaSeriesId) -> Unit,
     onBookClick: (KomgaBookId) -> Unit,
 ) {
+    val paddingMod = when (LocalWindowWidth.current) {
+        COMPACT, MEDIUM -> Modifier.padding(horizontal = 5.dp)
+        else -> Modifier.padding(horizontal = 50.dp)
+    }
     val scrollState = rememberLazyListState()
     Box {
         LazyColumn(
             state = scrollState,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = paddingMod
         ) {
             seriesSearchResults(results.series, onSeriesClick = onSeriesClick)
             booksSearchResults(results.books, onBookClick = onBookClick)

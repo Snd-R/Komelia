@@ -56,8 +56,6 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 
-private val DialogMaxHeight = 800.dp
-
 @Composable
 fun TabDialog(
     title: String,
@@ -173,9 +171,9 @@ private fun CompactTabDialog(
 
         Box(
             Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
+                .padding(5.dp)
                 .verticalScrollWithScrollbar(rememberScrollState())
-                .padding(10.dp)
         ) {
             currentTab.Content()
         }
@@ -249,7 +247,7 @@ private fun TabColumnDialog(
                 val scrollState = rememberScrollState()
                 Box(
                     Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .verticalScrollWithScrollbar(scrollState)
                         .padding(10.dp)
                 ) {

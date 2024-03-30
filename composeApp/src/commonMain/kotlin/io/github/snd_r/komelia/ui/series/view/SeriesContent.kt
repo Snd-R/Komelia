@@ -1,6 +1,9 @@
 package io.github.snd_r.komelia.ui.series.view
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,10 +51,14 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
@@ -102,10 +109,11 @@ fun SeriesContent(
     onBookPageNumberClick: (Int) -> Unit,
     onBackButtonClick: () -> Unit,
 ) {
-    val contentPadding = when (LocalWindowWidth.current) {
-        WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.padding(5.dp)
-        WindowWidth.EXPANDED -> Modifier.padding(start = 20.dp, end = 20.dp)
-        WindowWidth.FULL -> Modifier.padding(start = 30.dp, end = 30.dp)
+    val windowWidth = LocalWindowWidth.current
+    val contentPadding = when (windowWidth) {
+        COMPACT, MEDIUM -> Modifier.padding(5.dp)
+        EXPANDED -> Modifier.padding(start = 20.dp, end = 20.dp)
+        FULL -> Modifier.padding(start = 30.dp, end = 30.dp)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -203,19 +211,26 @@ fun SeriesToolBar(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun Series(
-    series: KomgaSeries,
-) {
+fun Series(series: KomgaSeries) {
+    val width = LocalWindowWidth.current
+    val animation: FiniteAnimationSpec<IntSize> = remember(series) {
+        when (width) {
+            COMPACT, MEDIUM -> spring(stiffness = Spring.StiffnessHigh)
+            else -> spring(stiffness = Spring.StiffnessMediumLow)
+        }
+    }
+
     Column {
         FlowRow {
             SeriesThumbnail(
                 seriesId = series.id,
                 modifier = Modifier
+                    .animateContentSize(animationSpec = animation)
                     .heightIn(min = 100.dp, max = 400.dp)
-                    .widthIn(min = 300.dp, max = 500.dp)
-                    .animateContentSize(),
+                    .widthIn(min = 300.dp, max = 500.dp),
                 contentScale = ContentScale.Fit
             )
+
             SeriesInfo(series, Modifier.weight(1f, false).widthIn(min = 200.dp))
         }
         SeriesInfoLower(series)
@@ -228,9 +243,9 @@ fun SeriesInfo(
     modifier: Modifier
 ) {
     val contentSize = when (LocalWindowWidth.current) {
-        WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.padding(10.dp, 0.dp)
-        WindowWidth.EXPANDED -> Modifier.padding(10.dp, 0.dp)
-        WindowWidth.FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.8f)
+        COMPACT, MEDIUM -> Modifier.padding(10.dp, 0.dp)
+        EXPANDED -> Modifier.padding(10.dp, 0.dp)
+        FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.8f)
     }
 
     Column(
@@ -443,55 +458,73 @@ private fun BooksToolBar(
     currentBookPage: Int,
     onBookPageNumberClick: (Int) -> Unit,
 ) {
+    val width = LocalWindowWidth.current
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 10.dp)
+        ) {
+            val booksLabel = buildString {
+                append(series.booksCount)
+                if (series.metadata.totalBookCount != null) append(" / ${series.metadata.totalBookCount}")
+                if (series.booksCount > 1) append(" books")
+                else append(" book")
+            }
+            SuggestionChip(
+                onClick = {},
+                label = { Text(booksLabel, style = MaterialTheme.typography.bodyMedium) },
+                modifier = Modifier.padding(10.dp, 0.dp)
+            )
+            when (width) {
+                EXPANDED, FULL -> Pagination(
+                    totalPages = totalBookPages,
+                    currentPage = currentBookPage,
+                    onPageChange = onBookPageNumberClick,
+                    modifier = Modifier.weight(1f)
+                )
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 10.dp)
-    ) {
-        val booksLabel = buildString {
-            append(series.booksCount)
-            if (series.metadata.totalBookCount != null) append(" / ${series.metadata.totalBookCount}")
-            if (series.booksCount > 1) append(" books")
-            else append(" book")
+                else -> {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+
+            DropdownChoiceMenu(
+                selectedOption = booksPageSize,
+                options = listOf(20, 50, 100, 200, 500),
+                onOptionChange = onBooksPageSizeChange,
+                label = {},
+                modifier = Modifier.width(70.dp)
+            )
+
+            Row {
+                Box(Modifier
+                    .background(if (booksLayout == LIST) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
+                    .clickable { onBooksLayoutChange(LIST) }
+                    .cursorForHand()
+                    .padding(10.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ViewList, null)
+                }
+
+                Box(Modifier
+                    .background(if (booksLayout == GRID) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
+                    .clickable { onBooksLayoutChange(GRID) }
+                    .cursorForHand()
+                    .padding(10.dp)
+                ) {
+                    Icon(Icons.Default.GridView, null)
+                }
+            }
         }
-        SuggestionChip(
-            onClick = {},
-            label = { Text(booksLabel, style = MaterialTheme.typography.bodyMedium) },
-            modifier = Modifier.padding(10.dp, 0.dp)
-        )
-        Pagination(
-            totalPages = totalBookPages,
-            currentPage = currentBookPage,
-            onPageChange = onBookPageNumberClick,
-            modifier = Modifier.weight(1f)
-        )
 
-        DropdownChoiceMenu(
-            selectedOption = booksPageSize,
-            options = listOf(20, 50, 100, 200, 500),
-            onOptionChange = onBooksPageSizeChange,
-            label = {},
-            modifier = Modifier.width(70.dp)
-        )
+        when (width) {
+            COMPACT, MEDIUM -> Pagination(
+                totalPages = totalBookPages,
+                currentPage = currentBookPage,
+                onPageChange = onBookPageNumberClick,
+            )
 
-        Row {
-            Box(Modifier
-                .background(if (booksLayout == LIST) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
-                .clickable { onBooksLayoutChange(LIST) }
-                .cursorForHand()
-                .padding(10.dp)
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ViewList, null)
-            }
-
-            Box(Modifier
-                .background(if (booksLayout == GRID) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
-                .clickable { onBooksLayoutChange(GRID) }
-                .cursorForHand()
-                .padding(10.dp)
-            ) {
-                Icon(Icons.Default.GridView, null)
-            }
+            else -> {}
         }
     }
 

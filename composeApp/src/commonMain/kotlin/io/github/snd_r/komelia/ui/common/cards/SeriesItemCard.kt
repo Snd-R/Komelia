@@ -153,7 +153,11 @@ private fun SeriesImageOverlay(
                     modifier = Modifier.size(30.dp).background(MaterialTheme.colorScheme.tertiary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("${series.booksUnreadCount}", color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        "${series.booksUnreadCount}",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         }

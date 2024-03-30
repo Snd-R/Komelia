@@ -2,18 +2,22 @@ package io.github.snd_r.komelia.ui.library.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.common.PaginationWithSizeOptions
 import io.github.snd_r.komelia.ui.common.itemlist.PlaceHolderLazyCardGrid
 import io.github.snd_r.komelia.ui.common.itemlist.ReadListLazyCardGrid
 import io.github.snd_r.komga.readlist.KomgaReadList
@@ -51,14 +55,17 @@ fun LibraryReadListsContent(
                 modifier = Modifier.padding(end = 10.dp)
             )
 
-            PaginationWithSizeOptions(
-                totalPages = totalPages,
-                currentPage = currentPage,
-                onPageChange = onPageChange,
-                navigationButtons = false,
-                pageSize = pageSize,
-                onPageSizeChange = onPageSizeChange,
-                spacer = { Spacer(Modifier.weight(1f)) }
+            Spacer(Modifier.weight(1f))
+
+            DropdownChoiceMenu(
+                selectedOption = pageSize,
+                options = listOf(20, 50, 100, 200, 500),
+                onOptionChange = onPageSizeChange,
+                contentPadding = PaddingValues(5.dp),
+                modifier = Modifier
+                    .widthIn(min = 70.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .padding(end = 10.dp)
             )
         }
 
@@ -70,6 +77,9 @@ fun LibraryReadListsContent(
                 readLists = readLists,
                 onReadListClick = onReadListClick,
                 onReadListDelete = onReadListDelete,
+                totalPages = totalPages,
+                currentPage = currentPage,
+                onPageChange = onPageChange,
                 minSize = minSize
             )
         }

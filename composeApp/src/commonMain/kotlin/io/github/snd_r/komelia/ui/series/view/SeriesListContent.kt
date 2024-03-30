@@ -81,7 +81,6 @@ private fun ToolBar(
     pageSize: Int,
     onPageSizeChange: (Int) -> Unit,
 ) {
-
     Row(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
@@ -90,7 +89,6 @@ private fun ToolBar(
         SuggestionChip(
             onClick = {},
             label = { Text("$seriesTotalCount series") },
-            modifier = Modifier.padding(end = 10.dp)
         )
 
         Spacer(Modifier.weight(1f))

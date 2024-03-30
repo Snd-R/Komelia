@@ -1,7 +1,8 @@
 package io.github.snd_r.komelia.ui.dialogs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ConfirmationDialog(
     title: String,
@@ -52,7 +54,7 @@ fun ConfirmationDialog(
                     )
                 }
 
-                Row {
+                FlowRow {
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDialogDismiss) {
                         Text(buttonCancel)

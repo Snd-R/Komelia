@@ -40,37 +40,37 @@ fun <T> DropdownChoiceMenu(
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    Surface {
-        ExposedDropdownMenuBox(
+    ExposedDropdownMenuBox(
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = it },
+    ) {
+        InputField(
+            value = selectedOption.toString(),
+            modifier = Modifier
+                .menuAnchor()
+                .then(modifier),
+            label = label,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+            color = inputFieldColor,
+            contentPadding = contentPadding
+        )
+
+        ExposedDropdownMenu(
             expanded = isExpanded,
-            onExpandedChange = { isExpanded = it },
-//        modifier = modifier
+            onDismissRequest = { isExpanded = false }
         ) {
-            InputField(
-                value = selectedOption.toString(),
-                modifier = Modifier
-                    .menuAnchor()
-                    .then(modifier),
-                label = label,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-                color = inputFieldColor,
-                contentPadding = contentPadding
-            )
 
-            ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-
-                options.forEach {
-                    DropdownMenuItem(
-                        text = { Text(it.toString()) },
-                        onClick = {
-                            onOptionChange(it)
-                            isExpanded = false
-                        }, modifier = Modifier.cursorForHand()
-                    )
-                }
+            options.forEach {
+                DropdownMenuItem(
+                    text = { Text(it.toString()) },
+                    onClick = {
+                        onOptionChange(it)
+                        isExpanded = false
+                    }, modifier = Modifier.cursorForHand()
+                )
             }
-
         }
+
     }
 }
 

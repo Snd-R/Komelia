@@ -69,6 +69,7 @@ private fun AlternativeTitlesTabContent(
                     value = altTitle.label,
                     onValueChange = { onTitleChange(index, altTitle.copy(label = it)) },
                     label = { Text("Label") },
+                    maxLines = 1,
                     modifier = Modifier.weight(.3f).withTextFieldKeyMapping(onTitleAdd)
                 )
 
@@ -78,6 +79,7 @@ private fun AlternativeTitlesTabContent(
                     value = altTitle.title,
                     onValueChange = { onTitleChange(index, altTitle.copy(title = it)) },
                     label = { Text("Alternate title") },
+                    maxLines = 1,
                     modifier = Modifier.weight(.7f).withTextFieldKeyMapping()
                 )
 

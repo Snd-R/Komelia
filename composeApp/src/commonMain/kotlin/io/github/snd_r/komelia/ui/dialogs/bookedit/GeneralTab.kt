@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatAlignCenter
@@ -67,10 +66,7 @@ private fun GeneralTabContent(
     isbnLock: StateHolder<Boolean>,
 ) {
     Column(
-        modifier = Modifier
-            .heightIn(max = 600.dp)
-            .padding(end = 20.dp)
-            .fillMaxWidth()
+        modifier = Modifier.padding(end = 20.dp).fillMaxWidth()
     ) {
         LockableTextField(
             text = title.value,
@@ -126,7 +122,8 @@ private fun GeneralTabContent(
             lock = summaryLock,
             minLines = 6,
             maxLines = 12,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            textFieldModifier = Modifier
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -136,6 +133,7 @@ private fun GeneralTabContent(
                 errorMessage = releaseDate.errorMessage,
                 label = "Release Date",
                 lock = releaseDateLock,
+                maxLines = 1,
                 modifier = Modifier.weight(.5f)
             )
 
@@ -145,6 +143,7 @@ private fun GeneralTabContent(
                 errorMessage = isbn.errorMessage,
                 label = "ISBN",
                 lock = isbnLock,
+                maxLines = 1,
                 modifier = Modifier.weight(.5f)
             )
         }

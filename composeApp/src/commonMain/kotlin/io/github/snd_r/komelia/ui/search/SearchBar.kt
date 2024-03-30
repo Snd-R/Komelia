@@ -47,9 +47,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
-import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.library.KomgaLibrary
@@ -87,22 +87,22 @@ fun SearchBar(
 
     val focusManager = LocalFocusManager.current
     val isExpanded = derivedStateOf { isFocused && query.isNotBlank() }
-    Box {
-
-        SearchTextField(
-            query = query,
-            onQueryChange = onQueryChange,
-            onSearchAllPress = onSearchAllClick,
-            interactionSource = interactionSource
-        )
-        BoxWithConstraints {
+    BoxWithConstraints {
+        val maxHeight = maxHeight
+        Box {
+            SearchTextField(
+                query = query,
+                onQueryChange = onQueryChange,
+                onSearchAllPress = onSearchAllClick,
+                interactionSource = interactionSource
+            )
             DropdownMenu(
                 expanded = isExpanded.value,
                 onDismissRequest = {},
                 properties = PopupProperties(focusable = false),
                 modifier = Modifier
                     .width(expandedSearchBarWidth)
-                    .heightIn(max = this.maxHeight - 150.dp)
+                    .heightIn(max = maxHeight - 150.dp)
                     .padding(5.dp)
             ) {
                 SearchResultsDropDownBox(
@@ -260,14 +260,6 @@ private fun SearchTextField(
 
     val textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor)
     val focusManager = LocalFocusManager.current
-
-//    val animatedSize by animateDpAsState(
-//        targetValue = if (isFocused.value) expandedSearchBarWidth else 300.dp,
-//        animationSpec = tween(
-//            durationMillis = 100,
-//            easing = LinearEasing
-//        )
-//    )
 
     BasicTextField(
         value = query,

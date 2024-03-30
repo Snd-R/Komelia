@@ -8,6 +8,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
@@ -51,5 +52,8 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
 
             is Error -> Text("Error")
         }
+
+        BackPressHandler { navigator.pop() }
+
     }
 }

@@ -11,6 +11,7 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
@@ -61,6 +62,7 @@ class SeriesViewModel(
     fun initialize() {
         if (state.value !is Uninitialized) return
 
+        mutableState.value = Loading
         screenModelScope.launch {
             booksPageSize.value = settingsRepository.getBookPageLoadSize().first()
             booksLayout.value = settingsRepository.getBookListLayout().first()
@@ -77,6 +79,7 @@ class SeriesViewModel(
 
             settingsRepository.getBookListLayout()
                 .onEach { booksLayout.value = it }.launchIn(screenModelScope)
+            mutableState.value = Success(Unit)
         }
 
         screenModelScope.launch { registerEventListener() }

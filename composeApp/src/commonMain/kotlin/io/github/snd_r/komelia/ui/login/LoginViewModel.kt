@@ -23,7 +23,7 @@ class LoginViewModel(
     private val komgaUserClient: KomgaUserClient,
     private val komgaLibraryClient: KomgaLibraryClient,
     private val authenticatedUserFlow: MutableStateFlow<KomgaUser?>,
-    private val availableLibrariesFlow: MutableStateFlow<List<KomgaLibrary>>
+    private val availableLibrariesFlow: MutableStateFlow<List<KomgaLibrary>>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     var url by mutableStateOf("")
@@ -37,7 +37,6 @@ class LoginViewModel(
         screenModelScope.launch {
             url = settingsRepository.getServerUrl().first()
             user = settingsRepository.getCurrentUser().first()
-
             tryLogin()
         }
     }

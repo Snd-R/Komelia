@@ -3,6 +3,8 @@ package io.github.snd_r.komelia.ui.settings.server
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -139,6 +141,51 @@ fun ServerSettingsContent(
 
 
 @Composable
+fun ChangesConfirmationButton(
+    thumbnailSizeChanged: Boolean,
+    onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
+
+    isChanged: Boolean,
+    onSave: () -> Unit,
+    onDiscard: () -> Unit,
+) {
+
+    var showThumbnailRegenerateDialog by remember { mutableStateOf(false) }
+    if (showThumbnailRegenerateDialog) {
+        ThumbRegenerationDialog(
+            onThumbnailRegenerate = onThumbnailRegenerate,
+            onDismiss = { showThumbnailRegenerateDialog = false }
+        )
+    }
+
+    Row(
+        modifier = Modifier.padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Spacer(Modifier.weight(1f))
+        TextButton(
+            onClick = onDiscard,
+            enabled = isChanged
+        ) { Text("Discard") }
+        Spacer(Modifier.width(20.dp))
+
+        FilledTonalButton(
+            onClick = {
+                if (thumbnailSizeChanged) showThumbnailRegenerateDialog = true
+                onSave()
+            },
+            shape = RoundedCornerShape(5.dp),
+            enabled = isChanged
+        ) {
+            Text("Save Changes")
+        }
+    }
+
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 fun ChangesConfirmationPopup(
     thumbnailSizeChanged: Boolean,
     onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
@@ -150,20 +197,11 @@ fun ChangesConfirmationPopup(
 
     var showThumbnailRegenerateDialog by remember { mutableStateOf(false) }
     if (showThumbnailRegenerateDialog) {
-        ConfirmationDialog(
-            title = "Regenerate thumbnails",
-            body = "Thumbnails size has changed. Do you want to regenerate book thumbnails?",
-            buttonConfirm = "YES, BUT ONLY IF BIGGER,",
-            buttonAlternate = "YES, ALL BOOKS",
-            buttonCancel = "NO",
-            onDialogConfirm = { onThumbnailRegenerate(true) },
-            onDialogConfirmAlternate = { onThumbnailRegenerate(false) },
-            onDialogDismiss = {
-                showThumbnailRegenerateDialog = false
-            }
+        ThumbRegenerationDialog(
+            onThumbnailRegenerate = onThumbnailRegenerate,
+            onDismiss = { showThumbnailRegenerateDialog = false }
         )
     }
-
 
     if (isChanged) {
         Popup(
@@ -176,9 +214,9 @@ fun ChangesConfirmationPopup(
                     .width(600.dp)
                     .padding(20.dp)
             ) {
-                Row(
+                FlowRow(
                     modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text("You have unsaved changes")
                     Spacer(Modifier.weight(1f))
@@ -202,5 +240,25 @@ fun ChangesConfirmationPopup(
             }
         }
     }
+
+}
+
+@Composable
+private fun ThumbRegenerationDialog(
+    onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+
+
+    ConfirmationDialog(
+        title = "Regenerate thumbnails",
+        body = "Thumbnails size has changed. Do you want to regenerate book thumbnails?",
+        buttonConfirm = "YES, BUT ONLY IF BIGGER",
+        buttonAlternate = "YES, ALL BOOKS",
+        buttonCancel = "NO",
+        onDialogConfirm = { onThumbnailRegenerate(true) },
+        onDialogConfirmAlternate = { onThumbnailRegenerate(false) },
+        onDialogDismiss = onDismiss
+    )
 
 }

@@ -1,9 +1,21 @@
 package io.github.snd_r.komelia.ui.reader.view
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -16,12 +28,12 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
-import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.reader.HorizontalPagesReaderViewModel
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 
 class ReaderScreen(
     private val bookId: KomgaBookId,
@@ -42,7 +54,7 @@ class ReaderScreen(
 
         when (val result = vmState.value) {
             is Error -> Text(result.exception.message ?: "Error")
-            Loading, Uninitialized -> LoadingMaxSizeIndicator()
+            Loading, Uninitialized -> LoadIndicator()
             is Success -> ReaderScreenContent(vm, result.value)
         }
     }
@@ -69,6 +81,27 @@ class ReaderScreen(
         )
 
         BackPressHandler { navigator replace MainScreen(SeriesScreen(book.seriesId)) }
+
+    }
+
+    @Composable
+    private fun LoadIndicator() {
+        var showLoadIndicator by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            delay(100)
+            showLoadIndicator = true
+        }
+
+        if (showLoadIndicator)
+            Box(
+                contentAlignment = Alignment.TopStart,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                LinearProgressIndicator(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier.scale(scaleX = 1f, scaleY = 3f).fillMaxWidth()
+                )
+            }
 
     }
 }

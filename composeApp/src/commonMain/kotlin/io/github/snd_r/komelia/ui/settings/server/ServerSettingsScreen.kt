@@ -45,16 +45,6 @@ class ServerSettingsScreen : Screen {
         }
 
         Column {
-
-            ChangesConfirmationPopup(
-                thumbnailSizeChanged = currentSettings.thumbnailSize != thumbnailSize.value,
-                onThumbnailRegenerate = vm::regenerateThumbnails,
-
-                isChanged = isChanged.value,
-                onSave = vm::updateSettings,
-                onDiscard = vm::resetChanges,
-            )
-
             ServerSettingsContent(
                 deleteEmptyCollections = StateHolder(
                     deleteEmptyCollections.value,
@@ -95,6 +85,16 @@ class ServerSettingsScreen : Screen {
                     onValueChange = vm::onThumbnailSizeChange
                 ),
             )
+
+            ChangesConfirmationButton(
+                thumbnailSizeChanged = currentSettings.thumbnailSize != thumbnailSize.value,
+                onThumbnailRegenerate = vm::regenerateThumbnails,
+
+                isChanged = isChanged.value,
+                onSave = vm::updateSettings,
+                onDiscard = vm::resetChanges,
+            )
+
 
             HorizontalDivider(Modifier.padding(top = 40.dp, bottom = 20.dp))
 
