@@ -29,8 +29,6 @@ class SeriesFilterState(
         private set
     var publicationStatus by mutableStateOf<List<KomgaSeriesStatus>>(emptyList())
         private set
-    var ageRating by mutableStateOf<List<Int>>(emptyList())
-        private set
     var genres by mutableStateOf<List<String>>(emptyList())
         private set
     var genresOptions by mutableStateOf<List<String>>(emptyList())
@@ -128,11 +126,6 @@ class SeriesFilterState(
         onChange()
     }
 
-    fun resetTagFilters() {
-        genres = emptyList()
-        tags = emptyList()
-    }
-
     suspend fun onAuthorsSearch(search: String) {
         if (search.isBlank()) this.authorsOptions = emptyList()
         else this.authorsOptions = referentialClient.getAuthors(search).content
@@ -205,26 +198,39 @@ class SeriesFilterState(
         sortOrder = defaultSort
         readStatus = emptyList()
         publicationStatus = emptyList()
-        ageRating = emptyList()
-        releaseDates = emptyList()
         authors = emptyList()
         resetTagFilters()
+        releaseDates = emptyList()
+        ageRatings = emptyList()
+        ageRatings = emptyList()
+        publishers = emptyList()
+        languages = emptyList()
+        complete = Completion.ANY
+        oneshot = Format.ANY
 
         isChanged = false
         onChange()
     }
 
+    fun resetTagFilters() {
+        genres = emptyList()
+        tags = emptyList()
+    }
 
     private fun markChanges() {
         val hasDefaultValues = searchTerm.isBlank() &&
                 sortOrder == defaultSort &&
                 readStatus.isEmpty() &&
                 publicationStatus.isEmpty() &&
-                ageRating.isEmpty() &&
-                releaseDates.isEmpty() &&
                 genres.isEmpty() &&
                 tags.isEmpty() &&
-                authors.isEmpty()
+                authors.isEmpty() &&
+                releaseDates.isEmpty() &&
+                ageRatings.isEmpty() &&
+                publishers.isEmpty() &&
+                languages.isEmpty() &&
+                complete == Completion.ANY &&
+                oneshot == Format.ANY
 
         isChanged = !hasDefaultValues
     }
