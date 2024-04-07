@@ -7,8 +7,10 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
@@ -46,43 +48,47 @@ private fun OptionsTabContent(
     convertToCbz: StateHolder<Boolean>,
     seriesCover: OptionsStateHolder<SeriesCover>,
 ) {
+    val strings = LocalStrings.current.libraryEdit
     Column {
         CheckboxWithLabel(
             checked = hashFiles.value,
             onCheckedChange = hashFiles.setValue,
-            label = { Text("Compute hash for files") }
+            label = { Text(strings.hashFiles) }
         )
 
         CheckboxWithLabel(
             checked = hashPages.value,
             onCheckedChange = hashPages.setValue,
-            label = { Text("Compute hash for pages") }
+            label = { Text(strings.hashPages) }
         )
 
         CheckboxWithLabel(
             checked = analyzeDimensions.value,
             onCheckedChange = analyzeDimensions.setValue,
-            label = { Text("Analyze pages dimensions") }
+            label = { Text(strings.analyzeDimensions) }
         )
 
         CheckboxWithLabel(
             checked = repairExtensions.value,
             onCheckedChange = repairExtensions.setValue,
-            label = { Text("Automatically repair incorrect file extensions") }
+            label = { Text(strings.repairExtensions) }
         )
 
         CheckboxWithLabel(
             checked = convertToCbz.value,
             onCheckedChange = convertToCbz.setValue,
-            label = { Text("Automatically convert to CBZ") }
+            label = { Text(strings.convertToCbz) }
         )
 
         DropdownChoiceMenu(
-            selectedOption = seriesCover.value.name,
-            options = SeriesCover.entries.map { it.name },
-            onOptionChange = { seriesCover.onValueChange(SeriesCover.valueOf(it)) },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Series cover") }
+            selectedOption = LabeledEntry(
+                seriesCover.value,
+                strings.forSeriesCover(seriesCover.value)
+            ),
+            options = SeriesCover.entries.map { LabeledEntry(it, strings.forSeriesCover(it)) },
+            onOptionChange = { seriesCover.onValueChange(it.value) },
+            textFieldModifier = Modifier.fillMaxWidth(),
+            label = { Text(strings.seriesCover) }
         )
 
     }

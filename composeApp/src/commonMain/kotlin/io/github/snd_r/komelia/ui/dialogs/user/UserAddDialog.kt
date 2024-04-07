@@ -29,7 +29,7 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.PasswordTextField
-import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
+import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import kotlinx.coroutines.launch
 
 @Composable
@@ -110,7 +110,7 @@ fun UserAddDialog(
                         if (emailValidation != null)
                             Text(text = emailValidation, color = MaterialTheme.colorScheme.error)
                     },
-                    modifier = Modifier.fillMaxWidth().withTextFieldKeyMapping()
+                    modifier = Modifier.fillMaxWidth().withTextFieldNavigation()
                 )
 
                 PasswordTextField(

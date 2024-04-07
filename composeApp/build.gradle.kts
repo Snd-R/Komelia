@@ -68,6 +68,8 @@ kotlin {
             implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
             implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
 
+            implementation("cafe.adriel.lyricist:lyricist:1.6.2")
+
             implementation("io.github.dokar3:sonner:0.3.5")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha02")
 
@@ -110,7 +112,7 @@ kotlin {
 
             implementation("dev.dirs:directories:26")
             implementation("com.github.javakeyring:java-keyring:1.0.4")
-            // user newer transitive dependency version for linux secret service KeePass support
+            // use newer transitive dependency version for linux secret service KeePass support
             implementation("de.swiesend:secret-service:2.0.1-alpha")
 
             implementation(project(":vips"))

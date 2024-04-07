@@ -9,9 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LockableDropDown
 import io.github.snd_r.komelia.ui.common.LockableTextField
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
@@ -80,6 +81,8 @@ private fun GeneralTabContent(
     totalBookCount: StateHolder<Int?>,
     totalBookCountLock: StateHolder<Boolean>,
 ) {
+    val strings = LocalStrings.current.seriesEdit
+
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
@@ -88,33 +91,32 @@ private fun GeneralTabContent(
             text = title.value,
             onTextChange = title.setValue,
             errorMessage = title.errorMessage,
-            label = "title",
+            label = strings.title,
             lock = titleLock,
         )
         LockableTextField(
             text = sortTitle.value,
             onTextChange = sortTitle.setValue,
             errorMessage = sortTitle.errorMessage,
-            label = "Sort title",
+            label = strings.sortTitle,
             lock = sortTitleLock,
         )
         LockableTextField(
             text = summary.value,
             onTextChange = summary.setValue,
             errorMessage = summary.errorMessage,
-            label = "Summary",
+            label = strings.summary,
             lock = summaryLock,
             textFieldModifier = Modifier
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
 
-            val statusOptions = remember { KomgaSeriesStatus.entries.map { it.name } }
             LockableDropDown(
-                selectedOption = status.value.name,
-                options = statusOptions,
-                onOptionChange = { status.onValueChange(KomgaSeriesStatus.valueOf(it)) },
-                label = { Text("Status") },
+                selectedOption = LabeledEntry(status.value, strings.forSeriesStatus(status.value)),
+                options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forSeriesStatus(it)) },
+                onOptionChange = { status.onValueChange(it.value) },
+                label = { Text(strings.status) },
                 lock = statusLock,
                 textFieldModifier = Modifier.weight(.5f)
             )
@@ -122,19 +124,19 @@ private fun GeneralTabContent(
                 text = language.value,
                 onTextChange = language.setValue,
                 errorMessage = language.errorMessage,
-                label = "Language",
+                label = strings.language,
                 lock = languageLock,
                 maxLines = 1,
                 modifier = Modifier.weight(.5f),
             )
         }
 
-        val readingDirectionOptions = remember { KomgaReadingDirection.entries.map { it.name } }
         LockableDropDown(
-            selectedOption = readingDirection.value?.name ?: "",
-            options = readingDirectionOptions,
-            onOptionChange = { readingDirection.onValueChange(KomgaReadingDirection.valueOf(it)) },
-            label = { Text("Reading Direction") },
+            selectedOption = readingDirection.value?.let { LabeledEntry(it, strings.forReadingDirection(it)) }
+                ?: LabeledEntry(null, ""),
+            options = KomgaReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) },
+            onOptionChange = { readingDirection.onValueChange(it.value) },
+            label = { Text(strings.readingDirection) },
             lock = readingDirectionLock,
             textFieldModifier = Modifier.fillMaxWidth()
         )
@@ -145,7 +147,7 @@ private fun GeneralTabContent(
                 text = publisher.value,
                 onTextChange = publisher.setValue,
                 errorMessage = publisher.errorMessage,
-                label = "Publisher",
+                label = strings.publisher,
                 lock = publisherLock,
                 maxLines = 1,
                 modifier = Modifier.weight(.5f)
@@ -162,7 +164,7 @@ private fun GeneralTabContent(
                     }
                 },
                 errorMessage = ageRating.errorMessage,
-                label = "Age Rating",
+                label = strings.ageRating,
                 lock = ageRatingLock,
                 maxLines = 1,
                 modifier = Modifier.weight(.5f)
@@ -182,7 +184,7 @@ private fun GeneralTabContent(
                     }
                 },
                 errorMessage = totalBookCount.errorMessage,
-                label = "Total Book Count",
+                label = strings.totalBookCount,
                 lock = totalBookCountLock,
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth().weight(.5f)

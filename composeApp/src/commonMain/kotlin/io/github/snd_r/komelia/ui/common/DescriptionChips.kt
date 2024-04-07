@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -91,12 +92,12 @@ fun DescriptionChips(
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             chipValues.forEach {
-                MetadataChip(onClick = { onChipClick(it) }) {
+                NoPaddingChip(onClick = { onChipClick(it) }) {
                     Text(it, style = MaterialTheme.typography.labelMedium)
                 }
             }
             secondaryValues?.filter { it !in chipValues }?.forEach {
-                MetadataChip(borderColor = MaterialTheme.colorScheme.primary, onClick = { onChipClick(it) }) {
+                NoPaddingChip(borderColor = MaterialTheme.colorScheme.primary, onClick = { onChipClick(it) }) {
                     Text(it, style = MaterialTheme.typography.labelMedium)
                 }
             }
@@ -108,14 +109,15 @@ fun DescriptionChips(
 
 
 @Composable
-fun MetadataChip(
+fun NoPaddingChip(
     borderColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     color: Color = Color.Unspecified,
     onClick: () -> Unit = {},
-    content: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .border(Dp.Hairline, borderColor, RoundedCornerShape(10.dp))
             .clip(RoundedCornerShape(10.dp))
             .background(color)
@@ -123,7 +125,9 @@ fun MetadataChip(
             .padding(10.dp, 5.dp),
         contentAlignment = Alignment.Center
     ) {
-        content()
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            content()
+        }
     }
 
 }

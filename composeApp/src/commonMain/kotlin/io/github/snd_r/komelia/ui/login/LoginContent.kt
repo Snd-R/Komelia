@@ -17,7 +17,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
+import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import kotlinx.coroutines.launch
 
 
@@ -45,7 +45,7 @@ fun LoginContent(
                 onValueChange = onUrlChange,
                 label = { Text("Server Url") },
                 modifier = Modifier
-                    .withTextFieldKeyMapping()
+                    .withTextFieldNavigation()
                     .focusRequester(first)
                     .focusProperties { next = second },
                 placeholder = { Text("http://localhost:25600") }
@@ -56,7 +56,7 @@ fun LoginContent(
                 onValueChange = onUserChange,
                 label = { Text("Username") },
                 modifier = Modifier
-                    .withTextFieldKeyMapping()
+                    .withTextFieldNavigation()
                     .focusRequester(second)
                     .focusProperties { next = third }
             )
@@ -67,7 +67,7 @@ fun LoginContent(
                 visualTransformation = PasswordVisualTransformation(),
                 label = { Text("Password") },
                 modifier = Modifier
-                    .withTextFieldKeyMapping(
+                    .withTextFieldNavigation(
                         onEnterPress = { coroutineScope.launch { onLogin() } }
                     )
                     .focusRequester(third)

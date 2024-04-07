@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 
 @Composable
 fun Pagination(
@@ -31,7 +32,7 @@ fun Pagination(
     navigationButtons: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    if (totalPages == 1) {
+    if (totalPages <= 1) {
         Box(modifier)
         return
     }
@@ -106,11 +107,17 @@ fun PaginationWithSizeOptions(
     spacer?.let { it() }
 
     DropdownChoiceMenu(
-        selectedOption = pageSize,
-        options = listOf(20, 50, 100, 200, 500),
-        onOptionChange = onPageSizeChange,
+        selectedOption = intEntry(pageSize),
+        options = listOf(
+            intEntry(20),
+            intEntry(50),
+            intEntry(100),
+            intEntry(200),
+            intEntry(500),
+        ),
+        onOptionChange = { entry -> onPageSizeChange(entry.value) },
         contentPadding = PaddingValues(5.dp),
-        modifier = Modifier
+        textFieldModifier = Modifier
             .widthIn(min = 70.dp)
             .clip(RoundedCornerShape(5.dp))
             .padding(end = 10.dp)

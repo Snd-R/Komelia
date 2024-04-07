@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookQuery
+import io.github.snd_r.komga.book.KomgaBooksSort
 import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.common.KomgaPageRequest
 import io.github.snd_r.komga.library.KomgaLibrary
@@ -91,9 +92,7 @@ class LibraryRecommendedViewModel(
     fun bookMenuActions() = BookMenuActions(bookClient, appNotifications, screenModelScope)
 
     private suspend fun loadKeepReadingBooks() {
-        val pageRequest = KomgaPageRequest(
-            sort = listOf("readProgress.readDate,desc"),
-        )
+        val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReadDateDesc())
 
         val books = bookClient.getAllBooks(
             query = KomgaBookQuery(
@@ -109,9 +108,7 @@ class LibraryRecommendedViewModel(
     }
 
     private suspend fun loadRecentlyReleasedBooks() {
-        val pageRequest = KomgaPageRequest(
-            sort = listOf("metadata.releaseDate,desc"),
-        )
+        val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReleaseDateDesc())
 
         val books = bookClient.getAllBooks(
             pageRequest = pageRequest,
@@ -126,9 +123,7 @@ class LibraryRecommendedViewModel(
     }
 
     private suspend fun loadRecentlyAddedBooks() {
-        val pageRequest = KomgaPageRequest(
-            sort = listOf("createdDate,desc"),
-        )
+        val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byCreatedDateDesc())
 
         val books = bookClient.getAllBooks(
             query = KomgaBookQuery(
@@ -142,13 +137,19 @@ class LibraryRecommendedViewModel(
     }
 
     private suspend fun loadRecentlyAddedSeries() {
-        val series = seriesClient.getNewSeries(libraryId = library?.value?.id, oneshot = false).content
+        val series = seriesClient.getNewSeries(
+            libraryIds = library?.value?.id?.let { listOf(it) },
+            oneshot = false
+        ).content
         recentlyAddedSeries.clear()
         recentlyAddedSeries.addAll(series)
     }
 
     private suspend fun loadRecentlyUpdatedSeries() {
-        val series = seriesClient.getUpdatedSeries(libraryId = library?.value?.id, oneshot = false).content
+        val series = seriesClient.getUpdatedSeries(
+            libraryIds = library?.value?.id?.let { listOf(it) },
+            oneshot = false
+        ).content
         recentlyUpdatedSeries.clear()
         recentlyUpdatedSeries.addAll(series)
     }

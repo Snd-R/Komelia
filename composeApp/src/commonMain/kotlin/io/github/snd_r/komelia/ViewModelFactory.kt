@@ -25,6 +25,7 @@ import io.github.snd_r.komelia.ui.reader.HorizontalPagesReaderViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel
+import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
@@ -48,6 +49,7 @@ import io.github.snd_r.komga.user.KomgaUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 
@@ -75,7 +77,7 @@ class ViewModelFactory(
         libraryId: KomgaLibraryId?,
     ): LibraryViewModel {
         return LibraryViewModel(
-            libraryFlow = libraryId?.let { getLibrary(it) },
+            libraryFlow = libraryId?.let { getLibraryFlow(it) },
             libraryClient = komgaClientFactory.libraryClient(),
             collectionClient = komgaClientFactory.collectionClient(),
             readListsClient = komgaClientFactory.readListClient(),
@@ -86,7 +88,7 @@ class ViewModelFactory(
 
     fun getLibraryRecommendationViewModel(libraryId: KomgaLibraryId?): LibraryRecommendedViewModel {
         return LibraryRecommendedViewModel(
-            libraryFlow = libraryId?.let { getLibrary(it) },
+            libraryFlow = libraryId?.let { getLibraryFlow(it) },
             seriesClient = komgaClientFactory.seriesClient(),
             bookClient = komgaClientFactory.bookClient(),
             appNotifications = appNotifications,
@@ -130,14 +132,19 @@ class ViewModelFactory(
         )
     }
 
-    fun getSeriesBrowseViewModel(libraryId: KomgaLibraryId?): SeriesListViewModel {
+    fun getSeriesBrowseViewModel(
+        libraryId: KomgaLibraryId?,
+        sort: SeriesSort = SeriesSort.TITLE_ASC,
+    ): SeriesListViewModel {
         return SeriesListViewModel(
             seriesClient = komgaClientFactory.seriesClient(),
+            referentialClient = komgaClientFactory.referentialClient(),
             notifications = appNotifications,
             komgaEvents = komgaEventSource.events,
             settingsRepository = settingsRepository,
-            libraryFlow = libraryId?.let { getLibrary(it) },
-            cardWidthFlow = settingsRepository.getCardWidth()
+            libraryFlow = getLibraryFlow(libraryId),
+            cardWidthFlow = settingsRepository.getCardWidth(),
+            defaultSort = sort
         )
     }
 
@@ -281,7 +288,7 @@ class ViewModelFactory(
             collectionClient = komgaClientFactory.collectionClient(),
             appNotifications = appNotifications,
             events = komgaEventSource.events,
-            libraryFlow = libraryId?.let { getLibrary(it) },
+            libraryFlow = libraryId?.let { getLibraryFlow(it) },
             cardWidthFlow = settingsRepository.getCardWidth(),
         )
     }
@@ -291,7 +298,7 @@ class ViewModelFactory(
             readListClient = komgaClientFactory.readListClient(),
             appNotifications = appNotifications,
             komgaEvents = komgaEventSource.events,
-            libraryFlow = libraryId?.let { getLibrary(it) },
+            libraryFlow = libraryId?.let { getLibraryFlow(it) },
             cardWidthFlow = settingsRepository.getCardWidth(),
         )
 
@@ -319,12 +326,12 @@ class ViewModelFactory(
         )
     }
 
-
     fun getAppNotifications(): AppNotifications = appNotifications
 
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
 
-    private fun getLibrary(id: KomgaLibraryId): Flow<KomgaLibrary?> {
+    private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
+        if (id == null) return flowOf(null)
         return libraries.map { libraries -> libraries.firstOrNull { it.id == id } }
     }
 }

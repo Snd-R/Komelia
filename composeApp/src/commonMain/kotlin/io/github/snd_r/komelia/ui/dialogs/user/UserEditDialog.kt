@@ -25,9 +25,11 @@ import androidx.compose.ui.unit.dp
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
@@ -200,17 +202,18 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
         labelsAllow: StateHolder<Set<String>>,
         labelsExclude: StateHolder<Set<String>>,
     ) {
+        val strings = LocalStrings.current.userEdit
 
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Text("Content Restrictions")
+            Text(strings.contentRestrictions)
             Column(verticalArrangement = Arrangement.spacedBy(40.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     DropdownChoiceMenu(
-                        selectedOption = restriction.value,
-                        options = restriction.options,
-                        onOptionChange = { restriction.onValueChange(it) },
-                        label = { Text("Age restriction") },
-                        modifier = Modifier.weight(1f)
+                        selectedOption = LabeledEntry(restriction.value, strings.forAgeRestriction(restriction.value)),
+                        options = restriction.options.map { LabeledEntry(it, strings.forAgeRestriction(it)) },
+                        onOptionChange = { restriction.onValueChange(it.value) },
+                        label = { Text(strings.ageRestriction) },
+                        textFieldModifier = Modifier.weight(1f)
                     )
                     TextField(
                         value = age.value.toString(),
@@ -218,7 +221,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                             val newValue = it.toIntOrNull()
                             if (newValue != null) age.setValue(newValue)
                         },
-                        label = { Text("Age") },
+                        label = { Text(strings.age) },
                         modifier = Modifier.weight(1f),
                         enabled = restriction.value != AgeRestriction.NONE
                     )
@@ -231,7 +234,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                 }
                 ChipTextField(
                     state = labelsAllowState,
-                    label = { Text("Allow only labels") },
+                    label = { Text(strings.labelsAllow) },
                     onSubmit = { text -> Chip(text) },
                     readOnlyChips = true,
                     modifier = Modifier.fillMaxWidth()
@@ -244,7 +247,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                 }
                 ChipTextField(
                     state = labelsExcludeState,
-                    label = { Text("Exclude labels") },
+                    label = { Text(strings.labelsExclude) },
                     onSubmit = { text -> Chip(text) },
                     readOnlyChips = true,
                     modifier = Modifier.fillMaxWidth()

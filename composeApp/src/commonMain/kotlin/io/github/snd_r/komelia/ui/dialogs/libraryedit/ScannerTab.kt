@@ -24,8 +24,10 @@ import androidx.compose.ui.unit.dp
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
@@ -69,40 +71,40 @@ private fun ScannerTabContent(
     scanEpub: StateHolder<Boolean>,
     scanPdf: StateHolder<Boolean>,
     excludeDirectories: StateHolder<List<String>>,
-
-    ) {
+) {
+    val strings = LocalStrings.current.libraryEdit
 
     Column {
         CheckboxWithLabel(
             checked = emptyTrashAfterScan.value,
             onCheckedChange = emptyTrashAfterScan.setValue,
-            label = { Text("Empty trash automatically after every scan") }
+            label = { Text(strings.emptyTrashAfterScan) }
         )
         CheckboxWithLabel(
             checked = scanForceModifiedTime.value,
             onCheckedChange = scanForceModifiedTime.setValue,
-            label = { Text("Force directory modified time") }
+            label = { Text(strings.scanForceModifiedTime) }
         )
 
         CheckboxWithLabel(
             checked = scanOnStartup.value,
             onCheckedChange = scanOnStartup.setValue,
-            label = { Text("Scan on startup") }
+            label = { Text(strings.scanOnStartup) }
         )
 
         DropdownChoiceMenu(
-            selectedOption = scanInterval.value.name,
-            options = ScanInterval.entries.map { it.name },
-            onOptionChange = { scanInterval.onValueChange(ScanInterval.valueOf(it)) },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Scan Interval") }
+            selectedOption = LabeledEntry(scanInterval.value, strings.forScanInterval(scanInterval.value)),
+            options = ScanInterval.entries.map { LabeledEntry(it, strings.forScanInterval(it)) },
+            onOptionChange = { scanInterval.onValueChange(it.value) },
+            textFieldModifier = Modifier.fillMaxWidth(),
+            label = { Text(strings.scanInterval) }
         )
 
         Spacer(Modifier.size(20.dp))
         TextField(
             value = oneshotsDirectory.value,
             onValueChange = oneshotsDirectory.setValue,
-            label = { Text("One-Shots directory") },
+            label = { Text(strings.oneshotsDirectory) },
             modifier = Modifier.fillMaxWidth()
         )
         ScanFileTypes(scanCbx, scanEpub, scanPdf)
@@ -115,7 +117,7 @@ private fun ScannerTabContent(
 
         ChipTextField(
             state = state,
-            label = { Text("Directory exclusions") },
+            label = { Text(strings.excludeDirectories) },
             onSubmit = { text -> Chip(text) },
             readOnlyChips = true
         )

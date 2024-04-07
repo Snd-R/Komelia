@@ -27,19 +27,42 @@ class KomgaSeriesClient(private val ktor: HttpClient) {
             url.parameters.apply {
                 query?.searchTerm?.let { append("search", it) }
                 query?.searchRegex?.let { append("search_regex", "${it.regex},${it.searchField}.}") }
-                query?.libraryIds?.let { append("library_id", it.joinToString(",")) }
-                query?.collectionIds?.let { append("collection_id", it.joinToString(",")) }
-                query?.status?.let { append("status", it.joinToString(",")) }
-                query?.readStatus?.let { append("read_status", it.joinToString(",")) }
-                query?.publishers?.let { append("publisher", it.joinToString(",")) }
-                query?.languages?.let { append("language", it.joinToString(",")) }
-                query?.genres?.let { append("genre", it.joinToString(",")) }
-                query?.tags?.let { append("tag", it.joinToString(",")) }
-                query?.ageRatings?.let { append("age_rating", it.joinToString(",")) }
-                query?.releaseYears?.let { append("release_year", it.joinToString(",")) }
-                query?.sharingLabels?.let { append("sharing_label", it.joinToString(",")) }
+                query?.libraryIds?.let {
+                    if (it.isNotEmpty()) append("library_id", it.joinToString(","))
+                }
+                query?.collectionIds?.let {
+                    if (it.isNotEmpty()) append("collection_id", it.joinToString(","))
+                }
+                query?.status?.let {
+                    if (it.isNotEmpty()) append("status", it.joinToString(","))
+                }
+                query?.readStatus?.let {
+                    if (it.isNotEmpty()) append("read_status", it.joinToString(","))
+                }
+                query?.publishers?.let {
+                    if (it.isNotEmpty()) append("publisher", it.joinToString(","))
+                }
+                query?.languages?.let {
+                    if (it.isNotEmpty()) append("language", it.joinToString(","))
+                }
+                query?.genres?.let {
+                    if (it.isNotEmpty()) append("genre", it.joinToString(","))
+                }
+                query?.tags?.let {
+                    if (it.isNotEmpty()) append("tag", it.joinToString(","))
+                }
+                query?.ageRatings?.let {
+                    if (it.isNotEmpty()) append("age_rating", it.joinToString(","))
+                }
+                query?.releaseYears?.let {
+                    if (it.isNotEmpty()) append("release_year", it.joinToString(","))
+                }
+                query?.sharingLabels?.let {
+                    if (it.isNotEmpty()) append("sharing_label", it.joinToString(","))
+                }
                 query?.authors?.let { authors ->
-                    append("authors", authors.joinToString { "${it.name},${it.role}" })
+                    if (authors.isNotEmpty())
+                        authors.forEach { author -> append("author", "${author.name},${author.role}") }
                 }
                 query?.deleted?.let { append("deleted", it.toString()) }
                 query?.complete?.let { append("complete", it.toString()) }
@@ -59,14 +82,14 @@ class KomgaSeriesClient(private val ktor: HttpClient) {
     }
 
     suspend fun getNewSeries(
-        libraryId: KomgaLibraryId? = null,
+        libraryIds: List<KomgaLibraryId>? = null,
         oneshot: Boolean? = null,
         deleted: Boolean? = null,
         pageRequest: KomgaPageRequest? = null,
     ): Page<KomgaSeries> {
         return ktor.get("api/v1/series/new") {
             url.parameters.apply {
-                libraryId?.let { append("library_id", libraryId.value) }
+                libraryIds?.let { append("library_id", it.joinToString(",")) }
                 oneshot?.let { append("oneshot", oneshot.toString()) }
                 deleted?.let { append("deleted", deleted.toString()) }
                 pageRequest?.let { appendAll(it.toParams()) }
@@ -75,14 +98,14 @@ class KomgaSeriesClient(private val ktor: HttpClient) {
     }
 
     suspend fun getUpdatedSeries(
-        libraryId: KomgaLibraryId? = null,
+        libraryIds: List<KomgaLibraryId>? = null,
         oneshot: Boolean? = null,
         deleted: Boolean? = null,
         pageRequest: KomgaPageRequest? = null,
     ): Page<KomgaSeries> {
         return ktor.get("api/v1/series/updated") {
             url.parameters.apply {
-                libraryId?.let { append("library_id", libraryId.value) }
+                libraryIds?.let { append("library_id", it.joinToString(",")) }
                 deleted?.let { append("deleted", deleted.toString()) }
                 oneshot?.let { append("oneshot", oneshot.toString()) }
                 pageRequest?.let { appendAll(it.toParams()) }

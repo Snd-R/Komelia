@@ -58,9 +58,9 @@ import io.github.snd_r.komelia.ui.library.LibraryTab.BROWSE
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
 import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
 import io.github.snd_r.komelia.ui.library.LibraryTab.RECOMMENDED
-import io.github.snd_r.komelia.ui.library.view.DashboardContent
 import io.github.snd_r.komelia.ui.library.view.LibraryCollectionsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
+import io.github.snd_r.komelia.ui.library.view.LibraryRecommendedContent
 import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
@@ -167,8 +167,7 @@ class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
                     onSeriesClick = { navigator.push(SeriesScreen(it)) },
                     isLoading = loading,
 
-                    sortOrder = vm.sortOrder,
-                    onSortOrderChange = vm::onSortOrderChange,
+                    filterState = vm.filterState,
 
                     currentPage = vm.currentSeriesPage,
                     totalPages = vm.totalSeriesPages,
@@ -197,12 +196,14 @@ class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
                 onReload = vm::reload
             )
 
-            else -> DashboardContent(
+            else -> LibraryRecommendedContent(
                 keepReadingBooks = vm.keepReadingBooks,
                 recentlyReleasedBooks = vm.recentlyReleasedBooks,
                 recentlyAddedBooks = vm.recentlyAddedBooks,
                 recentlyAddedSeries = vm.recentlyAddedSeries,
+                onRecentlyAddedSeriesClick = {},
                 recentlyUpdatedSeries = vm.recentlyUpdatedSeries,
+                onRecentlyUpdatedSeriesClick = {},
                 cardWidth = vm.cardWidth.collectAsState().value,
 
                 onSeriesClick = { navigator push SeriesScreen(it) },
@@ -342,7 +343,7 @@ fun LibraryToolBar(
             FilterChip(
                 onClick = onRecommendedClick,
                 selected = currentTab == RECOMMENDED,
-                label = { Text("RECOMMENDED") },
+                label = { Text("Recommended") },
                 colors = chipColors,
                 border = null,
             )
@@ -351,7 +352,7 @@ fun LibraryToolBar(
         FilterChip(
             onClick = onBrowseClick,
             selected = currentTab == BROWSE,
-            label = { Text("BROWSE") },
+            label = { Text("Browse") },
             colors = chipColors,
             border = null,
         )
@@ -360,7 +361,7 @@ fun LibraryToolBar(
             FilterChip(
                 onClick = onCollectionsClick,
                 selected = currentTab == COLLECTIONS,
-                label = { Text("COLLECTIONS") },
+                label = { Text("Collections") },
                 colors = chipColors,
                 border = null,
             )
@@ -369,7 +370,7 @@ fun LibraryToolBar(
             FilterChip(
                 onClick = onReadListsClick,
                 selected = currentTab == READ_LISTS,
-                label = { Text("READ LISTS") },
+                label = { Text("Read Lists") },
                 colors = chipColors,
                 border = null,
             )

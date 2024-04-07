@@ -64,6 +64,7 @@ import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.ExpandableText
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
@@ -393,7 +394,7 @@ fun Books(
 ) {
 
     var scrollToPosition by remember { mutableStateOf(0f) }
-    Column(Modifier.onGloballyPositioned { scrollToPosition = it.positionInParent().y }) {
+    Column(modifier = Modifier.onGloballyPositioned { scrollToPosition = it.positionInParent().y }) {
         BooksToolBar(
             series = series,
             booksLayout = booksLayout,
@@ -462,7 +463,7 @@ private fun BooksToolBar(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 10.dp)
+            modifier = Modifier.padding(bottom = 5.dp)
         ) {
             val booksLabel = buildString {
                 append(series.booksCount)
@@ -489,11 +490,17 @@ private fun BooksToolBar(
             }
 
             DropdownChoiceMenu(
-                selectedOption = booksPageSize,
-                options = listOf(20, 50, 100, 200, 500),
-                onOptionChange = onBooksPageSizeChange,
+                selectedOption = intEntry(booksPageSize),
+                options = listOf(
+                    intEntry(20),
+                    intEntry(50),
+                    intEntry(100),
+                    intEntry(200),
+                    intEntry(500)
+                ),
+                onOptionChange = { onBooksPageSizeChange(it.value) },
                 label = {},
-                modifier = Modifier.width(70.dp)
+                textFieldModifier = Modifier.width(70.dp)
             )
 
             Row {
@@ -546,7 +553,7 @@ private fun BooksGrid(
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.padding(20.dp)
+        modifier = Modifier.padding(horizontal = 10.dp)
     ) {
         if (isLoading) {
             loadPlaceholder()

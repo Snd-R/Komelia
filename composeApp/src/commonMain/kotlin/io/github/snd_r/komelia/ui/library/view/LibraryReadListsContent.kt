@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.itemlist.PlaceHolderLazyCardGrid
 import io.github.snd_r.komelia.ui.common.itemlist.ReadListLazyCardGrid
@@ -58,11 +59,17 @@ fun LibraryReadListsContent(
             Spacer(Modifier.weight(1f))
 
             DropdownChoiceMenu(
-                selectedOption = pageSize,
-                options = listOf(20, 50, 100, 200, 500),
-                onOptionChange = onPageSizeChange,
+                selectedOption = intEntry(pageSize),
+                options = listOf(
+                    intEntry(20),
+                    intEntry(50),
+                    intEntry(100),
+                    intEntry(200),
+                    intEntry(500)
+                ),
+                onOptionChange = { onPageSizeChange(it.value) },
                 contentPadding = PaddingValues(5.dp),
-                modifier = Modifier
+                textFieldModifier = Modifier
                     .widthIn(min = 70.dp)
                     .clip(RoundedCornerShape(5.dp))
                     .padding(end = 10.dp)

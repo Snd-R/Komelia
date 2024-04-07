@@ -32,7 +32,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import kotlin.math.roundToInt
 
 @Composable
@@ -42,6 +44,7 @@ fun AppSettingsContent(
     decoder: SamplerType?,
     onDecoderTypeChange: (SamplerType) -> Unit,
 ) {
+    val strings = LocalStrings.current.settings
 
     var showCardSettings by remember { mutableStateOf(false) }
     Column(
@@ -56,7 +59,7 @@ fun AppSettingsContent(
                 .cursorForHand(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Image Card Size", modifier = Modifier.padding(10.dp))
+            Text(strings.imageCardSize, modifier = Modifier.padding(10.dp))
             Spacer(Modifier.width(20.dp))
             Icon(if (showCardSettings) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
         }
@@ -92,11 +95,11 @@ fun AppSettingsContent(
 
         if (decoder != null) {
             DropdownChoiceMenu(
-                selectedOption = decoder,
-                options = SamplerType.entries,
-                onOptionChange = onDecoderTypeChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Image Decoder/Sampler") }
+                selectedOption = LabeledEntry(decoder, decoder.name),
+                options = SamplerType.entries.map { LabeledEntry(it, it.name) },
+                onOptionChange = { onDecoderTypeChange(it.value) },
+                textFieldModifier = Modifier.fillMaxWidth(),
+                label = { Text(strings.decoder) }
             )
         }
     }

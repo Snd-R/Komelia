@@ -18,7 +18,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
+import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import io.github.snd_r.komga.common.KomgaWebLink
 
 
@@ -42,7 +42,7 @@ fun LinksEditContent(
                     onValueChange = { onLinkChange(index, link.copy(label = it)) },
                     label = { Text("Label") },
                     maxLines = 1,
-                    modifier = Modifier.weight(.3f).withTextFieldKeyMapping()
+                    modifier = Modifier.weight(.3f).withTextFieldNavigation()
                 )
 
                 Spacer(Modifier.size(20.dp))
@@ -52,7 +52,7 @@ fun LinksEditContent(
                     onValueChange = { onLinkChange(index, link.copy(url = it)) },
                     label = { Text("URL") },
                     maxLines = 1,
-                    modifier = Modifier.weight(.7f).withTextFieldKeyMapping()
+                    modifier = Modifier.weight(.7f).withTextFieldNavigation()
                 )
 
                 IconButton(onClick = { onLinkRemove(index) }) {

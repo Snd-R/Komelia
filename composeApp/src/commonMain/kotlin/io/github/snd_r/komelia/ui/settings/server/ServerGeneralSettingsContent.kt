@@ -26,11 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
-import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
+import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komga.settings.KomgaThumbnailSize
 
@@ -47,19 +49,20 @@ fun ServerSettingsContent(
 
     thumbnailSize: OptionsStateHolder<KomgaThumbnailSize>,
 ) {
+    val strings = LocalStrings.current.settings
 
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
 
-        Text("Server Settings", style = MaterialTheme.typography.titleLarge)
+        Text(strings.serverSettings, style = MaterialTheme.typography.titleLarge)
 
         Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
             DropdownChoiceMenu(
-                selectedOption = thumbnailSize.value,
-                options = thumbnailSize.options,
-                onOptionChange = thumbnailSize.onValueChange,
-                label = { Text("Thumbnail size") }
+                selectedOption = LabeledEntry(thumbnailSize.value, strings.forThumbnailSize(thumbnailSize.value)),
+                options = thumbnailSize.options.map { LabeledEntry(it, strings.forThumbnailSize(it)) },
+                onOptionChange = { thumbnailSize.onValueChange(it.value) },
+                label = { Text(strings.thumbnailSize) }
             )
         }
 
@@ -67,13 +70,13 @@ fun ServerSettingsContent(
             CheckboxWithLabel(
                 checked = deleteEmptyCollections.value,
                 onCheckedChange = deleteEmptyCollections.setValue,
-                label = { Text("Delete empty collection after scan") },
+                label = { Text(strings.deleteEmptyCollections) },
             )
 
             CheckboxWithLabel(
                 checked = deleteEmptyReadLists.value,
                 onCheckedChange = deleteEmptyReadLists.setValue,
-                label = { Text("Delete empty read lists after scan") },
+                label = { Text(strings.deleteEmptyReadLists) },
             )
         }
 
@@ -83,12 +86,12 @@ fun ServerSettingsContent(
                 if (newValue.isBlank()) taskPoolSize.setValue(null)
                 else newValue.toIntOrNull()?.let { taskPoolSize.setValue(it) }
             },
-            label = { Text("Task threads") },
+            label = { Text(strings.taskPoolSize) },
             supportingText = {
                 if (taskPoolSize.errorMessage != null)
                     Text(text = taskPoolSize.errorMessage, color = MaterialTheme.colorScheme.error)
             },
-            modifier = Modifier.fillMaxWidth().withTextFieldKeyMapping(),
+            modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
         )
 
         Column {
@@ -99,19 +102,19 @@ fun ServerSettingsContent(
                     else newValue.toIntOrNull()?.let { rememberMeDurationDays.setValue(it) }
 
                 },
-                label = { Text("Remember me duration (in days)") },
+                label = { Text(strings.rememberMeDurationDays) },
                 supportingText = {
                     if (rememberMeDurationDays.errorMessage != null)
                         Text(text = rememberMeDurationDays.errorMessage, color = MaterialTheme.colorScheme.error)
-                    else Text("Requires restart to take effect")
+                    else Text(strings.requiresRestart)
                 },
-                modifier = Modifier.fillMaxWidth().withTextFieldKeyMapping(),
+                modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
             )
 
             CheckboxWithLabel(
                 checked = renewRememberMeKey.value,
                 onCheckedChange = renewRememberMeKey.setValue,
-                label = { Text("Regenerate RememberMe key") },
+                label = { Text(strings.renewRememberMeKey) },
             )
         }
 
@@ -123,17 +126,17 @@ fun ServerSettingsContent(
 
             },
             placeholder = { Text(configServerPort.toString()) },
-            label = { Text("Server Port") },
-            supportingText = { Text("Requires restart to take effect") },
-            modifier = Modifier.fillMaxWidth().withTextFieldKeyMapping(),
+            label = { Text(strings.serverPort) },
+            supportingText = { Text(strings.requiresRestart) },
+            modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
         )
 
         TextField(
             value = serverContextPath.value ?: "",
             onValueChange = { serverContextPath.setValue(it) },
-            label = { Text("Base URL") },
-            supportingText = { Text("Requires restart to take effect") },
-            modifier = Modifier.fillMaxWidth().withTextFieldKeyMapping(),
+            label = { Text(strings.serverContextPath) },
+            supportingText = { Text(strings.requiresRestart) },
+            modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
         )
 
     }
@@ -149,6 +152,7 @@ fun ChangesConfirmationButton(
     onSave: () -> Unit,
     onDiscard: () -> Unit,
 ) {
+    val strings = LocalStrings.current.settings
 
     var showThumbnailRegenerateDialog by remember { mutableStateOf(false) }
     if (showThumbnailRegenerateDialog) {
@@ -167,7 +171,7 @@ fun ChangesConfirmationButton(
         TextButton(
             onClick = onDiscard,
             enabled = isChanged
-        ) { Text("Discard") }
+        ) { Text(strings.serverSettingsDiscard) }
         Spacer(Modifier.width(20.dp))
 
         FilledTonalButton(
@@ -178,7 +182,7 @@ fun ChangesConfirmationButton(
             shape = RoundedCornerShape(5.dp),
             enabled = isChanged
         ) {
-            Text("Save Changes")
+            Text(strings.serverSettingsSave)
         }
     }
 
@@ -248,14 +252,13 @@ private fun ThumbRegenerationDialog(
     onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-
-
+    val strings = LocalStrings.current.settings
     ConfirmationDialog(
-        title = "Regenerate thumbnails",
-        body = "Thumbnails size has changed. Do you want to regenerate book thumbnails?",
-        buttonConfirm = "YES, BUT ONLY IF BIGGER",
-        buttonAlternate = "YES, ALL BOOKS",
-        buttonCancel = "NO",
+        title = strings.thumbnailRegenTitle,
+        body = strings.thumbnailRegenBody,
+        buttonConfirm = strings.thumbnailRegenIfBigger,
+        buttonAlternate = strings.thumbnailRegenAllBooks,
+        buttonCancel = strings.thumbnailRegenNo,
         onDialogConfirm = { onThumbnailRegenerate(true) },
         onDialogConfirmAlternate = { onThumbnailRegenerate(false) },
         onDialogDismiss = onDismiss

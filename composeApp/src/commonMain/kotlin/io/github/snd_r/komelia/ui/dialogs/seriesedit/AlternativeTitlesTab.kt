@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LockIcon
 import io.github.snd_r.komelia.ui.common.StateHolder
-import io.github.snd_r.komelia.ui.common.withTextFieldKeyMapping
+import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komga.series.KomgaAlternativeTitle
@@ -70,7 +70,7 @@ private fun AlternativeTitlesTabContent(
                     onValueChange = { onTitleChange(index, altTitle.copy(label = it)) },
                     label = { Text("Label") },
                     maxLines = 1,
-                    modifier = Modifier.weight(.3f).withTextFieldKeyMapping(onTitleAdd)
+                    modifier = Modifier.weight(.3f).withTextFieldNavigation(onTitleAdd)
                 )
 
                 Spacer(Modifier.size(20.dp))
@@ -80,7 +80,7 @@ private fun AlternativeTitlesTabContent(
                     onValueChange = { onTitleChange(index, altTitle.copy(title = it)) },
                     label = { Text("Alternate title") },
                     maxLines = 1,
-                    modifier = Modifier.weight(.7f).withTextFieldKeyMapping()
+                    modifier = Modifier.weight(.7f).withTextFieldNavigation()
                 )
 
                 IconButton(onClick = { onTitleRemove(index) }) {

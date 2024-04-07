@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -17,17 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -37,17 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.common.NoPaddingTextField
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komga.book.KomgaBook
@@ -90,6 +85,7 @@ fun SearchBar(
     BoxWithConstraints {
         val maxHeight = maxHeight
         Box {
+
             SearchTextField(
                 query = query,
                 onQueryChange = onQueryChange,
@@ -238,7 +234,6 @@ private fun BookSearchEntry(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchTextField(
     query: String,
@@ -247,75 +242,35 @@ private fun SearchTextField(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     modifier: Modifier = Modifier,
 ) {
-
-    val colors = OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
-        unfocusedTextColor = MaterialTheme.colorScheme.surfaceVariant,
-        unfocusedPlaceholderColor = MaterialTheme.colorScheme.surfaceVariant
-    )
-    val isFocused = interactionSource.collectIsFocusedAsState()
-    val textColor =
-        if (isFocused.value) MaterialTheme.colorScheme.onSurface
-        else MaterialTheme.colorScheme.onPrimaryContainer
-
-    val textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor)
     val focusManager = LocalFocusManager.current
-
-    BasicTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier.then(
-            Modifier
-                .height(45.dp)
-                .padding(top = 5.dp)
-                .width(expandedSearchBarWidth)
-                .onKeyEvent { keyEvent ->
-                    if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
-                        focusManager.clearFocus()
-                        onSearchAllPress(query)
-                        return@onKeyEvent true
-                    }
-
-                    return@onKeyEvent false
-                }
-
+    NoPaddingTextField(
+        text = query,
+        placeholder = "Search",
+        onTextChange = onQueryChange,
+        shape = CircleShape,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedTextColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        singleLine = true,
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         interactionSource = interactionSource,
-        textStyle = textStyle,
-    ) { innerTextField ->
-        OutlinedTextFieldDefaults.DecorationBox(
-            value = query,
-            innerTextField = innerTextField,
-            placeholder = { Text("Search", style = textStyle) },
-            enabled = true,
-            singleLine = true,
-            visualTransformation = VisualTransformation.None,
-            interactionSource = interactionSource,
-            trailingIcon = {
-                Icon(
-                    Icons.Filled.Search,
-                    null,
-                    modifier = Modifier
-                        .clickable() { }
-                        .cursorForHand()
-                )
+        modifier = modifier
+            .height(45.dp)
+            .width(expandedSearchBarWidth)
+            .padding(top = 5.dp)
+            .onKeyEvent { keyEvent ->
+                if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
+                    focusManager.clearFocus()
+                    onSearchAllPress(query)
+                    return@onKeyEvent true
+                } else return@onKeyEvent false
             },
-            contentPadding = TextFieldDefaults.contentPaddingWithoutLabel(
-                top = 0.dp,
-                bottom = 0.dp
-            ),
-            container = {
-                OutlinedTextFieldDefaults.ContainerBox(
-                    enabled = true,
-                    isError = false,
-                    interactionSource = interactionSource,
-                    colors = colors,
-                    shape = CircleShape
-                )
-            }
-        )
-
-    }
+        trailingIcon = {
+            Icon(Icons.Filled.Search, null,
+                modifier = Modifier
+                    .clickable { }
+                    .cursorForHand()
+            )
+        }
+    )
 }

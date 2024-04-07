@@ -101,14 +101,10 @@ class UserEditDialogViewModel(
         }
     }
 
-    enum class AgeRestriction(val title: String) {
-        NONE("No restriction"),
-        ALLOW_ONLY("Allow only Under"),
-        EXCLUDE("Exclude over");
-
-        override fun toString(): String {
-            return title
-        }
+    enum class AgeRestriction {
+        NONE,
+        ALLOW_ONLY,
+        EXCLUDE;
 
         companion object {
             fun from(komga: KomgaAgeRestriction?): AgeRestriction {

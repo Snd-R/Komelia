@@ -16,13 +16,16 @@ import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
 import io.github.snd_r.komga.common.KomgaPageRequest
+import io.github.snd_r.komga.common.Page
 import io.github.snd_r.komga.library.KomgaLibrary
+import io.github.snd_r.komga.referential.KomgaReferentialClient
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.series.KomgaSeriesQuery
 import io.github.snd_r.komga.series.KomgaSeriesSort
-import io.github.snd_r.komga.series.KomgaSeriesSort.TITLE_ASC
 import io.github.snd_r.komga.sse.KomgaEvent
 import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesChanged
 import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesDeleted
@@ -50,13 +53,15 @@ private val logger = KotlinLogging.logger {}
 
 class SeriesListViewModel(
     private val seriesClient: KomgaSeriesClient,
+    referentialClient: KomgaReferentialClient,
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val settingsRepository: SettingsRepository,
-    libraryFlow: Flow<KomgaLibrary?>?,
+    defaultSort: SeriesSort,
+    libraryFlow: Flow<KomgaLibrary?>,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
-    val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
+    val library = libraryFlow.stateIn(screenModelScope, SharingStarted.Eagerly, null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
     val pageLoadSize = MutableStateFlow(50)
     var series by mutableStateOf<List<KomgaSeries>>(emptyList())
@@ -68,7 +73,13 @@ class SeriesListViewModel(
     var currentSeriesPage by mutableStateOf(1)
         private set
 
-    var sortOrder by mutableStateOf(TITLE_ASC)
+    val filterState: SeriesFilterState = SeriesFilterState(
+        defaultSort = defaultSort,
+        library = library,
+        referentialClient = referentialClient,
+        appNotifications = notifications,
+        onChange = { screenModelScope.launch { loadSeriesPage(1) } },
+    )
 
     private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
     fun initialize() {
@@ -83,6 +94,7 @@ class SeriesListViewModel(
             pageLoadSize.value = settingsRepository.getSeriesPageLoadSize().first()
             loadSeriesPage(1)
 
+
             settingsRepository.getSeriesPageLoadSize()
                 .onEach {
                     if (pageLoadSize.value != it) {
@@ -90,6 +102,9 @@ class SeriesListViewModel(
                         loadSeriesPage(1)
                     }
                 }.launchIn(screenModelScope)
+        }
+        screenModelScope.launch {
+            filterState.initialize()
         }
 
         screenModelScope.launch { startEventListener() }
@@ -113,24 +128,12 @@ class SeriesListViewModel(
         screenModelScope.launch { loadSeriesPage(pageNumber) }
     }
 
-    fun onSortOrderChange(sort: KomgaSeriesSort) {
-        sortOrder = sort
-        screenModelScope.launch { loadSeriesPage(currentSeriesPage) }
-    }
-
     private suspend fun loadSeriesPage(page: Int) {
         notifications.runCatchingToNotifications {
             val loadStateDelay = delayLoadState()
             currentSeriesPage = page
+            val seriesPage = getAllSeries(page)
 
-            val query = library?.value?.let { KomgaSeriesQuery(libraryIds = listOf(it.id)) }
-            val pageRequest = KomgaPageRequest(
-                size = pageLoadSize.value,
-                page = page - 1,
-                sort = sortOrder.query
-            )
-
-            val seriesPage = seriesClient.getAllSeries(query, pageRequest)
             loadStateDelay.cancel()
 
             currentSeriesPage = seriesPage.number + 1
@@ -139,6 +142,38 @@ class SeriesListViewModel(
             series = seriesPage.content
             mutableState.value = Success(Unit)
         }.onFailure { mutableState.value = Error(it) }
+    }
+
+    private suspend fun getAllSeries(page: Int): Page<KomgaSeries> {
+        val query = KomgaSeriesQuery(
+            searchTerm = filterState.searchTerm.ifBlank { null },
+            libraryIds = library.value?.let { listOf(it.id) },
+            status = filterState.publicationStatus,
+            readStatus = filterState.readStatus,
+            publishers = filterState.publishers,
+            languages = filterState.languages,
+            genres = filterState.genres,
+            tags = filterState.tags,
+            ageRatings = filterState.ageRatings,
+            releaseYears = filterState.releaseDates,
+            authors = filterState.authors,
+            complete = when (filterState.complete) {
+                Completion.ANY -> null
+                Completion.COMPLETE -> true
+                Completion.INCOMPLETE -> false
+            },
+            oneshot = when (filterState.oneshot) {
+                Format.ANY -> null
+                Format.ONESHOT -> true
+                Format.NOT_ONESHOT -> false
+            }
+        )
+        val pageRequest = KomgaPageRequest(
+            size = pageLoadSize.value,
+            page = page - 1,
+            sort = filterState.sortOrder.komgaSort
+        )
+        return seriesClient.getAllSeries(query, pageRequest)
     }
 
     private fun delayLoadState(): Deferred<Unit> {
@@ -162,7 +197,7 @@ class SeriesListViewModel(
     }
 
     private fun onSeriesChange(event: SeriesEvent) {
-        if (library == null || event.libraryId == library.value?.id) {
+        if (event.libraryId == library.value?.id) {
             reloadJobsFlow.tryEmit(Unit)
         }
     }
@@ -172,4 +207,21 @@ class SeriesListViewModel(
             reloadJobsFlow.tryEmit(Unit)
         }
     }
+
+
+    enum class SeriesSort(val komgaSort: KomgaSeriesSort) {
+        UPDATED_DESC(KomgaSeriesSort.byLastModifiedDateDesc()),
+        UPDATED_ASC(KomgaSeriesSort.byLastModifiedDateAsc()),
+        RELEASE_DATE_DESC(KomgaSeriesSort.byReleaseDateDesc()),
+        RELEASE_DATE_ASC(KomgaSeriesSort.byReleaseDateAsc()),
+        TITLE_ASC(KomgaSeriesSort.byTitleAsc()),
+        TITLE_DESC(KomgaSeriesSort.byTitleDesc()),
+        DATE_ADDED_DESC(KomgaSeriesSort.byCreatedDateDesc()),
+        DATE_ADDED_ASC(KomgaSeriesSort.byCreatedDateAsc()),
+        //        FOLDER_NAME_ASC(KomgaSeriesSort.byFolderNameAsc()),
+//        FOLDER_NAME_DESC(KomgaSeriesSort.byFolderNameDesc()),
+//        BOOKS_COUNT_ASC(KomgaSeriesSort.byBooksCountAsc()),
+//        BOOKS_COUNT_DESC(KomgaSeriesSort.byBooksCountDesc())
+    }
+
 }

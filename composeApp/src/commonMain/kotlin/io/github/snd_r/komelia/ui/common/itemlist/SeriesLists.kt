@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.common.itemlist
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,12 +45,10 @@ fun SeriesCardSlider(
     scrollState: LazyListState = rememberLazyListState(),
 ) {
     Column {
-        LazyRow(state = scrollState) {
+        LazyRow(state = scrollState, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             items(series) { series ->
                 SeriesImageCard(
-                    modifier = Modifier
-                        .width(cardWidth)
-                        .padding(5.dp),
+                    modifier = Modifier.width(cardWidth),
                     series = series,
                     onSeriesClick = { onSeriesClick(series.id) },
                     seriesMenuActions = seriesActions
@@ -74,6 +73,7 @@ fun SeriesLazyCardGrid(
     onPageChange: (Int) -> Unit,
     minSize: Dp = 200.dp,
     scrollState: LazyGridState = rememberLazyGridState(),
+    beforeContent: @Composable () -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
     Box {
@@ -82,25 +82,13 @@ fun SeriesLazyCardGrid(
             state = scrollState,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(horizontal = 10.dp)
+            modifier = Modifier.padding(horizontal = 10.dp).fillMaxHeight()
         ) {
-
-            item(
-                span = { GridItemSpan(maxLineSpan) },
-            ) {
-                if (scrollState.canScrollForward || scrollState.canScrollBackward)
-                    Pagination(
-                        totalPages = totalPages,
-                        currentPage = currentPage,
-                        onPageChange = onPageChange
-                    )
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                beforeContent()
             }
 
-            items(
-                items = series,
-            ) {
-
-
+            items(items = series) {
                 SeriesImageCard(
                     series = it,
                     onSeriesClick = { onSeriesClick(it.id) },
@@ -111,9 +99,7 @@ fun SeriesLazyCardGrid(
                 )
             }
 
-            item(
-                span = { GridItemSpan(maxLineSpan) },
-            ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Pagination(
                     totalPages = totalPages,
                     currentPage = currentPage,

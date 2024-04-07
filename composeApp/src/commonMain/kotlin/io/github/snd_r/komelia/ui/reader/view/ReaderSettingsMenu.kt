@@ -39,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import coil3.annotation.ExperimentalCoilApi
 import io.github.snd_r.komelia.image.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReaderPageState
@@ -112,13 +114,14 @@ private fun ColumnScope.SettingsContent(
 
     HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
+    val strings = LocalStrings.current.readerSettings
     Column {
         DropdownChoiceMenu(
-            selectedOption = settingsState.scaleType,
-            options = LayoutScaleType.entries,
-            onOptionChange = settingsState::onScaleTypeChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Scale type") },
+            selectedOption = LabeledEntry(settingsState.scaleType, strings.forScaleType(settingsState.scaleType)),
+            options = LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) },
+            onOptionChange = { settingsState.onScaleTypeChange(it.value) },
+            textFieldModifier = Modifier.fillMaxWidth(),
+            label = { Text(strings.scaleType) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
@@ -126,28 +129,31 @@ private fun ColumnScope.SettingsContent(
             CheckboxWithLabel(
                 settingsState.allowUpsample,
                 settingsState::onAllowUpsampleChange,
-                label = { Text("Upsample on zoom") },
+                label = { Text(strings.upsample) },
                 modifier = Modifier.widthIn(min = 100.dp)
             )
         }
     }
 
     DropdownChoiceMenu(
-        selectedOption = settingsState.readingDirection,
-        options = ReadingDirection.entries,
-        onOptionChange = settingsState::onReadingDirectionChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Reading Direction") },
+        selectedOption = LabeledEntry(
+            settingsState.readingDirection,
+            strings.forReadingDirection(settingsState.readingDirection)
+        ),
+        options = ReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) },
+        onOptionChange = { settingsState.onReadingDirectionChange(it.value) },
+        textFieldModifier = Modifier.fillMaxWidth(),
+        label = { Text(strings.readingDirection) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
     Column {
         DropdownChoiceMenu(
-            selectedOption = settingsState.layout,
-            options = PageDisplayLayout.entries,
-            onOptionChange = settingsState::onLayoutChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Page layout") },
+            selectedOption = LabeledEntry(settingsState.layout, strings.forLayout(settingsState.layout)),
+            options = PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) },
+            onOptionChange = { settingsState.onLayoutChange(it.value) },
+            textFieldModifier = Modifier.fillMaxWidth(),
+            label = { Text(strings.layout) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
@@ -155,7 +161,7 @@ private fun ColumnScope.SettingsContent(
             CheckboxWithLabel(
                 settingsState.layoutOffset,
                 settingsState::onLayoutOffsetChange,
-                label = { Text("Offset pages") },
+                label = { Text(strings.offsetPages) },
                 modifier = Modifier.widthIn(min = 100.dp)
             )
         }
@@ -163,11 +169,11 @@ private fun ColumnScope.SettingsContent(
     val decoder = settingsState.decoder
     if (decoder != null)
         DropdownChoiceMenu(
-            selectedOption = decoder,
-            options = SamplerType.entries,
-            onOptionChange = settingsState::onDecoderChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Image Decoder/Sampler") },
+            selectedOption = LabeledEntry(decoder, decoder.name),
+            options = SamplerType.entries.map { LabeledEntry(it, it.name) },
+            onOptionChange = { settingsState.onDecoderChange(it.value) },
+            textFieldModifier = Modifier.fillMaxWidth(),
+            label = { Text(strings.decoder) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
@@ -180,23 +186,23 @@ private fun ColumnScope.SettingsContent(
                 page.imageResult?.image?.size?.let { "%.2f".format(it.toFloat() / 1024 / 1024) }
             }
             val pageText = buildString {
-                append("page ${page.metadata.pageNumber}.")
-                if (sizeInMb != null) append(" Memory usage: ${sizeInMb}Mb")
+                append("${strings.pageNumber} ${page.metadata.pageNumber}.")
+                if (sizeInMb != null) append(" ${strings.memoryUsage}: ${sizeInMb}Mb")
             }
 
             Text(pageText, style = MaterialTheme.typography.bodyMedium)
 
-            Text("scaled size ${page.imageResult?.image?.width} x ${page.imageResult?.image?.height}")
+            Text("${strings.pageScaledSize} ${page.imageResult?.image?.width} x ${page.imageResult?.image?.height}")
 
             if (page.metadata.size == null) {
                 Text(
-                    "Original page dimensions are not calculated. Scaling might not work as intended",
+                    strings.noPageDimensionsWarning,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.error
                     )
                 )
             } else {
-                Text("original size: ${page.metadata.size.width} x ${page.metadata.size.height}")
+                Text("${strings.pageOriginalSize}: ${page.metadata.size.width} x ${page.metadata.size.height}")
             }
 
             HorizontalDivider(Modifier.padding(vertical = 5.dp))

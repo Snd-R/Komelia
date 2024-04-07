@@ -104,14 +104,3 @@ data class KomgaSeriesThumbnail(
 enum class KomgaSeriesStatus {
     ENDED, ONGOING, ABANDONED, HIATUS
 }
-
-//enum class KomgaSeriesReadingDirection {
-//    LEFT_TO_RIGHT,
-//    RIGHT_TO_LEFT,
-//    VERTICAL,
-//    WEBTOON,
-//}
-enum class KomgaSeriesSort(val query: List<String>) {
-    TITLE_ASC(listOf("metadata.titleSort", "asc")),
-    TITLE_DESC(listOf("metadata.titleSort", "desc")),
-}

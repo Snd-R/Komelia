@@ -55,7 +55,7 @@ import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.MetadataChip
+import io.github.snd_r.komelia.ui.common.NoPaddingChip
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
@@ -311,7 +311,7 @@ private fun BookDetailedListDetails(
         ) {
             item { Text("${book.media.pagesCount} pages", style = MaterialTheme.typography.bodySmall) }
             items(book.metadata.tags) {
-                MetadataChip(
+                NoPaddingChip(
                     borderColor = MaterialTheme.colorScheme.surface,
                     color = MaterialTheme.colorScheme.surface
                 ) {

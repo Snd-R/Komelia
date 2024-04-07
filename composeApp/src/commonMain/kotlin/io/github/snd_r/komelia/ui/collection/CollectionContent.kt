@@ -71,7 +71,7 @@ fun CollectionContent(
             onSeriesClick = onSeriesClick,
             totalPages = totalPages,
             currentPage = currentPage,
-            onPageChange = onPageChange
+            onPageChange = onPageChange,
         )
     }
 }

@@ -63,7 +63,7 @@ fun LockableTextField(
     label: String? = null,
     lock: StateHolder<Boolean>,
     modifier: Modifier = Modifier,
-    textFieldModifier: Modifier = Modifier.withTextFieldKeyMapping(),
+    textFieldModifier: Modifier = Modifier.withTextFieldNavigation(),
 
     maxLines: Int = Int.MAX_VALUE,
     minLines: Int = 1,
@@ -87,10 +87,10 @@ fun LockableTextField(
 }
 
 @Composable
-fun LockableDropDown(
-    selectedOption: String,
-    options: List<String>,
-    onOptionChange: (String) -> Unit,
+fun <T> LockableDropDown(
+    selectedOption: LabeledEntry<T>,
+    options: List<LabeledEntry<T>>,
+    onOptionChange: (LabeledEntry<T>) -> Unit,
     label: @Composable () -> Unit,
     lock: StateHolder<Boolean>,
     textFieldModifier: Modifier
@@ -104,8 +104,7 @@ fun LockableDropDown(
             options = options,
             onOptionChange = onOptionChange,
             label = label,
-//            modifier = textFieldModifier
-            modifier = Modifier.fillMaxWidth()
+            textFieldModifier = Modifier.fillMaxWidth()
         )
     }
 
@@ -167,6 +166,7 @@ fun LockableChipTextField(
         )
     }
 }
+
 @Composable
 fun rememberStringChipTextFieldState(
     chips: List<String>,

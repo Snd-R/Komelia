@@ -7,6 +7,7 @@ import io.github.snd_r.komga.collection.KomgaCollectionClient
 import io.github.snd_r.komga.filesystem.KomgaFileSystemClient
 import io.github.snd_r.komga.library.KomgaLibraryClient
 import io.github.snd_r.komga.readlist.KomgaReadListClient
+import io.github.snd_r.komga.referential.KomgaReferentialClient
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.settings.KomgaSettingsClient
 import io.github.snd_r.komga.sse.KomgaEventSource
@@ -24,9 +25,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
@@ -82,6 +80,8 @@ class KomgaClientFactory private constructor(builder: Builder) {
     fun announcementClient() = KomgaAnnouncementsClient(ktor)
     fun collectionClient() = KomgaCollectionClient(ktor)
     fun readListClient() = KomgaReadListClient(ktor)
+
+    fun referentialClient() = KomgaReferentialClient(ktor)
 
     fun komgaEventSource(): KomgaEventSource {
         // TODO Use Ktor SSE implementation
