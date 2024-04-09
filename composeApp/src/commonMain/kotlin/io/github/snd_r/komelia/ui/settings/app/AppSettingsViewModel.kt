@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import coil3.ImageLoader
-import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import kotlinx.coroutines.flow.first

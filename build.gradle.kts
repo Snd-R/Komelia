@@ -1,3 +1,16 @@
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.23.2")
+    }
+}
+
+apply(plugin = "kotlinx-atomicfu")
+
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader

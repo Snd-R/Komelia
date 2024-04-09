@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.getBytes
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
@@ -17,10 +18,7 @@ import io.github.snd_r.komga.series.KomgaAlternativeTitle
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.series.KomgaSeriesMetadataUpdateRequest
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
-import kotlin.io.path.readBytes
 
 class SeriesEditDialogViewModel(
     val series: KomgaSeries,
@@ -86,10 +84,7 @@ class SeriesEditDialogViewModel(
 
     suspend fun initialize() {
         notifications.runCatchingToNotifications {
-            posterState.thumbnails.clear()
-            posterState.thumbnails.addAll(
-                seriesClient.getSeriesThumbnails(series.id).map { SeriesThumbnail(it) }
-            )
+            posterState.thumbnails = seriesClient.getSeriesThumbnails(series.id).map { SeriesThumbnail(it) }
         }
     }
 
@@ -141,19 +136,17 @@ class SeriesEditDialogViewModel(
     }
 
     private suspend fun saveThumbnailChanges() {
-        withContext(Dispatchers.IO) {
-            posterState.userUploadedThumbnails.forEach { thumb ->
-                seriesClient.uploadSeriesThumbnail(
-                    seriesId = series.id,
-                    file = thumb.path.readBytes(),
-                    selected = thumb.selected
-                )
-            }
-
-            posterState.thumbnails.firstOrNull { it.markedSelected && it.markedSelected != it.selected }
-                ?.let { thumb -> seriesClient.selectSeriesThumbnail(series.id, thumb.id) }
-            posterState.thumbnails.filter { it.markedDeleted }
-                .forEach { thumb -> seriesClient.deleteSeriesThumbnail(series.id, thumb.id) }
+        posterState.userUploadedThumbnails.forEach { thumb ->
+            seriesClient.uploadSeriesThumbnail(
+                seriesId = series.id,
+                file = thumb.file.getBytes(),
+                selected = thumb.selected
+            )
         }
+
+        posterState.thumbnails.firstOrNull { it.markedSelected && it.markedSelected != it.selected }
+            ?.let { thumb -> seriesClient.selectSeriesThumbnail(series.id, thumb.id) }
+        posterState.thumbnails.filter { it.markedDeleted }
+            .forEach { thumb -> seriesClient.deleteSeriesThumbnail(series.id, thumb.id) }
     }
 }

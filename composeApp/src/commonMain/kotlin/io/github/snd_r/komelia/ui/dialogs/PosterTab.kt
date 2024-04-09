@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,7 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.MultipleFilePicker
-import io.github.snd_r.komelia.image.ImageTypeDetector
+import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import io.github.snd_r.komelia.platform.ExternalDragAndDropArea
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.cards.ThumbnailEditCard
@@ -48,12 +47,8 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komga.book.KomgaBookThumbnail
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.series.KomgaSeriesThumbnail
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.nio.file.Path
-import kotlin.io.path.fileSize
 import kotlin.math.roundToInt
 
 class PosterTab(private val state: PosterEditState) : DialogTab {
@@ -75,53 +70,47 @@ class PosterTab(private val state: PosterEditState) : DialogTab {
 class PosterEditState(
     val cardWidth: Flow<Dp>,
 ) {
-    val thumbnails = mutableStateListOf<KomgaThumbnail>()
-    val userUploadedThumbnails = mutableStateListOf<ThumbnailToBeUploaded>()
+    var thumbnails by mutableStateOf<List<KomgaThumbnail>>(emptyList())
+    var userUploadedThumbnails by mutableStateOf<List<ThumbnailToBeUploaded>>(emptyList())
 
-    suspend fun onThumbnailUpload(paths: List<Path>) {
-        withContext(Dispatchers.IO) {
-            val toUpload = paths
-                .filter { ImageTypeDetector.isSupportedImageType(it) }
-                .map {
-                    ThumbnailToBeUploaded(
-                        selected = true,
-                        size = it.fileSize(),
-                        path = it,
-                    )
-                }
+    fun onThumbnailUpload(files: List<PlatformFile>) {
+        val newFiles = files.map { ThumbnailToBeUploaded(true, it) }
 
-            if (toUpload.isNotEmpty()) {
-                thumbnails.replaceAll { it.copy(selected = false) }
-                userUploadedThumbnails.replaceAll { it.copy(selected = false) }
-                userUploadedThumbnails.addAll(toUpload.dropLast(1))
-                userUploadedThumbnails.add(toUpload.last().copy(selected = true))
-            }
+        if (newFiles.isNotEmpty()) {
+            thumbnails = thumbnails.map { it.copy(selected = false) }
+
+            val toUpload = mutableListOf<ThumbnailToBeUploaded>()
+            toUpload.addAll(userUploadedThumbnails.map { it.copy(selected = false) })
+            toUpload.addAll(newFiles.dropLast(1))
+            toUpload.add(newFiles.last().copy(selected = true))
+            userUploadedThumbnails = toUpload
         }
     }
 
     fun onExistingThumbnailSelect(thumbnail: KomgaThumbnail) {
-        thumbnails.replaceAll {
+        thumbnails = thumbnails.map {
             if (it.id == thumbnail.id) it.copy(selected = true, deleted = false)
             else it.copy(selected = false)
         }
-        userUploadedThumbnails.replaceAll { it.copy(selected = false) }
+        userUploadedThumbnails = userUploadedThumbnails.map { it.copy(selected = false) }
     }
 
     fun onExistingThumbnailDelete(thumb: KomgaThumbnail) {
-        thumbnails.replaceAll {
+        thumbnails = thumbnails.map {
             if (it.id == thumb.id) it.copy(deleted = !it.markedDeleted, selected = false)
             else it
         }
     }
 
-    fun onUploadThumbnailDelete(file: Path) {
-        userUploadedThumbnails.removeAll { it.path == file }
+    fun onUploadThumbnailDelete(thumb: ThumbnailToBeUploaded) {
+        userUploadedThumbnails = userUploadedThumbnails.filter { it != thumb }
     }
 
-    fun onUploadThumbnailSelect(file: Path) {
-        thumbnails.replaceAll { it.copy(selected = false) }
-        userUploadedThumbnails.replaceAll {
-            if (it.path == file) it.copy(selected = true)
+    fun onUploadThumbnailSelect(thumb: ThumbnailToBeUploaded) {
+        thumbnails = thumbnails.map { it.copy(selected = false) }
+
+        userUploadedThumbnails = userUploadedThumbnails.map {
+            if (it == thumb) it.copy(selected = true)
             else it
         }
     }
@@ -178,8 +167,7 @@ class PosterEditState(
 
         data class ThumbnailToBeUploaded(
             val selected: Boolean = true,
-            val size: Long,
-            val path: Path,
+            val file: PlatformFile,
         )
     }
 
@@ -211,7 +199,7 @@ fun PosterEditContent(
 
     MultipleFilePicker(show = showFilePicker) { files ->
         if (files != null) {
-            coroutineScope.launch { posterState.onThumbnailUpload(files.map { Path.of(it.path) }) }
+            posterState.onThumbnailUpload(files)
             showFilePicker = false
         }
     }
@@ -243,8 +231,8 @@ fun PosterEditContent(
             posterState.userUploadedThumbnails.forEach { thumb ->
                 ThumbnailUploadCard(
                     thumbnail = thumb,
-                    onDelete = { posterState.onUploadThumbnailDelete(thumb.path) },
-                    onSelect = { posterState.onUploadThumbnailSelect(thumb.path) },
+                    onDelete = { posterState.onUploadThumbnailDelete(thumb) },
+                    onSelect = { posterState.onUploadThumbnailSelect(thumb) },
                     modifier = Modifier.width(cardWidth)
                 )
             }

@@ -1,5 +1,7 @@
 import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.proto
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -26,16 +28,35 @@ dependencies {
 kotlin {
     jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
     androidTarget {
-        compilations.all { kotlinOptions { jvmTarget = "11" } }
+        compilations.all { kotlinOptions { jvmTarget = "17" } }
     }
 
     jvm("desktop") {
         compilations.all { kotlinOptions { jvmTarget = "17" } }
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    static = (static ?: mutableListOf()).apply {
+                        // Serve sources to debug inside browser
+                        add(project.projectDir.path)
+                        add(project.projectDir.path + "/commonMain/")
+                        add(project.projectDir.path + "/wasmJsMain/")
+                    }
+                }
+            }
+        }
+        binaries.executable()
+    }
+
     val coilVersion = "3.0.0-alpha06"
-    val ktorVersion = "3.0.0-beta-1"
-    val voyagerVersion = "1.0.0"
+    val ktorVersion = "3.0.0-beta-2-eap-928"
+    val voyagerVersion = "1.1.0-alpha03"
     sourceSets {
         all {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
@@ -43,7 +64,6 @@ kotlin {
         val desktopMain by getting
 
         commonMain.dependencies {
-
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.materialIconsExtended)
@@ -51,34 +71,25 @@ kotlin {
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
 
-            implementation("org.slf4j:slf4j-api:2.0.12")
             implementation("io.github.oshai:kotlin-logging:6.0.3")
 
-            implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
-            implementation("io.ktor:ktor-client-logging:$ktorVersion")
-            implementation("com.squareup.okhttp3:okhttp:4.12.0")
-            implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
+            implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.coil-kt.coil3:coil:$coilVersion")
             implementation("io.coil-kt.coil3:coil-compose:$coilVersion")
             implementation("io.coil-kt.coil3:coil-network-ktor:$coilVersion")
 
             implementation("cafe.adriel.voyager:voyager-screenmodel:$voyagerVersion")
             implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
-            implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
-
-            implementation("cafe.adriel.lyricist:lyricist:1.6.2")
+            implementation("cafe.adriel.lyricist:lyricist:1.7.0")
 
             implementation("io.github.dokar3:sonner:0.3.5")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha02")
 
-            implementation("com.darkrockstudios:mpfilepicker:3.1.0")
-
+            implementation("com.darkrockstudios:mpfilepicker")
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
-            implementation("org.apache.commons:commons-lang3:3.14.0")
-            implementation("org.jsoup:jsoup:1.17.2")
-            implementation("org.apache.tika:tika-core:2.9.1")
+            implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc04")
 
             implementation(project(":komga_client"))
         }
@@ -88,7 +99,13 @@ kotlin {
             api("androidx.appcompat:appcompat:1.6.1")
             api("androidx.core:core-ktx:1.12.0")
 
+            implementation("org.slf4j:slf4j-api:2.0.12")
             implementation("com.github.tony19:logback-android:3.0.0")
+
+            implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+            implementation("io.ktor:ktor-client-logging:$ktorVersion")
+            implementation("com.squareup.okhttp3:okhttp:4.12.0")
+            implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
             implementation("androidx.datastore:datastore:1.0.0")
             implementation("com.google.protobuf:protobuf-javalite:3.21.11")
@@ -103,8 +120,14 @@ kotlin {
 
             runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
 
+            implementation("org.slf4j:slf4j-api:2.0.12")
             implementation("ch.qos.logback:logback-core:1.5.3")
             implementation("ch.qos.logback:logback-classic:1.5.3")
+
+            implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+            implementation("io.ktor:ktor-client-logging:$ktorVersion")
+            implementation("com.squareup.okhttp3:okhttp:4.12.0")
+            implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
             implementation("com.akuleshov7:ktoml-core:0.5.0")
             implementation("com.akuleshov7:ktoml-file:0.5.0")
@@ -115,11 +138,16 @@ kotlin {
             // use newer transitive dependency version for linux secret service KeePass support
             implementation("de.swiesend:secret-service:2.0.1-alpha")
 
-            implementation(project(":vips"))
-
             implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
+            implementation(project(":vips"))
+        }
+
+        val wasmJsMain by getting
+        wasmJsMain.dependencies {
+            implementation("io.ktor:ktor-client-js:$ktorVersion")
+
         }
     }
 }
@@ -153,13 +181,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     repositories {
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     }
 
     protobuf {
@@ -231,4 +260,8 @@ tasks.register<Zip>("repackageUberJar") {
         output.renameTo(file)
         logger.lifecycle("The repackaged jar is written to ${archiveFile.get().asFile.canonicalPath}")
     }
+}
+
+compose.experimental {
+    web.application {}
 }

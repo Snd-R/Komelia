@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichText
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komga.announcements.KomgaJsonFeed.KomgaAnnouncement
-import org.jsoup.Jsoup
 
 @Composable
 fun AnnouncementsContent(announcements: List<KomgaAnnouncement>) {
@@ -30,6 +33,7 @@ fun AnnouncementsContent(announcements: List<KomgaAnnouncement>) {
     }
 }
 
+@OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun Announcement(announcement: KomgaAnnouncement) {
     Column {
@@ -42,10 +46,18 @@ private fun Announcement(announcement: KomgaAnnouncement) {
         }
 
         announcement.contentHtml?.let {
-            AnnouncementBody(it)
+            SelectionContainer {
+                val state = rememberRichTextState()
+                state.setConfig(
+                    linkColor = MaterialTheme.colorScheme.secondary,
+                    linkTextDecoration = TextDecoration.Underline,
+                    codeBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                    codeStrokeColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+                state.setHtml(it)
+                RichText(state)
+            }
         }
-
-
     }
 }
 
@@ -69,13 +81,4 @@ private fun AnnouncementTitle(title: String, url: String?) {
             MaterialTheme.typography.headlineLarge
 
     Text(title, style = style, modifier = onClickModifier)
-}
-
-@Composable
-private fun AnnouncementBody(contentHtml: String) {
-    val formattedBody = remember(contentHtml) {
-        Jsoup.parse(contentHtml).wholeText()
-    }
-
-    Text(formattedBody)
 }

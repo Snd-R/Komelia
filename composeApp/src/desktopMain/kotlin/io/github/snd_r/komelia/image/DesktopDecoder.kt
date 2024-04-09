@@ -6,11 +6,12 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import io.github.snd_r.komelia.image.SamplerType.IMAGEIO_LANCZOS
-import io.github.snd_r.komelia.image.SamplerType.SKIA_CATMULL_ROM
-import io.github.snd_r.komelia.image.SamplerType.SKIA_MITCHELL
-import io.github.snd_r.komelia.image.SamplerType.SKIA_NEAREST
-import io.github.snd_r.komelia.image.SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
+import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.SamplerType.IMAGEIO_LANCZOS
+import io.github.snd_r.komelia.platform.SamplerType.SKIA_CATMULL_ROM
+import io.github.snd_r.komelia.platform.SamplerType.SKIA_MITCHELL
+import io.github.snd_r.komelia.platform.SamplerType.SKIA_NEAREST
+import io.github.snd_r.komelia.platform.SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.skia.SamplingMode
 

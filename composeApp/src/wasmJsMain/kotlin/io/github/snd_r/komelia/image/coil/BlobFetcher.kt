@@ -1,0 +1,38 @@
+package io.github.snd_r.komelia.image.coil
+
+import coil3.ImageLoader
+import coil3.decode.DataSource
+import coil3.decode.ImageSource
+import coil3.fetch.FetchResult
+import coil3.fetch.Fetcher
+import coil3.fetch.SourceFetchResult
+import coil3.request.Options
+import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
+import io.github.snd_r.komelia.platform.getBytes
+import okio.Buffer
+
+class BlobFetcher(
+    private val file: PlatformFile,
+    private val options: Options,
+) : Fetcher {
+    override suspend fun fetch(): FetchResult {
+        return SourceFetchResult(
+            source = ImageSource(
+                source = Buffer().apply { write(file.getBytes()) },
+                fileSystem = options.fileSystem
+            ),
+            mimeType = null,
+            dataSource = DataSource.MEMORY
+        )
+    }
+
+    class Factory : Fetcher.Factory<PlatformFile> {
+        override fun create(
+            data: PlatformFile,
+            options: Options,
+            imageLoader: ImageLoader,
+        ): Fetcher {
+            return BlobFetcher(data, options)
+        }
+    }
+}

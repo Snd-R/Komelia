@@ -1,7 +1,7 @@
 package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
-import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.ReadingDirection

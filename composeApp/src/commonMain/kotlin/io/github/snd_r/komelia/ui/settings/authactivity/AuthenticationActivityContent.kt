@@ -35,9 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.*
+import kotlinx.datetime.TimeZone.Companion.currentSystemDefault
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun AuthenticationActivityContent(
@@ -93,9 +92,7 @@ private fun AuthenticationInfoCard(
         Column(Modifier.padding(10.dp)) {
             Row {
                 val formattedDate = remember(activity) {
-                    activity.dateTime
-                        .withZoneSameInstant(ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm", Locale.ENGLISH))
+                    activity.dateTime.toLocalDateTime(currentSystemDefault()).toString()
                 }
                 Text(formattedDate)
                 Spacer(Modifier.weight(1f))

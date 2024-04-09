@@ -14,14 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.formatDecimal
 import io.github.snd_r.komelia.ui.common.LockableTextField
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.*
-
 
 class GeneralTab(
     private val vm: BookEditDialogViewModel
@@ -87,11 +84,7 @@ private fun GeneralTabContent(
                 modifier = Modifier.weight(.5f)
             )
 
-            var text by remember {
-                val df = DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH))
-                df.setMaximumFractionDigits(340);
-                mutableStateOf(df.format(sortNumber.value))
-            }
+            var text by remember { mutableStateOf(sortNumber.value.formatDecimal(0)) }
 
             LockableTextField(
                 text = text,

@@ -35,7 +35,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit.Companion.MONTH
+import kotlinx.datetime.TimeZone.Companion.UTC
+import kotlinx.datetime.minus
+import kotlinx.datetime.todayIn
 
 class LibraryRecommendedViewModel(
     private val seriesClient: KomgaSeriesClient,
@@ -114,7 +118,7 @@ class LibraryRecommendedViewModel(
             pageRequest = pageRequest,
             query = KomgaBookQuery(
                 libraryIds = library?.value?.let { listOf(it.id) } ?: emptyList(),
-                releasedAfter = LocalDate.now().minusMonths(1)
+                releasedAfter = Clock.System.todayIn(UTC).minus(1, MONTH)
             ),
         ).content
 

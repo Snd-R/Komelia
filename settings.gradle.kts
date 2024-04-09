@@ -34,3 +34,10 @@ dependencyResolutionManagement {
 
 include(":composeApp", ":komga_client")
 include("vips")
+
+// TODO remove after wasm target is published
+includeBuild("compose-multiplatform-file-picker") {
+    dependencySubstitution {
+        substitute(module("com.darkrockstudios:mpfilepicker")).using(project(":mpfilepicker"))
+    }
+}

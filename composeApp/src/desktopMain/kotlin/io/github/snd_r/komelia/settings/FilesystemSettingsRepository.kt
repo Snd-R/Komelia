@@ -2,7 +2,7 @@ package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.settings.ActorMessage.Transform
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout

@@ -14,7 +14,7 @@ import coil3.request.ImageResult
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized

@@ -18,11 +18,14 @@ import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailCollectionEvent
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailReadListEvent
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesAdded
 import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesDeleted
-import io.github.snd_r.komga.sse.KomgaEventSource
+import io.github.snd_r.komga.sse.KomgaSSESession
 import io.github.snd_r.komga.user.KomgaUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,34 +33,44 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlin.concurrent.Volatile
 
 private val logger = KotlinLogging.logger {}
 
 class ManagedKomgaEvents(
     authenticatedUser: StateFlow<KomgaUser?>,
-    private val eventSource: KomgaEventSource,
+    private val eventSourceFactory: suspend () -> KomgaSSESession,
     private val memoryCache: MemoryCache?,
     private val diskCache: DiskCache?,
 
     private val libraryClient: KomgaLibraryClient,
     private val librariesFlow: MutableStateFlow<List<KomgaLibrary>>
 ) {
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val manageScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
+    private val broadcastScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    @Volatile
+    private var session: KomgaSSESession? = null
 
     init {
         authenticatedUser.onEach { newUser ->
-            if (newUser == null) eventSource.disconnect()
-            else eventSource.connect()
-        }.launchIn(scope)
+            broadcastScope.coroutineContext.cancelChildren()
+            session?.cancel()
 
-        startBroadcast()
+            if (newUser != null) {
+                val newSession = eventSourceFactory()
+                session = newSession
+                startBroadcast(newSession.incoming)
+            }
+        }.launchIn(manageScope)
     }
 
     private val _events = MutableSharedFlow<KomgaEvent>()
     val events: SharedFlow<KomgaEvent> = _events
 
-    private fun startBroadcast() {
-        eventSource.incoming.onEach { event ->
+    private fun startBroadcast(events: Flow<KomgaEvent>) {
+        events.onEach { event ->
             logger.info { event }
 
             when (event) {
@@ -77,11 +90,11 @@ class ManagedKomgaEvents(
             }
 
             _events.emit(event)
-        }.launchIn(scope)
+        }.launchIn(broadcastScope)
     }
 
     private fun updateLibraries() {
-        scope.launch {
+        manageScope.launch {
             librariesFlow.value = libraryClient.getLibraries()
         }
     }

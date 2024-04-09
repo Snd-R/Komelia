@@ -80,7 +80,7 @@ object VipsDecoder {
 
     @Suppress("UnsafeDynamicallyLoadedCode")
     private fun loadLibs(libs: List<String>) {
-        logger.info(System.getProperty("java.library.path"))
+        logger.info("libraries search path: ${System.getProperty("java.library.path")}")
         for (libName in libs) {
             try {
                 val filename = System.mapLibraryName(libName)

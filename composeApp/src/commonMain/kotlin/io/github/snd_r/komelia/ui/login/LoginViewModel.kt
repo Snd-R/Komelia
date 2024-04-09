@@ -61,15 +61,12 @@ class LoginViewModel(
             authenticatedUserFlow.value = user
             availableLibrariesFlow.value = libraries
             mutableState.value = LoadState.Success(Unit)
-        } catch (e: Exception) {
-            error = when (e) {
-                is ClientRequestException -> {
-                    if (e.response.status == Unauthorized) "Invalid credentials"
-                    else "Failed to login ${e.message}"
-                }
-
-                else -> e.message ?: "Failed to login"
-            }
+        } catch (e: ClientRequestException) {
+            error = if (e.response.status == Unauthorized) "Invalid credentials"
+            else "Failed to login ${e.message}"
+            mutableState.value = LoadState.Error(e)
+        } catch (e: Throwable) {
+            error = e.message ?: "Failed to login"
             mutableState.value = LoadState.Error(e)
         }
     }

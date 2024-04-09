@@ -42,12 +42,11 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.*
 
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
 val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }
 val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
-val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Kev events are not set") }
+val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key events are not set") }
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 val LocalStrings = staticCompositionLocalOf { EnStrings }
 
@@ -115,7 +114,7 @@ fun MainView(
 fun AppNotifications(
     appNotifications: AppNotifications,
 ) {
-    val toaster = rememberToasterState(onToastDismissed = { appNotifications.remove(it.id as UUID) })
+    val toaster = rememberToasterState(onToastDismissed = { appNotifications.remove(it.id as Long) })
 
     LaunchedEffect(toaster) {
         val toastsFlow = appNotifications.getNotifications()

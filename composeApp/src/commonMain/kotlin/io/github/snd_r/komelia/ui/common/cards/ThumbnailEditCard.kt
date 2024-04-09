@@ -29,7 +29,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,6 +42,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import io.github.snd_r.komelia.platform.formatDecimal
+import io.github.snd_r.komelia.platform.size
 import io.github.snd_r.komelia.ui.common.images.ThumbnailImage
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.ThumbnailToBeUploaded
@@ -96,14 +102,18 @@ fun ThumbnailUploadCard(
 ) {
     ItemCardWithContent(
         modifier,
-        image = { AsyncImage(model = thumbnail.path, contentDescription = null, contentScale = ContentScale.Crop) }
+        image = { AsyncImage(model = thumbnail.file, contentDescription = null, contentScale = ContentScale.Crop) }
     ) {
+
+        var filesize by remember(thumbnail) { mutableStateOf(0L) }
+        LaunchedEffect(thumbnail) { filesize = thumbnail.file.size() }
+
         ThumbnailCardContent(
             onDelete = onDelete,
             onSelect = onSelect,
             isSelected = thumbnail.selected,
             isDeleted = false,
-            filesize = thumbnail.size,
+            filesize = filesize,
             typeIcon = Icons.Default.CloudUpload,
             typeTooltip = "To be uploaded",
             modifier = Modifier
@@ -133,7 +143,7 @@ private fun ThumbnailCardContent(
         modifier = modifier.padding(start = 5.dp, end = 5.dp, top = 5.dp).height(110.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val sizeInKb = remember(filesize) { "%.1f".format(filesize.toFloat() / 1024) }
+        val sizeInKb = remember(filesize) { (filesize.toFloat() / 1024).formatDecimal(1) }
         Text("${sizeInKb}kB")
         size?.let { Text("w: ${it.width}, h: ${it.height}") }
         mediaType?.let { Text(it) }
@@ -171,7 +181,6 @@ private fun ThumbnailCardContent(
                         )
                     }
                 }
-
         }
 
     }

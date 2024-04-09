@@ -65,7 +65,7 @@ class ViewModelFactory(
 
     private val komgaEventSource = ManagedKomgaEvents(
         authenticatedUser = authenticatedUser,
-        eventSource = komgaClientFactory.komgaEventSource(),
+        eventSourceFactory = komgaClientFactory::sseSession,
         memoryCache = imageLoader.memoryCache,
         diskCache = imageLoader.diskCache,
         libraryClient = komgaClientFactory.libraryClient(),

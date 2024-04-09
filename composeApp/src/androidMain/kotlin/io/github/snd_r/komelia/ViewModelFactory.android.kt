@@ -9,13 +9,13 @@ import coil3.SingletonImageLoader
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
+import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
 import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
-import io.github.snd_r.komelia.image.coil.PathMapper
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AndroidSettingsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
@@ -55,7 +55,6 @@ actual suspend fun createViewModelFactory(context: Context): ViewModelFactory {
     val komgaClientFactory = createKomgaClientFactory(
         baseUrl = baseUrl,
         ktorClient = ktorClient,
-        okHttpClient = okHttpClient,
         cookiesStorage = cookiesStorage,
         context = context
     )
@@ -92,11 +91,6 @@ private fun createKtorClient(
         engine { preconfigured = okHttpClient }
         defaultRequest { url(baseUrl.value) }
         install(HttpCookies) { storage = cookiesStorage }
-
-//        install(Logging) {
-//            logger = Logger.DEFAULT
-//            level = LogLevel.INFO
-//        }
         expectSuccess = true
     }
 }
@@ -104,7 +98,6 @@ private fun createKtorClient(
 private fun createKomgaClientFactory(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
-    okHttpClient: OkHttpClient,
     cookiesStorage: RememberMePersistingCookieStore,
     context: Context
 ): KomgaClientFactory {
@@ -117,7 +110,6 @@ private fun createKomgaClientFactory(
 
     return KomgaClientFactory.Builder()
         .ktor(ktorKomgaClient)
-        .okHttp(okHttpClient)
         .baseUrl { baseUrl.value }
         .cookieStorage(cookiesStorage)
         .build()
@@ -133,7 +125,7 @@ private fun createCoil(url: StateFlow<String>, ktorClient: HttpClient, context: 
             add(KomgaCollectionMapper(url))
             add(KomgaReadListMapper(url))
             add(KomgaSeriesThumbnailMapper(url))
-            add(PathMapper())
+            add(FileMapper())
             add(KtorNetworkFetcherFactory(httpClient = ktorClient))
         }
         .build()

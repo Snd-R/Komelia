@@ -18,7 +18,6 @@ import io.github.reactivecircus.cache4k.CacheEventListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import java.util.*
 import kotlin.math.roundToInt
 
 typealias SpreadHash = Int
@@ -104,7 +103,14 @@ class ReaderImageLoader(
         scaleType: LayoutScaleType,
         allowUpsample: Boolean
     ): Int {
-        return Objects.hash(pages, containerSize.width,containerSize.height, layout, scaleType, allowUpsample)
+        return arrayOf(
+            pages,
+            containerSize.width,
+            containerSize.height,
+            layout,
+            scaleType,
+            allowUpsample
+        ).contentHashCode()
     }
 
     @OptIn(ExperimentalCoilApi::class)
@@ -225,7 +231,7 @@ class ReaderImageLoader(
         imageLoadJobs.invalidateAll()
     }
 
-    object EventListener: CacheEventListener<SpreadHash, SpreadImageLoadJob>{
+    object EventListener : CacheEventListener<SpreadHash, SpreadImageLoadJob> {
         override fun onEvent(event: CacheEvent<SpreadHash, SpreadImageLoadJob>) {
             TODO("Not yet implemented")
         }

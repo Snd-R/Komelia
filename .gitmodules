@@ -1,0 +1,3 @@
+[submodule "compose-multiplatform-file-picker"]
+	path = compose-multiplatform-file-picker
+	url = https://github.com/Wavesonics/compose-multiplatform-file-picker

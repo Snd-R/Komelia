@@ -18,16 +18,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.*
+import kotlinx.datetime.Clock
 
 class AppNotifications {
-    private val notifications: MutableStateFlow<Map<UUID, AppNotification>> = MutableStateFlow(emptyMap())
+    private val notifications: MutableStateFlow<Map<Long, AppNotification>> = MutableStateFlow(emptyMap())
 
     fun getNotifications(): Flow<Collection<AppNotification>> {
         return notifications.map { it.values }
     }
 
-    fun remove(id: UUID) {
+    fun remove(id: Long) {
         notifications.update { current ->
             current.minus(id)
         }
@@ -96,10 +96,10 @@ private fun errorMessageFromStatusCode(statusCode: HttpStatusCode): String {
     }
 }
 
-sealed class AppNotification(val id: UUID) {
-    class Success(val message: String) : AppNotification(UUID.randomUUID())
-    class Normal(val message: String) : AppNotification(UUID.randomUUID())
-    class Error(val message: String) : AppNotification(UUID.randomUUID())
+sealed class AppNotification(val id: Long = Clock.System.now().epochSeconds) {
+    class Success(val message: String) : AppNotification()
+    class Normal(val message: String) : AppNotification()
+    class Error(val message: String) : AppNotification()
 }
 
 

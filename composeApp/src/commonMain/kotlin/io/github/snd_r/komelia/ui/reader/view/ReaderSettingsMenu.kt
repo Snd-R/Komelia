@@ -37,8 +37,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import coil3.annotation.ExperimentalCoilApi
-import io.github.snd_r.komelia.image.SamplerType
+import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.platform.formatDecimal
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
@@ -183,7 +184,7 @@ private fun ColumnScope.SettingsContent(
     Column {
         currentSpread.value.pages.forEach { page ->
             val sizeInMb = remember(currentSpread.value) {
-                page.imageResult?.image?.size?.let { "%.2f".format(it.toFloat() / 1024 / 1024) }
+                page.imageResult?.image?.size?.let { (it.toFloat() / 1024 / 1024).formatDecimal(2) }
             }
             val pageText = buildString {
                 append("${strings.pageNumber} ${page.metadata.pageNumber}.")

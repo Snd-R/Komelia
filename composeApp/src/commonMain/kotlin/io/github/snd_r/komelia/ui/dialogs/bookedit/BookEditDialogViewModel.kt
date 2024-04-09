@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.getBytes
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.BookThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
@@ -18,11 +19,8 @@ import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.common.KomgaWebLink
 import io.github.snd_r.komga.common.patch
 import io.github.snd_r.komga.common.patchLists
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import kotlin.io.path.readBytes
+import kotlinx.datetime.LocalDate
 
 class BookEditDialogViewModel(
     val book: KomgaBook,
@@ -70,10 +68,7 @@ class BookEditDialogViewModel(
 
     suspend fun initialize() {
         notifications.runCatchingToNotifications {
-            posterState.thumbnails.clear()
-            posterState.thumbnails.addAll(
-                bookClient.getBookThumbnails(book.id).map { BookThumbnail(it) }
-            )
+            posterState.thumbnails = bookClient.getBookThumbnails(book.id).map { BookThumbnail(it) }
         }
     }
 
@@ -117,23 +112,21 @@ class BookEditDialogViewModel(
     }
 
     private suspend fun saveThumbnailChanges() {
-        withContext(Dispatchers.IO) {
-            posterState.userUploadedThumbnails.forEach { thumb ->
-                bookClient.uploadBookThumbnail(
-                    bookId = book.id,
-                    file = thumb.path.readBytes(),
-                    selected = thumb.selected
-                )
-            }
-
-            posterState.thumbnails
-                .firstOrNull { it.markedSelected && it.markedSelected != it.selected }
-                ?.let { thumb -> bookClient.selectBookThumbnail(book.id, thumb.id) }
-
-            posterState.thumbnails
-                .filter { it.markedDeleted }
-                .forEach { thumb -> bookClient.deleteBookThumbnail(book.id, thumb.id) }
+        posterState.userUploadedThumbnails.forEach { thumb ->
+            bookClient.uploadBookThumbnail(
+                bookId = book.id,
+                file = thumb.file.getBytes(),
+                selected = thumb.selected
+            )
         }
+
+        posterState.thumbnails
+            .firstOrNull { it.markedSelected && it.markedSelected != it.selected }
+            ?.let { thumb -> bookClient.selectBookThumbnail(book.id, thumb.id) }
+
+        posterState.thumbnails
+            .filter { it.markedDeleted }
+            .forEach { thumb -> bookClient.deleteBookThumbnail(book.id, thumb.id) }
     }
 }
 
