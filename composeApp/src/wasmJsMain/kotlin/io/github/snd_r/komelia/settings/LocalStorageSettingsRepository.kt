@@ -22,8 +22,11 @@ class LocalStorageSettingsRepository : SettingsRepository {
 
     private fun loadSettings(): AppSettings {
         return AppSettings(
+            server = ServerSettings(
+                url = localStorage[serverUrlKey] ?: "http://localhost:25600"
+            ),
             user = UserSettings(
-                username = localStorage[usernameKey] ?: "admin@example.org"
+                username = localStorage[usernameKey] ?: ""
             ),
             appearance = AppearanceSettings(
                 cardWidth = localStorage[cardWidthKey]?.toInt() ?: 240,
@@ -45,11 +48,18 @@ class LocalStorageSettingsRepository : SettingsRepository {
     }
 
     override fun getServerUrl(): Flow<String> {
-//        return flowOf(window.location.host)
-        return flowOf("http://localhost:25600")
+        return settings.map { it.server.url }
     }
 
     override suspend fun putServerUrl(url: String) {
+        settings.update {
+            it.copy(
+                server = it.server.copy(
+                    url = url
+                )
+            )
+        }
+        localStorage[serverUrlKey] = url
     }
 
     override fun getCardWidth(): Flow<Dp> {

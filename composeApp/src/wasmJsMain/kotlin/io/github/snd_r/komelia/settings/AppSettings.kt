@@ -6,8 +6,8 @@ import io.github.snd_r.komelia.ui.reader.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.series.BooksLayout
-import kotlinx.serialization.Serializable
 
+const val serverUrlKey = "serverUrl"
 const val usernameKey = "username"
 
 const val cardWidthKey = "cardWidth"
@@ -20,19 +20,21 @@ const val upsampleKey = "upsample"
 const val readingDirectionKey = "readingDirection"
 const val pageLayoutKey = "pageLayout"
 
-@Serializable
 data class AppSettings(
+    val server: ServerSettings,
     val user: UserSettings,
     val appearance: AppearanceSettings,
     val reader: ReaderSettings = ReaderSettings(),
 )
 
-@Serializable
+data class ServerSettings(
+    val url: String
+)
+
 data class UserSettings(
     val username: String
 )
 
-@Serializable
 data class AppearanceSettings(
     val cardWidth: Int,
     val seriesPageLoadSize: Int = 20,
@@ -40,7 +42,6 @@ data class AppearanceSettings(
     val bookListLayout: BooksLayout = BooksLayout.GRID
 )
 
-@Serializable
 data class ReaderSettings(
     val scaleType: LayoutScaleType = LayoutScaleType.SCREEN,
     val upsample: Boolean = false,
