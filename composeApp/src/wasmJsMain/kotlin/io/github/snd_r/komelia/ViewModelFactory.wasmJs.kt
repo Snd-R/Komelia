@@ -5,7 +5,6 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.coil.BlobFetcher
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -20,7 +19,6 @@ import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cookies.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -35,14 +33,9 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
     val secretsRepository = CookieStoreSecretsRepository()
     val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
 
-    val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
-    cookiesStorage.loadRememberMeCookie()
+    val ktorClient = createKtorClient(baseUrl)
+    val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient)
 
-    val ktorClient = createKtorClient(baseUrl, cookiesStorage)
-    logger.info { ktorClient.engine }
-    val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage)
-
-    logger.info { ktorClient.pluginOrNull(HttpCookies) }
     val coil = createCoil(baseUrl, ktorClient)
     SingletonImageLoader.setSafe { coil }
 
@@ -57,12 +50,10 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
 
 private fun createKtorClient(
     baseUrl: StateFlow<String>,
-    cookiesStorage: RememberMePersistingCookieStore,
 ): HttpClient {
-    fetchIncludeCredentials()
+    overrideFetch()
     return HttpClient(Js) {
         defaultRequest { url(baseUrl.value) }
-        install(HttpCookies) { storage = cookiesStorage }
         install(HttpCache)
         expectSuccess = true
         followRedirects = false
@@ -72,13 +63,11 @@ private fun createKtorClient(
 private fun createKomgaClientFactory(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
-    cookiesStorage: RememberMePersistingCookieStore,
 ): KomgaClientFactory {
 
     return KomgaClientFactory.Builder()
         .ktor(ktorClient)
         .baseUrl { baseUrl.value }
-        .cookieStorage(cookiesStorage)
         .build()
 }
 
@@ -100,12 +89,13 @@ private fun createCoil(
         .build()
 }
 
-private fun fetchIncludeCredentials() {
+private fun overrideFetch() {
     js(
         """
     window.originalFetch = window.fetch;
     window.fetch = function (resource, init) {
         init = Object.assign({}, init);
+        init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
         init.credentials = init.credentials !== undefined ? init.credentials : 'include';
         return window.originalFetch(resource, init);
     };

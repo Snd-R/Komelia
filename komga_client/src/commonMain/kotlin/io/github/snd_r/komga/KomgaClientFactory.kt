@@ -37,15 +37,12 @@ class KomgaClientFactory private constructor(
 
     private fun configureKtor(client: HttpClient): HttpClient {
         return client.config {
-//            val cookiesStorage = builder.cookieStorage
-//            if (cookiesStorage != null) {
-//                install(HttpCookies) { storage = cookiesStorage }
-//            }
-
-            install(HttpCookies)
+            val cookiesStorage = builder.cookieStorage
+            if (cookiesStorage != null) {
+                install(HttpCookies) { storage = cookiesStorage }
+            }
 
             install(ContentNegotiation) { json(json) }
-
             defaultRequest { url(baseUrl()) }
 
             val username = builder.username
@@ -82,7 +79,6 @@ class KomgaClientFactory private constructor(
 //        return KtorKomgaSSESession(json, session)
 
         val authCookie = ktor.cookies(Url(baseUrl()))
-//            .get(Url(baseUrl()))
             .find { it.name == "SESSION" }
             ?.let { renderCookieHeader(it) }
             ?: ""
@@ -105,14 +101,6 @@ class KomgaClientFactory private constructor(
         fun baseUrl(block: () -> String) = apply {
             this.baseUrl = block
         }
-
-//        fun baseUrl(baseUrl: StateFlow<String>) = apply {
-//            this.baseUrl = baseUrl
-//        }
-
-//        fun baseUrl(baseUrl: String) = apply {
-//            this.baseUrl = { baseUrl }
-//        }
 
         fun cookieStorage(cookiesStorage: CookiesStorage) = apply {
             this.cookieStorage = cookiesStorage
