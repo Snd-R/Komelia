@@ -2622,6 +2622,11 @@ void-elements@^2.0.0:
   resolved "https://registry.yarnpkg.com/void-elements/-/void-elements-2.0.1.tgz#c066afb582bb1cb4128d60ea92392e94d5e9dbec"
   integrity sha512-qZKX4RnBzH2ugr8Lxa7x+0V6XD9Sb/ouARtiasEQCHB1EVU4NXtmHsDDrx1dO4ne5fc3J6EW05BP1Dl0z0iung==
 
+wasm-vips@0.0.8:
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/wasm-vips/-/wasm-vips-0.0.8.tgz#6f52244d03e95cf155481b64a08d59f1e2e3e149"
+  integrity sha512-2Ghqubm0WfsBT3VsObwnMmEZB3tngCa8/yk7LU3QzOIqSPb0W3FQmgmOpWLg1DS4RMuAEeErLPxwbucdrL2umQ==
+
 watchpack@^2.4.0:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-2.4.1.tgz#29308f2cac150fa8e4c92f90e0ec954a9fed7fff"

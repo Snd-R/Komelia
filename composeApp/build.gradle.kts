@@ -47,6 +47,7 @@ kotlin {
                         add(project.projectDir.path)
                         add(project.projectDir.path + "/commonMain/")
                         add(project.projectDir.path + "/wasmJsMain/")
+                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
                     }
                 }
             }
@@ -147,7 +148,7 @@ kotlin {
         val wasmJsMain by getting
         wasmJsMain.dependencies {
             implementation("io.ktor:ktor-client-js:$ktorVersion")
-
+            implementation(npm("wasm-vips", "0.0.8"))
         }
     }
 }

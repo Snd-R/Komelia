@@ -3,8 +3,10 @@ package io.github.snd_r.komelia
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
+import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
-import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.image.Vips
+import io.github.snd_r.komelia.image.VipsImageDecoder
 import io.github.snd_r.komelia.image.coil.BlobFetcher
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -21,13 +23,14 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asDeferred
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 private val stateFlowScope = CoroutineScope(Dispatchers.Default)
-private val logger = KotlinLogging.logger {}
 
 actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory {
+    val vips = loadVips()
 
     val settingsRepository = LocalStorageSettingsRepository()
     val secretsRepository = CookieStoreSecretsRepository()
@@ -36,7 +39,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
     val ktorClient = createKtorClient(baseUrl)
     val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient)
 
-    val coil = createCoil(baseUrl, ktorClient)
+    val coil = createCoil(baseUrl, ktorClient, vips)
     SingletonImageLoader.setSafe { coil }
 
     return ViewModelFactory(
@@ -74,6 +77,7 @@ private fun createKomgaClientFactory(
 private fun createCoil(
     url: StateFlow<String>,
     ktorClient: HttpClient,
+    vips: JsAny
 ): ImageLoader {
     return ImageLoader.Builder(PlatformContext.INSTANCE)
         .components {
@@ -84,8 +88,14 @@ private fun createCoil(
             add(KomgaReadListMapper(url))
             add(KomgaSeriesThumbnailMapper(url))
             add(BlobFetcher.Factory())
+            add(VipsImageDecoder.Factory(vips))
             add(KtorNetworkFetcherFactory(httpClient = ktorClient))
         }
+        .memoryCache(
+            MemoryCache.Builder()
+                .maxSizeBytes(128 * 1024 * 1024) // 128 Mib
+                .build()
+        )
         .build()
 }
 
@@ -102,3 +112,21 @@ private fun overrideFetch() {
 """
     )
 }
+
+private suspend fun loadVips(): JsAny {
+    val config = vipsConfig()
+    return Vips(config).asDeferred<JsAny>().await()
+}
+
+private fun vipsConfig(): JsAny {
+    js(
+        """
+    return {
+                dynamicLibraries: [],
+                mainScriptUrlOrBlob: './vips.js',
+                locateFile: (fileName, scriptDirectory) => fileName,
+            };
+    """
+    )
+}
+
