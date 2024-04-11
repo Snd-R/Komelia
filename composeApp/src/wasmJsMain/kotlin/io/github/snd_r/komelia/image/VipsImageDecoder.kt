@@ -37,15 +37,19 @@ class VipsImageDecoder(
         // FIXME blocks and waits until loaded from network then copies to js array
         val data = source.source().use { it.readByteArray() }.toJsArray()
 
-        val dstWidth = options.size.width.pxOrElse { vipsMaxSize }
-        val dstHeight = options.size.height.pxOrElse { vipsMaxSize }
-        val crop = options.scale == Scale.FILL
-
         // FIXME blocking decode
-        val decoded = vipsThumbnail(vips, data, dstWidth, dstHeight, crop)
+        val decoded = if (options.size.isOriginal) {
+            vipsImageFromBuffer(vips, data)
+        } else {
+            val dstWidth = options.size.width.pxOrElse { vipsMaxSize }
+            val dstHeight = options.size.height.pxOrElse { vipsMaxSize }
+            val crop = options.scale == Scale.FILL
+            vipsThumbnail(vips, data, dstWidth, dstHeight, crop)
+        }
 
         val bitmap = toBitmap(decoded)
         bitmap.setImmutable()
+        vipsImageDelete(decoded)
 
         return DecodeResult(
             image = bitmap.asCoilImage(),
@@ -114,7 +118,6 @@ class VipsImageDecoder(
 private fun vipsThumbnail(vips: JsAny, blob: Int8Array, dstWidth: Int, dstHeight: Int, shouldCrop: Boolean): JsAny {
     js(
         """
-            
     let image = vips.Image.thumbnailBuffer(
         blob,
         dstWidth,
@@ -127,10 +130,14 @@ private fun vipsThumbnail(vips: JsAny, blob: Int8Array, dstWidth: Int, dstHeight
     if (image.interpretation == 'b-w' && image.bands != 1 ||
         image.interpretation != 'srgb' && image.interpretation != 'b-w'
     ) {
+        let old = image
         image = image.colourspace('srgb');
+        old.delete()
     }
     if (image.interpretation == 'srgb' && image.bands == 3) {
+        let old = image
         image = image.bandjoin(255)
+        old.delete()
     }
 
     return image;
@@ -138,11 +145,35 @@ private fun vipsThumbnail(vips: JsAny, blob: Int8Array, dstWidth: Int, dstHeight
     )
 }
 
+private fun vipsImageFromBuffer(vips: JsAny, blob: Int8Array): JsAny {
+
+    js(
+        """
+    let image = vips.Image.newFromBuffer(blob);
+
+    if (image.interpretation == 'b-w' && image.bands != 1 ||
+        image.interpretation != 'srgb' && image.interpretation != 'b-w'
+    ) {
+        let old = image;
+        image = image.colourspace('srgb');
+        old.delete();
+    }
+    if (image.interpretation == 'srgb' && image.bands == 3) {
+        let old = image;
+        image = image.bandjoin(255);
+        old.delete();
+    }
+
+    return image;
+    """
+    )
+}
+
 private fun vipsGetInterpretation(image: JsAny): String {
     js(
         """
-        return image.interpretation;
-    """
+          return image.interpretation;
+        """
     )
 }
 
@@ -174,6 +205,14 @@ private fun vipsGetHeight(image: JsAny): Int {
     js(
         """
           return image.height;
+        """
+    )
+}
+
+private fun vipsImageDelete(image: JsAny): Int {
+    js(
+        """
+          return image.delete();
         """
     )
 }
