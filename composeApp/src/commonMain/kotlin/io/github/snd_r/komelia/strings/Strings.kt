@@ -55,6 +55,7 @@ import io.github.snd_r.komga.settings.KomgaThumbnailSize.MEDIUM
 import io.github.snd_r.komga.settings.KomgaThumbnailSize.XLARGE
 
 data class Strings(
+    val errorCodes: ErrorCodes,
     val seriesFilter: SeriesFilterStrings,
     val seriesEdit: SeriesEditStrings,
     val libraryEdit: LibraryEditStrings,
@@ -299,11 +300,11 @@ data class SeriesFilterStrings(
 
     val complete: String,
     val oneshot: String,
-    val authors:String,
-    val publisher:String,
-    val language:String,
-    val releaseDate:String,
-    val ageRating:String,
+    val authors: String,
+    val publisher: String,
+    val language: String,
+    val releaseDate: String,
+    val ageRating: String,
 ) {
 
     fun forSeriesSort(sort: SeriesSort): String {
@@ -340,4 +341,70 @@ data class SeriesFilterStrings(
         }
     }
 
+}
+
+data class ErrorCodes(
+    val err1000: String,
+    val err1001: String,
+    val err1002: String,
+    val err1003: String,
+    val err1004: String,
+    val err1005: String,
+    val err1006: String,
+    val err1007: String,
+    val err1008: String,
+    val err1009: String,
+    val err1015: String,
+    val err1016: String,
+    val err1017: String,
+    val err1018: String,
+    val err1019: String,
+    val err1020: String,
+    val err1021: String,
+    val err1022: String,
+    val err1023: String,
+    val err1024: String,
+    val err1025: String,
+    val err1026: String,
+    val err1027: String,
+    val err1028: String,
+    val err1029: String,
+    val err1030: String,
+    val err1031: String,
+    val err1032: String,
+    val err1033: String,
+) {
+    private val codeMap: Map<String, String> = mapOf(
+        "ERR_1000" to err1000,
+        "ERR_1001" to err1001,
+        "ERR_1002" to err1002,
+        "ERR_1003" to err1003,
+        "ERR_1004" to err1004,
+        "ERR_1005" to err1005,
+        "ERR_1006" to err1006,
+        "ERR_1007" to err1007,
+        "ERR_1008" to err1008,
+        "ERR_1009" to err1009,
+        "ERR_1015" to err1015,
+        "ERR_1016" to err1016,
+        "ERR_1017" to err1017,
+        "ERR_1018" to err1018,
+        "ERR_1019" to err1019,
+        "ERR_1020" to err1020,
+        "ERR_1021" to err1021,
+        "ERR_1022" to err1022,
+        "ERR_1023" to err1023,
+        "ERR_1024" to err1024,
+        "ERR_1025" to err1025,
+        "ERR_1026" to err1026,
+        "ERR_1027" to err1027,
+        "ERR_1028" to err1028,
+        "ERR_1029" to err1029,
+        "ERR_1030" to err1030,
+        "ERR_1031" to err1031,
+        "ERR_1032" to err1032,
+        "ERR_1033" to err1033,
+    )
+
+    fun getMessageForCode(code: String) = requireNotNull(codeMap[code])
 }

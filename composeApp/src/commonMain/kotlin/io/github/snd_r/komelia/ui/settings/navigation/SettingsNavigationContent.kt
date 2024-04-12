@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.settings.navigation
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -54,6 +56,7 @@ import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsTab
+import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisScreen
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
@@ -66,6 +69,7 @@ import kotlinx.coroutines.launch
 fun RegularSettingsContent(
     navigator: Navigator,
     screenContent: @Composable () -> Unit,
+    hasMediaErrors: Boolean,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -85,7 +89,11 @@ fun RegularSettingsContent(
                     .verticalScroll(rememberScrollState()),
                 contentAlignment = Alignment.TopEnd,
             ) {
-                SettingsNavigationContent(navigator, onLogout = onLogout)
+                SettingsNavigationContent(
+                    navigator = navigator,
+                    hasMediaErrors = hasMediaErrors,
+                    onLogout = onLogout
+                )
             }
         }
 
@@ -129,6 +137,7 @@ fun RegularSettingsContent(
 fun CompactSettingsContent(
     navigator: Navigator,
     screenContent: @Composable () -> Unit,
+    hasMediaErrors: Boolean,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -138,6 +147,7 @@ fun CompactSettingsContent(
         drawerContent = {
             CompactNavigationContent(
                 navigator = navigator,
+                hasMediaErrors = hasMediaErrors,
                 drawerState = drawerState,
                 onDismiss = onDismiss,
                 onLogout = onLogout
@@ -161,6 +171,7 @@ fun CompactSettingsContent(
 @Composable
 private fun CompactNavigationContent(
     navigator: Navigator,
+    hasMediaErrors: Boolean,
     drawerState: DrawerState,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
@@ -188,7 +199,8 @@ private fun CompactNavigationContent(
                 Text("Settings")
             }
             SettingsNavigationContent(
-                navigator,
+                navigator = navigator,
+                hasMediaErrors = hasMediaErrors,
                 onNavigation = { coroutineScope.launch { drawerState.snapTo(DrawerValue.Closed) } },
                 onLogout = onLogout
             )
@@ -199,6 +211,7 @@ private fun CompactNavigationContent(
 @Composable
 fun SettingsNavigationContent(
     navigator: Navigator,
+    hasMediaErrors: Boolean,
     onNavigation: () -> Unit = {},
     onLogout: () -> Unit
 ) {
@@ -251,6 +264,15 @@ fun SettingsNavigationContent(
             },
             isSelected = currentTab is AuthenticationActivityScreen && !currentTab.forMe
         )
+        NavigationButton(
+            label = "Media Analysis",
+            onClick = {
+                onNavigation()
+                navigator.replaceAll(MediaAnalysisScreen())
+            },
+            isSelected = currentTab is MediaAnalysisScreen,
+            error = hasMediaErrors
+        )
 
         NavigationButton(
             label = "Announcements",
@@ -299,6 +321,8 @@ private fun NavigationButton(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
+    warn: Boolean = false,
+    error: Boolean = false,
 ) {
     val containerColor =
         if (isSelected) MaterialTheme.colorScheme.surfaceContainer
@@ -311,7 +335,6 @@ private fun NavigationButton(
         modifier = Modifier
             .height(40.dp)
             .fillMaxWidth()
-//            .width(225.dp)
             .cursorForHand()
     ) {
         Row(
@@ -320,8 +343,21 @@ private fun NavigationButton(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp)
         ) {
             Text(label, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.width(5.dp))
+            if (error) {
+                val color = MaterialTheme.colorScheme.error
+                Canvas(modifier = Modifier.size(10.dp)) {
+                    drawCircle(color = color)
+                }
+            } else if (warn) {
+                val color = MaterialTheme.colorScheme.tertiary
+                Canvas(modifier = Modifier.size(30.dp)) {
+                    drawCircle(color = color)
+                }
+            }
             Spacer(Modifier.weight(1f))
             Icon(Icons.Default.ChevronRight, null)
+
         }
     }
 

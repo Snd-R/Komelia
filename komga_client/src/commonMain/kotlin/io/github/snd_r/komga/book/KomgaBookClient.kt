@@ -24,11 +24,11 @@ class KomgaBookClient(private val ktor: HttpClient) {
     ): Page<KomgaBook> {
         val params = ParametersBuilder().apply {
             query?.searchTerm?.let { append("search", it) }
-            query?.libraryIds?.let { if (it.isNotEmpty()) append("library_id", it.joinToString()) }
-            query?.mediaStatus?.let { append("media_status", it.joinToString()) }
-            query?.readStatus?.let { append("read_status", it.joinToString()) }
+            query?.libraryIds?.let { if (it.isNotEmpty()) append("library_id", it.joinToString(",")) }
+            query?.mediaStatus?.let { append("media_status", it.joinToString(",")) }
+            query?.readStatus?.let { append("read_status", it.joinToString(",")) }
             query?.releasedAfter?.let { append("released_after", it.toString()) }
-            query?.tags?.let { append("tag", it.joinToString()) }
+            query?.tags?.let { append("tag", it.joinToString(",")) }
             pageRequest?.let { appendAll(it.toParams()) }
         }.build()
 

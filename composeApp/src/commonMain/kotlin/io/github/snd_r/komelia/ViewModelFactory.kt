@@ -28,6 +28,7 @@ import io.github.snd_r.komelia.ui.series.SeriesListViewModel
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
+import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
@@ -274,7 +275,8 @@ class ViewModelFactory(
             userClient = komgaClientFactory.userClient(),
             authenticatedUser = authenticatedUser,
             secretsRepository = secretsRepository,
-            currentServerUrl = settingsRepository.getServerUrl()
+            currentServerUrl = settingsRepository.getServerUrl(),
+            bookClient = komgaClientFactory.bookClient()
         )
     }
 
@@ -323,6 +325,13 @@ class ViewModelFactory(
             notifications = appNotifications,
             komgaEvents = komgaEventSource.events,
             cardWidthFlow = settingsRepository.getCardWidth()
+        )
+    }
+
+    fun getMediaAnalysisViewModel(): MediaAnalysisViewModel {
+        return MediaAnalysisViewModel(
+            bookClient = komgaClientFactory.bookClient(),
+            appNotifications = appNotifications
         )
     }
 

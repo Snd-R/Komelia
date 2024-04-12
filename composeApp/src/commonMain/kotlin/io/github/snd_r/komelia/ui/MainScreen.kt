@@ -36,7 +36,8 @@ class MainScreen(
 
         Navigator(
             screen = defaultScreen,
-            onBackPressed = null
+            onBackPressed = null,
+            key = defaultScreen.key
         ) { navigator ->
             val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel(navigator) }
 
