@@ -48,6 +48,7 @@ class VipsImageDecoder(
                 val crop = options.scale == Scale.FILL
                 VipsDecoder.vipsDecodeAndResize(bytes, dstWidth, dstHeight, crop)
             }
+            if (decoded == null) throw IllegalStateException("Could not decode image")
 
             val bitmap = decoded.toBitmap()
             bitmap.setImmutable()

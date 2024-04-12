@@ -23,6 +23,11 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecode(
     jbyte *inputBytes = (*env)->GetByteArrayElements(env, encoded, JNI_FALSE);
 
     VipsImage *decoded = vips_image_new_from_buffer((unsigned char *) inputBytes, inputLen, "", NULL);
+
+    if (!decoded) {
+        return NULL;
+    }
+
     transformIfNecessary(&decoded);
 
     jobject javaImage = toJavaRepresentation(env, decoded);
@@ -43,7 +48,7 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecodeAndResize(
     jsize inputLen = (*env)->GetArrayLength(env, encoded);
     jbyte *inputBytes = (*env)->GetByteArrayElements(env, encoded, JNI_FALSE);
 
-    VipsImage *decoded;
+    VipsImage *decoded = NULL;
 
     if (crop) {
         vips_thumbnail_buffer((unsigned char *) inputBytes, inputLen, &decoded, scaleWidth,
@@ -57,6 +62,10 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecodeAndResize(
                               NULL
         );
     }
+    if (!decoded) {
+        return NULL;
+    }
+
     transformIfNecessary(&decoded);
 
     jobject javaImage = toJavaRepresentation(env, decoded);
