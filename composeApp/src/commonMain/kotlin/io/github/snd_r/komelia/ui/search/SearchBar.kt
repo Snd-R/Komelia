@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -90,6 +91,7 @@ fun SearchBar(
                 query = query,
                 onQueryChange = onQueryChange,
                 onSearchAllPress = onSearchAllClick,
+                onDismiss = { focusManager.clearFocus() },
                 interactionSource = interactionSource
             )
             DropdownMenu(
@@ -239,6 +241,7 @@ private fun SearchTextField(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearchAllPress: (String?) -> Unit,
+    onDismiss: () -> Unit,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     modifier: Modifier = Modifier,
 ) {
@@ -259,18 +262,39 @@ private fun SearchTextField(
             .width(expandedSearchBarWidth)
             .padding(top = 5.dp)
             .onKeyEvent { keyEvent ->
-                if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
-                    focusManager.clearFocus()
-                    onSearchAllPress(query)
-                    return@onKeyEvent true
-                } else return@onKeyEvent false
+                when {
+                    keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp -> {
+                        focusManager.clearFocus()
+                        onSearchAllPress(query)
+                        true
+                    }
+
+                    keyEvent.key == Key.Back -> {
+                        focusManager.clearFocus()
+                        true
+                    }
+
+                    else -> false
+                }
             },
         trailingIcon = {
-            Icon(Icons.Filled.Search, null,
-                modifier = Modifier
-                    .clickable { }
-                    .cursorForHand()
-            )
+            if (query.isNotBlank()) {
+                Icon(
+                    Icons.Filled.Close, null,
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = onDismiss
+                        ).cursorForHand(),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            } else {
+                Icon(
+                    Icons.Filled.Search, null,
+                    modifier = Modifier.cursorForHand()
+                )
+            }
         }
     )
 }
