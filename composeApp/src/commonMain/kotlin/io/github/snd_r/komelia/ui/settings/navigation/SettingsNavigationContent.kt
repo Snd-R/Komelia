@@ -66,7 +66,6 @@ import kotlinx.coroutines.launch
 fun RegularSettingsContent(
     navigator: Navigator,
     screenContent: @Composable () -> Unit,
-    enableScroll: Boolean,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -91,7 +90,6 @@ fun RegularSettingsContent(
         }
 
         val scrollState = rememberScrollState()
-        val scrollModifier = if (enableScroll) Modifier.verticalScroll(scrollState) else Modifier
         Surface(
             color = rightColor,
             modifier = Modifier.fillMaxHeight()
@@ -101,7 +99,8 @@ fun RegularSettingsContent(
                 verticalAlignment = Alignment.Top,
             ) {
                 Box(
-                    modifier = scrollModifier
+                    modifier = Modifier
+                        .verticalScroll(scrollState)
                         .padding(start = 10.dp, end = 5.dp)
                         .width(700.dp)
                         .weight(1f, false),
@@ -130,7 +129,6 @@ fun RegularSettingsContent(
 fun CompactSettingsContent(
     navigator: Navigator,
     screenContent: @Composable () -> Unit,
-    enableScroll: Boolean,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -147,10 +145,10 @@ fun CompactSettingsContent(
         }
     ) {
         val scrollState = rememberScrollState()
-        val scrollModifier = if (enableScroll) Modifier.verticalScroll(scrollState) else Modifier
 
         Box(
-            modifier = scrollModifier
+            modifier = Modifier
+                .verticalScroll(scrollState)
                 .fillMaxSize()
                 .padding(10.dp),
             contentAlignment = Alignment.Center

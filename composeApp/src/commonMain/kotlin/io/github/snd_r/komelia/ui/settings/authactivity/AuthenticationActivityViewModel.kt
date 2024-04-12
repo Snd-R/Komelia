@@ -1,12 +1,12 @@
 package io.github.snd_r.komelia.ui.settings.authactivity
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komga.common.KomgaPageRequest
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import io.github.snd_r.komga.user.KomgaUserClient
@@ -17,50 +17,40 @@ class AuthenticationActivityViewModel(
     private val forMe: Boolean,
     private val userClient: KomgaUserClient,
     private val appNotifications: AppNotifications,
-) : ScreenModel {
-    var activity = mutableStateListOf<KomgaAuthenticationActivity>()
+) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
+    var activity by mutableStateOf<List<KomgaAuthenticationActivity>>(emptyList())
         private set
-    var currentActivityPage by mutableStateOf(0)
+    var currentPage by mutableStateOf(1)
         private set
     var totalPages by mutableStateOf(1)
         private set
-    var totalElements by mutableStateOf(0)
-        private set
-    var pageNumberOfElements by mutableStateOf(0)
-        private set
     var pageSize by mutableStateOf(20)
+        private set
 
+    fun initialize() {
+        if (state.value !is LoadState.Uninitialized) return
 
-    init {
-        screenModelScope.launch { loadPage(0) }
+        loadPage(1)
     }
 
-    fun loadMoreEntries() {
+    fun loadPage(pageNumber: Int) {
         screenModelScope.launch {
-            loadPage(currentActivityPage + 1)
-        }
-    }
+            mutableState.value = LoadState.Loading
+            appNotifications.runCatchingToNotifications {
+                val pageRequest = KomgaPageRequest(
+                    page = pageNumber - 1,
+                    size = pageSize,
+                    sort = KomgaUserSort.byDateTimeDesc()
+                )
+                val page = if (forMe) userClient.getMeAuthenticationActivity(pageRequest)
+                else userClient.getAuthenticationActivity(pageRequest)
 
-    suspend fun onPageSizeChange(pageSize: Int) {
-        this.pageSize = pageSize
-        loadPage(currentActivityPage)
-    }
+                totalPages = page.totalPages
+                currentPage = page.number + 1
+                activity = page.content
 
-    suspend fun loadPage(pageNumber: Int) {
-        appNotifications.runCatchingToNotifications {
-            val pageRequest = KomgaPageRequest(
-                page = pageNumber,
-                size = pageSize,
-                sort = KomgaUserSort.byDateTimeDesc()
-            )
-            val page = if (forMe) userClient.getMeAuthenticationActivity(pageRequest)
-            else userClient.getAuthenticationActivity(pageRequest)
-
-            totalPages = page.totalPages
-            currentActivityPage = page.number
-            activity.addAll(page.content)
-            pageNumberOfElements = page.numberOfElements
-            totalElements = page.totalElements
+                mutableState.value = LoadState.Success(Unit)
+            }
         }
     }
 

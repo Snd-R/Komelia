@@ -12,7 +12,6 @@ import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsTab
-import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import io.github.snd_r.komelia.ui.settings.navigation.CompactSettingsContent
 import io.github.snd_r.komelia.ui.settings.navigation.RegularSettingsContent
 
@@ -28,13 +27,11 @@ class SettingsScreen : Screen {
             screen = AccountSettingsTab(),
             onBackPressed = null
         ) { navigator ->
-            val enableScroll = navigator.lastItem !is AuthenticationActivityScreen
             when (width) {
                 COMPACT -> {
                     CompactSettingsContent(
                         navigator = navigator,
                         screenContent = { CurrentScreen() },
-                        enableScroll = enableScroll,
                         onDismiss = { currentNavigator.pop() },
                         onLogout = vm::logout
                     )
@@ -44,7 +41,6 @@ class SettingsScreen : Screen {
                     RegularSettingsContent(
                         navigator = navigator,
                         screenContent = { CurrentScreen() },
-                        enableScroll = enableScroll,
                         onDismiss = { currentNavigator.pop() },
                         onLogout = vm::logout
                     )

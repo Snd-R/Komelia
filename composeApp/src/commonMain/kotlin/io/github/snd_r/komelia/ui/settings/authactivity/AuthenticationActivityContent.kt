@@ -4,13 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
@@ -20,11 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -33,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import kotlinx.datetime.TimeZone.Companion.currentSystemDefault
 import kotlinx.datetime.toLocalDateTime
@@ -42,44 +35,34 @@ import kotlinx.datetime.toLocalDateTime
 fun AuthenticationActivityContent(
     activity: List<KomgaAuthenticationActivity>,
     forMe: Boolean,
-    loadMoreEntries: () -> Unit,
+    totalPages: Int,
+    currentPage: Int,
+    onPageChange: (Int) -> Unit,
 ) {
-    val listState = rememberLazyListState()
-    val reachedBottom by remember { derivedStateOf { listState.reachedBottom() } }
-    LaunchedEffect(reachedBottom) {
-        if (reachedBottom) loadMoreEntries()
-    }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Text(
+            "Authentication Activity",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
 
-    Row {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            item {
-                Text(
-                    "Authentication Activity",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-            }
-            items(activity) {
-                AuthenticationInfoCard(
-                    activity = it,
-                    showEmail = !forMe,
-                    modifier = Modifier.width(500.dp).height(130.dp)
-                )
-
-            }
+        activity.forEach {
+            AuthenticationInfoCard(
+                activity = it,
+                showEmail = !forMe,
+                modifier = Modifier.fillMaxWidth().height(130.dp)
+            )
         }
 
-        VerticalScrollbar(listState, Modifier.align(Alignment.Top))
+        Pagination(
+            totalPages = totalPages,
+            currentPage = currentPage,
+            onPageChange = onPageChange
+        )
     }
-}
 
-internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
-    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
-    return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
 }
 
 @Composable
