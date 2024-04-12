@@ -1,14 +1,17 @@
 package io.github.snd_r.komelia.ui.series.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenuWithSearch
 import io.github.snd_r.komelia.ui.common.DropdownMultiChoiceMenu
@@ -46,59 +54,83 @@ import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.series.KomgaSeriesStatus
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SeriesFilterContent(
     filterState: SeriesFilterState,
     onDismiss: () -> Unit,
 ) {
     val strings = LocalStrings.current.seriesFilter
+    val widthClass = LocalWindowWidth.current
+
+    val spacing = remember(widthClass) {
+        when (widthClass) {
+            COMPACT, MEDIUM, EXPANDED -> 10.dp
+            FULL -> 20.dp
+        }
+    }
+    val width = remember(widthClass) {
+        when (widthClass) {
+            io.github.snd_r.komelia.platform.WindowWidth.COMPACT -> 400.dp
+            else -> 250.dp
+        }
+    }
+
     Column(
         modifier = Modifier.widthIn(max = 1400.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(spacing)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(spacing),
+                verticalArrangement = Arrangement.Center,
+            ) {
+
+                var searchTerm by remember { mutableStateOf(filterState.searchTerm) }
+                LaunchedEffect(searchTerm) {
+                    delay(200)
+                    filterState.onSearchTermChange(searchTerm)
+                }
+                NoPaddingTextField(
+                    text = searchTerm,
+                    placeholder = strings.search,
+                    onTextChange = { searchTerm = it },
+                    modifier = Modifier.weight(1f).height(40.dp).widthIn(min = 340.dp),
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = filterState::reset,
+                        enabled = filterState.isChanged,
+                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.cursorForHand()
+                    ) {
+                        Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.cursorForHand()
+                    ) {
+                        Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+            verticalArrangement = Arrangement.spacedBy(spacing),
         ) {
-
-            var searchTerm by remember { mutableStateOf(filterState.searchTerm) }
-            LaunchedEffect(searchTerm) {
-                delay(200)
-                filterState.onSearchTermChange(searchTerm)
-            }
-            NoPaddingTextField(
-                text = searchTerm,
-                placeholder = strings.search,
-                onTextChange = { searchTerm = it },
-                modifier = Modifier.weight(1f).height(40.dp),
-            )
-
-            OutlinedButton(
-                onClick = filterState::reset,
-                enabled = filterState.isChanged,
-                shape = RoundedCornerShape(5.dp),
-                modifier = Modifier.cursorForHand()
-            ) {
-                Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
-            }
-
-            OutlinedButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(5.dp),
-                modifier = Modifier.cursorForHand()
-            ) {
-                Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             FilterDropdownChoice(
                 selectedOption = LabeledEntry(filterState.sortOrder, strings.forSeriesSort(filterState.sortOrder)),
                 options = SeriesListViewModel.SeriesSort.entries.map { LabeledEntry(it, strings.forSeriesSort(it)) },
                 onOptionChange = { filterState.onSortOrderChange(it.value) },
                 label = strings.sort,
+                modifier = Modifier.width(width)
             )
             TagFiltersDropdownMenu(
                 selectedGenres = filterState.genres,
@@ -112,8 +144,7 @@ fun SeriesFilterContent(
                 label = { LabelAndCount(strings.filterTags, filterState.genres.size + filterState.tags.size) },
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .width(width)
                     .clip(RoundedCornerShape(5.dp)),
                 textFieldModifier = Modifier.fillMaxWidth()
             )
@@ -124,6 +155,7 @@ fun SeriesFilterContent(
                 options = KomgaReadStatus.entries.map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
                 onOptionSelect = { changed -> filterState.onReadStatusSelect(changed.value) },
                 label = strings.readStatus,
+                modifier = Modifier.width(width),
             )
 
             FilterDropdownMultiChoice(
@@ -133,15 +165,64 @@ fun SeriesFilterContent(
                 options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forPublicationStatus(it)) },
                 onOptionSelect = { changed -> filterState.onPublicationStatusSelect(changed.value) },
                 label = strings.publicationStatus,
+                modifier = Modifier.width(width),
+            )
+
+            val authorsSelectedOptions = remember(filterState.authors) {
+                filterState.authors.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
+            }
+            val authorOptions = remember(filterState.authorsOptions) {
+                filterState.authorsOptions.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
+            }
+            FilterDropdownMultiChoiceWithSearch(
+                selectedOptions = authorsSelectedOptions,
+                options = authorOptions,
+                onOptionSelect = { author -> filterState.onAuthorSelect(author.value) },
+                onSearch = filterState::onAuthorsSearch,
+                label = strings.authors,
+                modifier = Modifier.width(width),
+            )
+
+            FilterDropdownMultiChoice(
+                selectedOptions = filterState.publishers.map { stringEntry(it) }.toSet(),
+                options = filterState.publishersOptions.map { stringEntry(it) },
+                onOptionSelect = { changed -> filterState.onPublisherSelect(changed.value) },
+                label = strings.publisher,
+                modifier = Modifier.width(width),
+            )
+
+            FilterDropdownMultiChoice(
+                selectedOptions = filterState.languages.map { stringEntry(it) }.toSet(),
+                options = filterState.languagesOptions.map { stringEntry(it) },
+                onOptionSelect = { changed -> filterState.onLanguageSelect(changed.value) },
+                label = strings.language,
+                modifier = Modifier.width(width),
+            )
+            FilterDropdownMultiChoice(
+                selectedOptions = filterState.releaseDates.map { stringEntry(it) }.toSet(),
+                options = filterState.releaseDateOptions.map { stringEntry(it) },
+                onOptionSelect = { changed -> filterState.onReleaseDateSelect(changed.value) },
+                label = strings.releaseDate,
+                modifier = Modifier.width(width),
+            )
+
+            FilterDropdownMultiChoice(
+                selectedOptions = filterState.ageRatings.map { stringEntry(it) }.toSet(),
+                options = filterState.ageRatingsOptions.map { stringEntry(it) },
+                onOptionSelect = { changed -> filterState.onAgeRatingSelect(changed.value) },
+                label = strings.ageRating,
+                modifier = Modifier.width(width),
             )
 
             Row(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.width(width),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .clickable { filterState.onCompletionToggle() }
                         .cursorForHand()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -157,12 +238,13 @@ fun SeriesFilterContent(
                         state = checkboxState,
                         onClick = filterState::onCompletionToggle
                     )
-                    Text(strings.complete)
+                    Text(strings.complete, style = MaterialTheme.typography.labelLarge, maxLines = 2)
                 }
                 Row(
                     modifier = Modifier
                         .clickable { filterState.onFormatToggle() }
                         .cursorForHand()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -178,54 +260,9 @@ fun SeriesFilterContent(
                         state = checkboxState,
                         onClick = filterState::onFormatToggle
                     )
-                    Text(strings.oneshot)
+                    Text(strings.oneshot, style = MaterialTheme.typography.labelLarge, maxLines = 2)
                 }
             }
-
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            val authorsSelectedOptions = remember(filterState.authors) {
-                filterState.authors.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
-            }
-            val authorOptions = remember(filterState.authorsOptions) {
-                filterState.authorsOptions.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
-            }
-            FilterDropdownMultiChoiceWithSearch(
-                selectedOptions = authorsSelectedOptions,
-                options = authorOptions,
-                onOptionSelect = { author -> filterState.onAuthorSelect(author.value) },
-                onSearch = filterState::onAuthorsSearch,
-                label = strings.authors,
-            )
-
-            FilterDropdownMultiChoice(
-                selectedOptions = filterState.publishers.map { stringEntry(it) }.toSet(),
-                options = filterState.publishersOptions.map { stringEntry(it) },
-                onOptionSelect = { changed -> filterState.onPublisherSelect(changed.value) },
-                label = strings.publisher,
-            )
-
-            FilterDropdownMultiChoice(
-                selectedOptions = filterState.languages.map { stringEntry(it) }.toSet(),
-                options = filterState.languagesOptions.map { stringEntry(it) },
-                onOptionSelect = { changed -> filterState.onLanguageSelect(changed.value) },
-                label = strings.language,
-            )
-            FilterDropdownMultiChoice(
-                selectedOptions = filterState.releaseDates.map { stringEntry(it) }.toSet(),
-                options = filterState.releaseDateOptions.map { stringEntry(it) },
-                onOptionSelect = { changed -> filterState.onReleaseDateSelect(changed.value) },
-                label = strings.releaseDate,
-            )
-
-            FilterDropdownMultiChoice(
-                selectedOptions = filterState.ageRatings.map { stringEntry(it) }.toSet(),
-                options = filterState.ageRatingsOptions.map { stringEntry(it) },
-                onOptionSelect = { changed -> filterState.onAgeRatingSelect(changed.value) },
-                label = strings.ageRating,
-            )
-
         }
 
     }
@@ -233,12 +270,12 @@ fun SeriesFilterContent(
 
 
 @Composable
-private fun <T> RowScope.FilterDropdownChoice(
+private fun <T> FilterDropdownChoice(
     selectedOption: LabeledEntry<T>,
     options: List<LabeledEntry<T>>,
     onOptionChange: (LabeledEntry<T>) -> Unit,
     label: String,
-    weight: Float = 1f,
+    modifier: Modifier
 ) {
     DropdownChoiceMenu(
         selectedOption = selectedOption,
@@ -247,21 +284,18 @@ private fun <T> RowScope.FilterDropdownChoice(
         contentPadding = PaddingValues(5.dp),
         label = { Text(label) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier
-            .weight(weight)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(5.dp)),
+        modifier = modifier.clip(RoundedCornerShape(5.dp)),
         textFieldModifier = Modifier.fillMaxWidth()
     )
 }
 
 @Composable
-private fun <T> RowScope.FilterDropdownMultiChoice(
+private fun <T> FilterDropdownMultiChoice(
     selectedOptions: Set<LabeledEntry<T>>,
     options: List<LabeledEntry<T>>,
     onOptionSelect: (LabeledEntry<T>) -> Unit,
     label: String,
-    weight: Float = 1f,
+    modifier: Modifier
 ) {
     DropdownMultiChoiceMenu(
         selectedOptions = selectedOptions,
@@ -270,20 +304,19 @@ private fun <T> RowScope.FilterDropdownMultiChoice(
         contentPadding = PaddingValues(5.dp),
         label = { LabelAndCount(label, selectedOptions.size) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier
-            .weight(weight)
-            .clip(RoundedCornerShape(5.dp)),
+        modifier = modifier.clip(RoundedCornerShape(5.dp)),
         textFieldModifier = Modifier.fillMaxWidth()
     )
 }
 
 @Composable
-private fun <T> RowScope.FilterDropdownMultiChoiceWithSearch(
+private fun <T> FilterDropdownMultiChoiceWithSearch(
     selectedOptions: List<LabeledEntry<T>>,
     options: List<LabeledEntry<T>>,
     onOptionSelect: (LabeledEntry<T>) -> Unit,
     onSearch: suspend (String) -> Unit,
     label: String,
+    modifier: Modifier
 ) {
     DropdownChoiceMenuWithSearch(
         selectedOptions = selectedOptions,
@@ -293,9 +326,7 @@ private fun <T> RowScope.FilterDropdownMultiChoiceWithSearch(
         contentPadding = PaddingValues(5.dp),
         label = { LabelAndCount(label, selectedOptions.size) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier
-            .weight(1f)
-            .clip(RoundedCornerShape(5.dp)),
+        modifier = modifier.clip(RoundedCornerShape(5.dp)),
         textFieldModifier = Modifier.fillMaxWidth()
     )
 }
@@ -316,5 +347,4 @@ private fun LabelAndCount(label: String, count: Int) {
             )
         }
     }
-
 }

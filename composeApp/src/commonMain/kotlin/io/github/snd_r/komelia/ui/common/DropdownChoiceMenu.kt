@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -218,7 +219,9 @@ fun <T> DropdownChoiceMenuWithSearch(
             contentPadding = contentPadding
         )
 
-        ExposedDropdownMenu(
+        DropdownMenu(
+            modifier = modifier,
+            scrollState = rememberScrollState(),
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
         ) {
@@ -303,12 +306,12 @@ fun TagFiltersDropdownMenu(
             contentPadding = contentPadding
         )
 
-        ExposedDropdownMenu(
+        DropdownMenu(
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false },
             scrollState = scrollState,
             modifier = Modifier
-                .widthIn(max = 800.dp)
+                .widthIn(min = 400.dp, max = 800.dp)
                 .fillMaxWidth()
         ) {
             TagFilterDropdownContent(
