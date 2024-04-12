@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.series
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -22,6 +23,7 @@ import io.github.snd_r.komga.series.KomgaSeriesId
 
 class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
 
+    @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -39,6 +41,13 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
                 SeriesContent(
                     series = vm.series,
                     seriesMenuActions = vm.seriesMenuActions(),
+
+                    onFilterClick = { filter ->
+                        val series = requireNotNull(vm.series)
+                        navigator.popUntilRoot()
+                        navigator.dispose(navigator.lastItem)
+                        navigator.replaceAll(LibraryScreen(series.libraryId, filter))
+                    },
 
                     books = vm.books,
                     booksLoading = vm.booksLoading,

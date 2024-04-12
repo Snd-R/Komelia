@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.library.SeriesTabFilter
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.common.KomgaAuthor
@@ -74,6 +75,17 @@ class SeriesFilterState(
             publishersOptions = referentialClient.getPublishers(libraryId = library.value?.id)
             languagesOptions = referentialClient.getLanguages(libraryId = library.value?.id)
         }
+    }
+
+    fun applyFilter(filter: SeriesTabFilter) {
+        publicationStatus = filter.publicationStatus ?: publicationStatus
+        ageRatings = filter.ageRating?.map { it.toString() } ?: ageRatings
+        languages = filter.language ?: languages
+        publishers = filter.publisher ?: publishers
+        genres = filter.genres ?: genres
+        tags = filter.tags ?: tags
+        authors = filter.authors ?: authors
+        markChanges()
     }
 
     fun onSortOrderChange(sortOrder: SeriesSort) {
@@ -167,7 +179,7 @@ class SeriesFilterState(
 
     fun onReleaseDateSelect(releaseDate: String) {
         releaseDates = if (releaseDates.contains(releaseDate)) releaseDates.minus(releaseDate)
-        else languages.plus(releaseDate)
+        else releaseDates.plus(releaseDate)
 
         markChanges()
         onChange()

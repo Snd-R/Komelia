@@ -64,7 +64,9 @@ import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.ExpandableText
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
@@ -75,6 +77,7 @@ import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialog
+import io.github.snd_r.komelia.ui.library.SeriesTabFilter
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
 import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
@@ -92,6 +95,8 @@ import kotlin.math.roundToInt
 fun SeriesContent(
     series: KomgaSeries?,
     seriesMenuActions: SeriesMenuActions,
+
+    onFilterClick: (SeriesTabFilter) -> Unit,
 
     books: List<KomgaBook>,
     booksLoading: Boolean,
@@ -129,7 +134,7 @@ fun SeriesContent(
                     modifier = contentPadding.verticalScroll(scrollState),
                 ) {
 
-                    Series(series)
+                    Series(series, onFilterClick)
 
                     HorizontalDivider(Modifier.padding(bottom = 10.dp))
 
@@ -212,7 +217,10 @@ fun SeriesToolBar(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun Series(series: KomgaSeries) {
+fun Series(
+    series: KomgaSeries,
+    onFilterClick: (SeriesTabFilter) -> Unit,
+) {
     val width = LocalWindowWidth.current
     val animation: FiniteAnimationSpec<IntSize> = remember(series) {
         when (width) {
@@ -232,15 +240,16 @@ fun Series(series: KomgaSeries) {
                 contentScale = ContentScale.Fit
             )
 
-            SeriesInfo(series, Modifier.weight(1f, false).widthIn(min = 200.dp))
+            SeriesInfo(series, onFilterClick, Modifier.weight(1f, false).widthIn(min = 200.dp))
         }
-        SeriesInfoLower(series)
+        SeriesInfoLower(series, onFilterClick)
     }
 }
 
 @Composable
 fun SeriesInfo(
     series: KomgaSeries,
+    onFilterClick: (SeriesTabFilter) -> Unit,
     modifier: Modifier
 ) {
     val contentSize = when (LocalWindowWidth.current) {
@@ -261,7 +270,7 @@ fun SeriesInfo(
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SuggestionChip(
-                onClick = {},
+                onClick = { onFilterClick(SeriesTabFilter(publicationStatus = listOf(series.metadata.status))) },
                 label = { Text(series.metadata.status.name) },
                 border = null,
                 colors = SuggestionChipDefaults.suggestionChipColors(
@@ -274,16 +283,16 @@ fun SeriesInfo(
                 )
             )
 
-            series.metadata.ageRating?.let {
+            series.metadata.ageRating?.let { age ->
                 SuggestionChip(
-                    onClick = {},
-                    label = { Text("$it+") }
+                    onClick = { onFilterClick(SeriesTabFilter(ageRating = listOf(age))) },
+                    label = { Text("$age+") }
                 )
             }
 
             if (series.metadata.language.isNotBlank())
                 SuggestionChip(
-                    onClick = {},
+                    onClick = { onFilterClick(SeriesTabFilter(language = listOf(series.metadata.language))) },
                     label = { Text(series.metadata.language) }
                 )
 
@@ -336,24 +345,38 @@ fun SeriesInfo(
 }
 
 @Composable
-fun SeriesInfoLower(series: KomgaSeries) {
+fun SeriesInfoLower(
+    series: KomgaSeries,
+    onFilterClick: (SeriesTabFilter) -> Unit,
+) {
     Column(
         modifier = Modifier.padding(0.dp, 30.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        DescriptionChips("PUBLISHER", series.metadata.publisher)
-        DescriptionChips("GENRES", series.metadata.genres)
-        DescriptionChips("TAGS", series.metadata.tags, series.booksMetadata.tags)
+        if (series.metadata.publisher.isNotBlank()) {
+            DescriptionChips(
+                label = "PUBLISHER",
+                chipValue = stringEntry(series.metadata.publisher),
+                onClick = { onFilterClick(SeriesTabFilter(publisher = listOf(it))) }
+            )
+        }
+        DescriptionChips(
+            label = "GENRES",
+            chipValues = series.metadata.genres.map { stringEntry(it) },
+            onChipClick = { onFilterClick(SeriesTabFilter(genres = listOf(it))) }
+        )
+        DescriptionChips(
+            label = "TAGS",
+            chipValues = series.metadata.tags.map { stringEntry(it) },
+            secondaryValues = series.booksMetadata.tags.map { stringEntry(it) },
+            onChipClick = { onFilterClick(SeriesTabFilter(tags = listOf(it))) }
+        )
 
         val uriHandler = LocalUriHandler.current
         DescriptionChips(
             label = "LINKS",
-            chipValues = series.metadata.links.map { it.label },
-            onChipClick = { chip ->
-                series.metadata.links
-                    .firstOrNull { it.label == chip }
-                    ?.let { uriHandler.openUri(it.url) }
-            }
+            chipValues = series.metadata.links.map { LabeledEntry(it, it.label) },
+            onChipClick = { entry -> uriHandler.openUri(entry.url) }
         )
 
         Spacer(Modifier.height(10.dp))
@@ -361,12 +384,24 @@ fun SeriesInfoLower(series: KomgaSeries) {
         series.booksMetadata.authors
             .filter { it.role == "writer" }
             .groupBy { it.role }
-            .forEach { (_, author) -> DescriptionChips("WRITERS", author.map { it.name }) }
+            .forEach { (_, author) ->
+                DescriptionChips(
+                    label = "WRITERS",
+                    chipValues = author.map { LabeledEntry(it, it.name) },
+                    onChipClick = { onFilterClick(SeriesTabFilter(authors = listOf(it))) }
+                )
+            }
 
         series.booksMetadata.authors
             .filter { it.role == "penciller" }
             .groupBy { it.role }
-            .forEach { (_, author) -> DescriptionChips("PENCILLERS", author.map { it.name }) }
+            .forEach { (_, author) ->
+                DescriptionChips(
+                    label = "PENCILLERS",
+                    chipValues = author.map { LabeledEntry(it, it.name) },
+                    onChipClick = { onFilterClick(SeriesTabFilter(authors = listOf(it))) }
+                )
+            }
     }
 
 }
@@ -392,9 +427,19 @@ fun Books(
     currentBookPage: Int,
     onBookPageNumberClick: (Int) -> Unit,
 ) {
+    val width = LocalWindowWidth.current
+    val alignment = remember(width) {
+        when (width) {
+            COMPACT -> Alignment.CenterHorizontally
+            else -> Alignment.Start
+        }
+    }
 
     var scrollToPosition by remember { mutableStateOf(0f) }
-    Column(modifier = Modifier.onGloballyPositioned { scrollToPosition = it.positionInParent().y }) {
+    Column(
+        modifier = Modifier.onGloballyPositioned { scrollToPosition = it.positionInParent().y },
+        horizontalAlignment = alignment
+    ) {
         BooksToolBar(
             series = series,
             booksLayout = booksLayout,

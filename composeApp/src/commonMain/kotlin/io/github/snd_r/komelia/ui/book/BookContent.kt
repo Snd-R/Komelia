@@ -54,13 +54,33 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.ExpandableText
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialog
 import io.github.snd_r.komga.book.KomgaBook
+import io.github.snd_r.komga.common.coloristRole
+import io.github.snd_r.komga.common.coverRole
+import io.github.snd_r.komga.common.editorRole
+import io.github.snd_r.komga.common.inkerRole
+import io.github.snd_r.komga.common.lettererRole
+import io.github.snd_r.komga.common.pencillerRole
+import io.github.snd_r.komga.common.translatorRole
+import io.github.snd_r.komga.common.writerRole
 import io.github.snd_r.komga.library.KomgaLibrary
 
+
+private val authorsOrder = listOf(
+    writerRole,
+    pencillerRole,
+    inkerRole,
+    coloristRole,
+    lettererRole,
+    coverRole,
+    editorRole,
+    translatorRole
+)
 
 @Composable
 fun BookContent(
@@ -312,14 +332,25 @@ private fun BookLowerPanelInfo(book: KomgaBook) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
 
-        book.metadata.authors.groupBy { it.role }.forEach { (role, authors) ->
-            DescriptionChips(role.uppercase(), authors.map { it.name })
+        val authorEntries = remember(book) {
+            book.metadata.authors
+                .groupBy { it.role }
+                .map { (role, authors) ->
+                    role to authors.map { stringEntry(it.name) }
+                }.sortedBy { (role, _) -> authorsOrder.indexOf(role) }
+        }
+        authorEntries.forEach { (role, authors) ->
+            DescriptionChips(
+                label = role,
+                chipValues = authors,
+            )
         }
         Spacer(Modifier.size(10.dp))
 
-        DescriptionChips("Tags".uppercase(), book.metadata.tags)
-
-        DescriptionChips("Links".uppercase(), book.metadata.links.map { it.label })
+        val tagEntries = remember(book) { book.metadata.tags.map { stringEntry(it) } }
+        DescriptionChips("Tags".uppercase(), tagEntries)
+        val linkEntries = remember(book) { book.metadata.links.map { stringEntry(it.label) } }
+        DescriptionChips("Links".uppercase(), linkEntries)
 
 
         Row {

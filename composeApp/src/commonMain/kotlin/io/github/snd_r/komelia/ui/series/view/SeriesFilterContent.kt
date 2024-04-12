@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
@@ -81,45 +83,48 @@ fun SeriesFilterContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing)
     ) {
-            FlowRow(
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+            verticalArrangement = Arrangement.Center,
+        ) {
+
+            var searchTerm by remember { mutableStateOf(filterState.searchTerm) }
+            LaunchedEffect(searchTerm) {
+                delay(200)
+                filterState.onSearchTermChange(searchTerm)
+            }
+            NoPaddingTextField(
+                text = searchTerm,
+                placeholder = strings.search,
+                onTextChange = { searchTerm = it },
+                modifier = Modifier.weight(1f).height(40.dp).widthIn(min = 340.dp),
+            )
+
+            Row(
                 horizontalArrangement = Arrangement.spacedBy(spacing),
-                verticalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
-                var searchTerm by remember { mutableStateOf(filterState.searchTerm) }
-                LaunchedEffect(searchTerm) {
-                    delay(200)
-                    filterState.onSearchTermChange(searchTerm)
-                }
-                NoPaddingTextField(
-                    text = searchTerm,
-                    placeholder = strings.search,
-                    onTextChange = { searchTerm = it },
-                    modifier = Modifier.weight(1f).height(40.dp).widthIn(min = 340.dp),
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(spacing),
-                    verticalAlignment = Alignment.CenterVertically
+                OutlinedButton(
+                    onClick = filterState::reset,
+                    enabled = filterState.isChanged,
+                    shape = RoundedCornerShape(5.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (filterState.isChanged) MaterialTheme.colorScheme.tertiaryContainer else Color.Unspecified,
+                    ),
+                    modifier = Modifier.cursorForHand()
                 ) {
-                    OutlinedButton(
-                        onClick = filterState::reset,
-                        enabled = filterState.isChanged,
-                        shape = RoundedCornerShape(5.dp),
-                        modifier = Modifier.cursorForHand()
-                    ) {
-                        Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
-                    }
+                    Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
+                }
 
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(5.dp),
-                        modifier = Modifier.cursorForHand()
-                    ) {
-                        Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)
-                    }
+                OutlinedButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.cursorForHand()
+                ) {
+                    Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)
                 }
             }
+        }
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(spacing),

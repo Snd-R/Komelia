@@ -47,7 +47,7 @@ class LibraryViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
     val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
 
-    var currentTab by mutableStateOf(BROWSE)
+    var currentTab by mutableStateOf(RECOMMENDED)
 
     var collectionsCount by mutableStateOf(0)
         private set
@@ -56,8 +56,10 @@ class LibraryViewModel(
 
     private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
 
-    fun initialize() {
+    fun initialize(seriesFilter: SeriesTabFilter? = null) {
         if (state.value !is Uninitialized) return
+
+        if (seriesFilter != null) toBrowseTab()
 
         screenModelScope.launch { loadItemCounts() }
 
@@ -67,7 +69,6 @@ class LibraryViewModel(
         }.launchIn(screenModelScope)
 
         screenModelScope.launch { startEventListener() }
-
     }
 
     fun reload() {

@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,54 +24,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ScrollableItemsRow(
+fun <T> DescriptionChips(
     label: String,
-    content: List<@Composable () -> Unit>,
+    chipValue: LabeledEntry<T>,
+    onClick: (T) -> Unit,
 ) {
-    if (content.isEmpty()) return
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        val scrollState = rememberLazyListState()
-        Text(
-            label,
-            fontSize = 12.sp,
-            modifier = Modifier.width(150.dp)
-        )
-        LazyRow(state = scrollState, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            items(content) {
-                it()
-            }
-
-        }
-    }
-}
-
-@Composable
-fun ScrollableItemsRow(
-    label: String,
-    content: @Composable () -> Unit,
-) {
-    ScrollableItemsRow(label, listOf { content() })
-}
-
-@Composable
-fun DescriptionChips(
-    label: String,
-    chipValue: String,
-) {
-    if (chipValue.isBlank()) return
-    DescriptionChips(label, listOf(chipValue))
+    DescriptionChips(
+        label = label,
+        chipValues = listOf(chipValue),
+        onChipClick = onClick
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun DescriptionChips(
+fun <T> DescriptionChips(
     label: String,
-    chipValues: List<String>,
-    secondaryValues: List<String>? = null,
-    onChipClick: (String) -> Unit = {}
+    chipValues: List<LabeledEntry<T>>,
+    secondaryValues: List<LabeledEntry<T>>? = null,
+    onChipClick: (T) -> Unit = {}
 ) {
     if (chipValues.isEmpty() && secondaryValues.isNullOrEmpty()) return
     Row(
@@ -91,14 +59,14 @@ fun DescriptionChips(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            chipValues.forEach {
-                NoPaddingChip(onClick = { onChipClick(it) }) {
-                    Text(it, style = MaterialTheme.typography.labelMedium)
+            chipValues.forEach { entry ->
+                NoPaddingChip(onClick = { onChipClick(entry.value) }) {
+                    Text(entry.label, style = MaterialTheme.typography.labelMedium)
                 }
             }
-            secondaryValues?.filter { it !in chipValues }?.forEach {
-                NoPaddingChip(borderColor = MaterialTheme.colorScheme.primary, onClick = { onChipClick(it) }) {
-                    Text(it, style = MaterialTheme.typography.labelMedium)
+            secondaryValues?.filter { it !in chipValues }?.forEach { entry ->
+                NoPaddingChip(borderColor = MaterialTheme.colorScheme.primary, onClick = { onChipClick(entry.value) }) {
+                    Text(entry.label, style = MaterialTheme.typography.labelMedium)
                 }
             }
 

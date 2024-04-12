@@ -16,6 +16,7 @@ import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import io.github.snd_r.komelia.ui.library.SeriesTabFilter
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
 import io.github.snd_r.komga.common.KomgaPageRequest
@@ -82,18 +83,15 @@ class SeriesListViewModel(
     )
 
     private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
-    fun initialize() {
+    fun initialize(filter: SeriesTabFilter? = null) {
         if (state.value !is LoadState.Uninitialized) return
 
-        reloadJobsFlow.onEach {
-            loadSeriesPage(currentSeriesPage)
-            delay(1000)
-        }.launchIn(screenModelScope)
-
         screenModelScope.launch {
+            filterState.initialize()
+            if (filter != null) filterState.applyFilter(filter)
+
             pageLoadSize.value = settingsRepository.getSeriesPageLoadSize().first()
             loadSeriesPage(1)
-
 
             settingsRepository.getSeriesPageLoadSize()
                 .onEach {
@@ -103,9 +101,11 @@ class SeriesListViewModel(
                     }
                 }.launchIn(screenModelScope)
         }
-        screenModelScope.launch {
-            filterState.initialize()
-        }
+
+        reloadJobsFlow.onEach {
+            loadSeriesPage(currentSeriesPage)
+            delay(1000)
+        }.launchIn(screenModelScope)
 
         screenModelScope.launch { startEventListener() }
     }

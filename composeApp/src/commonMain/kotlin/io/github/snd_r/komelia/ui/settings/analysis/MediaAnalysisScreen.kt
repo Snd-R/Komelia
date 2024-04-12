@@ -4,6 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -18,6 +19,7 @@ import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 
 class MediaAnalysisScreen : Screen {
+    @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val rootNavigator = requireNotNull(LocalNavigator.currentOrThrow.parent)
@@ -31,6 +33,8 @@ class MediaAnalysisScreen : Screen {
             is Success -> MediaAnalysisContent(
                 books = vm.books,
                 onBookClick = {
+                    rootNavigator.popUntilRoot()
+                    rootNavigator.dispose(rootNavigator.lastItem)
                     rootNavigator.replaceAll(MainScreen(BookScreen(it)))
                 },
                 currentPage = vm.currentPage,

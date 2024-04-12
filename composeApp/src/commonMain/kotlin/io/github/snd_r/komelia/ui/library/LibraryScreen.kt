@@ -45,6 +45,7 @@ import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.LocalWindowWidth
@@ -65,63 +66,68 @@ import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.series.view.SeriesListContent
+import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
+import io.github.snd_r.komga.series.KomgaSeriesStatus
 
-class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
+class LibraryScreen(
+    val libraryId: KomgaLibraryId? = null,
+    private val seriesFilter: SeriesTabFilter? = null
+) : Screen {
 
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(libraryId?.value) {
-            viewModelFactory.getLibraryViewModel(libraryId)
-        }
-        LaunchedEffect(libraryId) { vm.initialize() }
+        val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getLibraryViewModel(libraryId) }
+
+        LaunchedEffect(libraryId) { vm.initialize(seriesFilter) }
+
         val width = LocalWindowWidth.current
+        when (val state = vm.state.collectAsState().value) {
+            is Error -> ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
+            Uninitialized -> LoadingMaxSizeIndicator()
 
-        val state = vm.state.collectAsState().value
-        if (state is Error) {
-            ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
-            return
-        }
+            Loading, is Success -> {
+                when (width) {
+                    COMPACT -> Column {
+                        CompactLibraryToolBar(
+                            library = vm.library?.value,
+                            libraryActions = vm.libraryActions(),
+                        )
+                        BoxWithConstraints {
+                            val maxHeight = maxHeight
+                            Column {
+                                CurrentTab(vm.currentTab, Modifier.height(maxHeight - 50.dp))
+                                CompactLibraryNavigation(
+                                    currentTab = vm.currentTab,
+                                    collectionsCount = vm.collectionsCount,
+                                    readListsCount = vm.readListsCount,
+                                    onRecommendedClick = vm::toRecommendedTab,
+                                    onBrowseClick = vm::toBrowseTab,
+                                    onCollectionsClick = vm::toCollectionsTab,
+                                    onReadListsClick = vm::toReadListsTab,
+                                    modifier = Modifier.height(50.dp)
+                                )
+                            }
+                        }
+                    }
 
-        when (width) {
-            COMPACT -> Column {
-                CompactLibraryToolBar(
-                    library = vm.library?.value,
-                    libraryActions = vm.libraryActions(),
-                )
-                BoxWithConstraints {
-                    val maxHeight = maxHeight
-                    Column {
-                        CurrentTab(vm.currentTab, Modifier.height(maxHeight - 50.dp))
-                        CompactLibraryNavigation(
+                    else -> Column {
+                        LibraryToolBar(
+                            library = vm.library?.value,
                             currentTab = vm.currentTab,
+                            libraryActions = vm.libraryActions(),
                             collectionsCount = vm.collectionsCount,
                             readListsCount = vm.readListsCount,
                             onRecommendedClick = vm::toRecommendedTab,
                             onBrowseClick = vm::toBrowseTab,
                             onCollectionsClick = vm::toCollectionsTab,
-                            onReadListsClick = vm::toReadListsTab,
-                            modifier = Modifier.height(50.dp)
+                            onReadListsClick = vm::toReadListsTab
                         )
+                        CurrentTab(vm.currentTab)
                     }
                 }
-            }
-
-            else -> Column {
-                LibraryToolBar(
-                    library = vm.library?.value,
-                    currentTab = vm.currentTab,
-                    libraryActions = vm.libraryActions(),
-                    collectionsCount = vm.collectionsCount,
-                    readListsCount = vm.readListsCount,
-                    onRecommendedClick = vm::toRecommendedTab,
-                    onBrowseClick = vm::toBrowseTab,
-                    onCollectionsClick = vm::toCollectionsTab,
-                    onReadListsClick = vm::toReadListsTab
-                )
-                CurrentTab(vm.currentTab)
             }
         }
     }
@@ -144,13 +150,13 @@ class LibraryScreen(val libraryId: KomgaLibraryId? = null) : Screen {
 
     @Composable
     private fun BrowseTab() {
+        val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel("browse_${libraryId?.value}") {
             viewModelFactory.getSeriesBrowseViewModel(libraryId)
         }
+        LaunchedEffect(libraryId) { vm.initialize(seriesFilter) }
 
-        val navigator = LocalNavigator.currentOrThrow
-        LaunchedEffect(libraryId) { vm.initialize() }
         when (val state = vm.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
             is Error -> ErrorContent(
@@ -485,3 +491,13 @@ private fun CompactNavButton(
         }
     }
 }
+
+data class SeriesTabFilter(
+    val publicationStatus: List<KomgaSeriesStatus>? = null,
+    val ageRating: List<Int>? = null,
+    val language: List<String>? = null,
+    val publisher: List<String>? = null,
+    val genres: List<String>? = null,
+    val tags: List<String>? = null,
+    val authors: List<KomgaAuthor>? = null,
+)
