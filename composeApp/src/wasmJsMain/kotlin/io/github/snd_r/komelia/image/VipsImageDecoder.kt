@@ -8,9 +8,13 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import coil3.size.Dimension
 import coil3.size.Scale
 import coil3.size.isOriginal
-import coil3.size.pxOrElse
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.image.ImageWorker.Interpretation.BW
+import io.github.snd_r.komelia.image.ImageWorker.Interpretation.SRGB
+import io.github.snd_r.komelia.image.ImageWorker.WorkerDecodeResult
 import io.ktor.util.*
 import okio.use
 import org.jetbrains.skia.Bitmap
@@ -19,89 +23,77 @@ import org.jetbrains.skia.ColorInfo
 import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.ImageInfo
-import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
+import kotlin.time.measureTimedValue
 
-private const val vipsMaxSize = 10000000
+private val logger = KotlinLogging.logger {}
 
-// TODO offload to web worker?
 class VipsImageDecoder(
     private val source: ImageSource,
     private val options: Options,
-    private val vips: JsAny,
+    private val worker: ImageWorker
 ) : Decoder {
 
     @OptIn(ExperimentalCoilApi::class)
     override suspend fun decode(): DecodeResult {
-        // FIXME blocks and waits until loaded from network then copies to js array
-        val data = source.source().use { it.readByteArray() }.toJsArray()
+        val dataResult = measureTimedValue {
+            // FIXME? wasm bytearray to js array copy overhead
+            source.source().use { it.readByteArray() }.toJsArray()
+        }.also { logger.info { "retrieved image bytes in ${it.duration}" } }
 
-        // FIXME blocking decode
-        val decoded = if (options.size.isOriginal) {
-            vipsImageFromBuffer(vips, data)
-        } else {
-            val dstWidth = options.size.width.pxOrElse { vipsMaxSize }
-            val dstHeight = options.size.height.pxOrElse { vipsMaxSize }
-            val crop = options.scale == Scale.FILL
-            vipsThumbnail(vips, data, dstWidth, dstHeight, crop)
+        val decoded = worker.decode(
+            bytes = dataResult.value,
+            dstWidth = options.size.width.pxOrNull(),
+            dstHeight = options.size.height.pxOrNull(),
+            crop = options.scale == Scale.FILL
+        )
+
+        // FIXME? js array to wasm array copy overhead
+        val decodeResult = measureTimedValue {
+            val bitmap = toBitmap(decoded)
+            bitmap.setImmutable()
+
+            DecodeResult(
+                image = bitmap.asCoilImage(),
+                isSampled = !options.size.isOriginal
+            )
+        }.also { logger.info { "installed pixels in ${it.duration}" } }
+
+        return decodeResult.value
+    }
+
+    private fun toBitmap(decoded: WorkerDecodeResult): Bitmap {
+        val colorInfo = when (decoded.interpretation) {
+            BW -> {
+                require(decoded.bands == 1) { "Unexpected number of bands  for grayscale image \"${decoded.bands}\"" }
+                ColorInfo(
+                    ColorType.GRAY_8,
+                    ColorAlphaType.UNPREMUL,
+                    ColorSpace.sRGB
+                )
+            }
+
+            SRGB -> {
+                require(decoded.bands == 4) { "Unexpected number of bands  for sRGB image  \"${decoded.bands}\"" }
+                ColorInfo(
+                    ColorType.RGBA_8888,
+                    ColorAlphaType.UNPREMUL,
+                    ColorSpace.sRGB
+                )
+            }
         }
 
-        val bitmap = toBitmap(decoded)
-        bitmap.setImmutable()
-        vipsImageDelete(decoded)
-
-        return DecodeResult(
-            image = bitmap.asCoilImage(),
-            isSampled = !options.size.isOriginal
-        )
-    }
-
-    private fun toBitmap(image: JsAny): Bitmap {
-
-        return when (vipsGetInterpretation(image)) {
-            "b-w" -> grayscaleToBitmap(image)
-            "srgb" -> sRGBImageToBitmap(image)
-            else -> throw IllegalStateException("Decode error")
-        }
-    }
-
-    private fun grayscaleToBitmap(image: JsAny): Bitmap {
-        val bands = vipsGetBands(image)
-        require(bands == 1) { "Unexpected number of bands  for grayscale image \"${bands}\"" }
-
-        val colorInfo = ColorInfo(
-            ColorType.GRAY_8,
-            ColorAlphaType.UNPREMUL,
-            ColorSpace.sRGB
-        )
-
-        val imageInfo = ImageInfo(colorInfo, vipsGetWidth(image), vipsGetHeight(image))
+        val imageInfo = ImageInfo(colorInfo, decoded.width, decoded.height)
         val bitmap = Bitmap()
         bitmap.allocPixels(imageInfo)
-        bitmap.installPixels(vipsGetBytes(image).toByteArray())
-        return bitmap
-    }
-
-    private fun sRGBImageToBitmap(image: JsAny): Bitmap {
-        val bands = vipsGetBands(image)
-        require(bands == 4) { "Unexpected number of bands  for sRGB image  \"${bands}\"" }
-        val colorInfo = ColorInfo(
-            ColorType.RGBA_8888,
-            ColorAlphaType.UNPREMUL,
-            ColorSpace.sRGB
-        )
-
-        val imageInfo = ImageInfo(colorInfo, vipsGetWidth(image), vipsGetHeight(image))
-        val bitmap = Bitmap()
-        bitmap.allocPixels(imageInfo)
-        bitmap.installPixels(vipsGetBytes(image).toByteArray())
+        bitmap.installPixels(decoded.buffer.toByteArray())
         return bitmap
     }
 
     class Factory(
         private
-        val vips: JsAny
+        val worker: ImageWorker
     ) : Decoder.Factory {
 
         override fun create(
@@ -109,112 +101,12 @@ class VipsImageDecoder(
             options: Options,
             imageLoader: ImageLoader,
         ): Decoder {
-            return VipsImageDecoder(result.source, options, vips)
+            return VipsImageDecoder(result.source, options, worker)
         }
     }
 }
 
-
-private fun vipsThumbnail(vips: JsAny, blob: Int8Array, dstWidth: Int, dstHeight: Int, shouldCrop: Boolean): JsAny {
-    js(
-        """
-    let image = vips.Image.thumbnailBuffer(
-        blob,
-        dstWidth,
-        {
-            height: dstHeight,
-            ...(shouldCrop && {crop: 'entropy'})
-        }
-    );
-
-    if (image.interpretation == 'b-w' && image.bands != 1 ||
-        image.interpretation != 'srgb' && image.interpretation != 'b-w'
-    ) {
-        let old = image
-        image = image.colourspace('srgb');
-        old.delete()
-    }
-    if (image.interpretation == 'srgb' && image.bands == 3) {
-        let old = image
-        image = image.bandjoin(255)
-        old.delete()
-    }
-
-    return image;
-"""
-    )
-}
-
-private fun vipsImageFromBuffer(vips: JsAny, blob: Int8Array): JsAny {
-
-    js(
-        """
-    let image = vips.Image.newFromBuffer(blob);
-
-    if (image.interpretation == 'b-w' && image.bands != 1 ||
-        image.interpretation != 'srgb' && image.interpretation != 'b-w'
-    ) {
-        let old = image;
-        image = image.colourspace('srgb');
-        old.delete();
-    }
-    if (image.interpretation == 'srgb' && image.bands == 3) {
-        let old = image;
-        image = image.bandjoin(255);
-        old.delete();
-    }
-
-    return image;
-    """
-    )
-}
-
-private fun vipsGetInterpretation(image: JsAny): String {
-    js(
-        """
-          return image.interpretation;
-        """
-    )
-}
-
-private fun vipsGetBytes(image: JsAny): Uint8Array {
-    js(
-        """
-          return image.writeToMemory();
-        """
-    )
-}
-
-private fun vipsGetBands(image: JsAny): Int {
-    js(
-        """
-          return image.bands;
-        """
-    )
-}
-
-private fun vipsGetWidth(image: JsAny): Int {
-    js(
-        """
-          return image.width;
-        """
-    )
-}
-
-private fun vipsGetHeight(image: JsAny): Int {
-    js(
-        """
-          return image.height;
-        """
-    )
-}
-
-private fun vipsImageDelete(image: JsAny): Int {
-    js(
-        """
-          return image.delete();
-        """
-    )
-}
+fun Dimension.pxOrNull(): Int? = if (this is Dimension.Pixels) px else null
 
 private fun Uint8Array.toByteArray(): ByteArray = ByteArray(this.length) { this[it] }
+

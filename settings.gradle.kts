@@ -34,6 +34,7 @@ dependencyResolutionManagement {
 
 include(":composeApp", ":komga_client")
 include("vips")
+include("wasmImageWorker")
 
 // TODO remove after wasm target is published
 includeBuild("compose-multiplatform-file-picker") {

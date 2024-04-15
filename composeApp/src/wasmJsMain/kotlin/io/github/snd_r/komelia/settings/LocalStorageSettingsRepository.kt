@@ -10,7 +10,6 @@ import io.github.snd_r.komelia.ui.series.BooksLayout
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import org.w3c.dom.get
@@ -43,6 +42,10 @@ class LocalStorageSettingsRepository : SettingsRepository {
                     ?: ReadingDirection.LEFT_TO_RIGHT,
                 pageLayout = localStorage[pageLayoutKey]?.let { PageDisplayLayout.valueOf(it) }
                     ?: PageDisplayLayout.SINGLE_PAGE,
+            ),
+            decoder = DecoderSettings(
+                type = localStorage[decoderTypeKey]?.let { SamplerType.valueOf(it) }
+                    ?: SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
             )
         )
     }
@@ -133,10 +136,14 @@ class LocalStorageSettingsRepository : SettingsRepository {
     }
 
     override fun getDecoderType(): Flow<SamplerType> {
-        return flowOf(SamplerType.DEFAULT)
+        return settings.map { it.decoder.type }
     }
 
     override suspend fun putDecoderType(type: SamplerType) {
+        settings.update {
+            it.copy(decoder = it.decoder.copy(type = type))
+        }
+        localStorage[decoderTypeKey] = type.name
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {
