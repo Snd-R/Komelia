@@ -22,36 +22,34 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import io.github.snd_r.komelia.ui.LocalKeyEvents
-import io.github.snd_r.komelia.ui.reader.ReaderPageState
-import io.github.snd_r.komelia.ui.reader.ReaderSettingsState
-import io.github.snd_r.komelia.ui.reader.ReaderZoomState
+import io.github.snd_r.komelia.ui.reader.PagedReaderPageState
+import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.ReadingDirection.RIGHT_TO_LEFT
-import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun PagedReaderContent(
-    book: KomgaBook,
-    pageState: ReaderPageState,
-    zoomState: ReaderZoomState,
-    settingsState: ReaderSettingsState,
+    pageState: PagedReaderPageState,
+    settingsState: ReaderState,
 
     onSeriesBackClick: () -> Unit,
     onBookBackClick: () -> Unit,
 ) {
+    val book = settingsState.bookState.collectAsState().value?.book
+
     var showNavMenu by remember { mutableStateOf(false) }
     var showNavHelpDialog by remember { mutableStateOf(false) }
 
     var isCtrlPressed by remember { mutableStateOf(false) }
 
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
-    LaunchedEffect(settingsState.readingDirection) {
+    val readingDirection = pageState.readingDirection.collectAsState()
+    LaunchedEffect(readingDirection.value) {
         registerKeyboardEvents(
             keyEvents = keyEvents,
             isCtrlPressed = { isCtrlPressed = it },
-            settingsState = settingsState,
             pageState = pageState,
             onNavMenuToggle = { showNavMenu = !showNavMenu },
             onShowHelpDialog = { showNavHelpDialog = !showNavHelpDialog },
@@ -59,21 +57,21 @@ fun PagedReaderContent(
         )
     }
 
-    Box(Modifier.onSizeChanged { zoomState.onContentSizeChange(it) }) {
+    Box(Modifier.onSizeChanged { pageState.onContentSizeChange(it) }) {
         ControlsOverlay(
-            readingDirection = settingsState.readingDirection,
+            readingDirection = readingDirection.value,
             onNexPageClick = pageState::nextPage,
             onPrevPageClick = pageState::previousPage,
-            contentAreaSize = zoomState.containerSize.collectAsState().value ?: IntSize.Zero,
+            contentAreaSize = pageState.containerSize.collectAsState().value ?: IntSize.Zero,
             onNavMenuToggle = { showNavMenu = !showNavMenu },
         ) {
             ScalableContainer(
-                zoomState = zoomState,
+                pageState = pageState,
                 isCtrlPressed = isCtrlPressed,
             ) {
                 ReaderPages(
                     pageState.currentSpread.collectAsState().value.pages,
-                    settingsState.readingDirection
+                    readingDirection.value
                 )
             }
         }
@@ -99,7 +97,7 @@ fun PagedReaderContent(
             currentSpreadIndex = pageState.currentSpreadIndex.collectAsState().value,
             onPageNumberChange = pageState::onPageChange,
             hidden = !showNavMenu,
-            readingDirection = settingsState.readingDirection,
+            readingDirection = readingDirection.value,
             modifier = Modifier.align(Alignment.BottomStart),
         )
     }
@@ -139,13 +137,13 @@ private fun ControlsOverlay(
 private suspend fun registerKeyboardEvents(
     keyEvents: SharedFlow<KeyEvent>,
     isCtrlPressed: (isPressed: Boolean) -> Unit,
-    settingsState: ReaderSettingsState,
-    pageState: ReaderPageState,
+    pageState: PagedReaderPageState,
     onNavMenuToggle: () -> Unit,
     onShowHelpDialog: () -> Unit,
     onClose: () -> Unit,
 ) {
-    val readingDirection = settingsState.readingDirection
+    val readingDirection = pageState.readingDirection.value
+    val layoutOffset = pageState.layoutOffset.value
     val previousPage = { if (readingDirection == LEFT_TO_RIGHT) pageState.previousPage() else pageState.nextPage() }
     val nextPage = { if (readingDirection == LEFT_TO_RIGHT) pageState.nextPage() else pageState.previousPage() }
     keyEvents.collect { event ->
@@ -157,11 +155,11 @@ private suspend fun registerKeyboardEvents(
             Key.DirectionRight -> nextPage()
             Key.MoveHome -> pageState.onPageChange(0)
             Key.MoveEnd -> pageState.onPageChange(pageState.pageSpreads.value.size - 1)
-            Key.L -> settingsState.onReadingDirectionChange(LEFT_TO_RIGHT)
-            Key.R -> settingsState.onReadingDirectionChange(RIGHT_TO_LEFT)
-            Key.C -> settingsState.onScaleTypeCycle()
-            Key.D -> settingsState.onLayoutCycle()
-            Key.O -> settingsState.onLayoutOffsetChange(!settingsState.layoutOffset)
+            Key.L -> pageState.onReadingDirectionChange(LEFT_TO_RIGHT)
+            Key.R -> pageState.onReadingDirectionChange(RIGHT_TO_LEFT)
+            Key.C -> pageState.onScaleTypeCycle()
+            Key.D -> pageState.onLayoutCycle()
+            Key.O -> pageState.onLayoutOffsetChange(!layoutOffset)
             Key.M -> onNavMenuToggle()
             Key.H -> onShowHelpDialog()
             Key.Backspace -> onClose()

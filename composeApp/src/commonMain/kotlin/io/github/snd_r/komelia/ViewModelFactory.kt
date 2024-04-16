@@ -21,7 +21,7 @@ import io.github.snd_r.komelia.ui.library.LibraryRecommendedViewModel
 import io.github.snd_r.komelia.ui.library.LibraryViewModel
 import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
-import io.github.snd_r.komelia.ui.reader.HorizontalPagesReaderViewModel
+import io.github.snd_r.komelia.ui.reader.ReaderViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel
@@ -149,15 +149,15 @@ class ViewModelFactory(
         )
     }
 
-    fun getBookReaderViewModel(navigator: Navigator, markReadProgress: Boolean): HorizontalPagesReaderViewModel {
-        return HorizontalPagesReaderViewModel(
+    fun getBookReaderViewModel(navigator: Navigator, markReadProgress: Boolean): ReaderViewModel {
+        return ReaderViewModel(
             bookClient = komgaClientFactory.bookClient(),
             imageLoader = imageLoader,
             imageLoaderContext = imageLoaderContext,
             navigator = navigator,
             appNotifications = appNotifications,
-            markReadProgress = markReadProgress,
             settingsRepository = settingsRepository,
+            markReadProgress = markReadProgress,
         )
     }
 

@@ -14,18 +14,21 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntSize
 import io.github.snd_r.komelia.platform.onPointerEvent
-import io.github.snd_r.komelia.ui.reader.ReaderZoomState
+import io.github.snd_r.komelia.ui.reader.PageSpreadScaleState.Transformation
+import io.github.snd_r.komelia.ui.reader.PagedReaderPageState
 import kotlin.math.pow
 
 @Composable
 fun ScalableContainer(
-    zoomState: ReaderZoomState,
+    pageState: PagedReaderPageState,
     isCtrlPressed: Boolean,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val areaSize = zoomState.containerSize.collectAsState().value ?: IntSize.Zero
+    val areaSize = pageState.containerSize.collectAsState().value ?: IntSize.Zero
     val areaCenter = Offset(areaSize.width / 2f, areaSize.height / 2f)
-    val scaleTransformations = zoomState.scaleTransformation.collectAsState().value
+    val currentSpread = pageState.currentSpread.collectAsState().value
+    val scaleTransformations = currentSpread.scaleState?.transformation?.collectAsState()?.value
+        ?: Transformation(Offset.Zero, 1f)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -39,8 +42,8 @@ fun ScalableContainer(
 
             .pointerInput(areaSize) {
                 detectTransformGestures { centroid, pan, zoom, _ ->
-                    zoomState.addPan(pan)
-                    zoomState.addZoom(zoom, centroid - areaCenter)
+                    pageState.addPan(pan)
+                    pageState.addZoom(zoom, centroid - areaCenter)
                 }
             }
             .onPointerEvent(PointerEventType.Scroll) {
@@ -48,10 +51,10 @@ fun ScalableContainer(
                 if (isCtrlPressed) {
                     val centroid = it.changes[0].position
                     val zoom = 1.2f.pow(-delta.y)
-                    zoomState.addZoom(zoom, centroid - areaCenter)
+                    pageState.addZoom(zoom, centroid - areaCenter)
                 } else {
                     val pan = -delta.y * 50
-                    zoomState.addPan(Offset(0f, pan))
+                    pageState.addPan(Offset(0f, pan))
                 }
             }
     ) {

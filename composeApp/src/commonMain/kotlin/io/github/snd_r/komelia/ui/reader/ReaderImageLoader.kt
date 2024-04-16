@@ -13,8 +13,6 @@ import coil3.size.Precision
 import coil3.size.Size
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.reactivecircus.cache4k.Cache
-import io.github.reactivecircus.cache4k.CacheEvent
-import io.github.reactivecircus.cache4k.CacheEventListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -34,13 +32,13 @@ class ReaderImageLoader(
 
     fun launchImageLoadJob(
         scope: CoroutineScope,
-        loadSpread: List<PageMetadata>,
+        loadPages: List<PageMetadata>,
         containerSize: IntSize,
         layout: PageDisplayLayout,
         scaleType: LayoutScaleType,
         allowUpsample: Boolean
     ): SpreadImageLoadJob {
-        val currentHash = getLoadJobHash(loadSpread, containerSize, layout, scaleType, allowUpsample)
+        val currentHash = getLoadJobHash(loadPages, containerSize, layout, scaleType, allowUpsample)
         val cachedJob = imageLoadJobs.get(currentHash)
         if (cachedJob != null && !cachedJob.pageJob.isCancelled) {
             return cachedJob
@@ -48,10 +46,10 @@ class ReaderImageLoader(
 
         val job = scope.async {
 
-            val spread = if (loadSpread.any { it.size == null }) {
-                logger.warn { "Page spread ${loadSpread.map { it.pageNumber }} doesn't have calculated dimensions. Will have to decode at original image size" }
-                getOriginalImageSizes(loadSpread)
-            } else loadSpread
+            val spread = if (loadPages.any { it.size == null }) {
+                logger.warn { "Page spread ${loadPages.map { it.pageNumber }} doesn't have calculated dimensions. Will have to decode at original image size" }
+                getOriginalImageSizes(loadPages)
+            } else loadPages
 
             val spreadScale = PageSpreadScaleState()
             spreadScale.limitPagesInsideArea(
@@ -115,10 +113,10 @@ class ReaderImageLoader(
 
     @OptIn(ExperimentalCoilApi::class)
     private suspend fun getOriginalImageSizes(
-        spread: List<PageMetadata>,
+        pages: List<PageMetadata>,
     ): List<PageMetadata> {
         val spreadWithSizes = mutableListOf<PageMetadata>()
-        for (page in spread) {
+        for (page in pages) {
             if (page.size != null) {
                 spreadWithSizes.add(page)
                 continue
@@ -229,13 +227,6 @@ class ReaderImageLoader(
         imageLoader.diskCache?.clear()
         imageLoader.memoryCache?.clear()
         imageLoadJobs.invalidateAll()
-    }
-
-    object EventListener : CacheEventListener<SpreadHash, SpreadImageLoadJob> {
-        override fun onEvent(event: CacheEvent<SpreadHash, SpreadImageLoadJob>) {
-            TODO("Not yet implemented")
-        }
-
     }
 }
 

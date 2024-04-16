@@ -28,9 +28,8 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
-import io.github.snd_r.komelia.ui.reader.HorizontalPagesReaderViewModel
+import io.github.snd_r.komelia.ui.reader.ReaderViewModel
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -50,38 +49,42 @@ class ReaderScreen(
 
         LaunchedEffect(bookId) { vm.initialize(bookId) }
 
-        val vmState = vm.state.collectAsState(Dispatchers.Main.immediate)
+        val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
 
         when (val result = vmState.value) {
             is Error -> Text(result.exception.message ?: "Error")
             Loading, Uninitialized -> LoadIndicator()
-            is Success -> ReaderScreenContent(vm, result.value)
+            is Success -> ReaderScreenContent(vm)
         }
     }
 
     @Composable
-    fun ReaderScreenContent(vm: HorizontalPagesReaderViewModel, book: KomgaBook) {
+    fun ReaderScreenContent(vm: ReaderViewModel) {
         val navigator = LocalNavigator.currentOrThrow
         PagedReaderContent(
-            book = book,
-            pageState = vm,
-            zoomState = vm,
-            settingsState = vm,
+            pageState = vm.pagedReaderState,
+//            zoomState = vm.zoomState,
+            settingsState = vm.readerState,
             onSeriesBackClick = {
-                navigator replace MainScreen(
-                    SeriesScreen(book.seriesId)
-                )
+                vm.readerState.bookState.value?.book?.let { book ->
+                    navigator replace MainScreen(
+                        SeriesScreen(book.seriesId)
+                    )
+                }
             },
             onBookBackClick = {
-                navigator replace MainScreen(
-                    BookScreen(book.id)
-                )
-
+                vm.readerState.bookState.value?.book?.let { book ->
+                    navigator replace MainScreen(
+                        BookScreen(book.id)
+                    )
+                }
             }
         )
-
-        BackPressHandler { navigator replace MainScreen(SeriesScreen(book.seriesId)) }
-
+        BackPressHandler {
+            vm.readerState.bookState.value?.book?.let { book ->
+                navigator replace MainScreen(SeriesScreen(book.seriesId))
+            }
+        }
     }
 
     @Composable

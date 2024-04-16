@@ -136,6 +136,14 @@ class PageSpreadScaleState {
         applyLimits()
     }
 
+    fun canZoomIn(): Boolean {
+        return zoom < zoomLimits.endInclusive
+    }
+
+    fun canZoomOUt(): Boolean {
+        return zoom > zoomLimits.start
+    }
+
     data class Transformation(
         val offset: Offset,
         val scale: Float,

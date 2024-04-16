@@ -46,17 +46,17 @@ import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.ReaderPageState
-import io.github.snd_r.komelia.ui.reader.ReaderSettingsState
+import io.github.snd_r.komelia.ui.reader.PagedReaderPageState
+import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ReadingDirection
 import io.github.snd_r.komga.book.KomgaBook
 
 @Composable
 fun SettingsMenu(
     modifier: Modifier = Modifier,
-    book: KomgaBook,
-    settingsState: ReaderSettingsState,
-    pageState: ReaderPageState,
+    book: KomgaBook?,
+    settingsState: ReaderState,
+    pageState: PagedReaderPageState,
 
     onMenuDismiss: () -> Unit,
     onShowHelpMenu: () -> Unit,
@@ -96,9 +96,9 @@ fun SettingsMenu(
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 private fun ColumnScope.SettingsContent(
-    book: KomgaBook,
-    settingsState: ReaderSettingsState,
-    pageState: ReaderPageState,
+    book: KomgaBook?,
+    settingsState: ReaderState,
+    pageState: PagedReaderPageState,
 
     onMenuDismiss: () -> Unit,
     onShowHelpMenu: () -> Unit,
@@ -110,25 +110,28 @@ private fun ColumnScope.SettingsContent(
         Spacer(Modifier.weight(1f))
         IconButton(onClick = { onShowHelpMenu() }) { Icon(Icons.AutoMirrored.Default.Help, null) }
     }
-    ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
-    ReturnLink(Icons.Default.Book, book.metadata.title, onBookClick)
+    if (book != null) {
+        ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
+        ReturnLink(Icons.Default.Book, book.metadata.title, onBookClick)
+    }
 
     HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
     val strings = LocalStrings.current.readerSettings
+    val scaleType = pageState.scaleType.collectAsState().value
     Column {
         DropdownChoiceMenu(
-            selectedOption = LabeledEntry(settingsState.scaleType, strings.forScaleType(settingsState.scaleType)),
+            selectedOption = LabeledEntry(scaleType, strings.forScaleType(scaleType)),
             options = LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) },
-            onOptionChange = { settingsState.onScaleTypeChange(it.value) },
+            onOptionChange = { pageState.onScaleTypeChange(it.value) },
             textFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.scaleType) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
-        if (settingsState.scaleType != LayoutScaleType.ORIGINAL) {
+        if (scaleType != LayoutScaleType.ORIGINAL) {
             CheckboxWithLabel(
-                settingsState.allowUpsample,
+                settingsState.allowUpsample.collectAsState().value,
                 settingsState::onAllowUpsampleChange,
                 label = { Text(strings.upsample) },
                 modifier = Modifier.widthIn(min = 100.dp)
@@ -136,38 +139,41 @@ private fun ColumnScope.SettingsContent(
         }
     }
 
+    val readingDirection = pageState.readingDirection.collectAsState().value
     DropdownChoiceMenu(
         selectedOption = LabeledEntry(
-            settingsState.readingDirection,
-            strings.forReadingDirection(settingsState.readingDirection)
+            readingDirection,
+            strings.forReadingDirection(readingDirection)
         ),
         options = ReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) },
-        onOptionChange = { settingsState.onReadingDirectionChange(it.value) },
+        onOptionChange = { pageState.onReadingDirectionChange(it.value) },
         textFieldModifier = Modifier.fillMaxWidth(),
         label = { Text(strings.readingDirection) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
+    val layout = pageState.layout.collectAsState().value
     Column {
         DropdownChoiceMenu(
-            selectedOption = LabeledEntry(settingsState.layout, strings.forLayout(settingsState.layout)),
+            selectedOption = LabeledEntry(layout, strings.forLayout(layout)),
             options = PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) },
-            onOptionChange = { settingsState.onLayoutChange(it.value) },
+            onOptionChange = { pageState.onLayoutChange(it.value) },
             textFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.layout) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
-        if (settingsState.layout == PageDisplayLayout.DOUBLE_PAGES) {
+        val layoutOffset = pageState.layoutOffset.collectAsState().value
+        if (layout == PageDisplayLayout.DOUBLE_PAGES) {
             CheckboxWithLabel(
-                settingsState.layoutOffset,
-                settingsState::onLayoutOffsetChange,
+                layoutOffset,
+                pageState::onLayoutOffsetChange,
                 label = { Text(strings.offsetPages) },
                 modifier = Modifier.widthIn(min = 100.dp)
             )
         }
     }
-    val decoder = settingsState.decoder
+    val decoder = settingsState.decoder.collectAsState().value
     if (decoder != null)
         DropdownChoiceMenu(
             selectedOption = LabeledEntry(decoder, decoder.name),
