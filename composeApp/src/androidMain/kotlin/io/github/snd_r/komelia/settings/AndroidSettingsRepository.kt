@@ -4,9 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import io.github.snd_r.komelia.platform.SamplerType
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.ReadingDirection
+import io.github.snd_r.komelia.settings.AppearanceSettings.PBBooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -53,69 +51,6 @@ class AndroidSettingsRepository(
         dataStore.updateData { current ->
             current.copy {
                 user = user.copy { this.username = username }
-            }
-        }
-    }
-
-    override fun getReaderScaleType(): Flow<LayoutScaleType> {
-        return dataStore.data.map {
-            when (val type = it.reader.scaleType) {
-                PBLayoutScaleType.UNRECOGNIZED, null -> LayoutScaleType.SCREEN
-                else -> LayoutScaleType.valueOf(type.name)
-            }
-        }
-    }
-
-    override suspend fun putReaderScaleType(scaleType: LayoutScaleType) {
-        dataStore.updateData { current ->
-            current.copy {
-                reader = reader.copy { this.scaleType = PBLayoutScaleType.valueOf(scaleType.name) }
-            }
-        }
-    }
-
-    override fun getReaderUpsample(): Flow<Boolean> {
-        return dataStore.data.map { it.reader.upsample }
-    }
-
-    override suspend fun putReaderUpsample(upsample: Boolean) {
-        dataStore.updateData { current ->
-            current.copy {
-                reader = reader.copy { this.upsample = upsample }
-            }
-        }
-    }
-
-    override fun getReaderReadingDirection(): Flow<ReadingDirection> {
-        return dataStore.data.map {
-            when (val direction = it.reader.readingDirection) {
-                PBReadingDirection.UNRECOGNIZED, null -> ReadingDirection.LEFT_TO_RIGHT
-                else -> ReadingDirection.valueOf(direction.name)
-            }
-        }
-    }
-
-    override suspend fun putReaderReadingDirection(readingDirection: ReadingDirection) {
-        dataStore.updateData { current ->
-            current.copy {
-                reader = reader.copy { this.readingDirection = PBReadingDirection.valueOf(readingDirection.name) }
-            }
-        }
-    }
-
-    override fun getReaderPageLayout(): Flow<PageDisplayLayout> {
-        return dataStore.data.map {
-            when (val layout = it.reader.pageLayout) {
-                PBPageDisplayLayout.UNRECOGNIZED, null -> PageDisplayLayout.SINGLE_PAGE
-                else -> PageDisplayLayout.valueOf(layout.name)
-            }
-        }
-    }
-
-    override suspend fun putReaderPageLayout(pageLayout: PageDisplayLayout) {
-        dataStore.updateData { current ->
-            current.copy {
-                reader = reader.copy { this.pageLayout = PBPageDisplayLayout.valueOf(pageLayout.name) }
             }
         }
     }

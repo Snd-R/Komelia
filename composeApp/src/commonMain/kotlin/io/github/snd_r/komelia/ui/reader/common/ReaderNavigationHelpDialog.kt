@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.view
+package io.github.snd_r.komelia.ui.reader.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

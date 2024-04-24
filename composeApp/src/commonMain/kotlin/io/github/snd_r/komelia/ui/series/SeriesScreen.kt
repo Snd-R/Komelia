@@ -16,7 +16,7 @@ import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
-import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.series.KomgaSeriesId

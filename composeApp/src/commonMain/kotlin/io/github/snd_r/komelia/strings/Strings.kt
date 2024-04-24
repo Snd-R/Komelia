@@ -4,15 +4,15 @@ import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUDE
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.NONE
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType.FIT_HEIGHT
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType.FIT_WIDTH
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType.ORIGINAL
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType.SCREEN
-import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.PageDisplayLayout.DOUBLE_PAGES
-import io.github.snd_r.komelia.ui.reader.PageDisplayLayout.SINGLE_PAGE
-import io.github.snd_r.komelia.ui.reader.ReadingDirection
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.FIT_HEIGHT
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.FIT_WIDTH
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.ORIGINAL
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.SCREEN
+import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
+import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
+import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort.DATE_ADDED_ASC
 import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort.DATE_ADDED_DESC
@@ -205,10 +205,10 @@ data class ReaderSettingsStrings(
         }
     }
 
-    fun forReadingDirection(direction: ReadingDirection): String {
+    fun forReadingDirection(direction: PagedReaderState.ReadingDirection): String {
         return when (direction) {
-            ReadingDirection.LEFT_TO_RIGHT -> readingDirectionLeftToRight
-            ReadingDirection.RIGHT_TO_LEFT -> readingDirectionRightToLeft
+            PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> readingDirectionLeftToRight
+            PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> readingDirectionRightToLeft
         }
     }
 

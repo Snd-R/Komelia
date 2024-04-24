@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.view
+package io.github.snd_r.komelia.ui.reader.paged
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,20 +12,17 @@ import coil3.request.ErrorResult
 import coil3.request.SuccessResult
 import io.github.snd_r.komelia.platform.ReaderImage
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.reader.Page
-import io.github.snd_r.komelia.ui.reader.ReadingDirection
-import io.github.snd_r.komelia.ui.reader.ReadingDirection.LEFT_TO_RIGHT
-import io.github.snd_r.komelia.ui.reader.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.Page
 
 
 @Composable
 fun ReaderPages(
     currentPages: List<Page>,
-    readingDirection: ReadingDirection,
+    readingDirection: PagedReaderState.ReadingDirection,
 ) {
     val pages = when (readingDirection) {
-        LEFT_TO_RIGHT -> currentPages
-        RIGHT_TO_LEFT -> currentPages.reversed()
+        PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> currentPages
+        PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> currentPages.reversed()
     }
 
     Box(contentAlignment = Alignment.Center) {
@@ -52,7 +49,9 @@ fun ReaderPage(
         when (val result = page.imageResult) {
             is SuccessResult -> ReaderImage(result.image)
             is ErrorResult -> Text("Error :${result.throwable.message}", color = MaterialTheme.colorScheme.error)
-            null -> LoadingMaxSizeIndicator()
+            null -> {
+                LoadingMaxSizeIndicator()
+            }
         }
     }
 }

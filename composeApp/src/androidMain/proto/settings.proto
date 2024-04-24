@@ -10,7 +10,7 @@ message AppSettings {
   ServerSettings server = 1;
   UserSettings user = 2;
   AppearanceSettings appearance = 3;
-  ReaderSettings reader = 4;
+  ReaderBaseSettings reader = 4;
 }
 
 message ServerSettings{
@@ -27,33 +27,57 @@ message AppearanceSettings{
   int32 seriesPageLoadSize = 2;
   int32 bookPageLoadSize = 3;
   PBBooksLayout bookListLayout = 4;
+
+  enum PBBooksLayout{
+    LIST = 0;
+    GRID = 1;
+  }
 }
 
-message ReaderSettings{
+message ReaderBaseSettings{
+  PBReaderType readerType = 1;
+  optional bool upsample = 2;
+  PagedReaderSettings pagedReaderSettings = 3;
+  ContinuousReaderSettings continuousReaderSettings = 4;
+
+  enum PBReaderType{
+    PAGED = 0;
+    CONTINUOUS = 1;
+  }
+
+}
+
+message PagedReaderSettings{
   PBLayoutScaleType scaleType = 1;
   PBReadingDirection readingDirection = 2;
   PBPageDisplayLayout pageLayout = 3;
-  optional bool upsample = 4;
+
+  enum PBLayoutScaleType{
+    SCREEN = 0;
+    FIT_WIDTH = 1;
+    FIT_HEIGHT = 2;
+    ORIGINAL = 3;
+  }
+
+  enum PBReadingDirection{
+    LEFT_TO_RIGHT = 0;
+    RIGHT_TO_LEFT = 1;
+  }
+
+  enum PBPageDisplayLayout{
+    SINGLE_PAGE = 0;
+    DOUBLE_PAGES = 1;
+  }
 }
 
-enum PBLayoutScaleType{
-  SCREEN = 0;
-  FIT_WIDTH = 1;
-  FIT_HEIGHT = 2;
-  ORIGINAL = 3;
-}
+message ContinuousReaderSettings{
+  PBReadingDirection readingDirection = 1;
+  float padding = 2;
+  int32 pageSpacing = 3;
 
-enum PBReadingDirection{
-  LEFT_TO_RIGHT = 0;
-  RIGHT_TO_LEFT = 1;
-}
-
-enum PBPageDisplayLayout{
-  SINGLE_PAGE = 0;
-  DOUBLE_PAGES = 1;
-}
-
-enum PBBooksLayout{
-  LIST = 0;
-  GRID = 1;
+  enum PBReadingDirection{
+    TOP_TO_BOTTOM = 0;
+    LEFT_TO_RIGHT = 1;
+    RIGHT_TO_LEFT = 2;
+  }
 }

@@ -20,9 +20,9 @@ import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.settings.ActorMessage
 import io.github.snd_r.komelia.settings.FileSystemSettingsActor
+import io.github.snd_r.komelia.settings.FilesystemReaderSettingsRepository
 import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -61,7 +61,9 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
         }
 
 
-        val settingsRepository = createSettingsRepository()
+        val settingsActor = createSettingsActor()
+        val settingsRepository = FilesystemSettingsRepository(settingsActor)
+        val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
 
         val secretsRepository = measureTimedValue {
             KeyringSecretsRepository()
@@ -90,6 +92,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
         ViewModelFactory(
             komgaClientFactory = komgaClientFactory,
             settingsRepository = settingsRepository,
+            readerSettingsRepository = readerSettingsRepository,
             secretsRepository = secretsRepository,
             imageLoader = coil,
             imageLoaderContext = context,
@@ -170,9 +173,6 @@ private fun createCoil(
                 add(KomgaReadListMapper(url))
                 add(KomgaSeriesThumbnailMapper(url))
                 add(FileMapper())
-//            add(DesktopImageDecoder.Factory())
-//            add(VipsImageDecoder.Factory())
-//            add(SkiaImageDecoder.Factory())
                 add(DesktopDecoder.Factory(decoderState))
                 add(KtorNetworkFetcherFactory(httpClient = ktorClient))
             }
@@ -185,14 +185,14 @@ private fun createCoil(
     }.also { logger.info { "initialized Coil in ${it.duration}" } }.value
 }
 
-private suspend fun createSettingsRepository(): SettingsRepository {
+private suspend fun createSettingsActor(): FileSystemSettingsActor {
     val result = measureTimedValue {
         val settingsProcessingActor = FileSystemSettingsActor()
         val ack = CompletableDeferred<Unit>()
         settingsProcessingActor.send(ActorMessage.Read(ack))
         ack.await()
 
-        FilesystemSettingsRepository(settingsProcessingActor)
+        settingsProcessingActor
     }
     logger.info { "loaded settings in ${result.duration}" }
     return result.value

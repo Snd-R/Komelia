@@ -16,7 +16,7 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komga.readlist.KomgaReadListId
 
 class ReadListScreen(val readListId: KomgaReadListId) : Screen {

@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.view
+package io.github.snd_r.komelia.ui.reader.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -30,39 +29,40 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import coil3.annotation.ExperimentalCoilApi
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.platform.formatDecimal
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
-import io.github.snd_r.komelia.ui.reader.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.PagedReaderPageState
 import io.github.snd_r.komelia.ui.reader.ReaderState
-import io.github.snd_r.komelia.ui.reader.ReadingDirection
+import io.github.snd_r.komelia.ui.reader.ReaderType
+import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komga.book.KomgaBook
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsMenu(
     modifier: Modifier = Modifier,
     book: KomgaBook?,
+    show: Boolean,
+
     settingsState: ReaderState,
-    pageState: PagedReaderPageState,
+    screenScaleState: ScreenScaleState,
+
 
     onMenuDismiss: () -> Unit,
     onShowHelpMenu: () -> Unit,
     onSeriesPress: () -> Unit,
     onBookClick: () -> Unit,
+    readerSettingsContent: @Composable ColumnScope.() -> Unit,
 ) {
+    if (!show) return
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.CenterEnd,
@@ -72,19 +72,20 @@ fun SettingsMenu(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .pointerInput(Unit) {}
                 .width(350.dp)
-                .padding(20.dp)
+                .padding(10.dp)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             SettingsContent(
                 book = book,
                 settingsState = settingsState,
-                pageState = pageState,
+                screenScaleState = screenScaleState,
                 onMenuDismiss = onMenuDismiss,
                 onShowHelpMenu = onShowHelpMenu,
                 onSeriesPress = onSeriesPress,
-                onBookClick = onBookClick
+                onBookClick = onBookClick,
+                readerSettingsContent = readerSettingsContent
             )
 
             Spacer(Modifier.height(30.dp))
@@ -93,17 +94,17 @@ fun SettingsMenu(
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 private fun ColumnScope.SettingsContent(
     book: KomgaBook?,
     settingsState: ReaderState,
-    pageState: PagedReaderPageState,
+    screenScaleState: ScreenScaleState,
 
     onMenuDismiss: () -> Unit,
     onShowHelpMenu: () -> Unit,
     onSeriesPress: () -> Unit,
     onBookClick: () -> Unit,
+    readerSettingsContent: @Composable ColumnScope.() -> Unit,
 ) {
     Row {
         IconButton(onClick = { onMenuDismiss() }) { Icon(Icons.Default.Close, null) }
@@ -118,61 +119,16 @@ private fun ColumnScope.SettingsContent(
     HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
     val strings = LocalStrings.current.readerSettings
-    val scaleType = pageState.scaleType.collectAsState().value
-    Column {
-        DropdownChoiceMenu(
-            selectedOption = LabeledEntry(scaleType, strings.forScaleType(scaleType)),
-            options = LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) },
-            onOptionChange = { pageState.onScaleTypeChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.scaleType) },
-            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
-        )
 
-        if (scaleType != LayoutScaleType.ORIGINAL) {
-            CheckboxWithLabel(
-                settingsState.allowUpsample.collectAsState().value,
-                settingsState::onAllowUpsampleChange,
-                label = { Text(strings.upsample) },
-                modifier = Modifier.widthIn(min = 100.dp)
-            )
-        }
-    }
-
-    val readingDirection = pageState.readingDirection.collectAsState().value
+    val readerType = settingsState.readerType.collectAsState().value
     DropdownChoiceMenu(
-        selectedOption = LabeledEntry(
-            readingDirection,
-            strings.forReadingDirection(readingDirection)
-        ),
-        options = ReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) },
-        onOptionChange = { pageState.onReadingDirectionChange(it.value) },
+        selectedOption = LabeledEntry(readerType, readerType.name),
+        options = ReaderType.entries.map { LabeledEntry(it, it.name) },
+        onOptionChange = { settingsState.onReaderTypeChange(it.value) },
         textFieldModifier = Modifier.fillMaxWidth(),
-        label = { Text(strings.readingDirection) },
+        label = { Text("Reader type") },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
-
-    val layout = pageState.layout.collectAsState().value
-    Column {
-        DropdownChoiceMenu(
-            selectedOption = LabeledEntry(layout, strings.forLayout(layout)),
-            options = PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) },
-            onOptionChange = { pageState.onLayoutChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.layout) },
-            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-
-        val layoutOffset = pageState.layoutOffset.collectAsState().value
-        if (layout == PageDisplayLayout.DOUBLE_PAGES) {
-            CheckboxWithLabel(
-                layoutOffset,
-                pageState::onLayoutOffsetChange,
-                label = { Text(strings.offsetPages) },
-                modifier = Modifier.widthIn(min = 100.dp)
-            )
-        }
-    }
     val decoder = settingsState.decoder.collectAsState().value
     if (decoder != null)
         DropdownChoiceMenu(
@@ -184,37 +140,25 @@ private fun ColumnScope.SettingsContent(
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
-    HorizontalDivider(Modifier.padding(top = 60.dp))
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
-    val currentSpread = pageState.currentSpread.collectAsState()
-    Column {
-        currentSpread.value.pages.forEach { page ->
-            val sizeInMb = remember(currentSpread.value) {
-                page.imageResult?.image?.size?.let { (it.toFloat() / 1024 / 1024).formatDecimal(2) }
-            }
-            val pageText = buildString {
-                append("${strings.pageNumber} ${page.metadata.pageNumber}.")
-                if (sizeInMb != null) append(" ${strings.memoryUsage}: ${sizeInMb}Mb")
-            }
+        val zoom = screenScaleState.zoom.collectAsState().value
+        val zoomPercentage = (zoom * 100).roundToInt()
+        Text("Zoom: $zoomPercentage%")
 
-            Text(pageText, style = MaterialTheme.typography.bodyMedium)
-
-            Text("${strings.pageScaledSize} ${page.imageResult?.image?.width} x ${page.imageResult?.image?.height}")
-
-            if (page.metadata.size == null) {
-                Text(
-                    strings.noPageDimensionsWarning,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.error
-                    )
-                )
-            } else {
-                Text("${strings.pageOriginalSize}: ${page.metadata.size.width} x ${page.metadata.size.height}")
-            }
-
-            HorizontalDivider(Modifier.padding(vertical = 5.dp))
-        }
+        CheckboxWithLabel(
+            settingsState.allowUpsample.collectAsState().value,
+            settingsState::onAllowUpsampleChange,
+            label = { Text(strings.upsample) },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
+
+    HorizontalDivider(Modifier.padding(vertical = 5.dp))
+    readerSettingsContent()
+
 }
 
 @Composable
@@ -239,3 +183,4 @@ private fun ReturnLink(icon: ImageVector, text: String, onClick: () -> Unit) {
         )
     }
 }
+

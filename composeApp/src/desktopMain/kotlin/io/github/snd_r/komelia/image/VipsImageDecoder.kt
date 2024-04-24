@@ -8,6 +8,7 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import coil3.size.Dimension
 import coil3.size.Scale
 import coil3.size.isOriginal
 import coil3.size.pxOrElse
@@ -46,6 +47,7 @@ class VipsImageDecoder(
                 val dstWidth = options.size.width.pxOrElse { vipsMaxSize }
                 val dstHeight = options.size.height.pxOrElse { vipsMaxSize }
                 val crop = options.scale == Scale.FILL
+                        && options.size.width != Dimension.Undefined && options.size.height != Dimension.Undefined
                 VipsDecoder.vipsDecodeAndResize(bytes, dstWidth, dstHeight, crop)
             }
             if (decoded == null) throw IllegalStateException("Could not decode image")

@@ -15,7 +15,9 @@ import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.settings.AppSettings
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
+import io.github.snd_r.komelia.settings.LocalStorageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.LocalStorageSettingsRepository
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
@@ -25,6 +27,7 @@ import io.ktor.client.plugins.cache.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
@@ -39,7 +42,9 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
         delay(50)
     }
 
-    val settingsRepository = LocalStorageSettingsRepository()
+    val settings = MutableStateFlow(AppSettings.loadSettings())
+    val settingsRepository = LocalStorageSettingsRepository(settings)
+    val readerSettingsRepository = LocalStorageReaderSettingsRepository(settings)
     val secretsRepository = CookieStoreSecretsRepository()
     val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
 
@@ -53,6 +58,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
     return ViewModelFactory(
         komgaClientFactory = komgaClientFactory,
         settingsRepository = settingsRepository,
+        readerSettingsRepository = readerSettingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
         imageLoaderContext = context,
@@ -107,6 +113,7 @@ private fun createCoil(
         )
         .build()
 }
+
 
 private fun overrideFetch() {
     js(

@@ -1,11 +1,12 @@
 package io.github.snd_r.komelia.ui.reader
 
 import androidx.compose.ui.unit.IntSize
+import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.request.ImageResult
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
@@ -17,7 +18,6 @@ import io.github.snd_r.komga.book.KomgaBookReadProgressUpdateRequest
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,18 +30,22 @@ class ReaderState(
     private val navigator: Navigator,
     private val appNotifications: AppNotifications,
     private val settingsRepository: SettingsRepository,
+    private val readerSettingsRepository: ReaderSettingsRepository,
     private val markReadProgress: Boolean,
-    private val coroutineScope: CoroutineScope,
-) {
+    private val stateScope: CoroutineScope,
+) : ScreenModel {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val bookState = MutableStateFlow<BookState?>(null)
+    val readerType = MutableStateFlow(ReaderType.CONTINUOUS)
+    val readProgressPage = MutableStateFlow(1)
 
     val allowUpsample = MutableStateFlow(false)
     val decoder = MutableStateFlow<SamplerType?>(null)
 
     suspend fun initialize(bookId: KomgaBookId) {
-        allowUpsample.value = settingsRepository.getReaderUpsample().first()
+        allowUpsample.value = readerSettingsRepository.getUpsample().first()
         decoder.value = settingsRepository.getDecoderType().first()
+        readerType.value = readerSettingsRepository.getReaderType().first()
 
         loadBook(bookId)
     }
@@ -81,6 +85,12 @@ class ReaderState(
                 previousBook = prevBook,
                 nextBook = nextBook
             )
+
+            val bookProgress = newBook.readProgress
+            readProgressPage.value = when {
+                bookProgress == null || bookProgress.completed -> 1
+                else -> bookProgress.page
+            }
             state.value = LoadState.Success(Unit)
         }.onFailure { state.value = LoadState.Error(it) }
 
@@ -89,7 +99,7 @@ class ReaderState(
     fun loadNextBook() {
         val nextBook = bookState.value?.nextBook
         if (nextBook != null) {
-            coroutineScope.launch {
+            stateScope.launch {
                 loadBook(nextBook.id)
                 appNotifications.add(AppNotification.Normal("Loaded next book"))
             }
@@ -102,7 +112,7 @@ class ReaderState(
     fun loadPreviousBook() {
         val prevBook = bookState.value?.previousBook
         if (prevBook != null) {
-            coroutineScope.launch {
+            stateScope.launch {
                 loadBook(prevBook.id)
                 appNotifications.add(AppNotification.Normal("Loaded previous book"))
             }
@@ -113,19 +123,20 @@ class ReaderState(
 
 
     fun onProgressChange(page: Int) {
-        coroutineScope.launch {
-//            readProgress.value = page
+        stateScope.launch {
             if (markReadProgress) {
                 val currentBook = requireNotNull(bookState.value?.book)
                 bookClient.markReadProgress(currentBook.id, KomgaBookReadProgressUpdateRequest(page))
             }
         }
+
+        readProgressPage.value = page
     }
 
 
     fun onAllowUpsampleChange(upsample: Boolean) {
         this.allowUpsample.value = upsample
-        coroutineScope.launch { settingsRepository.putReaderUpsample(upsample) }
+        stateScope.launch { readerSettingsRepository.putUpsample(upsample) }
 
         val upsampleText = if (upsample) "Enabled"
         else "Disabled"
@@ -135,8 +146,12 @@ class ReaderState(
 
     fun onDecoderChange(type: SamplerType) {
         this.decoder.value = type
-//        readerImageLoader.clearCache()
-        coroutineScope.launch { settingsRepository.putDecoderType(type) }
+        stateScope.launch { settingsRepository.putDecoderType(type) }
+    }
+
+    fun onReaderTypeChange(type: ReaderType) {
+        this.readerType.value = type
+        stateScope.launch { readerSettingsRepository.putReaderType(type) }
     }
 }
 
@@ -173,21 +188,8 @@ data class BookState(
     val nextBook: KomgaBook?,
 )
 
-data class PageSpread(
-    val pages: List<Page>,
-    val scaleState: PageSpreadScaleState? = null
-) {
-    companion object {
-        val EMPTY_SPREAD = PageSpread(emptyList(), null)
-    }
+
+enum class ReaderType {
+    PAGED,
+    CONTINUOUS
 }
-
-data class Page(
-    val metadata: PageMetadata,
-    val imageResult: ImageResult? = null
-)
-
-data class SpreadImageLoadJob(
-    val pageJob: Deferred<List<Page>>,
-    val hash: Int,
-)

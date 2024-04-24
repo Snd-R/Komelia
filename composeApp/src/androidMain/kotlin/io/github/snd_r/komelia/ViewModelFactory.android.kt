@@ -16,6 +16,7 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.settings.AndroidReaderSettingsRepository
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AndroidSettingsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
@@ -45,6 +46,7 @@ actual suspend fun createViewModelFactory(context: Context): ViewModelFactory {
     )
 
     val settingsRepository = AndroidSettingsRepository(datastore)
+    val readerSettingsRepository = AndroidReaderSettingsRepository(datastore)
     val secretsRepository = AndroidSecretsRepository(datastore)
 
     val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
@@ -65,6 +67,7 @@ actual suspend fun createViewModelFactory(context: Context): ViewModelFactory {
     return ViewModelFactory(
         komgaClientFactory = komgaClientFactory,
         settingsRepository = settingsRepository,
+        readerSettingsRepository = readerSettingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
         imageLoaderContext = context,

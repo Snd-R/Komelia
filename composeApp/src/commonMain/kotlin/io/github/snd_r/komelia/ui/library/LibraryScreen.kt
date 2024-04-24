@@ -62,7 +62,7 @@ import io.github.snd_r.komelia.ui.library.LibraryTab.RECOMMENDED
 import io.github.snd_r.komelia.ui.library.view.LibraryCollectionsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryRecommendedContent
-import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.series.view.SeriesListContent

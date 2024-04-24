@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.view
+package io.github.snd_r.komelia.ui.reader
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +28,7 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
-import io.github.snd_r.komelia.ui.reader.ReaderViewModel
+import io.github.snd_r.komelia.ui.reader.common.ReaderContent
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.Dispatchers
@@ -61,10 +61,11 @@ class ReaderScreen(
     @Composable
     fun ReaderScreenContent(vm: ReaderViewModel) {
         val navigator = LocalNavigator.currentOrThrow
-        PagedReaderContent(
+        ReaderContent(
             pageState = vm.pagedReaderState,
-//            zoomState = vm.zoomState,
+            continuousReaderState = vm.continuousReaderState,
             settingsState = vm.readerState,
+            screenScaleState = vm.screenScaleState,
             onSeriesBackClick = {
                 vm.readerState.bookState.value?.book?.let { book ->
                     navigator replace MainScreen(

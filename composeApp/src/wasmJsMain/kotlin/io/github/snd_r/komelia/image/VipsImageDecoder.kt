@@ -42,11 +42,15 @@ class VipsImageDecoder(
             source.source().use { it.readByteArray() }.toJsArray()
         }.also { logger.info { "retrieved image bytes in ${it.duration}" } }
 
+        val crop = options.scale == Scale.FILL
+                && options.size.width != Dimension.Undefined
+                && options.size.height != Dimension.Undefined
+
         val decoded = worker.decode(
             bytes = dataResult.value,
             dstWidth = options.size.width.pxOrNull(),
             dstHeight = options.size.height.pxOrNull(),
-            crop = options.scale == Scale.FILL
+            crop = crop
         )
 
         // FIXME? js array to wasm array copy overhead

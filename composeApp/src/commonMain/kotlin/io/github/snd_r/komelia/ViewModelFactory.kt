@@ -3,6 +3,7 @@ package io.github.snd_r.komelia
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.MainScreenViewModel
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.map
 class ViewModelFactory(
     private val komgaClientFactory: KomgaClientFactory,
     private val settingsRepository: SettingsRepository,
+    private val readerSettingsRepository: ReaderSettingsRepository,
     private val secretsRepository: SecretsRepository,
     private val imageLoader: ImageLoader,
     private val imageLoaderContext: PlatformContext,
@@ -157,6 +159,7 @@ class ViewModelFactory(
             navigator = navigator,
             appNotifications = appNotifications,
             settingsRepository = settingsRepository,
+            readerSettingsRepository = readerSettingsRepository,
             markReadProgress = markReadProgress,
         )
     }

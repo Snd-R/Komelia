@@ -9,7 +9,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.reader.view.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komga.book.KomgaBookId

@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.view
+package io.github.snd_r.komelia.ui.reader.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -33,20 +33,37 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.reader.PageMetadata
-import io.github.snd_r.komelia.ui.reader.ReadingDirection
-import io.github.snd_r.komelia.ui.reader.ReadingDirection.LEFT_TO_RIGHT
-import io.github.snd_r.komelia.ui.reader.ReadingDirection.RIGHT_TO_LEFT
 import kotlin.math.roundToInt
 
 @Composable
 fun ProgressSlider(
+    pages: List<PageMetadata>,
+    currentPageIndex: Int,
+    onPageNumberChange: (Int) -> Unit,
+    show: Boolean,
+    layoutDirection: LayoutDirection,
+    modifier: Modifier = Modifier,
+) {
+    PageSpreadProgressSlider(
+        pageSpreads = pages.map { listOf(it) },
+        currentSpreadIndex = currentPageIndex,
+        onPageNumberChange = onPageNumberChange,
+        show = show,
+        layoutDirection = layoutDirection,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun PageSpreadProgressSlider(
     pageSpreads: List<List<PageMetadata>>,
     currentSpreadIndex: Int,
     onPageNumberChange: (Int) -> Unit,
-    hidden: Boolean,
-    readingDirection: ReadingDirection,
+    show: Boolean,
+    layoutDirection: LayoutDirection,
     modifier: Modifier = Modifier,
 ) {
+    if (pageSpreads.isEmpty()) return
     val currentSpread = pageSpreads[currentSpreadIndex]
     val label = currentSpread.map { it.pageNumber }.joinToString("-")
 
@@ -60,11 +77,7 @@ fun ProgressSlider(
             .pointerInput(Unit) {}
             .hoverable(interactionSource)
     )) {
-        val layoutDirection = when (readingDirection) {
-            LEFT_TO_RIGHT -> LayoutDirection.Ltr
-            RIGHT_TO_LEFT -> LayoutDirection.Rtl
-        }
-        if (isHovered.value || !hidden) {
+        if (show || isHovered.value) {
             SliderWithLabel(
                 value = currentSpreadIndex.toFloat(),
                 valueRange = 0f..(pageSpreads.size - 1).toFloat(),
