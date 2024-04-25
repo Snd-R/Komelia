@@ -22,14 +22,16 @@ private var vips: JsAny? = null
 @OptIn(DelicateCoroutinesApi::class)
 fun main() {
     self.importScripts("vips.js")
-    GlobalScope.launch { vips = getVipsModule().asDeferred<JsAny>().await() }
+    GlobalScope.launch {
+        vips = getVipsModule().asDeferred<JsAny>().await()
 
-    self.onmessage = { message ->
-        val type = getMessageType(message.data)
-        when (type) {
-            InitMessage -> self.postMessage(initMessage())
-            DecodeMessage -> if (message.data != null) handleDecode(message.data!!)
-            else -> {}
+        self.onmessage = { message ->
+            val type = getMessageType(message.data)
+            when (type) {
+                InitMessage -> self.postMessage(initMessage())
+                DecodeMessage -> if (message.data != null) handleDecode(message.data!!)
+                else -> {}
+            }
         }
     }
 }
