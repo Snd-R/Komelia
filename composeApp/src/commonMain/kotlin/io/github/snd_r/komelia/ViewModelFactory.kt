@@ -16,9 +16,9 @@ import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
+import io.github.snd_r.komelia.ui.home.HomeViewModel
 import io.github.snd_r.komelia.ui.library.LibraryCollectionsViewModel
 import io.github.snd_r.komelia.ui.library.LibraryReadListsViewModel
-import io.github.snd_r.komelia.ui.library.LibraryRecommendedViewModel
 import io.github.snd_r.komelia.ui.library.LibraryViewModel
 import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
@@ -89,9 +89,9 @@ class ViewModelFactory(
         )
     }
 
-    fun getLibraryRecommendationViewModel(libraryId: KomgaLibraryId?): LibraryRecommendedViewModel {
-        return LibraryRecommendedViewModel(
-            libraryFlow = libraryId?.let { getLibraryFlow(it) },
+    fun getHomeViewModel(libraryId: KomgaLibraryId?): HomeViewModel {
+        return HomeViewModel(
+            libraryFlow = getLibraryFlow(libraryId),
             seriesClient = komgaClientFactory.seriesClient(),
             bookClient = komgaClientFactory.bookClient(),
             appNotifications = appNotifications,

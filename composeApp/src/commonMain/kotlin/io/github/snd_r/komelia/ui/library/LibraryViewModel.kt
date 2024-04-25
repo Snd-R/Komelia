@@ -12,10 +12,9 @@ import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
-import io.github.snd_r.komelia.ui.library.LibraryTab.BROWSE
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
 import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
-import io.github.snd_r.komelia.ui.library.LibraryTab.RECOMMENDED
+import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
 import io.github.snd_r.komga.collection.KomgaCollectionClient
 import io.github.snd_r.komga.common.KomgaPageRequest
 import io.github.snd_r.komga.library.KomgaLibrary
@@ -47,7 +46,7 @@ class LibraryViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
     val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
 
-    var currentTab by mutableStateOf(RECOMMENDED)
+    var currentTab by mutableStateOf(SERIES)
 
     var collectionsCount by mutableStateOf(0)
         private set
@@ -86,19 +85,19 @@ class LibraryViewModel(
             collectionsCount = collectionClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest).totalElements
             readListsCount = readListsClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest).totalElements
 
-            if (collectionsCount == 0 && currentTab == COLLECTIONS) currentTab = BROWSE
-            if (readListsCount == 0 && currentTab == READ_LISTS) currentTab = BROWSE
+            if (collectionsCount == 0 && currentTab == COLLECTIONS) currentTab = SERIES
+            if (readListsCount == 0 && currentTab == READ_LISTS) currentTab = SERIES
             mutableState.value = Success(Unit)
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    fun toRecommendedTab() {
-        if (library == null) return
-        currentTab = RECOMMENDED
-    }
+//    fun toRecommendedTab() {
+//        if (library == null) return
+//        currentTab = RECOMMENDED
+//    }
 
     fun toBrowseTab() {
-        currentTab = BROWSE
+        currentTab = SERIES
     }
 
     fun toCollectionsTab() {
@@ -124,8 +123,8 @@ class LibraryViewModel(
 }
 
 enum class LibraryTab {
-    BROWSE,
-    RECOMMENDED,
+    SERIES,
+//    RECOMMENDED,
     COLLECTIONS,
     READ_LISTS
 }

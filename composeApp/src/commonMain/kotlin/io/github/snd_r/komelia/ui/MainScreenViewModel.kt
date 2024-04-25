@@ -9,7 +9,7 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
-import io.github.snd_r.komelia.ui.library.DashboardScreen
+import io.github.snd_r.komelia.ui.home.HomeScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
@@ -85,14 +85,14 @@ class MainScreenViewModel(
     private fun onLibraryDeleted(event: LibraryDeleted) {
         val lastScreen = navigator.lastItem
         if (lastScreen is LibraryScreen && lastScreen.libraryId == event.libraryId)
-            navigator.replaceAll(DashboardScreen())
+            navigator.replaceAll(HomeScreen())
     }
 
     private fun onCollectionDeleted(event: CollectionDeleted) {
         val lastScreen = navigator.lastItem
         if (lastScreen is CollectionScreen && lastScreen.collectionId == event.collectionId) {
             val success = navigator.popUntil { it is LibraryScreen }
-            if (!success && navigator.lastItem !is LibraryScreen) navigator.replaceAll(DashboardScreen())
+            if (!success && navigator.lastItem !is LibraryScreen) navigator.replaceAll(HomeScreen())
         }
     }
 
@@ -100,7 +100,7 @@ class MainScreenViewModel(
         val lastScreen = navigator.lastItem
         if (lastScreen is ReadListScreen && lastScreen.readListId == event.readListId) {
             val success = navigator.popUntil { it is LibraryScreen }
-            if (!success && navigator.lastItem !is LibraryScreen) navigator.replaceAll(DashboardScreen())
+            if (!success && navigator.lastItem !is LibraryScreen) navigator.replaceAll(HomeScreen())
         }
     }
 

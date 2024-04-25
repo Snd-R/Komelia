@@ -53,7 +53,7 @@ import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
-import io.github.snd_r.komelia.ui.library.DashboardScreen
+import io.github.snd_r.komelia.ui.home.HomeScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
@@ -121,7 +121,7 @@ private fun NavMenu(
                 onClick = { onHomeClick() },
                 icon = Icons.Default.Home,
                 label = "Home",
-                isSelected = currentScreen is DashboardScreen
+                isSelected = currentScreen is HomeScreen
             )
 
             NavButton(

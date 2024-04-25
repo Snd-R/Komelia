@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -69,10 +68,10 @@ import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.Pagination
-import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
-import io.github.snd_r.komelia.ui.common.cards.BookImageCard
 import io.github.snd_r.komelia.ui.common.cards.ItemCard
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
+import io.github.snd_r.komelia.ui.common.itemlist.BooksGrid
+import io.github.snd_r.komelia.ui.common.itemlist.BooksList
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
@@ -582,65 +581,3 @@ private fun BooksToolBar(
 
 }
 
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun BooksGrid(
-    books: List<KomgaBook>,
-    cardWidth: Dp,
-    bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBookId) -> Unit,
-    onBookReadClick: (KomgaBookId) -> Unit,
-
-    loadPlaceholder: @Composable () -> Unit,
-    isLoading: Boolean,
-) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.padding(horizontal = 10.dp)
-    ) {
-        if (isLoading) {
-            loadPlaceholder()
-        } else {
-            books.forEach {
-                BookImageCard(
-                    book = it,
-                    onBookClick = { onBookClick(it.id) },
-                    onBookReadClick = { onBookReadClick(it.id) },
-                    bookMenuActions = bookMenuActions,
-                    modifier = Modifier.width(cardWidth)
-                )
-
-            }
-        }
-    }
-}
-
-@Composable
-private fun BooksList(
-    books: List<KomgaBook>,
-    bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBookId) -> Unit,
-    onBookReadClick: (KomgaBookId) -> Unit,
-
-    isLoading: Boolean,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.Start,
-    ) {
-
-        if (!isLoading) {
-            books.forEach { book ->
-                BookDetailedListCard(
-                    book = book,
-                    onClick = { onBookClick(book.id) },
-                    bookMenuActions = bookMenuActions,
-                    onBookReadClick = { onBookReadClick(book.id) },
-                )
-            }
-        }
-    }
-}

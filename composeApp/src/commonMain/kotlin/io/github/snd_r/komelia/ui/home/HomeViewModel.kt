@@ -1,6 +1,9 @@
-package io.github.snd_r.komelia.ui.library
+package io.github.snd_r.komelia.ui.home
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
@@ -41,23 +44,30 @@ import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 
-class LibraryRecommendedViewModel(
+class HomeViewModel(
     private val seriesClient: KomgaSeriesClient,
     private val bookClient: KomgaBookClient,
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
-    libraryFlow: Flow<KomgaLibrary?>?,
+    libraryFlow: Flow<KomgaLibrary?>,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-    val library = libraryFlow?.stateIn(screenModelScope, Eagerly, null)
+    val library = libraryFlow.stateIn(screenModelScope, Eagerly, null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
-    var keepReadingBooks = mutableStateListOf<KomgaBook>()
+    var keepReadingBooks by mutableStateOf<List<KomgaBook>>(emptyList())
+        private set
     var recentlyReleasedBooks = mutableStateListOf<KomgaBook>()
+        private set
     var recentlyAddedBooks = mutableStateListOf<KomgaBook>()
-
+        private set
     var recentlyAddedSeries = mutableStateListOf<KomgaSeries>()
+        private set
     var recentlyUpdatedSeries = mutableStateListOf<KomgaSeries>()
+        private set
+
+    var activeFilter by mutableStateOf(HomeScreenFilter.ALL)
+        private set
 
     private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
 
@@ -101,14 +111,12 @@ class LibraryRecommendedViewModel(
         val books = bookClient.getAllBooks(
             query = KomgaBookQuery(
                 readStatus = listOf(KomgaReadStatus.IN_PROGRESS),
-                libraryIds = library?.value?.let { listOf(it.id) } ?: emptyList()
+                libraryIds = library.value?.let { listOf(it.id) } ?: emptyList()
             ),
             pageRequest = pageRequest
         ).content
 
-
-        keepReadingBooks.clear()
-        keepReadingBooks.addAll(books)
+        keepReadingBooks = books
     }
 
     private suspend fun loadRecentlyReleasedBooks() {
@@ -117,7 +125,7 @@ class LibraryRecommendedViewModel(
         val books = bookClient.getAllBooks(
             pageRequest = pageRequest,
             query = KomgaBookQuery(
-                libraryIds = library?.value?.let { listOf(it.id) } ?: emptyList(),
+                libraryIds = library.value?.let { listOf(it.id) } ?: emptyList(),
                 releasedAfter = Clock.System.todayIn(UTC).minus(1, MONTH)
             ),
         ).content
@@ -131,7 +139,7 @@ class LibraryRecommendedViewModel(
 
         val books = bookClient.getAllBooks(
             query = KomgaBookQuery(
-                libraryIds = library?.value?.let { listOf(it.id) } ?: emptyList(),
+                libraryIds = library.value?.let { listOf(it.id) } ?: emptyList(),
             ),
             pageRequest = pageRequest,
         ).content
@@ -142,7 +150,7 @@ class LibraryRecommendedViewModel(
 
     private suspend fun loadRecentlyAddedSeries() {
         val series = seriesClient.getNewSeries(
-            libraryIds = library?.value?.id?.let { listOf(it) },
+            libraryIds = library.value?.id?.let { listOf(it) },
             oneshot = false
         ).content
         recentlyAddedSeries.clear()
@@ -151,7 +159,7 @@ class LibraryRecommendedViewModel(
 
     private suspend fun loadRecentlyUpdatedSeries() {
         val series = seriesClient.getUpdatedSeries(
-            libraryIds = library?.value?.id?.let { listOf(it) },
+            libraryIds = library.value?.id?.let { listOf(it) },
             oneshot = false
         ).content
         recentlyUpdatedSeries.clear()
@@ -162,13 +170,13 @@ class LibraryRecommendedViewModel(
         komgaEvents.collect { event ->
             when (event) {
                 is BookEvent -> {
-                    if (library == null || event.libraryId == library.value?.id) {
+                    if (event.libraryId == library.value?.id) {
                         reloadJobsFlow.tryEmit(Unit)
                     }
                 }
 
                 is SeriesEvent -> {
-                    if (library == null || event.libraryId == library.value?.id) {
+                    if (event.libraryId == library.value?.id) {
                         reloadJobsFlow.tryEmit(Unit)
                     }
                 }
@@ -193,4 +201,19 @@ class LibraryRecommendedViewModel(
             }
         }
     }
+
+    fun onFilterChange(filter: HomeScreenFilter) {
+        this.activeFilter = filter
+    }
+
+    enum class HomeScreenFilter {
+        ALL,
+        KEEP_READING_BOOKS,
+        RECENTLY_RELEASED_BOOKS,
+        RECENTLY_ADDED_BOOKS,
+        RECENTLY_ADDED_SERIES,
+        RECENTLY_UPDATED_SERIES
+
+    }
 }
+

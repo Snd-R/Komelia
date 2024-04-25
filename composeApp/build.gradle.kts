@@ -57,7 +57,7 @@ kotlin {
     }
 
     val coilVersion = "3.0.0-alpha06"
-    val ktorVersion = "3.0.0-beta-2-eap-928"
+    val ktorVersion = "3.0.0-beta-2-eap-930"
     val voyagerVersion = "1.1.0-alpha03"
     sourceSets {
         all {
@@ -69,6 +69,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.materialIconsExtended)
+            implementation(compose.material)
             implementation(compose.material3)
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")

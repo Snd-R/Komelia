@@ -16,7 +16,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.ui.book.BookScreen
-import io.github.snd_r.komelia.ui.library.DashboardScreen
+import io.github.snd_r.komelia.ui.home.HomeScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.navigation.AppBar
 import io.github.snd_r.komelia.ui.navigation.NavBarContent
@@ -26,7 +26,7 @@ import io.github.snd_r.komelia.ui.settings.SettingsScreen
 import kotlinx.coroutines.launch
 
 class MainScreen(
-    private val defaultScreen: Screen = DashboardScreen()
+    private val defaultScreen: Screen = HomeScreen()
 ) : Screen {
 
     @Composable
@@ -97,7 +97,7 @@ class MainScreen(
             libraries = vm.libraries.collectAsState().value,
             libraryActions = vm.getLibraryActions(),
             onHomeClick = {
-                navigator.replaceAll(DashboardScreen())
+                navigator.replaceAll(HomeScreen())
                 if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
             onLibrariesClick = {

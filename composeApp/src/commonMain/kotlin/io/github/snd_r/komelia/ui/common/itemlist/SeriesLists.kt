@@ -80,8 +80,8 @@ fun SeriesLazyCardGrid(
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize),
             state = scrollState,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(15.dp),
+            verticalArrangement = Arrangement.spacedBy(15.dp),
             modifier = Modifier.padding(horizontal = 10.dp).fillMaxHeight()
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -93,9 +93,7 @@ fun SeriesLazyCardGrid(
                     series = it,
                     onSeriesClick = { onSeriesClick(it.id) },
                     seriesMenuActions = seriesMenuActions,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(5.dp),
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 

@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.LocalLibrary
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -49,20 +48,16 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
-import io.github.snd_r.komelia.ui.library.LibraryTab.BROWSE
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
 import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
-import io.github.snd_r.komelia.ui.library.LibraryTab.RECOMMENDED
+import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
 import io.github.snd_r.komelia.ui.library.view.LibraryCollectionsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
-import io.github.snd_r.komelia.ui.library.view.LibraryRecommendedContent
-import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.series.view.SeriesListContent
@@ -103,7 +98,7 @@ class LibraryScreen(
                                     currentTab = vm.currentTab,
                                     collectionsCount = vm.collectionsCount,
                                     readListsCount = vm.readListsCount,
-                                    onRecommendedClick = vm::toRecommendedTab,
+//                                    onRecommendedClick = vm::toRecommendedTab,
                                     onBrowseClick = vm::toBrowseTab,
                                     onCollectionsClick = vm::toCollectionsTab,
                                     onReadListsClick = vm::toReadListsTab,
@@ -120,7 +115,7 @@ class LibraryScreen(
                             libraryActions = vm.libraryActions(),
                             collectionsCount = vm.collectionsCount,
                             readListsCount = vm.readListsCount,
-                            onRecommendedClick = vm::toRecommendedTab,
+//                            onRecommendedClick = vm::toRecommendedTab,
                             onBrowseClick = vm::toBrowseTab,
                             onCollectionsClick = vm::toCollectionsTab,
                             onReadListsClick = vm::toReadListsTab
@@ -139,8 +134,8 @@ class LibraryScreen(
     ) {
         Box(modifier) {
             when (tab) {
-                BROWSE -> BrowseTab()
-                RECOMMENDED -> RecommendedTab()
+                SERIES -> BrowseTab()
+//                RECOMMENDED -> RecommendedTab()
                 COLLECTIONS -> CollectionsTab()
                 READ_LISTS -> ReadListsTab()
             }
@@ -184,40 +179,6 @@ class LibraryScreen(
                     minSize = vm.cardWidth.collectAsState().value,
                 )
             }
-        }
-    }
-
-    @Composable
-    private fun RecommendedTab() {
-        val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel("recommended_${libraryId?.value}") {
-            viewModelFactory.getLibraryRecommendationViewModel(libraryId)
-        }
-        val navigator = LocalNavigator.currentOrThrow
-        LaunchedEffect(libraryId) { vm.initialize() }
-
-        when (val state = vm.state.collectAsState().value) {
-            is Error -> ErrorContent(
-                message = state.exception.message ?: "Unknown Error",
-                onReload = vm::reload
-            )
-
-            else -> LibraryRecommendedContent(
-                keepReadingBooks = vm.keepReadingBooks,
-                recentlyReleasedBooks = vm.recentlyReleasedBooks,
-                recentlyAddedBooks = vm.recentlyAddedBooks,
-                recentlyAddedSeries = vm.recentlyAddedSeries,
-                onRecentlyAddedSeriesClick = {},
-                recentlyUpdatedSeries = vm.recentlyUpdatedSeries,
-                onRecentlyUpdatedSeriesClick = {},
-                cardWidth = vm.cardWidth.collectAsState().value,
-
-                onSeriesClick = { navigator push SeriesScreen(it) },
-                seriesMenuActions = vm.seriesMenuActions(),
-                bookMenuActions = vm.bookMenuActions(),
-                onBookClick = { navigator push BookScreen(it) },
-                onBookReadClick = { navigator.parent?.replace(ReaderScreen(it)) },
-            )
         }
     }
 
@@ -305,7 +266,7 @@ fun LibraryToolBar(
     libraryActions: LibraryMenuActions,
     collectionsCount: Int,
     readListsCount: Int,
-    onRecommendedClick: () -> Unit,
+//    onRecommendedClick: () -> Unit,
     onBrowseClick: () -> Unit,
     onCollectionsClick: () -> Unit,
     onReadListsClick: () -> Unit,
@@ -345,20 +306,20 @@ fun LibraryToolBar(
             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
         )
 
-        if (library != null) {
-            FilterChip(
-                onClick = onRecommendedClick,
-                selected = currentTab == RECOMMENDED,
-                label = { Text("Recommended") },
-                colors = chipColors,
-                border = null,
-            )
-        }
+//        if (library != null) {
+//            FilterChip(
+//                onClick = onRecommendedClick,
+//                selected = currentTab == RECOMMENDED,
+//                label = { Text("Recommended") },
+//                colors = chipColors,
+//                border = null,
+//            )
+//        }
 
         FilterChip(
             onClick = onBrowseClick,
-            selected = currentTab == BROWSE,
-            label = { Text("Browse") },
+            selected = currentTab == SERIES,
+            label = { Text("Series") },
             colors = chipColors,
             border = null,
         )
@@ -421,7 +382,7 @@ fun CompactLibraryNavigation(
     currentTab: LibraryTab,
     collectionsCount: Int,
     readListsCount: Int,
-    onRecommendedClick: () -> Unit,
+//    onRecommendedClick: () -> Unit,
     onBrowseClick: () -> Unit,
     onCollectionsClick: () -> Unit,
     onReadListsClick: () -> Unit,
@@ -431,18 +392,18 @@ fun CompactLibraryNavigation(
         modifier = modifier,
         horizontalArrangement = Arrangement.Center
     ) {
+//        CompactNavButton(
+//            text = "Recommended",
+//            icon = Icons.Default.Star,
+//            onClick = onRecommendedClick,
+//            isSelected = currentTab == RECOMMENDED,
+//            modifier = Modifier.weight(1f)
+//        )
         CompactNavButton(
-            text = "Recommended",
-            icon = Icons.Default.Star,
-            onClick = onRecommendedClick,
-            isSelected = currentTab == RECOMMENDED,
-            modifier = Modifier.weight(1f)
-        )
-        CompactNavButton(
-            text = "Browse",
+            text = "Series",
             icon = Icons.Default.LocalLibrary,
             onClick = onBrowseClick,
-            isSelected = currentTab == BROWSE,
+            isSelected = currentTab == SERIES,
             modifier = Modifier.weight(1f)
         )
         if (collectionsCount > 0)
