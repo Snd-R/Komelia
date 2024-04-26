@@ -29,6 +29,7 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ViewModelFactory
 import io.github.snd_r.komelia.createViewModelFactory
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.platform.ConfigurePlatformTheme
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.strings.Locales
@@ -71,6 +72,7 @@ fun MainView(
     keyEvents: SharedFlow<KeyEvent>
 ) {
     MaterialTheme(colorScheme = AppTheme.dark) {
+        ConfigurePlatformTheme(MaterialTheme.colorScheme)
         val focusManager = LocalFocusManager.current
         val context = LocalPlatformContext.current
         Surface(

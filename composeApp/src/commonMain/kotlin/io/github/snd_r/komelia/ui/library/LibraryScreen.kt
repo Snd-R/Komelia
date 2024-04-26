@@ -3,15 +3,12 @@ package io.github.snd_r.komelia.ui.library
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Collections
@@ -40,7 +37,6 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -84,44 +80,18 @@ class LibraryScreen(
             Uninitialized -> LoadingMaxSizeIndicator()
 
             Loading, is Success -> {
-                when (width) {
-                    COMPACT -> Column {
-                        CompactLibraryToolBar(
-                            library = vm.library?.value,
-                            libraryActions = vm.libraryActions(),
-                        )
-                        BoxWithConstraints {
-                            val maxHeight = maxHeight
-                            Column {
-                                CurrentTab(vm.currentTab, Modifier.height(maxHeight - 50.dp))
-                                CompactLibraryNavigation(
-                                    currentTab = vm.currentTab,
-                                    collectionsCount = vm.collectionsCount,
-                                    readListsCount = vm.readListsCount,
-//                                    onRecommendedClick = vm::toRecommendedTab,
-                                    onBrowseClick = vm::toBrowseTab,
-                                    onCollectionsClick = vm::toCollectionsTab,
-                                    onReadListsClick = vm::toReadListsTab,
-                                    modifier = Modifier.height(50.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    else -> Column {
-                        LibraryToolBar(
-                            library = vm.library?.value,
-                            currentTab = vm.currentTab,
-                            libraryActions = vm.libraryActions(),
-                            collectionsCount = vm.collectionsCount,
-                            readListsCount = vm.readListsCount,
-//                            onRecommendedClick = vm::toRecommendedTab,
-                            onBrowseClick = vm::toBrowseTab,
-                            onCollectionsClick = vm::toCollectionsTab,
-                            onReadListsClick = vm::toReadListsTab
-                        )
-                        CurrentTab(vm.currentTab)
-                    }
+                Column {
+                    LibraryToolBar(
+                        library = vm.library?.value,
+                        currentTab = vm.currentTab,
+                        libraryActions = vm.libraryActions(),
+                        collectionsCount = vm.collectionsCount,
+                        readListsCount = vm.readListsCount,
+                        onBrowseClick = vm::toBrowseTab,
+                        onCollectionsClick = vm::toCollectionsTab,
+                        onReadListsClick = vm::toReadListsTab
+                    )
+                    CurrentTab(vm.currentTab)
                 }
             }
         }
@@ -258,7 +228,6 @@ class LibraryScreen(
 
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LibraryToolBar(
     library: KomgaLibrary?,
@@ -266,14 +235,13 @@ fun LibraryToolBar(
     libraryActions: LibraryMenuActions,
     collectionsCount: Int,
     readListsCount: Int,
-//    onRecommendedClick: () -> Unit,
     onBrowseClick: () -> Unit,
     onCollectionsClick: () -> Unit,
     onReadListsClick: () -> Unit,
 ) {
-    FlowRow(
+    Row(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         var showOptionsMenu by remember { mutableStateOf(false) }
         if (library != null) {
@@ -295,8 +263,7 @@ fun LibraryToolBar(
                 )
             }
         }
-        val title = library?.let { library.name } ?: "All Libraries"
-        Text(title, Modifier.align(Alignment.CenterVertically))
+        Text(library?.let { library.name } ?: "All Libraries")
 
         Spacer(Modifier.width(5.dp))
 
@@ -306,42 +273,45 @@ fun LibraryToolBar(
             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
         )
 
-//        if (library != null) {
-//            FilterChip(
-//                onClick = onRecommendedClick,
-//                selected = currentTab == RECOMMENDED,
-//                label = { Text("Recommended") },
-//                colors = chipColors,
-//                border = null,
-//            )
-//        }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
 
-        FilterChip(
-            onClick = onBrowseClick,
-            selected = currentTab == SERIES,
-            label = { Text("Series") },
-            colors = chipColors,
-            border = null,
-        )
+            if (collectionsCount > 0 || readListsCount > 0)
+                item {
+                    FilterChip(
+                        onClick = onBrowseClick,
+                        selected = currentTab == SERIES,
+                        label = { Text("Series") },
+                        colors = chipColors,
+                        border = null,
+                    )
+                }
 
-        if (collectionsCount > 0)
-            FilterChip(
-                onClick = onCollectionsClick,
-                selected = currentTab == COLLECTIONS,
-                label = { Text("Collections") },
-                colors = chipColors,
-                border = null,
-            )
+            if (collectionsCount > 0)
+                item {
+                    FilterChip(
+                        onClick = onCollectionsClick,
+                        selected = currentTab == COLLECTIONS,
+                        label = { Text("Collections") },
+                        colors = chipColors,
+                        border = null,
+                    )
+                }
 
-        if (readListsCount > 0)
-            FilterChip(
-                onClick = onReadListsClick,
-                selected = currentTab == READ_LISTS,
-                label = { Text("Read Lists") },
-                colors = chipColors,
-                border = null,
-            )
+            if (readListsCount > 0)
+                item {
+                    FilterChip(
+                        onClick = onReadListsClick,
+                        selected = currentTab == READ_LISTS,
+                        label = { Text("Read Lists") },
+                        colors = chipColors,
+                        border = null,
+                    )
+                }
 
+        }
     }
 }
 
