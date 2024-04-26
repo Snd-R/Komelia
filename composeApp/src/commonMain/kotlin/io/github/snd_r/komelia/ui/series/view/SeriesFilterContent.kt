@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,7 +73,8 @@ fun SeriesFilterContent(
     }
     val width = remember(widthClass) {
         when (widthClass) {
-            io.github.snd_r.komelia.platform.WindowWidth.COMPACT -> 400.dp
+            COMPACT -> 400.dp
+            MEDIUM -> 220.dp
             else -> 250.dp
         }
     }
@@ -111,7 +112,8 @@ fun SeriesFilterContent(
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (filterState.isChanged) MaterialTheme.colorScheme.tertiaryContainer else Color.Unspecified,
                     ),
-                    modifier = Modifier.cursorForHand()
+                    border = if (filterState.isChanged) null else ButtonDefaults.outlinedButtonBorder,
+                    modifier = Modifier.height(40.dp).cursorForHand()
                 ) {
                     Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
                 }
@@ -119,7 +121,7 @@ fun SeriesFilterContent(
                 OutlinedButton(
                     onClick = onDismiss,
                     shape = RoundedCornerShape(5.dp),
-                    modifier = Modifier.cursorForHand()
+                    modifier = Modifier.height(40.dp).cursorForHand()
                 ) {
                     Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)
                 }
@@ -225,10 +227,14 @@ fun SeriesFilterContent(
             ) {
                 Row(
                     modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .height(40.dp)
                         .clickable { filterState.onCompletionToggle() }
                         .cursorForHand()
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(end = 10.dp),
+                        .clip(RoundedCornerShape(5.dp)),
+//                        .padding(end = 10.dp)
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val checkboxState by derivedStateOf {
@@ -241,16 +247,22 @@ fun SeriesFilterContent(
                     }
                     TriStateCheckbox(
                         state = checkboxState,
-                        onClick = filterState::onCompletionToggle
+                        onClick = filterState::onCompletionToggle,
+                        modifier = Modifier.size(30.dp)
                     )
                     Text(strings.complete, style = MaterialTheme.typography.labelLarge, maxLines = 2)
                 }
                 Row(
                     modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .height(40.dp)
                         .clickable { filterState.onFormatToggle() }
                         .cursorForHand()
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(end = 10.dp),
+                        .clip(RoundedCornerShape(5.dp))
+//                        .padding(end = 10.dp)
+                    ,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val checkboxState by derivedStateOf {
@@ -263,7 +275,8 @@ fun SeriesFilterContent(
                     }
                     TriStateCheckbox(
                         state = checkboxState,
-                        onClick = filterState::onFormatToggle
+                        onClick = filterState::onFormatToggle,
+                        modifier = Modifier.size(30.dp)
                     )
                     Text(strings.oneshot, style = MaterialTheme.typography.labelLarge, maxLines = 2)
                 }

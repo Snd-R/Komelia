@@ -6,28 +6,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesDetailedListCard
+import io.github.snd_r.komelia.ui.search.SearchViewModel.SearchType
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.series.KomgaSeries
@@ -37,110 +36,203 @@ import io.github.snd_r.komga.series.KomgaSeriesId
 @Composable
 fun SearchContent(
     query: String,
-    searchState: SearchState,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
-    onBackClick: () -> Unit,
-    onBookClick: (KomgaBookId) -> Unit,
-) {
-    Column {
-        SearchToolBar(onBackClick)
-        SearchResultsContent(
-            query,
-            searchState,
-            onSeriesClick,
-            onBookClick
-        )
-    }
-}
+    searchType: SearchType,
+    onSearchTypeChange: (SearchType) -> Unit,
 
-@Composable
-private fun SearchResultsContent(
-    query: String,
-    searchState: SearchState,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    bookResults: List<KomgaBook>,
+    bookCurrentPage: Int,
+    bookTotalPages: Int,
+    onBookPageChange: (Int) -> Unit,
     onBookClick: (KomgaBookId) -> Unit,
+
+    seriesResults: List<KomgaSeries>,
+    seriesCurrentPage: Int,
+    seriesTotalPages: Int,
+    onSeriesPageChange: (Int) -> Unit,
+    onSeriesClick: (KomgaSeriesId) -> Unit,
 ) {
+    if (query.isNotBlank() && bookResults.isEmpty() && seriesResults.isEmpty()) {
+        EmptySearchResults()
+        return
+    }
+
     Box(
-        contentAlignment = Alignment.TopCenter,
-        modifier = Modifier.fillMaxSize()
+        contentAlignment = Alignment.TopCenter
     ) {
-        when (searchState) {
-            SearchState.Empty -> EmptySearchResults(query)
-            SearchState.Loading -> LoadingMaxSizeIndicator()
-            is SearchState.Finished -> SearchResults(
-                results = searchState.searchResults,
-                onSeriesClick = onSeriesClick,
-                onBookClick = onBookClick
-            )
+        val widthModifier = when (LocalWindowWidth.current) {
+            WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.fillMaxWidth()
+            WindowWidth.EXPANDED -> Modifier.fillMaxWidth(.8f)
+            WindowWidth.FULL -> Modifier.width(1200.dp)
         }
-    }
-}
+        val scrollState = rememberLazyListState()
 
-@Composable
-private fun EmptySearchResults(query: String) {
-    Text("No results found for \"$query\"")
-}
-
-@Composable
-private fun SearchResults(
-    results: SearchResults,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
-    onBookClick: (KomgaBookId) -> Unit,
-) {
-    val paddingMod = when (LocalWindowWidth.current) {
-        COMPACT, MEDIUM -> Modifier.padding(horizontal = 5.dp)
-        else -> Modifier.padding(horizontal = 50.dp)
-    }
-    val scrollState = rememberLazyListState()
-    Box {
-        LazyColumn(
-            state = scrollState,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = paddingMod
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            seriesSearchResults(results.series, onSeriesClick = onSeriesClick)
-            booksSearchResults(results.books, onBookClick = onBookClick)
+            SearchToolBar(
+                searchType = searchType,
+                onSearchTypeChange = onSearchTypeChange,
+                modifier = widthModifier
+            )
+
+            LazyColumn(
+                state = scrollState,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                when (searchType) {
+                    SearchType.SERIES -> {
+                        items(seriesResults) { series ->
+                            SeriesDetailedListCard(
+                                series = series,
+                                onClick = { onSeriesClick(series.id) },
+                                modifier = widthModifier
+                            )
+                        }
+                        item {
+                            Pagination(
+                                totalPages = seriesTotalPages,
+                                currentPage = seriesCurrentPage,
+                                onPageChange = onSeriesPageChange
+                            )
+                        }
+                    }
+
+                    SearchType.BOOKS -> {
+                        items(bookResults) { book ->
+                            BookDetailedListCard(
+                                book = book,
+                                onClick = { onBookClick(book.id) },
+                                modifier = widthModifier
+                            )
+                        }
+                        item {
+                            Pagination(
+                                totalPages = bookTotalPages,
+                                currentPage = bookCurrentPage,
+                                onPageChange = onBookPageChange
+                            )
+                        }
+
+                    }
+                }
+            }
         }
 
         VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
     }
 }
 
-private fun LazyListScope.seriesSearchResults(
-    results: List<KomgaSeries>,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
-) {
-    if (results.isNotEmpty()) {
-        item { Text("Series", modifier = Modifier.padding(top = 10.dp)) }
-        items(results) {
-            SeriesDetailedListCard(it, onClick = { onSeriesClick(it.id) })
-        }
-    }
-}
-
-private fun LazyListScope.booksSearchResults(
-    results: List<KomgaBook>,
+@Composable
+fun BookSearchContent(
+    bookResults: List<KomgaBook>,
+    bookCurrentPage: Int,
+    bookTotalPages: Int,
+    onBookPageChange: (Int) -> Unit,
     onBookClick: (KomgaBookId) -> Unit,
+
+//    scrollState: LazyListState,
 ) {
-    if (results.isNotEmpty()) {
-        item { Text("Books", modifier = Modifier.padding(top = 10.dp)) }
-        items(results) {
-            BookDetailedListCard(it, onClick = { onBookClick(it.id) })
+    val scrollState = rememberLazyListState()
+    Box {
+        LazyColumn(
+            state = scrollState,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items(bookResults) {
+                BookDetailedListCard(it, onClick = { onBookClick(it.id) })
+            }
+            item {
+                Pagination(
+                    totalPages = bookTotalPages,
+                    currentPage = bookCurrentPage,
+                    onPageChange = onBookPageChange
+                )
+            }
+
         }
+        VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
     }
 }
 
 @Composable
-private fun SearchToolBar(
-    onBackClick: () -> Unit,
+fun SeriesSearchContent(
+    seriesResults: List<KomgaSeries>,
+    seriesCurrentPage: Int,
+    seriesTotalPages: Int,
+    onSeriesPageChange: (Int) -> Unit,
+    onSeriesClick: (KomgaSeriesId) -> Unit,
+//    scrollState: LazyListState,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = { onBackClick() }) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = null)
+    val scrollState = rememberLazyListState()
+    Box {
+        LazyColumn(
+            state = scrollState,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            items(seriesResults) {
+                SeriesDetailedListCard(it, onClick = { onSeriesClick(it.id) })
+            }
+            item {
+                Pagination(
+                    totalPages = seriesTotalPages,
+                    currentPage = seriesCurrentPage,
+                    onPageChange = onSeriesPageChange
+                )
+            }
         }
-        Spacer(Modifier.width(10.dp))
+        VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
+    }
+}
 
-        Text("Search")
+@Composable
+private fun EmptySearchResults() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(100.dp))
+        Text("The search returned no results", style = MaterialTheme.typography.titleLarge)
+        Text("Try searching for something else")
+    }
+}
+
+@Composable
+fun SearchToolBar(
+    searchType: SearchType,
+    onSearchTypeChange: (SearchType) -> Unit,
+    modifier: Modifier
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        Spacer(Modifier.width(20.dp))
+
+
+        val chipColors = FilterChipDefaults.filterChipColors(
+
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+        )
+        FilterChip(
+            onClick = { onSearchTypeChange(SearchType.SERIES) },
+            selected = searchType == SearchType.SERIES,
+            label = { Text("Series") },
+            colors = chipColors,
+            border = null,
+        )
+        FilterChip(
+            onClick = { onSearchTypeChange(SearchType.BOOKS) },
+            selected = searchType == SearchType.BOOKS,
+            label = { Text("Books") },
+            colors = chipColors,
+            border = null,
+        )
     }
 }
 

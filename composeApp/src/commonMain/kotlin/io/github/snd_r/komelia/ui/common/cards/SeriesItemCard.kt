@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
@@ -35,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.common.NoPaddingChip
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
@@ -185,9 +188,10 @@ private fun SeriesImageOverlay(
 @Composable
 fun SeriesDetailedListCard(
     series: KomgaSeries,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Card(Modifier
+    Card(modifier
         .cursorForHand()
         .clickable { onClick() }) {
         Row(
@@ -208,12 +212,18 @@ private fun SeriesDetails(series: KomgaSeries) {
         Row {
             Text(series.metadata.title, fontWeight = FontWeight.Bold)
         }
-        Row(
+        LazyRow(
             modifier = Modifier.padding(vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            series.metadata.genres.forEach { genre ->
-                Text(genre, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            items(series.metadata.genres) {
+                NoPaddingChip(
+                    borderColor = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                }
+
             }
         }
         Text(series.metadata.summary, maxLines = 4, style = MaterialTheme.typography.bodyMedium)

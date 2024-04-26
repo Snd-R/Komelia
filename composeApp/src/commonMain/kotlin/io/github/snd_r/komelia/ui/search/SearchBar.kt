@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -13,13 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -44,8 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.NoPaddingTextField
-import io.github.snd_r.komelia.ui.common.images.BookThumbnail
-import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
+import io.github.snd_r.komelia.ui.common.cards.BookSimpleImageCard
+import io.github.snd_r.komelia.ui.common.cards.SeriesSimpleImageCard
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.library.KomgaLibrary
@@ -55,13 +58,14 @@ import io.github.snd_r.komga.series.KomgaSeriesId
 
 val expandedSearchBarWidth = 600.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
     searchResults: SearchResults,
     query: String,
     isLoading: Boolean,
     onQueryChange: (String) -> Unit,
-    onSearchAllClick: (String?) -> Unit,
+    onSearchAllClick: (String) -> Unit,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onBookClick: (KomgaBookId) -> Unit,
     onSeriesClick: (KomgaSeriesId) -> Unit,
@@ -72,7 +76,6 @@ fun SearchBar(
         interactionSource.interactions.collect { interaction ->
             when (interaction) {
                 is FocusInteraction.Unfocus -> {
-                    onQueryChange("")
                     isFocused = false
                 }
 
@@ -85,14 +88,18 @@ fun SearchBar(
     val isExpanded = derivedStateOf { isFocused && query.isNotBlank() }
     BoxWithConstraints {
         val maxHeight = maxHeight
-        Box {
+        ExposedDropdownMenuBox(
+            expanded = isExpanded.value,
+            onExpandedChange = {}
+        ) {
 
             SearchTextField(
                 query = query,
                 onQueryChange = onQueryChange,
-                onSearchAllPress = onSearchAllClick,
-                onDismiss = { focusManager.clearFocus() },
-                interactionSource = interactionSource
+                onDone = onSearchAllClick,
+                onDismiss = { onQueryChange("") },
+                interactionSource = interactionSource,
+                modifier = Modifier.menuAnchor()
             )
             DropdownMenu(
                 expanded = isExpanded.value,
@@ -124,7 +131,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
     searchResults: SearchResults,
     isLoading: Boolean,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
-    onSearchAllClick: (String?) -> Unit,
+    onSearchAllClick: (String) -> Unit,
     onSeriesClick: (KomgaSeriesId) -> Unit,
     onBookClick: (KomgaBookId) -> Unit,
     onDismiss: () -> Unit,
@@ -151,41 +158,59 @@ private fun ColumnScope.SearchResultsDropDownBox(
     )
 
 
-    val series = searchResults.series
-    if (series.isNotEmpty()) {
-        Text(
-            text = "SERIES",
-            modifier = Modifier.padding(5.dp)
-        )
-        series.forEach {
-            SeriesSearchEntry(
-                series = it,
-                library = libraryById(it.libraryId),
-                onSeriesClick = {
-                    onSeriesClick(it.id)
-                    onDismiss()
-                }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        val series = searchResults.series
+        if (series.isNotEmpty()) {
+            Text(text = "Series")
+            series.forEach {
+                SeriesSearchEntry(
+                    series = it,
+                    library = libraryById(it.libraryId),
+                    onSeriesClick = {
+                        onSeriesClick(it.id)
+                        onDismiss()
+                    }
+                )
+            }
+        }
+        val books = searchResults.books
+        if (books.isNotEmpty()) {
+            Text(
+                text = "Books",
+                modifier = Modifier.padding(5.dp)
             )
+            books.forEach {
+                BookSearchEntry(
+                    book = it,
+                    library = libraryById(it.libraryId),
+                    onBookClick = {
+                        onBookClick(it.id)
+                        onDismiss()
+                    }
+                )
+            }
         }
     }
-    val books = searchResults.books
-    if (books.isNotEmpty()) {
-        Text(
-            text = "BOOKS",
-            modifier = Modifier.padding(5.dp)
-        )
-        books.forEach {
-            BookSearchEntry(
-                book = it,
-                library = libraryById(it.libraryId),
-                onBookClick = {
-                    onBookClick(it.id)
-                    onDismiss()
-                }
-            )
-        }
-    }
+}
 
+@Composable
+private fun EntryContainer(
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .clickable { onClick() }
+            .cursorForHand()
+            .padding(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        content()
+    }
 }
 
 @Composable
@@ -194,21 +219,17 @@ private fun SeriesSearchEntry(
     library: KomgaLibrary?,
     onSeriesClick: () -> Unit,
 ) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .clickable { onSeriesClick() }
-            .cursorForHand()
-            .padding(10.dp)
-    ) {
-        SeriesThumbnail(series.id)
-//        SeriesSimpleImageCard(series, null)
-        Column(Modifier.padding(horizontal = 10.dp)) {
+    EntryContainer(onSeriesClick) {
+        SeriesSimpleImageCard(
+            series = series,
+            onSeriesClick = onSeriesClick,
+            modifier = Modifier
+                .width(70.dp)
+                .height(100.dp)
+        )
+        Column {
             Text(series.metadata.title)
-            library?.let {
-                Text("in ${library.name}")
-            }
+            library?.let { Text("in ${library.name}") }
         }
     }
 }
@@ -219,29 +240,28 @@ private fun BookSearchEntry(
     library: KomgaLibrary?,
     onBookClick: () -> Unit,
 ) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable { onBookClick() }
-            .padding(vertical = 10.dp)
-    ) {
-        BookThumbnail(book.id, Modifier.size(100.dp))
-        Column() {
+    EntryContainer(onBookClick) {
+        BookSimpleImageCard(
+            book = book,
+            onBookClick = onBookClick,
+            modifier = Modifier
+                .width(70.dp)
+                .height(100.dp)
+        )
+        Column {
             Text(book.metadata.title)
-            library?.let {
-                Text("in ${library.name}")
-            }
+            library?.let { Text("in ${library.name}") }
         }
     }
 }
 
 
 @Composable
-private fun SearchTextField(
+fun SearchTextField(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearchAllPress: (String?) -> Unit,
-    onDismiss: () -> Unit,
+    onDone: (String) -> Unit,
+    onDismiss: () -> Unit = {},
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     modifier: Modifier = Modifier,
 ) {
@@ -265,7 +285,7 @@ private fun SearchTextField(
                 when {
                     keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp -> {
                         focusManager.clearFocus()
-                        onSearchAllPress(query)
+                        onDone(query)
                         true
                     }
 
@@ -295,6 +315,10 @@ private fun SearchTextField(
                     modifier = Modifier.cursorForHand()
                 )
             }
-        }
+        },
+
+        keyboardActions = KeyboardActions(
+            onDone = { onDone(query) },
+        )
     )
 }

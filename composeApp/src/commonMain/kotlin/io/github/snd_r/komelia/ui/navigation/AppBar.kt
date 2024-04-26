@@ -24,7 +24,7 @@ fun AppBar(
     query: String,
     onQueryChange: (String) -> Unit,
     isLoading: Boolean,
-    onSearchAllClick: (String?) -> Unit,
+    onSearchAllClick: (String) -> Unit,
     searchResults: SearchResults,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onBookClick: (KomgaBookId) -> Unit,
