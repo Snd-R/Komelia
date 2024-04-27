@@ -239,82 +239,79 @@ fun LibraryToolBar(
     onCollectionsClick: () -> Unit,
     onReadListsClick: () -> Unit,
 ) {
-    Row(
+
+    val chipColors = FilterChipDefaults.filterChipColors(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        selectedContainerColor = MaterialTheme.colorScheme.primary,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+    )
+    var showOptionsMenu by remember { mutableStateOf(false) }
+
+    LazyRow(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        var showOptionsMenu by remember { mutableStateOf(false) }
-        if (library != null) {
-            Box {
-                IconButton(
-                    onClick = { showOptionsMenu = true }
-                ) {
-                    Icon(
-                        Icons.Rounded.MoreVert,
-                        contentDescription = null,
+        item {
+            if (library != null) {
+                Box {
+                    IconButton(
+                        onClick = { showOptionsMenu = true }
+                    ) {
+                        Icon(
+                            Icons.Rounded.MoreVert,
+                            contentDescription = null,
+                        )
+                    }
+
+                    LibraryActionsMenu(
+                        library = library,
+                        actions = libraryActions,
+                        expanded = showOptionsMenu,
+                        onDismissRequest = { showOptionsMenu = false }
                     )
                 }
+            }
+            Text(library?.let { library.name } ?: "All Libraries")
 
-                LibraryActionsMenu(
-                    library = library,
-                    actions = libraryActions,
-                    expanded = showOptionsMenu,
-                    onDismissRequest = { showOptionsMenu = false }
+            Spacer(Modifier.width(5.dp))
+        }
+
+
+        if (collectionsCount > 0 || readListsCount > 0)
+            item {
+                FilterChip(
+                    onClick = onBrowseClick,
+                    selected = currentTab == SERIES,
+                    label = { Text("Series") },
+                    colors = chipColors,
+                    border = null,
                 )
             }
-        }
-        Text(library?.let { library.name } ?: "All Libraries")
 
-        Spacer(Modifier.width(5.dp))
+        if (collectionsCount > 0)
+            item {
+                FilterChip(
+                    onClick = onCollectionsClick,
+                    selected = currentTab == COLLECTIONS,
+                    label = { Text("Collections") },
+                    colors = chipColors,
+                    border = null,
+                )
+            }
 
-        val chipColors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-        )
+        if (readListsCount > 0)
+            item {
+                FilterChip(
+                    onClick = onReadListsClick,
+                    selected = currentTab == READ_LISTS,
+                    label = { Text("Read Lists") },
+                    colors = chipColors,
+                    border = null,
+                )
+            }
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-
-            if (collectionsCount > 0 || readListsCount > 0)
-                item {
-                    FilterChip(
-                        onClick = onBrowseClick,
-                        selected = currentTab == SERIES,
-                        label = { Text("Series") },
-                        colors = chipColors,
-                        border = null,
-                    )
-                }
-
-            if (collectionsCount > 0)
-                item {
-                    FilterChip(
-                        onClick = onCollectionsClick,
-                        selected = currentTab == COLLECTIONS,
-                        label = { Text("Collections") },
-                        colors = chipColors,
-                        border = null,
-                    )
-                }
-
-            if (readListsCount > 0)
-                item {
-                    FilterChip(
-                        onClick = onReadListsClick,
-                        selected = currentTab == READ_LISTS,
-                        label = { Text("Read Lists") },
-                        colors = chipColors,
-                        border = null,
-                    )
-                }
-
-        }
     }
 }
-
 
 @Composable
 fun CompactLibraryToolBar(

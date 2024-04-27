@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberBasicTooltipState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
@@ -70,23 +72,109 @@ fun NavBarContent(
     onSettingsClick: () -> Unit,
     taskQueueStatus: TaskQueueStatus?,
 ) {
-        Surface(Modifier.width(230.dp)) {
-            NavMenu(
+    Surface(Modifier.width(230.dp)) {
+        NavMenu(
+            currentScreen = currentScreen,
+            libraries = libraries,
+            libraryActions = libraryActions,
+            onHomeClick = onHomeClick,
+            onLibrariesClick = onLibrariesClick,
+            onLibraryClick = onLibraryClick,
+            onSettingsClick = onSettingsClick
+        )
+        if (taskQueueStatus != null && taskQueueStatus.count > 0) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                TaskQueueIndicator(taskQueueStatus)
+            }
+        }
+    }
+}
+
+@Composable
+fun LibrariesNavBarContent(
+    currentScreen: Screen,
+    libraries: List<KomgaLibrary>,
+    libraryActions: LibraryMenuActions,
+    onLibrariesClick: () -> Unit,
+    onLibraryClick: (KomgaLibraryId) -> Unit,
+) {
+    Surface(Modifier.width(230.dp)) {
+        val scrollState: ScrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .padding(top = 20.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
+
+            LibrariesNavBarContent(
                 currentScreen = currentScreen,
                 libraries = libraries,
                 libraryActions = libraryActions,
-                onHomeClick = onHomeClick,
                 onLibrariesClick = onLibrariesClick,
-                onLibraryClick = onLibraryClick,
-                onSettingsClick = onSettingsClick
+                onLibraryClick = onLibraryClick
             )
-            if (taskQueueStatus != null && taskQueueStatus.count > 0) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                    TaskQueueIndicator(taskQueueStatus)
-                }
-            }
         }
+    }
+
 }
+
+@Composable
+fun ColumnScope.LibrariesNavBarContent(
+    currentScreen: Screen,
+    libraries: List<KomgaLibrary>,
+    libraryActions: LibraryMenuActions,
+    onLibrariesClick: () -> Unit,
+    onLibraryClick: (KomgaLibraryId) -> Unit,
+) {
+    var showLibraryAddDialog by remember { mutableStateOf(false) }
+    if (showLibraryAddDialog) {
+        LibraryEditDialogs(
+            library = null,
+            onDismissRequest = { showLibraryAddDialog = false }
+        )
+    }
+
+    NavButton(
+        onClick = { onLibrariesClick() },
+        icon = Icons.AutoMirrored.Filled.LibraryBooks,
+        label = "Libraries",
+        isSelected = false,
+        actionButton = {
+            IconButton(onClick = { showLibraryAddDialog = true }) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                )
+            }
+        })
+
+    libraries.forEach { library ->
+        NavButton(
+            onClick = { onLibraryClick(library.id) },
+            icon = null,
+            label = library.name,
+            isSelected = currentScreen is LibraryScreen && currentScreen.libraryId == library.id,
+            actionButton = {
+                var showMenu by remember { mutableStateOf(false) }
+                IconButton(onClick = { showMenu = true }) {
+
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = null,
+                    )
+
+                    LibraryActionsMenu(
+                        library = library,
+                        actions = libraryActions,
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    )
+                }
+            })
+    }
+}
+
 
 @Composable
 private fun NavMenu(
@@ -123,45 +211,13 @@ private fun NavMenu(
                 label = "Home",
                 isSelected = currentScreen is HomeScreen
             )
-
-            NavButton(
-                onClick = { onLibrariesClick() },
-                icon = Icons.AutoMirrored.Filled.LibraryBooks,
-                label = "Libraries",
-                isSelected = false,
-                actionButton = {
-                    IconButton(onClick = { showLibraryAddDialog = true }) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                        )
-                    }
-                })
-
-            libraries.forEach { library ->
-                NavButton(
-                    onClick = { onLibraryClick(library.id) },
-                    icon = null,
-                    label = library.name,
-                    isSelected = currentScreen is LibraryScreen && currentScreen.libraryId == library.id,
-                    actionButton = {
-                        var showMenu by remember { mutableStateOf(false) }
-                        IconButton(onClick = { showMenu = true }) {
-
-                            Icon(
-                                Icons.Default.MoreVert,
-                                contentDescription = null,
-                            )
-
-                            LibraryActionsMenu(
-                                library = library,
-                                actions = libraryActions,
-                                expanded = showMenu,
-                                onDismissRequest = { showMenu = false }
-                            )
-                        }
-                    })
-            }
+            LibrariesNavBarContent(
+                currentScreen = currentScreen,
+                libraries = libraries,
+                libraryActions = libraryActions,
+                onLibrariesClick = onLibrariesClick,
+                onLibraryClick = onLibraryClick
+            )
 
             HorizontalDivider(Modifier.padding(0.dp, 20.dp))
             NavButton(
@@ -188,7 +244,8 @@ private fun NavButton(
 ) {
     TextButton(
         onClick = onClick,
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = PaddingValues(0.dp),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Start,
