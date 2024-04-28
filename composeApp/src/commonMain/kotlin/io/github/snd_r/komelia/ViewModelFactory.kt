@@ -91,7 +91,6 @@ class ViewModelFactory(
 
     fun getHomeViewModel(libraryId: KomgaLibraryId?): HomeViewModel {
         return HomeViewModel(
-            libraryFlow = getLibraryFlow(libraryId),
             seriesClient = komgaClientFactory.seriesClient(),
             bookClient = komgaClientFactory.bookClient(),
             appNotifications = appNotifications,

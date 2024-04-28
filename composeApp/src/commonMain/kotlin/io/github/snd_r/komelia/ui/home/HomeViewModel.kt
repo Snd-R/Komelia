@@ -20,7 +20,6 @@ import io.github.snd_r.komga.book.KomgaBookQuery
 import io.github.snd_r.komga.book.KomgaBooksSort
 import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.sse.KomgaEvent
@@ -49,10 +48,8 @@ class HomeViewModel(
     private val bookClient: KomgaBookClient,
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
-    libraryFlow: Flow<KomgaLibrary?>,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-    val library = libraryFlow.stateIn(screenModelScope, Eagerly, null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     var keepReadingBooks by mutableStateOf<List<KomgaBook>>(emptyList())
@@ -111,7 +108,6 @@ class HomeViewModel(
         val books = bookClient.getAllBooks(
             query = KomgaBookQuery(
                 readStatus = listOf(KomgaReadStatus.IN_PROGRESS),
-                libraryIds = library.value?.let { listOf(it.id) } ?: emptyList()
             ),
             pageRequest = pageRequest
         ).content
@@ -125,7 +121,6 @@ class HomeViewModel(
         val books = bookClient.getAllBooks(
             pageRequest = pageRequest,
             query = KomgaBookQuery(
-                libraryIds = library.value?.let { listOf(it.id) } ?: emptyList(),
                 releasedAfter = Clock.System.todayIn(UTC).minus(1, MONTH)
             ),
         ).content
@@ -138,9 +133,6 @@ class HomeViewModel(
         val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byCreatedDateDesc())
 
         val books = bookClient.getAllBooks(
-            query = KomgaBookQuery(
-                libraryIds = library.value?.let { listOf(it.id) } ?: emptyList(),
-            ),
             pageRequest = pageRequest,
         ).content
 
@@ -150,7 +142,6 @@ class HomeViewModel(
 
     private suspend fun loadRecentlyAddedSeries() {
         val series = seriesClient.getNewSeries(
-            libraryIds = library.value?.id?.let { listOf(it) },
             oneshot = false
         ).content
         recentlyAddedSeries.clear()
@@ -159,7 +150,6 @@ class HomeViewModel(
 
     private suspend fun loadRecentlyUpdatedSeries() {
         val series = seriesClient.getUpdatedSeries(
-            libraryIds = library.value?.id?.let { listOf(it) },
             oneshot = false
         ).content
         recentlyUpdatedSeries.clear()
@@ -170,15 +160,11 @@ class HomeViewModel(
         komgaEvents.collect { event ->
             when (event) {
                 is BookEvent -> {
-                    if (event.libraryId == library.value?.id) {
-                        reloadJobsFlow.tryEmit(Unit)
-                    }
+                    reloadJobsFlow.tryEmit(Unit)
                 }
 
                 is SeriesEvent -> {
-                    if (event.libraryId == library.value?.id) {
-                        reloadJobsFlow.tryEmit(Unit)
-                    }
+                    reloadJobsFlow.tryEmit(Unit)
                 }
 
                 is ReadProgressEvent -> {
