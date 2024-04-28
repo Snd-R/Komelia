@@ -147,6 +147,7 @@ class PagedReaderState(
             currentSpreadIndex.value = spreadIndex
         }
 
+        pageLoadScope.coroutineContext.cancelChildren()
         pageLoadScope.launch { loadSpread(spreadIndex) }
     }
 
