@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "io.github.snd-r"
-version = "0.2"
+version = "0.3"
 
 dependencies {
     // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
