@@ -182,7 +182,7 @@ private fun Image(
             ReaderImage(
                 image = result.image,
                 contentScale = imageScale,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
 
             )
         }

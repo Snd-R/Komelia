@@ -27,7 +27,7 @@ fun LibraryEditDialogs(
     val title = if (library != null) "Edit Library" else "Add Library"
     val confirmationText = remember(library, vm.currentTab) {
         when {
-            library == null -> "Edit"
+            library != null -> "Edit"
             vm.currentTab is MetadataTab -> "Add"
             else -> "Next"
         }
