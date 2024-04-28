@@ -125,8 +125,8 @@ class ScreenScaleState {
 
     private fun canPan(): Boolean {
         val xLimits = offsetXLimits.value
-        val yLimits = offsetXLimits.value
-        return (currentOffset.x > xLimits.start && currentOffset.x < xLimits.endInclusive) &&
+        val yLimits = offsetYLimits.value
+        return (currentOffset.x > xLimits.start && currentOffset.x < xLimits.endInclusive) ||
                 (currentOffset.y > yLimits.start && currentOffset.y < yLimits.endInclusive)
     }
 
