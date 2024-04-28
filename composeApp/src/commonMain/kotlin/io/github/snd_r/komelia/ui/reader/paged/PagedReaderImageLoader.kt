@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.ui.reader.paged
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import coil3.ImageLoader
@@ -148,13 +147,6 @@ class PagedReaderImageLoader(
                 } else scaleState.setZoom(0f)
             }
         }
-
-        scaleState.addPan(
-            Offset(
-                scaleState.offsetXLimits.value.endInclusive,
-                scaleState.offsetYLimits.value.endInclusive
-            )
-        )
 
         return scaleState
     }

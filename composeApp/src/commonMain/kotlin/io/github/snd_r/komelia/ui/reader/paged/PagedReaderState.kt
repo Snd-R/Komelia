@@ -1,5 +1,7 @@
 package io.github.snd_r.komelia.ui.reader.paged
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.request.ImageResult
@@ -15,6 +17,8 @@ import io.github.snd_r.komelia.ui.reader.SpreadIndex
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageSpread
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,7 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -55,7 +58,7 @@ class PagedReaderState(
     override val layout = MutableStateFlow(SINGLE_PAGE)
     override val layoutOffset = MutableStateFlow(false)
     override val scaleType = MutableStateFlow(LayoutScaleType.SCREEN)
-    override val readingDirection = MutableStateFlow(ReadingDirection.LEFT_TO_RIGHT)
+    override val readingDirection = MutableStateFlow(LEFT_TO_RIGHT)
 
     suspend fun initialize() {
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
@@ -80,11 +83,13 @@ class PagedReaderState(
 
         screenScaleState.transformation
             .map { it.scale }
-            .filter { it.isFinite() }
             .distinctUntilChanged()
             .onEach { newScaleFactor ->
-                if (currentSpread.value.pages.any { it.scaleFactor != newScaleFactor })
+                if (screenScaleState.targetSize.value != Size.Zero
+                    && currentSpread.value.pages.any { it.scaleFactor != newScaleFactor }
+                ) {
                     resamplePages()
+                }
             }
             .launchIn(stateScope)
 
@@ -200,6 +205,21 @@ class PagedReaderState(
             targetSize = completedJob.scale.targetSize.value,
             zoom = completedJob.scale.zoom.value
         )
+        when (readingDirection.value) {
+            LEFT_TO_RIGHT -> screenScaleState.addPan(
+                Offset(
+                    screenScaleState.offsetXLimits.value.endInclusive,
+                    screenScaleState.offsetYLimits.value.endInclusive
+                )
+            )
+
+            RIGHT_TO_LEFT -> screenScaleState.addPan(
+                Offset(
+                    screenScaleState.offsetXLimits.value.start,
+                    screenScaleState.offsetYLimits.value.endInclusive
+                )
+            )
+        }
     }
 
     private fun resamplePages() {

@@ -45,7 +45,7 @@ class ScreenScaleState {
     private val scrollState = MutableStateFlow<ScrollableState?>(null)
     private val scrollReversed = MutableStateFlow(false)
 
-    val transformation = MutableStateFlow(Transformation(offset = currentOffset, scale = zoomToScale(zoom.value)))
+    val transformation = MutableStateFlow(Transformation(offset = Offset.Zero, scale = 1f))
 
     fun scaleFor100PercentZoom() =
         max(
@@ -117,8 +117,17 @@ class ScreenScaleState {
         ).animateDecay(spec) {
             val delta = value - lastValue
             lastValue = value
-            addPan(delta)
+
+            if (!canPan() && scrollState.value == null) this.cancelAnimation()
+            else addPan(delta)
         }
+    }
+
+    private fun canPan(): Boolean {
+        val xLimits = offsetXLimits.value
+        val yLimits = offsetXLimits.value
+        return (currentOffset.x > xLimits.start && currentOffset.x < xLimits.endInclusive) &&
+                (currentOffset.y > yLimits.start && currentOffset.y < yLimits.endInclusive)
     }
 
     fun addPan(pan: Offset) {
@@ -156,7 +165,7 @@ class ScreenScaleState {
         setZoom(zoom.value + addZoom, focus)
     }
 
-    fun setScrollState(scrollableState: ScrollableState) {
+    fun setScrollState(scrollableState: ScrollableState?) {
         this.scrollState.value = scrollableState
     }
 

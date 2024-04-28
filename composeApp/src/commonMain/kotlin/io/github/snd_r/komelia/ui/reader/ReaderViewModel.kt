@@ -70,13 +70,14 @@ class ReaderViewModel(
                 .collect {
                     when (it) {
                         ReaderType.PAGED -> {
-                            pagedReaderState.initialize()
                             continuousReaderState.stop()
+                            screenScaleState.setScrollState(null)
+                            pagedReaderState.initialize()
                         }
 
                         ReaderType.CONTINUOUS -> {
-                            continuousReaderState.initialize()
                             pagedReaderState.stop()
+                            continuousReaderState.initialize()
                         }
                     }
                 }
