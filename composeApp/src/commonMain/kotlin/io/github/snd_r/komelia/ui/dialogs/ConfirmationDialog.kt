@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
@@ -56,7 +57,10 @@ fun ConfirmationDialog(
 
                 FlowRow {
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = onDialogDismiss) {
+                    TextButton(
+                        onClick = onDialogDismiss,
+                        shape = RoundedCornerShape(5.dp),
+                    ) {
                         Text(buttonCancel)
                     }
                     Spacer(Modifier.size(10.dp))
@@ -66,7 +70,8 @@ fun ConfirmationDialog(
                             onClick = {
                                 onDialogConfirmAlternate()
                                 onDialogDismiss()
-                            }
+                            },
+                            shape = RoundedCornerShape(5.dp),
                         ) {
                             Text(buttonAlternate)
                         }
@@ -82,7 +87,8 @@ fun ConfirmationDialog(
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = buttonConfirmColor,
                             contentColor = MaterialTheme.colorScheme.primary
-                        )
+                        ),
+                        shape = RoundedCornerShape(5.dp),
                     ) {
                         Text(buttonConfirm)
                     }

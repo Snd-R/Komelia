@@ -76,9 +76,9 @@ private fun AnnouncementTitle(title: String, url: String?) {
 
     val style =
         if (isHovered.value)
-            MaterialTheme.typography.headlineLarge.copy(textDecoration = TextDecoration.Underline)
+            MaterialTheme.typography.headlineMedium.copy(textDecoration = TextDecoration.Underline)
         else
-            MaterialTheme.typography.headlineLarge
+            MaterialTheme.typography.headlineMedium
 
     Text(title, style = style, modifier = onClickModifier)
 }

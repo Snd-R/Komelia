@@ -51,7 +51,6 @@ fun AppSettingsContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.animateContentSize(spring(stiffness = Spring.StiffnessLow))
     ) {
-
         Row(
             modifier = Modifier
                 .clickable { showCardSettings = !showCardSettings }

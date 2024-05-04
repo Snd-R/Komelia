@@ -35,16 +35,30 @@ fun MediaAnalysisContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Pagination(totalPages, currentPage, onPageChange, false)
+        Pagination(
+            totalPages = totalPages,
+            currentPage = currentPage,
+            onPageChange = onPageChange,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
 
-        books.forEach {
-            BookAnalysisCard(
-                book = it,
-                onBookClick = onBookClick,
-                modifier = Modifier
-            )
+        if (books.isEmpty()) {
+            Text("Nothing to show")
+        } else {
+            books.forEach {
+                BookAnalysisCard(
+                    book = it,
+                    onBookClick = onBookClick,
+                    modifier = Modifier
+                )
+            }
         }
-        Pagination(totalPages, currentPage, onPageChange, false)
+        Pagination(
+            totalPages = totalPages,
+            currentPage = currentPage,
+            onPageChange = onPageChange,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
     }
 }
 

@@ -110,40 +110,42 @@ private fun ToolBar(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
         ) {
 
-            SuggestionChip(
-                onClick = {},
-                label = { Text("$seriesTotalCount series") },
-            )
+            if (seriesTotalCount != 0) {
+                SuggestionChip(
+                    onClick = {},
+                    label = { Text("$seriesTotalCount series") },
+                )
 
-            Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
-            if (filterState != null) {
-                val color =
-                    if (filterState.isChanged) MaterialTheme.colorScheme.tertiary
-                    else MaterialTheme.colorScheme.primary
+                if (filterState != null) {
+                    val color =
+                        if (filterState.isChanged) MaterialTheme.colorScheme.tertiary
+                        else MaterialTheme.colorScheme.primary
 
-                IconButton(onClick = { showFilters = !showFilters }, modifier = Modifier.cursorForHand()) {
-                    Icon(Icons.Default.FilterList, null, tint = color)
+                    IconButton(onClick = { showFilters = !showFilters }, modifier = Modifier.cursorForHand()) {
+                        Icon(Icons.Default.FilterList, null, tint = color)
+                    }
                 }
+
+                DropdownChoiceMenu(
+                    selectedOption = intEntry(pageSize),
+                    options = listOf(
+                        intEntry(20),
+                        intEntry(50),
+                        intEntry(100),
+                        intEntry(200),
+                        intEntry(500)
+                    ),
+                    onOptionChange = { onPageSizeChange(it.value) },
+                    contentPadding = PaddingValues(5.dp),
+                    textFieldModifier = Modifier
+                        .widthIn(min = 70.dp)
+                        .clip(RoundedCornerShape(5.dp))
+                        .padding(end = 10.dp)
+                )
+
             }
-
-            DropdownChoiceMenu(
-                selectedOption = intEntry(pageSize),
-                options = listOf(
-                    intEntry(20),
-                    intEntry(50),
-                    intEntry(100),
-                    intEntry(200),
-                    intEntry(500)
-                ),
-                onOptionChange = { onPageSizeChange(it.value) },
-                contentPadding = PaddingValues(5.dp),
-                textFieldModifier = Modifier
-                    .widthIn(min = 70.dp)
-                    .clip(RoundedCornerShape(5.dp))
-                    .padding(end = 10.dp)
-            )
-
         }
     }
 }

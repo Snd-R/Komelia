@@ -11,6 +11,7 @@ import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
 class AnnouncementsScreen : Screen {
 
@@ -20,11 +21,13 @@ class AnnouncementsScreen : Screen {
         val vm = rememberScreenModel { viewModelFactory.getAnnouncementsViewModel() }
         val state = vm.state.collectAsState()
 
-        when (val result = state.value) {
-            is Success -> AnnouncementsContent(result.value.items)
-            LoadState.Uninitialized, Loading -> LoadingMaxSizeIndicator()
+        SettingsScreenContainer("Announcements") {
+            when (val result = state.value) {
+                is Success -> AnnouncementsContent(result.value.items)
+                LoadState.Uninitialized, Loading -> LoadingMaxSizeIndicator()
 
-            is Error -> Text("Error")
+                is Error -> Text("Error")
+            }
         }
 
     }

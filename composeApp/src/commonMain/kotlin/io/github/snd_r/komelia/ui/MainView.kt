@@ -30,6 +30,7 @@ import io.github.snd_r.komelia.ViewModelFactory
 import io.github.snd_r.komelia.createViewModelFactory
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.ConfigurePlatformTheme
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.strings.Locales
@@ -50,6 +51,7 @@ val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key events are not set") }
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 val LocalStrings = staticCompositionLocalOf { EnStrings }
+val LocalPlatform = compositionLocalOf<PlatformType> { error("Platform type is not set") }
 
 val strings = mapOf(
     Locales.EN to EnStrings
@@ -69,6 +71,7 @@ private object ViewModelFactoryHolder {
 @Composable
 fun MainView(
     windowWidth: WindowWidth,
+    platformType: PlatformType,
     keyEvents: SharedFlow<KeyEvent>
 ) {
     MaterialTheme(colorScheme = AppTheme.dark) {
@@ -94,7 +97,8 @@ fun MainView(
                         LocalToaster provides notificationToaster,
                         LocalKomgaEvents provides actualViewModelFactory.getKomgaEvents(),
                         LocalKeyEvents provides keyEvents,
-                        LocalWindowWidth provides windowWidth
+                        LocalWindowWidth provides windowWidth,
+                        LocalPlatform provides platformType
                     ) {
 
                         Navigator(

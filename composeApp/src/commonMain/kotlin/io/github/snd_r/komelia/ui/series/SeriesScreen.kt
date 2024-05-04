@@ -44,8 +44,6 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
 
                     onFilterClick = { filter ->
                         val series = requireNotNull(vm.series)
-                        navigator.popUntilRoot()
-                        navigator.dispose(navigator.lastItem)
                         navigator.replaceAll(LibraryScreen(series.libraryId, filter))
                     },
 

@@ -17,31 +17,33 @@ import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
 class MediaAnalysisScreen : Screen {
-    @OptIn(InternalVoyagerApi::class)
     @Composable
+    @OptIn(InternalVoyagerApi::class)
     override fun Content() {
-        val rootNavigator = requireNotNull(LocalNavigator.currentOrThrow.parent)
+        val rootNavigator = LocalNavigator.currentOrThrow.parent ?: LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getMediaAnalysisViewModel() }
         LaunchedEffect(Unit) { vm.initialize() }
 
-        when (val state = vm.state.collectAsState().value) {
-            Uninitialized, Loading -> LoadingMaxSizeIndicator()
-            is Error -> Text(state.exception.message ?: "Error")
-            is Success -> MediaAnalysisContent(
-                books = vm.books,
-                onBookClick = {
-                    rootNavigator.popUntilRoot()
-                    rootNavigator.dispose(rootNavigator.lastItem)
-                    rootNavigator.replaceAll(MainScreen(BookScreen(it)))
-                },
-                currentPage = vm.currentPage,
-                totalPages = vm.totalPages,
-                onPageChange = vm::loadPage
-            )
+        SettingsScreenContainer("Media Analysis") {
+            when (val state = vm.state.collectAsState().value) {
+                Uninitialized, Loading -> LoadingMaxSizeIndicator()
+                is Error -> Text(state.exception.message ?: "Error")
+                is Success -> MediaAnalysisContent(
+                    books = vm.books,
+                    onBookClick = {
+                        rootNavigator.pop()
+                        rootNavigator.dispose(rootNavigator.lastItem)
+                        rootNavigator.replaceAll(MainScreen(BookScreen(it)))
+                    },
+                    currentPage = vm.currentPage,
+                    totalPages = vm.totalPages,
+                    onPageChange = vm::loadPage
+                )
+            }
         }
-
     }
 }

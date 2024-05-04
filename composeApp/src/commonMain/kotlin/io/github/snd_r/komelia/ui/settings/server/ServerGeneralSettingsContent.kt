@@ -51,11 +51,7 @@ fun ServerSettingsContent(
 ) {
     val strings = LocalStrings.current.settings
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
-
-        Text(strings.serverSettings, style = MaterialTheme.typography.titleLarge)
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp),) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
             DropdownChoiceMenu(

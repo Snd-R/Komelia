@@ -37,11 +37,11 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
+import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
+import io.github.snd_r.komelia.platform.PlatformType.MOBILE
+import io.github.snd_r.komelia.platform.PlatformType.WEB
 import io.github.snd_r.komelia.platform.WindowWidth
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.home.HomeScreen
@@ -51,6 +51,7 @@ import io.github.snd_r.komelia.ui.navigation.LibrariesNavBarContent
 import io.github.snd_r.komelia.ui.navigation.NavBarContent
 import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
+import io.github.snd_r.komelia.ui.settings.MobileSettingsScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreen
 import kotlinx.coroutines.launch
 
@@ -61,86 +62,96 @@ class MainScreen(
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val width = LocalWindowWidth.current
+        val platform = LocalPlatform.current
 
         Navigator(
             screen = defaultScreen,
             onBackPressed = null,
         ) { navigator ->
+
             val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel(navigator) }
-            val coroutineScope = rememberCoroutineScope()
-
-            LaunchedEffect(width) {
-                when (width) {
-                    FULL -> vm.navBarState.snapTo(Open)
-                    else -> vm.navBarState.snapTo(Closed)
-                }
-            }
-
-            Column {
-                when (width) {
-                    COMPACT, MEDIUM -> {
-                        Scaffold(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            bottomBar = {
-                                BottomNavigationBar(
-                                    navigator = navigator,
-                                    toggleLibrariesDrawer = { coroutineScope.launch { vm.toggleNavBar() } },
-                                    modifier = Modifier
-                                )
-                            },
-                        ) { paddingValues ->
-                            val layoutDirection = LocalLayoutDirection.current
-
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(
-                                        start = paddingValues.calculateStartPadding(layoutDirection),
-                                        end = paddingValues.calculateEndPadding(layoutDirection),
-                                        top = paddingValues.calculateTopPadding(),
-                                        bottom = paddingValues.calculateBottomPadding(),
-                                    )
-                            ) {
-                                ModalNavigationDrawer(
-                                    drawerState = vm.navBarState,
-                                    drawerContent = { LibrariesNavBar(vm, navigator) },
-                                    content = { CurrentScreen() }
-                                )
-                            }
-                        }
-                    }
-
-                    EXPANDED, FULL -> {
-                        AppBar(
-                            onMenuButtonPress = { vm.toggleNavBar() },
-                            query = vm.searchBarState.currentQuery(),
-                            onQueryChange = vm.searchBarState::onQueryChange,
-                            isLoading = vm.searchBarState.isLoading,
-                            onSearchAllClick = { navigator.push(SearchScreen(it)) },
-                            searchResults = vm.searchBarState.searchResults(),
-                            libraryById = vm.searchBarState::getLibraryById,
-                            onBookClick = { navigator.replaceAll(BookScreen(it)) },
-                            onSeriesClick = { navigator.replaceAll(SeriesScreen(it)) },
-                        )
-
-                        if (width == EXPANDED) {
-                            ModalNavigationDrawer(
-                                drawerState = vm.navBarState,
-                                drawerContent = { NavBar(vm, navigator, width) },
-                                content = { CurrentScreen() }
-                            )
-                        } else {
-                            Row {
-                                if (vm.navBarState.targetValue == Open) NavBar(vm, navigator, width)
-                                CurrentScreen()
-                            }
-                        }
-                    }
-                }
+            when (platform) {
+                MOBILE -> MobileLayout(navigator, vm)
+                DESKTOP, WEB -> DesktopLayout(navigator, vm)
             }
         }
+    }
 
+    @Composable
+    private fun DesktopLayout(
+        navigator: Navigator,
+        vm: MainScreenViewModel
+    ) {
+        val width = LocalWindowWidth.current
+        LaunchedEffect(width) {
+            when (width) {
+                FULL -> vm.navBarState.snapTo(Open)
+                else -> vm.navBarState.snapTo(Closed)
+            }
+        }
+        Column {
+            AppBar(
+                onMenuButtonPress = { vm.toggleNavBar() },
+                query = vm.searchBarState.currentQuery(),
+                onQueryChange = vm.searchBarState::onQueryChange,
+                isLoading = vm.searchBarState.isLoading,
+                onSearchAllClick = { navigator.push(SearchScreen(it)) },
+                searchResults = vm.searchBarState.searchResults(),
+                libraryById = vm.searchBarState::getLibraryById,
+                onBookClick = { navigator.replaceAll(BookScreen(it)) },
+                onSeriesClick = { navigator.replaceAll(SeriesScreen(it)) },
+            )
+
+            when (width) {
+                FULL -> Row {
+                    if (vm.navBarState.targetValue == Open) NavBar(vm, navigator, width)
+                    CurrentScreen()
+                }
+
+                else -> ModalNavigationDrawer(
+                    drawerState = vm.navBarState,
+                    drawerContent = { NavBar(vm, navigator, width) },
+                    content = {  CurrentScreen() }
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun MobileLayout(
+        navigator: Navigator,
+        vm: MainScreenViewModel
+    ) {
+        val coroutineScope = rememberCoroutineScope()
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
+            bottomBar = {
+                BottomNavigationBar(
+                    navigator = navigator,
+                    toggleLibrariesDrawer = { coroutineScope.launch { vm.toggleNavBar() } },
+                    modifier = Modifier
+                )
+            },
+        ) { paddingValues ->
+            val layoutDirection = LocalLayoutDirection.current
+
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = paddingValues.calculateStartPadding(layoutDirection),
+                        end = paddingValues.calculateEndPadding(layoutDirection),
+                        top = paddingValues.calculateTopPadding(),
+                        bottom = paddingValues.calculateBottomPadding(),
+                    )
+            ) {
+                ModalNavigationDrawer(
+                    drawerState = vm.navBarState,
+                    drawerContent = { LibrariesNavBar(vm, navigator) },
+                    content = { CurrentScreen() }
+                )
+            }
+        }
     }
 
     @Composable
@@ -183,7 +194,7 @@ class MainScreen(
                 CompactNavButton(
                     text = "Settings",
                     icon = Icons.Default.Settings,
-                    onClick = { navigator.parent!!.push(SettingsScreen()) },
+                    onClick = { navigator.parent!!.push(MobileSettingsScreen()) },
                     isSelected = navigator.lastItem is SettingsScreen,
                     modifier = Modifier.weight(1f)
                 )
@@ -246,6 +257,7 @@ class MainScreen(
                 if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
             onSettingsClick = { navigator.parent!!.push(SettingsScreen()) },
+//            onSettingsClick = { navigator.parent!!.push(SettingsCompactScreen()) },
             taskQueueStatus = vm.komgaTaskQueueStatus.collectAsState().value
         )
     }

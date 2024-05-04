@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.ui.settings.server
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,10 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
+import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 import io.github.snd_r.komga.settings.KomgaThumbnailSize
 import kotlinx.coroutines.Dispatchers
 
@@ -44,7 +45,8 @@ class ServerSettingsScreen : Screen {
             return
         }
 
-        Column {
+        val strings = LocalStrings.current.settings
+        SettingsScreenContainer(strings.serverSettings) {
             ServerSettingsContent(
                 deleteEmptyCollections = StateHolder(
                     deleteEmptyCollections.value,

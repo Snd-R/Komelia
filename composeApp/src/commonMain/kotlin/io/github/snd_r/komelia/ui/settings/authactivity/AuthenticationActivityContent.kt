@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -39,27 +40,22 @@ fun AuthenticationActivityContent(
     currentPage: Int,
     onPageChange: (Int) -> Unit,
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Text(
-            "Authentication Activity",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 10.dp)
-        )
-
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         activity.forEach {
             AuthenticationInfoCard(
                 activity = it,
                 showEmail = !forMe,
-                modifier = Modifier.fillMaxWidth().height(130.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
             )
         }
 
         Pagination(
             totalPages = totalPages,
             currentPage = currentPage,
-            onPageChange = onPageChange
+            onPageChange = onPageChange,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
 

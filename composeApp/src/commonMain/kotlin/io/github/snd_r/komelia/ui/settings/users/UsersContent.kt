@@ -10,10 +10,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -58,9 +57,6 @@ fun UsersContent(
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("Users", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(10.dp))
-
         users.forEach { (user, activity) ->
             UserCard(
                 currentUser = currentUser,
@@ -93,7 +89,7 @@ private fun UserCard(
     var expandActions by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
-            .widthIn(max = 600.dp)
+            .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { expandActions = !expandActions }
             .cursorForHand()

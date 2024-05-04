@@ -8,6 +8,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
 import kotlinx.browser.window
@@ -23,8 +24,9 @@ fun main() {
             width = WindowWidth.fromDp(window.innerWidth.dp)
         }
         MainView(
-            width,
-            MutableSharedFlow()
+            windowWidth = width,
+            platformType = PlatformType.WEB,
+            keyEvents = MutableSharedFlow()
         )
     }
 }

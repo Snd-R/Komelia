@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
 class AppSettingsScreen : Screen {
 
@@ -12,11 +13,13 @@ class AppSettingsScreen : Screen {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getAppearanceViewModel() }
 
-        AppSettingsContent(
-            cardWidth = vm.cardWidth,
-            onCardWidthChange = vm::onCardWidthChange,
-            decoder = vm.decoder,
-            onDecoderTypeChange = vm::onDecoderChange
-        )
+        SettingsScreenContainer("App Settings") {
+            AppSettingsContent(
+                cardWidth = vm.cardWidth,
+                onCardWidthChange = vm::onCardWidthChange,
+                decoder = vm.decoder,
+                onDecoderTypeChange = vm::onDecoderChange
+            )
+        }
     }
 }

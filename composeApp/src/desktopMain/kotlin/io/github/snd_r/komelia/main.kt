@@ -32,6 +32,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import ch.qos.logback.classic.LoggerContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
@@ -135,11 +136,12 @@ private fun ApplicationScope.MainAppContent(
             false
         }
     ) {
-        window.minimumSize = Dimension(540, 540)
+        window.minimumSize = Dimension(800, 540)
         val verticalInsets = window.insets.left + window.insets.right
         val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
         MainView(
             windowWidth = widthClass,
+            platformType = PlatformType.DESKTOP,
             keyEvents = keyEvents
         )
     }

@@ -85,6 +85,7 @@ kotlin {
 
             implementation("cafe.adriel.voyager:voyager-screenmodel:$voyagerVersion")
             implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+            implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
             implementation("cafe.adriel.lyricist:lyricist:1.7.0")
 
             implementation("io.github.dokar3:sonner:0.3.5")
