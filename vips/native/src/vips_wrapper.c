@@ -12,6 +12,8 @@ jobject toJavaRepresentation(JNIEnv *env, VipsImage *decoded);
 
 JNIEXPORT void JNICALL Java_io_github_snd_1r_VipsDecoder_init() {
     VIPS_INIT("komelia");
+    vips_concurrency_set(1);
+    vips_cache_set_max(0);
 }
 
 JNIEXPORT jobject JNICALL
