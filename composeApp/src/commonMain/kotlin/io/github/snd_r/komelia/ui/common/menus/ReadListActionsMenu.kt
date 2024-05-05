@@ -40,7 +40,7 @@ fun ReadListActionsMenu(
                 showDeleteDialog = false
                 onDismissRequest()
             },
-            buttonConfirmColor = MaterialTheme.colorScheme.error
+            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
     }
 

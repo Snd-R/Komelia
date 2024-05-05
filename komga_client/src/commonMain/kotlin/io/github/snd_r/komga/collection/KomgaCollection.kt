@@ -1,6 +1,7 @@
 package io.github.snd_r.komga.collection
 
 import io.github.snd_r.komga.common.KomgaThumbnailId
+import io.github.snd_r.komga.series.KomgaSeriesId
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
@@ -16,7 +17,7 @@ data class KomgaCollection(
     val id: KomgaCollectionId,
     val name: String,
     val ordered: Boolean,
-    val seriesIds: List<String>,
+    val seriesIds: List<KomgaSeriesId>,
     val createdDate: Instant,
     val lastModifiedDate: Instant,
     val filtered: Boolean,

@@ -75,7 +75,7 @@ fun LibraryActionsMenu(
             confirmText = "Yes, delete the library \"${library.name}\"",
             onDialogConfirm = { actions.delete(library) },
             onDialogDismiss = { deleteLibraryDialog = false },
-            buttonConfirmColor = MaterialTheme.colorScheme.error
+            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
 
     DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {

@@ -10,6 +10,7 @@ import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
@@ -208,6 +209,14 @@ class ViewModelFactory(
             collectionClient = komgaClientFactory.collectionClient(),
             notifications = appNotifications,
             cardWidth = settingsRepository.getCardWidth(),
+        )
+
+    fun getAddToCollectionDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit) =
+        AddToCollectionDialogViewModel(
+            series = series,
+            onDismissRequest = onDismissRequest,
+            collectionClient = komgaClientFactory.collectionClient(),
+            appNotifications = appNotifications
         )
 
     fun getFileBrowserDialogViewModel() =

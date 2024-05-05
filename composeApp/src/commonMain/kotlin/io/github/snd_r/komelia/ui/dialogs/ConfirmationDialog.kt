@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.dialogs
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,9 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -41,7 +45,11 @@ fun ConfirmationDialog(
     modifier: Modifier = Modifier
 ) {
     Dialog(onDismissRequest = onDialogDismiss) {
-        Card(modifier) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surfaceVariant),
+            modifier = modifier,
+        ) {
             Column(Modifier.padding(10.dp)) {
                 Text(title, fontSize = 20.sp, modifier = Modifier.padding(vertical = 10.dp))
                 Text(body, modifier = Modifier.padding(20.dp))
@@ -60,6 +68,7 @@ fun ConfirmationDialog(
                     TextButton(
                         onClick = onDialogDismiss,
                         shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.cursorForHand(),
                     ) {
                         Text(buttonCancel)
                     }
@@ -72,6 +81,7 @@ fun ConfirmationDialog(
                                 onDialogDismiss()
                             },
                             shape = RoundedCornerShape(5.dp),
+                            modifier = Modifier.cursorForHand(),
                         ) {
                             Text(buttonAlternate)
                         }
@@ -89,6 +99,7 @@ fun ConfirmationDialog(
                             contentColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.cursorForHand(),
                     ) {
                         Text(buttonConfirm)
                     }

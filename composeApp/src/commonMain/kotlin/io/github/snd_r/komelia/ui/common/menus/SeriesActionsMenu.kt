@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
+import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
 import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialog
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
@@ -47,7 +48,7 @@ fun SeriesActionsMenu(
                 showDeleteDialog = false
                 onDismissRequest()
             },
-            buttonConfirmColor = MaterialTheme.colorScheme.error
+            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
     }
 
@@ -58,8 +59,17 @@ fun SeriesActionsMenu(
             onDismissRequest()
         })
     }
+    var showAddToCollectionDialog by remember { mutableStateOf(false) }
+    if (showAddToCollectionDialog) {
+        AddToCollectionDialog(
+            series = series,
+            onDismissRequest = {
+                showEditDialog = false
+                onDismissRequest()
+            })
+    }
 
-    val showDropdown = derivedStateOf { expanded && !showDeleteDialog && !showEditDialog }
+    val showDropdown = derivedStateOf { expanded && !showDeleteDialog && !showEditDialog && !showAddToCollectionDialog }
     DropdownMenu(
         expanded = showDropdown.value,
         onDismissRequest = onDismissRequest
@@ -82,11 +92,7 @@ fun SeriesActionsMenu(
 
         DropdownMenuItem(
             text = { Text("Add to collection") },
-            onClick = {
-                actions.refreshMetadata(series)
-                onDismissRequest()
-            },
-            enabled = false
+            onClick = { showAddToCollectionDialog = true },
         )
 
         val isRead = remember { series.booksReadCount == series.booksCount }

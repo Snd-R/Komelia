@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class KomgaCollectionCreateRequest(
+    val name: String,
     val ordered: Boolean,
     val seriesIds: List<KomgaSeriesId>
 )
