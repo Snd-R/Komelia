@@ -34,6 +34,10 @@ internal class GeneralTab(
                 value = vm.name,
                 onValueChange = vm::name::set,
                 label = { Text("Name") },
+                supportingText = {
+                    vm.nameValidationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                },
+                isError = vm.nameValidationError != null,
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth()
             )
