@@ -1,6 +1,7 @@
 package io.github.snd_r.komga.collection
 
 import io.github.snd_r.komga.common.KomgaPageRequest
+import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.Page
 import io.github.snd_r.komga.common.toParams
 import io.github.snd_r.komga.library.KomgaLibraryId
@@ -8,6 +9,7 @@ import io.github.snd_r.komga.series.KomgaSeries
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 
 class KomgaCollectionClient internal constructor(private val ktor: HttpClient) {
@@ -74,4 +76,36 @@ class KomgaCollectionClient internal constructor(private val ktor: HttpClient) {
         }.body()
 
     }
+
+    suspend fun getCollectionThumbnails(collectionId: KomgaCollectionId): List<KomgaCollectionThumbnail> {
+        return ktor.get("api/v1/collections/$collectionId/thumbnails").body()
+    }
+
+    suspend fun uploadCollectionThumbnail(
+        collectionId: KomgaCollectionId,
+        file: ByteArray,
+        filename: String = "",
+        selected: Boolean = true
+    ): KomgaCollectionThumbnail {
+        return ktor.post("api/v1/collections/$collectionId/thumbnails") {
+            contentType(ContentType.MultiPart.FormData)
+            setBody(
+                MultiPartFormDataContent(formData {
+                    append("file", file, Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
+                    })
+                    append("selected", selected)
+                })
+            )
+        }.body()
+    }
+
+    suspend fun selectCollectionThumbnail(collectionId: KomgaCollectionId, thumbnailId: KomgaThumbnailId) {
+        ktor.put("api/v1/collections/$collectionId/thumbnails/$thumbnailId/selected")
+    }
+
+    suspend fun deleteCollectionThumbnail(collectionId: KomgaCollectionId, thumbnailId: KomgaThumbnailId) {
+        ktor.delete("api/v1/collections/$collectionId/thumbnails/$thumbnailId")
+    }
+
 }

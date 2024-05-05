@@ -35,7 +35,7 @@ fun CheckboxWithLabel(
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .clickable { onCheckedChange(!checked) }
             .padding(10.dp)
             .cursorForHand()

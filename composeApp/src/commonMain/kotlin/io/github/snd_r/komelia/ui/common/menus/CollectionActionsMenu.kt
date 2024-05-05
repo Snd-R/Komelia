@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
+import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialog
 import io.github.snd_r.komga.collection.KomgaCollection
 
 @Composable
@@ -44,13 +45,26 @@ fun CollectionActionsMenu(
         )
     }
 
-    val showDropdown = derivedStateOf { expanded && !showDeleteDialog }
+    var showEditDialog by remember { mutableStateOf(false) }
+    if (showEditDialog) {
+        CollectionEditDialog(collection = collection, onDismissRequest = {
+            showEditDialog = false
+            onDismissRequest()
+        })
+    }
+
+    val showDropdown = derivedStateOf { expanded && !showDeleteDialog && !showEditDialog }
     DropdownMenu(
         expanded = showDropdown.value,
         onDismissRequest = onDismissRequest
     ) {
         val deleteInteractionSource = remember { MutableInteractionSource() }
         val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
+        DropdownMenuItem(
+            text = { Text("Edit") },
+            onClick = { showEditDialog = true },
+        )
+
         DropdownMenuItem(
             text = { Text("Delete") },
             onClick = { showDeleteDialog = true },
@@ -61,5 +75,6 @@ fun CollectionActionsMenu(
                     else Modifier
                 )
         )
+
     }
 }

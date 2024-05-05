@@ -10,6 +10,7 @@ import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialogViewModel
@@ -40,6 +41,7 @@ import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
 import io.github.snd_r.komga.KomgaClientFactory
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
+import io.github.snd_r.komga.collection.KomgaCollection
 import io.github.snd_r.komga.collection.KomgaCollectionId
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
@@ -195,6 +197,15 @@ class ViewModelFactory(
             book = book,
             onDialogDismiss = onDismissRequest,
             bookClient = komgaClientFactory.bookClient(),
+            notifications = appNotifications,
+            cardWidth = settingsRepository.getCardWidth(),
+        )
+
+    fun getCollectionEditDialogViewModel(collection: KomgaCollection, onDismissRequest: () -> Unit) =
+        CollectionEditDialogViewModel(
+            collection = collection,
+            onDialogDismiss = onDismissRequest,
+            collectionClient = komgaClientFactory.collectionClient(),
             notifications = appNotifications,
             cardWidth = settingsRepository.getCardWidth(),
         )

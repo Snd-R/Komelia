@@ -45,6 +45,7 @@ import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.Thumbna
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komga.book.KomgaBookThumbnail
+import io.github.snd_r.komga.collection.KomgaCollectionThumbnail
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.series.KomgaSeriesThumbnail
 import kotlinx.coroutines.flow.Flow
@@ -162,6 +163,24 @@ class PosterEditState(
 
             override fun copy(selected: Boolean, deleted: Boolean): KomgaThumbnail {
                 return BookThumbnail(komgaThumbnail, selected, deleted)
+            }
+        }
+
+        class CollectionThumbnail(
+            val komgaThumbnail: KomgaCollectionThumbnail,
+            override val markedSelected: Boolean = komgaThumbnail.selected,
+            override val markedDeleted: Boolean = false,
+        ) : KomgaThumbnail {
+            override val id: KomgaThumbnailId = komgaThumbnail.id
+            override val type: ThumbnailType = ThumbnailType.from(komgaThumbnail.type)
+            override val mediaType: String = komgaThumbnail.mediaType
+            override val fileSize: Long = komgaThumbnail.fileSize
+            override val width: Int = komgaThumbnail.width
+            override val height: Int = komgaThumbnail.height
+            override val selected: Boolean = komgaThumbnail.selected
+
+            override fun copy(selected: Boolean, deleted: Boolean): KomgaThumbnail {
+                return CollectionThumbnail(komgaThumbnail, selected, deleted)
             }
         }
 
