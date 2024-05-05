@@ -201,10 +201,11 @@ private fun TabColumnDialogLayout(
         val dialogMaxHeight = (constraints.maxHeight * 0.9).roundToInt()
         val resizedBodyPlaceable = subcompose("body", body)
             .map {
+                val maxHeight = dialogMaxHeight - titlePlaceable.height - controlButtonsPlaceable.height
                 it.measure(
                     Constraints(
-                        minHeight = 500,
-                        maxHeight = dialogMaxHeight - titlePlaceable.height - controlButtonsPlaceable.height,
+                        minHeight = if (maxHeight < 500) maxHeight else 500,
+                        maxHeight = maxHeight,
                         maxWidth = constraints.maxWidth
                     )
                 )
