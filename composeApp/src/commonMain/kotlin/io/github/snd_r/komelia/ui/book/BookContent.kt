@@ -4,7 +4,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -129,18 +128,13 @@ fun BookToolBar(
         IconButton(onClick = { onBackButtonClick() }) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
         }
-        BoxWithConstraints {
-            val maxWidth = maxWidth
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    book.metadata.title,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = maxWidth - 100.dp)
-                )
-                ToolbarBookActions(book, bookMenuActions)
-            }
-        }
+        Text(
+            book.metadata.title,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, false)
+        )
+        ToolbarBookActions(book, bookMenuActions)
     }
 }
 

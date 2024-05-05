@@ -184,7 +184,8 @@ fun SeriesToolBar(
             Text(
                 series.metadata.title,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f,false)
             )
 
             Box {

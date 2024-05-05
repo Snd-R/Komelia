@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,7 +54,6 @@ import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.platform.verticalScrollWithScrollbar
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import kotlin.math.roundToInt
 
@@ -78,7 +76,7 @@ fun TabDialog(
         val focusManager = LocalFocusManager.current
         val sizeModifier = when (LocalWindowWidth.current) {
             COMPACT -> Modifier.fillMaxSize()
-            MEDIUM, EXPANDED -> Modifier.width(840.dp).fillMaxHeight()
+            MEDIUM, EXPANDED -> Modifier.width(840.dp)
             else -> Modifier.width(1000.dp)
         }
         Card(
@@ -135,7 +133,7 @@ private fun CompactTabDialog(
         ) {
             IconButton(
                 onClick = onDismissRequest,
-                modifier = Modifier.cursorForHand().weight(.1f)
+                modifier = Modifier.cursorForHand()
             ) {
                 Icon(Icons.Default.Close, null)
             }
@@ -144,7 +142,7 @@ private fun CompactTabDialog(
                 style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = 350.dp).weight(.7f)
+                modifier = Modifier.widthIn(max = 350.dp).weight(1f)
             )
 
             TextButton(
@@ -152,7 +150,7 @@ private fun CompactTabDialog(
                 onClick = { onConfirm() },
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                 shape = RoundedCornerShape(5.dp),
-                modifier = Modifier.cursorForHand().weight(.2f)
+                modifier = Modifier.cursorForHand()
             ) {
                 Text(confirmationText, fontWeight = FontWeight.Bold)
             }
@@ -179,7 +177,7 @@ private fun CompactTabDialog(
             Modifier
                 .fillMaxSize()
                 .padding(5.dp)
-                .verticalScrollWithScrollbar(rememberScrollState())
+                .verticalScroll(rememberScrollState())
         ) {
             currentTab.Content()
         }
