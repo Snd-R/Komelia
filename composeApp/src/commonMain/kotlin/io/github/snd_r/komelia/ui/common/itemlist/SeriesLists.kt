@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.common.itemlist
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -82,6 +83,7 @@ fun SeriesLazyCardGrid(
             state = scrollState,
             horizontalArrangement = Arrangement.spacedBy(15.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp),
+            contentPadding = PaddingValues(bottom = 30.dp),
             modifier = Modifier.padding(horizontal = 10.dp).fillMaxHeight()
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {

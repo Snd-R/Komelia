@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.ui.common.itemlist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -41,6 +42,7 @@ fun ReadListLazyCardGrid(
             state = scrollState,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 30.dp),
             modifier = Modifier.padding(horizontal = 10.dp)
         ) {
             item(

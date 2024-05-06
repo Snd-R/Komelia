@@ -2,11 +2,11 @@ package io.github.snd_r.komelia.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -64,7 +64,7 @@ fun HomeContent(
 ) {
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
-    Column(Modifier.padding(bottom = 20.dp)) {
+    Column() {
         Toolbar(
             currentFilter = currentFilter,
             onFilterChange = {
@@ -217,7 +217,7 @@ private fun MainContent(
         columns = GridCells.Adaptive(cardWidth),
         horizontalArrangement = Arrangement.spacedBy(15.dp),
         verticalArrangement = Arrangement.spacedBy(15.dp),
-        modifier = Modifier.padding(horizontal = 10.dp)
+        contentPadding = PaddingValues(bottom = 30.dp)
     ) {
         if (keepReadingBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == KEEP_READING_BOOKS)) {
             BookFilterEntry(

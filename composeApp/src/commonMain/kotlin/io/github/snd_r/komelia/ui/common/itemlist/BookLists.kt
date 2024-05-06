@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,6 +83,7 @@ fun BookLazyCardGrid(
             state = scrollState,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 30.dp),
             modifier = Modifier.padding(horizontal = 10.dp)
         ) {
             items(books) {
@@ -116,7 +118,7 @@ fun BooksGrid(
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.padding(horizontal = 10.dp)
+        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 30.dp)
     ) {
         if (isLoading) {
             loadPlaceholder()
