@@ -64,7 +64,7 @@ fun SeriesActionsMenu(
         AddToCollectionDialog(
             series = series,
             onDismissRequest = {
-                showEditDialog = false
+                showAddToCollectionDialog = false
                 onDismissRequest()
             })
     }

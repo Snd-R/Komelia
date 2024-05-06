@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.dialogs.collectionadd
+package io.github.snd_r.komelia.ui.dialogs.readlistadd
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -44,18 +44,18 @@ import androidx.compose.ui.window.DialogProperties
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.series.KomgaSeries
+import io.github.snd_r.komga.book.KomgaBook
+import io.github.snd_r.komga.readlist.KomgaReadList
 import kotlinx.coroutines.launch
 
 @Composable
-fun AddToCollectionDialog(
-    series: KomgaSeries,
+fun AddToReadListDialog(
+    book: KomgaBook,
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalViewModelFactory.current
-    val viewmodel = remember { viewModelFactory.getAddToCollectionDialogViewModel(series, onDismissRequest) }
-    LaunchedEffect(series) { viewmodel.initialize() }
+    val viewmodel = remember { viewModelFactory.getAddToReadListDialogViewModel(book, onDismissRequest) }
+    LaunchedEffect(book) { viewmodel.initialize() }
 
 
     Dialog(
@@ -79,10 +79,10 @@ fun AddToCollectionDialog(
                 Box {
                     val scrollState = rememberScrollState()
                     DialogContent(
-                        series = series,
-                        collections = viewmodel.collections,
+                        book = book,
+                        readLists = viewmodel.readLists,
                         onCreateNewCollection = viewmodel::createNew,
-                        onAddToCollection = viewmodel::addTo,
+                        onAddToReadList = viewmodel::addTo,
                         modifier = Modifier.verticalScroll(scrollState)
                     )
                     VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
@@ -107,16 +107,16 @@ private fun Header(onDismissRequest: () -> Unit) {
 
 @Composable
 private fun DialogContent(
-    series: KomgaSeries,
-    collections: List<KomgaCollection>,
+    book: KomgaBook,
+    readLists: List<KomgaReadList>,
     onCreateNewCollection: suspend (name: String) -> Unit,
-    onAddToCollection: suspend (KomgaCollection) -> Unit,
+    onAddToReadList: suspend (KomgaReadList) -> Unit,
     modifier: Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
     Column(modifier.padding(20.dp)) {
         var query by remember { mutableStateOf("") }
-        val collectionExistsForQuery = derivedStateOf { collections.any { it.name == query } }
+        val collectionExistsForQuery = derivedStateOf { readLists.any { it.name == query } }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -145,13 +145,13 @@ private fun DialogContent(
 
 
         Surface(tonalElevation = 1.dp) {
-            Column() {
-                val filteredCollections = derivedStateOf { collections.filter { it.name.contains(query) } }
-                filteredCollections.value.forEach { collection ->
-                    CollectionEntry(
-                        collection = collection,
-                        alreadyContainsSeries = collection.seriesIds.any() { it == series.id },
-                        onClick = { coroutineScope.launch { onAddToCollection(collection) } }
+            Column {
+                val filteredReadLists = derivedStateOf { readLists.filter { it.name.contains(query) } }
+                filteredReadLists.value.forEach { readList ->
+                    ReadListEntry(
+                        readList = readList,
+                        alreadyContainsSeries = readList.bookIds.any { it == book.id },
+                        onClick = { coroutineScope.launch { onAddToReadList(readList) } }
                     )
                 }
             }
@@ -162,8 +162,8 @@ private fun DialogContent(
 }
 
 @Composable
-private fun CollectionEntry(
-    collection: KomgaCollection,
+private fun ReadListEntry(
+    readList: KomgaReadList,
     alreadyContainsSeries: Boolean,
     onClick: () -> Unit
 ) {
@@ -174,15 +174,15 @@ private fun CollectionEntry(
             .padding(10.dp)
             .cursorForHand()
     ) {
-        Text(collection.name)
+        Text(readList.name)
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("${collection.seriesIds.size} series", style = MaterialTheme.typography.labelLarge)
+            Text("${readList.bookIds.size} books", style = MaterialTheme.typography.labelLarge)
             if (alreadyContainsSeries) Text(
-                "already contains this series",
+                "already contains this book",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )

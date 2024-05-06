@@ -14,6 +14,8 @@ import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialogVie
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.readlistedit.ReadListEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialogViewModel
@@ -46,6 +48,7 @@ import io.github.snd_r.komga.collection.KomgaCollection
 import io.github.snd_r.komga.collection.KomgaCollectionId
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
+import io.github.snd_r.komga.readlist.KomgaReadList
 import io.github.snd_r.komga.readlist.KomgaReadListId
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesId
@@ -211,11 +214,28 @@ class ViewModelFactory(
             cardWidth = settingsRepository.getCardWidth(),
         )
 
+    fun getReadListEditDialogViewModel(readList: KomgaReadList, onDismissRequest: () -> Unit) =
+        ReadListEditDialogViewModel(
+            readList = readList,
+            onDialogDismiss = onDismissRequest,
+            readListClient = komgaClientFactory.readListClient(),
+            notifications = appNotifications,
+            cardWidth = settingsRepository.getCardWidth(),
+        )
+
     fun getAddToCollectionDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit) =
         AddToCollectionDialogViewModel(
             series = series,
             onDismissRequest = onDismissRequest,
             collectionClient = komgaClientFactory.collectionClient(),
+            appNotifications = appNotifications
+        )
+
+    fun getAddToReadListDialogViewModel(book: KomgaBook, onDismissRequest: () -> Unit) =
+        AddToReadListDialogViewModel(
+            book = book,
+            onDismissRequest = onDismissRequest,
+            readListClient = komgaClientFactory.readListClient(),
             appNotifications = appNotifications
         )
 

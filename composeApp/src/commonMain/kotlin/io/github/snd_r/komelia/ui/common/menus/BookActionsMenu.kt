@@ -19,6 +19,7 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialog
+import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialog
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookReadProgressUpdateRequest
@@ -59,6 +60,16 @@ fun BookActionsMenu(
         })
     }
 
+    var showAddToReadListDialog by remember { mutableStateOf(false) }
+    if (showAddToReadListDialog) {
+        AddToReadListDialog(
+            book = book,
+            onDismissRequest = {
+                showAddToReadListDialog = false
+                onDismissRequest()
+            })
+    }
+
     val showDropdown = derivedStateOf { expanded && !showDeleteDialog && !showEditDialog }
     DropdownMenu(
         expanded = showDropdown.value,
@@ -82,11 +93,7 @@ fun BookActionsMenu(
 
         DropdownMenuItem(
             text = { Text("Add to read list") },
-            onClick = {
-                actions.addToReadList(book)
-                onDismissRequest()
-            },
-            enabled = false
+            onClick = { showAddToReadListDialog = true },
         )
 
         val isRead = remember { book.readProgress?.completed ?: false }

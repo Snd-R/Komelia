@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
+import io.github.snd_r.komelia.ui.dialogs.readlistedit.ReadListEditDialog
 import io.github.snd_r.komga.readlist.KomgaReadList
 
 @Composable
@@ -43,6 +44,13 @@ fun ReadListActionsMenu(
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
     }
+    var showEditDialog by remember { mutableStateOf(false) }
+    if (showEditDialog) {
+        ReadListEditDialog(readList = readList, onDismissRequest = {
+            showEditDialog = false
+            onDismissRequest()
+        })
+    }
 
     val showDropdown = derivedStateOf { expanded && !showDeleteDialog }
     DropdownMenu(
@@ -51,6 +59,12 @@ fun ReadListActionsMenu(
     ) {
         val deleteInteractionSource = remember { MutableInteractionSource() }
         val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
+
+        DropdownMenuItem(
+            text = { Text("Edit") },
+            onClick = { showEditDialog = true },
+        )
+
         DropdownMenuItem(
             text = { Text("Delete") },
             onClick = { showDeleteDialog = true },
