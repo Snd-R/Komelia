@@ -1,17 +1,12 @@
 package io.github.snd_r.komelia.ui.dialogs.tabs
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,8 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,25 +30,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import kotlin.math.roundToInt
+import io.github.snd_r.komelia.ui.dialogs.AppDialogLayout
+import io.github.snd_r.komelia.ui.dialogs.BasicAppDialog
 
 @Composable
 fun TabDialog(
@@ -68,50 +56,37 @@ fun TabDialog(
     onDismissRequest: () -> Unit,
     canConfirm: Boolean = true,
 ) {
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
 
-        val focusManager = LocalFocusManager.current
-        val sizeModifier = when (LocalWindowWidth.current) {
-            COMPACT -> Modifier.fillMaxSize()
-            MEDIUM, EXPANDED -> Modifier.width(840.dp)
-            else -> Modifier.width(1000.dp)
+    val sizeModifier = when (LocalWindowWidth.current) {
+        COMPACT -> Modifier.fillMaxSize()
+        MEDIUM, EXPANDED -> Modifier.width(840.dp)
+        else -> Modifier.width(1000.dp)
+    }
+    BasicAppDialog(sizeModifier, onDismissRequest) {
+        when (LocalWindowWidth.current) {
+            COMPACT, MEDIUM -> CompactTabDialog(
+                title = title,
+                currentTab = currentTab,
+                tabs = tabs,
+                canConfirm = canConfirm,
+                onConfirm = onConfirm,
+                confirmationText = confirmationText,
+                onTabChange = onTabChange,
+                onDismissRequest = onDismissRequest
+            )
+
+            else -> TabColumnDialog(
+                title = title,
+                currentTab = currentTab,
+                tabs = tabs,
+                canConfirm = canConfirm,
+                onConfirm = onConfirm,
+                confirmationText = confirmationText,
+                onTabChange = onTabChange,
+                onDismissRequest = onDismissRequest
+            )
         }
-        Card(
-            modifier = sizeModifier
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
-                .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessLow)),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            when (LocalWindowWidth.current) {
-                COMPACT, MEDIUM -> CompactTabDialog(
-                    title = title,
-                    currentTab = currentTab,
-                    tabs = tabs,
-                    canConfirm = canConfirm,
-                    onConfirm = onConfirm,
-                    confirmationText = confirmationText,
-                    onTabChange = onTabChange,
-                    onDismissRequest = onDismissRequest
-                )
 
-                else -> TabColumnDialog(
-                    title = title,
-                    currentTab = currentTab,
-                    tabs = tabs,
-                    canConfirm = canConfirm,
-                    onConfirm = onConfirm,
-                    confirmationText = confirmationText,
-                    onTabChange = onTabChange,
-                    onDismissRequest = onDismissRequest
-                )
-            }
-
-
-        }
     }
 }
 
@@ -186,53 +161,6 @@ private fun CompactTabDialog(
 }
 
 @Composable
-private fun TabColumnDialogLayout(
-    title: @Composable () -> Unit,
-    body: @Composable () -> Unit,
-    controlButtons: @Composable () -> Unit,
-    scrollbar: @Composable () -> Unit,
-) {
-    SubcomposeLayout { constraints ->
-        val titlePlaceable = subcompose("title", title).map { it.measure(Constraints()) }.first()
-        val controlButtonsPlaceable = subcompose("controls", controlButtons).map { it.measure(Constraints()) }.first()
-
-        val dialogMaxHeight = (constraints.maxHeight * 0.9).roundToInt()
-        val resizedBodyPlaceable = subcompose("body", body)
-            .map {
-                val maxHeight = dialogMaxHeight - titlePlaceable.height - controlButtonsPlaceable.height
-                it.measure(
-                    Constraints(
-                        minHeight = if (maxHeight < 500) maxHeight else 500,
-                        maxHeight = maxHeight,
-                        maxWidth = constraints.maxWidth
-                    )
-                )
-            }.first()
-
-        val scrollbarPlaceable = subcompose("scrollbar", scrollbar)
-            .map { it.measure(constraints.copy(maxHeight = resizedBodyPlaceable.height)) }
-            .first()
-
-        layout(
-            width = constraints.maxWidth,
-            height = titlePlaceable.height + resizedBodyPlaceable.height + controlButtonsPlaceable.height
-        ) {
-
-            titlePlaceable.placeRelative(0, 0)
-
-            resizedBodyPlaceable.placeRelative(0, titlePlaceable.height)
-
-            controlButtonsPlaceable.placeRelative(
-                constraints.maxWidth - controlButtonsPlaceable.width,
-                titlePlaceable.height + resizedBodyPlaceable.height
-            )
-            scrollbarPlaceable.placeRelative(constraints.maxWidth - scrollbarPlaceable.width, titlePlaceable.height)
-        }
-    }
-
-}
-
-@Composable
 private fun TabColumnDialog(
     title: String,
     currentTab: DialogTab,
@@ -244,8 +172,8 @@ private fun TabColumnDialog(
     onDismissRequest: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    TabColumnDialogLayout(
-        title = {
+    AppDialogLayout(
+        header = {
             Text(
                 text = title,
                 style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
@@ -263,6 +191,7 @@ private fun TabColumnDialog(
                 Box(
                     Modifier
                         .verticalScroll(scrollState)
+                        .heightIn(min = 500.dp)
                         .padding(bottom = 10.dp, start = 10.dp, end = 30.dp)
                 ) {
                     currentTab.Content()
@@ -272,27 +201,23 @@ private fun TabColumnDialog(
         scrollbar = { VerticalScrollbar(scrollState) },
         controlButtons = {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
+                modifier = Modifier.padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 TextButton(
                     onClick = onDismissRequest,
                     shape = RoundedCornerShape(5.dp),
-                    modifier = Modifier.cursorForHand()
-                ) {
-                    Text("Cancel")
-                }
+                    modifier = Modifier.cursorForHand(),
+                    content = { Text("Cancel") }
+                )
 
                 FilledTonalButton(
                     enabled = canConfirm,
                     onClick = { onConfirm() },
                     shape = RoundedCornerShape(5.dp),
-                    modifier = Modifier.cursorForHand()
-                ) {
-                    Text(confirmationText)
-                }
+                    modifier = Modifier.cursorForHand(),
+                    content = { Text(confirmationText) }
+                )
             }
         },
     )

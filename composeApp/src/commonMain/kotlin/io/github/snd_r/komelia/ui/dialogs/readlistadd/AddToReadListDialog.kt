@@ -1,20 +1,14 @@
 package io.github.snd_r.komelia.ui.dialogs.readlistadd
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.FilledTonalButton
@@ -35,15 +29,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.readlist.KomgaReadList
 import kotlinx.coroutines.launch
@@ -56,52 +45,33 @@ fun AddToReadListDialog(
     val viewModelFactory = LocalViewModelFactory.current
     val viewmodel = remember { viewModelFactory.getAddToReadListDialogViewModel(book, onDismissRequest) }
     LaunchedEffect(book) { viewmodel.initialize() }
-
-
-    Dialog(
+    AppDialog(
+        header = { Header(onDismissRequest) },
+        content = {
+            DialogContent(
+                book = book,
+                readLists = viewmodel.readLists,
+                onCreateNewCollection = viewmodel::createNew,
+                onAddToReadList = viewmodel::addTo,
+            )
+        },
         onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        val focusManager = LocalFocusManager.current
-        Surface(
-            border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
-        ) {
-            Column(
-                Modifier
-                    .widthIn(max = 600.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight(.9f)
-            ) {
-                Header(onDismissRequest)
-                HorizontalDivider()
-                Box {
-                    val scrollState = rememberScrollState()
-                    DialogContent(
-                        book = book,
-                        readLists = viewmodel.readLists,
-                        onCreateNewCollection = viewmodel::createNew,
-                        onAddToReadList = viewmodel::addTo,
-                        modifier = Modifier.verticalScroll(scrollState)
-                    )
-                    VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
-                }
-
-            }
-        }
-    }
+        modifier = Modifier.widthIn(max = 600.dp)
+    )
 }
 
 @Composable
 private fun Header(onDismissRequest: () -> Unit) {
-    Row(
-        modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Add to collection", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.weight(1f))
-        IconButton(onClick = onDismissRequest) { Icon(Icons.Default.Close, null) }
+    Column {
+        Row(
+            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Add to read list", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = onDismissRequest) { Icon(Icons.Default.Close, null) }
+        }
+        HorizontalDivider()
     }
 }
 
@@ -111,10 +81,9 @@ private fun DialogContent(
     readLists: List<KomgaReadList>,
     onCreateNewCollection: suspend (name: String) -> Unit,
     onAddToReadList: suspend (KomgaReadList) -> Unit,
-    modifier: Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
-    Column(modifier.padding(20.dp)) {
+    Column(Modifier.padding(20.dp)) {
         var query by remember { mutableStateOf("") }
         val collectionExistsForQuery = derivedStateOf { readLists.any { it.name == query } }
 

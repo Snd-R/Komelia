@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -32,13 +31,11 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.TabRowDefaults.tabIndicatorOffset
 @Composable
 fun TabColumn(
     selectedTabIndex: Int,
-    modifier: Modifier = Modifier,
     indicator: @Composable (tabPositions: List<TabPosition>) -> Unit = @Composable { tabPositions ->
         if (selectedTabIndex < tabPositions.size) {
             Indicator(Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]))
         }
     },
-    divider: @Composable () -> Unit = @Composable { HorizontalDivider() },
     tabs: @Composable () -> Unit
 ) {
     SubcomposeLayout {
@@ -75,7 +72,6 @@ fun TabColumn(
 
 private enum class TabSlots {
     Tabs,
-    Divider,
     Indicator
 }
 
