@@ -212,7 +212,7 @@ private fun BookHoverOverlay(
 
                     FilledTonalButton(
                         modifier = Modifier.padding(horizontal = 5.dp),
-                        shape = RoundedCornerShape(15.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                         onClick = { onBookReadClick() },
                         contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
@@ -336,7 +336,7 @@ private fun BookDetailedListDetails(
             if (onBookReadClick != null) {
                 FilledTonalButton(
                     modifier = Modifier.padding(horizontal = 5.dp),
-                    shape = RoundedCornerShape(15.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                     onClick = { onBookReadClick() },
                     contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)

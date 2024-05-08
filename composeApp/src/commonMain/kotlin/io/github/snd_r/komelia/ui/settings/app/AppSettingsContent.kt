@@ -97,7 +97,7 @@ fun AppSettingsContent(
                 selectedOption = LabeledEntry(decoder, decoder.name),
                 options = SamplerType.entries.map { LabeledEntry(it, it.name) },
                 onOptionChange = { onDecoderTypeChange(it.value) },
-                textFieldModifier = Modifier.fillMaxWidth(),
+                inputFieldModifier = Modifier.fillMaxWidth(),
                 label = { Text(strings.decoder) }
             )
         }

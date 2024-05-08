@@ -125,7 +125,7 @@ private fun ColumnScope.SettingsContent(
         selectedOption = LabeledEntry(readerType, readerType.name),
         options = ReaderType.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { settingsState.onReaderTypeChange(it.value) },
-        textFieldModifier = Modifier.fillMaxWidth(),
+        inputFieldModifier = Modifier.fillMaxWidth(),
         label = { Text("Reader type") },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
@@ -135,7 +135,7 @@ private fun ColumnScope.SettingsContent(
             selectedOption = LabeledEntry(decoder, decoder.name),
             options = SamplerType.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { settingsState.onDecoderChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
+            inputFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.decoder) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )

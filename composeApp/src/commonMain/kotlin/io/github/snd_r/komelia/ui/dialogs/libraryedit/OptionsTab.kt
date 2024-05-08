@@ -87,7 +87,7 @@ private fun OptionsTabContent(
             ),
             options = SeriesCover.entries.map { LabeledEntry(it, strings.forSeriesCover(it)) },
             onOptionChange = { seriesCover.onValueChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
+            inputFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.seriesCover) }
         )
 

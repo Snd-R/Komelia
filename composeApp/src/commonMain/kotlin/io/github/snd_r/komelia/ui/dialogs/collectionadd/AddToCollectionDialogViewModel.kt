@@ -12,7 +12,7 @@ import io.github.snd_r.komga.common.PatchValue
 import io.github.snd_r.komga.series.KomgaSeries
 
 class AddToCollectionDialogViewModel(
-    private val series: KomgaSeries,
+    private val series: List<KomgaSeries>,
     private val onDismissRequest: () -> Unit,
     private val collectionClient: KomgaCollectionClient,
     private val appNotifications: AppNotifications,
@@ -29,7 +29,10 @@ class AddToCollectionDialogViewModel(
         appNotifications.runCatchingToNotifications {
             collectionClient.updateOne(
                 collection.id,
-                KomgaCollectionUpdateRequest(seriesIds = PatchValue.Some(collection.seriesIds + series.id))
+                KomgaCollectionUpdateRequest(
+                    seriesIds = PatchValue.Some(
+                        collection.seriesIds.toSet() + series.map { it.id })
+                )
             )
             onDismissRequest()
         }
@@ -41,7 +44,7 @@ class AddToCollectionDialogViewModel(
                 KomgaCollectionCreateRequest(
                     name = name,
                     ordered = false,
-                    seriesIds = listOf(series.id)
+                    seriesIds = series.map { it.id }.toSet()
                 )
             )
             onDismissRequest()

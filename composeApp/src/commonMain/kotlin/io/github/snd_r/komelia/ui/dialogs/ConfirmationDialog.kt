@@ -28,8 +28,8 @@ import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ConfirmationDialog(
-    title: String,
     body: String,
+    title: String? = null,
     confirmText: String? = null,
     buttonCancel: String = "Cancel",
     buttonConfirm: String = "Confirm",
@@ -43,7 +43,7 @@ fun ConfirmationDialog(
     AppDialog(
         onDismissRequest = onDialogDismiss,
         modifier = Modifier.widthIn(max = 600.dp),
-        header = { Text(title, fontSize = 20.sp, modifier = Modifier.padding(10.dp)) },
+        header = title?.let { { Text(title, fontSize = 20.sp, modifier = Modifier.padding(10.dp)) } },
         content = {
             Column(Modifier.padding(10.dp)) {
                 Text(body, modifier = Modifier.padding(20.dp))

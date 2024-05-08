@@ -3,14 +3,11 @@ package io.github.snd_r.komelia.ui.series.view
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Icon
@@ -26,26 +23,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
-import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
+import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
 import io.github.snd_r.komelia.ui.common.itemlist.SeriesLazyCardGrid
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
+import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
+import io.github.snd_r.komelia.ui.common.menus.bulk.SeriesBulkActionsContent
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
 import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesId
 
 @Composable
 fun SeriesListContent(
     series: List<KomgaSeries>,
     seriesTotalCount: Int,
     seriesActions: SeriesMenuActions,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
-    isLoading: Boolean,
+    onSeriesClick: (KomgaSeries) -> Unit,
 
+    editMode: Boolean,
+    onEditModeChange: (Boolean) -> Unit,
+    selectedSeries: List<KomgaSeries>,
+    onSeriesSelect: (KomgaSeries) -> Unit,
+
+    isLoading: Boolean,
     filterState: SeriesFilterState?,
 
     totalPages: Int,
@@ -56,24 +63,88 @@ fun SeriesListContent(
 
     minSize: Dp,
 ) {
-    SeriesLazyCardGrid(
-        series = series,
-        seriesMenuActions = seriesActions,
-        minSize = minSize,
-        onSeriesClick = onSeriesClick,
-        totalPages = totalPages,
-        currentPage = currentPage,
-        onPageChange = onPageChange,
-        beforeContent = {
-            ToolBar(
-                seriesTotalCount = seriesTotalCount,
-                pageSize = pageSize,
-                onPageSizeChange = onPageSizeChange,
-                isLoading = isLoading,
-                filterState = filterState
+    Column {
+        if (editMode) {
+            BulkActionsToolbar(
+                onCancel = { onEditModeChange(false) },
+                series = series,
+                selectedSeries = selectedSeries,
+                onSeriesSelect = onSeriesSelect
             )
         }
-    )
+
+        SeriesLazyCardGrid(
+            series = series,
+            onSeriesClick = if (editMode) onSeriesSelect else onSeriesClick,
+            seriesMenuActions = if (editMode) null else seriesActions,
+
+            selectedSeries = selectedSeries,
+            onSeriesSelect = onSeriesSelect,
+
+            totalPages = totalPages,
+            currentPage = currentPage,
+            onPageChange = onPageChange,
+
+            beforeContent = {
+                AnimatedVisibility(!editMode) {
+                    ToolBar(
+                        seriesTotalCount = seriesTotalCount,
+                        pageSize = pageSize,
+                        onPageSizeChange = onPageSizeChange,
+                        isLoading = isLoading,
+                        filterState = filterState
+                    )
+                }
+
+            },
+            minSize = minSize,
+        )
+        val width = LocalWindowWidth.current
+        if ((width == COMPACT || width == MEDIUM) && selectedSeries.isNotEmpty()) {
+            BottomPopupBulkActionsPanel {
+                SeriesBulkActionsContent(selectedSeries, false)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BulkActionsToolbar(
+    onCancel: () -> Unit,
+    series: List<KomgaSeries>,
+    selectedSeries: List<KomgaSeries>,
+    onSeriesSelect: (KomgaSeries) -> Unit,
+) {
+    BulkActionsContainer(
+        onCancel = onCancel,
+        selectedCount = selectedSeries.size,
+        allSelected = series.size == selectedSeries.size,
+        onSelectAll = {
+            if (series.size == selectedSeries.size) series.forEach { onSeriesSelect(it) }
+            else series.filter { it !in selectedSeries }.forEach { onSeriesSelect(it) }
+        }
+    ) {
+        when (LocalWindowWidth.current) {
+            FULL -> {
+                Text("Selection mode: Click on items to select or deselect them")
+                if (selectedSeries.isNotEmpty()) {
+                    Spacer(Modifier.weight(1f))
+                    SeriesBulkActionsContent(selectedSeries, true)
+                }
+            }
+
+            EXPANDED -> {
+                if (selectedSeries.isEmpty()) {
+                    Text("Selection mode: Click on items to select or deselect them")
+                } else {
+                    Spacer(Modifier.weight(1f))
+                    SeriesBulkActionsContent(selectedSeries, true)
+                }
+            }
+
+            COMPACT, MEDIUM -> {}
+        }
+    }
 }
 
 @Composable
@@ -128,23 +199,7 @@ private fun ToolBar(
                     }
                 }
 
-                DropdownChoiceMenu(
-                    selectedOption = intEntry(pageSize),
-                    options = listOf(
-                        intEntry(20),
-                        intEntry(50),
-                        intEntry(100),
-                        intEntry(200),
-                        intEntry(500)
-                    ),
-                    onOptionChange = { onPageSizeChange(it.value) },
-                    contentPadding = PaddingValues(5.dp),
-                    textFieldModifier = Modifier
-                        .widthIn(min = 70.dp)
-                        .clip(RoundedCornerShape(5.dp))
-                        .padding(end = 10.dp)
-                )
-
+                PageSizeSelectionDropdown(pageSize, onPageSizeChange)
             }
         }
     }

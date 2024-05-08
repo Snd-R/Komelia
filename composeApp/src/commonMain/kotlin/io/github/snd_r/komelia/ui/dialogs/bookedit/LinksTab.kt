@@ -20,6 +20,8 @@ class LinksTab(
     override fun Content() {
         LinksEditContent(
             links = vm.links,
+            linksLock = vm.linksLock,
+            onLinksLockChange = vm::linksLock::set,
             onLinkAdd = { vm.links.add(KomgaWebLink("", "")) },
             onLinkChange = { index, link -> vm.links[index] = link },
             onLinkRemove = { index -> vm.links.removeAt(index) }

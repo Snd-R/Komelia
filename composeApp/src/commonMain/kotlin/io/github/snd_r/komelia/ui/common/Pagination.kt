@@ -84,47 +84,6 @@ fun Pagination(
 }
 
 @Composable
-fun PaginationWithSizeOptions(
-    totalPages: Int,
-    currentPage: Int,
-    onPageChange: (Int) -> Unit,
-    navigationButtons: Boolean = true,
-
-    pageSize: Int,
-    onPageSizeChange: (Int) -> Unit,
-
-    paginationModifier: Modifier = Modifier,
-    spacer: @Composable (() -> Unit)? = null
-) {
-    Pagination(
-        totalPages = totalPages,
-        currentPage = currentPage,
-        onPageChange = onPageChange,
-        navigationButtons = navigationButtons,
-        modifier = paginationModifier
-    )
-
-    spacer?.let { it() }
-
-    DropdownChoiceMenu(
-        selectedOption = intEntry(pageSize),
-        options = listOf(
-            intEntry(20),
-            intEntry(50),
-            intEntry(100),
-            intEntry(200),
-            intEntry(500),
-        ),
-        onOptionChange = { entry -> onPageSizeChange(entry.value) },
-        contentPadding = PaddingValues(5.dp),
-        textFieldModifier = Modifier
-            .widthIn(min = 70.dp)
-            .clip(RoundedCornerShape(5.dp))
-            .padding(end = 10.dp)
-    )
-}
-
-@Composable
 private fun PageNumberButton(
     pageNumber: Int,
     currentPage: Int,
@@ -142,4 +101,29 @@ private fun PageNumberButton(
     ) {
         Text(pageNumber.toString())
     }
+}
+
+
+@Composable
+fun PageSizeSelectionDropdown(
+    currentSize: Int,
+    onPageSizeChange: (Int) -> Unit
+) {
+    DropdownChoiceMenu(
+        selectedOption = intEntry(currentSize),
+        options = listOf(
+            intEntry(20),
+            intEntry(50),
+            intEntry(100),
+            intEntry(200),
+            intEntry(500)
+        ),
+        onOptionChange = { onPageSizeChange(it.value) },
+        contentPadding = PaddingValues(5.dp),
+        inputFieldColor = MaterialTheme.colorScheme.surface,
+        inputFieldModifier = Modifier
+            .widthIn(min = 70.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .padding(end = 10.dp)
+    )
 }

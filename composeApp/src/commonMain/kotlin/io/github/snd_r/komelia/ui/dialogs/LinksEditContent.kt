@@ -18,6 +18,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.common.LockIcon
 import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import io.github.snd_r.komga.common.KomgaWebLink
 
@@ -25,6 +26,8 @@ import io.github.snd_r.komga.common.KomgaWebLink
 @Composable
 fun LinksEditContent(
     links: List<KomgaWebLink>,
+    linksLock: Boolean,
+    onLinksLockChange: (Boolean) -> Unit,
     onLinkAdd: () -> Unit,
     onLinkChange: (index: Int, title: KomgaWebLink) -> Unit,
     onLinkRemove: (index: Int) -> Unit,
@@ -37,6 +40,7 @@ fun LinksEditContent(
     ) {
         links.forEachIndexed { index, link ->
             Row {
+                LockIcon(linksLock, onLinksLockChange)
                 TextField(
                     value = link.label,
                     onValueChange = { onLinkChange(index, link.copy(label = it)) },

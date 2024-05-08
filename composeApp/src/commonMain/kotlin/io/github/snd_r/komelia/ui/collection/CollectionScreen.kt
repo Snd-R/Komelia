@@ -37,7 +37,15 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
 
                 series = vm.series,
                 seriesActions = vm.seriesMenuActions(),
-                onSeriesClick = { navigator push SeriesScreen(it) },
+                onSeriesClick = { navigator push SeriesScreen(it.id) },
+
+                selectedSeries = vm.selectedSeries,
+                onSeriesSelect = vm::onSeriesSelect,
+
+                editMode = vm.isInEditMode,
+                onEditModeChange = vm::setEditMode,
+                onReorder = vm::onSeriesReorder,
+                onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
 
                 totalSeriesCount = vm.totalSeriesCount,
                 totalPages = vm.totalSeriesPages,

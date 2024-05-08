@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddToCollectionDialog(
-    series: KomgaSeries,
+    series: List<KomgaSeries>,
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalViewModelFactory.current
@@ -77,7 +77,7 @@ private fun Header(onDismissRequest: () -> Unit) {
 
 @Composable
 private fun DialogContent(
-    series: KomgaSeries,
+    series: List<KomgaSeries>,
     collections: List<KomgaCollection>,
     onCreateNewCollection: suspend (name: String) -> Unit,
     onAddToCollection: suspend (KomgaCollection) -> Unit,
@@ -119,7 +119,7 @@ private fun DialogContent(
                 filteredCollections.value.forEach { collection ->
                     CollectionEntry(
                         collection = collection,
-                        alreadyContainsSeries = collection.seriesIds.any() { it == series.id },
+                        alreadyContainsSeries = series.size == 1 && collection.seriesIds.any { it == series.first().id },
                         onClick = { coroutineScope.launch { onAddToCollection(collection) } }
                     )
                 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -58,10 +60,10 @@ fun <T> DropdownChoiceMenu(
     selectedOption: LabeledEntry<T>,
     options: List<LabeledEntry<T>>,
     onOptionChange: (LabeledEntry<T>) -> Unit,
-    textFieldModifier: Modifier = Modifier,
+    inputFieldModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
-    inputFieldColor: Color = MaterialTheme.colorScheme.surface,
+    inputFieldColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -74,7 +76,8 @@ fun <T> DropdownChoiceMenu(
             value = selectedOption.label,
             modifier = Modifier
                 .menuAnchor()
-                .then(textFieldModifier),
+                .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
+                .then(inputFieldModifier),
             label = label,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
             color = inputFieldColor,
@@ -179,6 +182,7 @@ private fun InputField(
                 Text(value, maxLines = 1)
             }
 
+            Spacer(Modifier.weight(1f))
             trailingIcon()
         }
     }

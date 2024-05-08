@@ -97,7 +97,7 @@ fun AppDialogLayout(
 
         val scrollbarPlaceable = subcompose(DialogSlots.Scrollbar, scrollbar)
             .map { it.measure(constraints.copy(minWidth = 0, maxHeight = resizedBodyPlaceable.height)) }
-            .first()
+            .firstOrNull()
 
         layout(
             width = constraints.maxWidth,
@@ -112,7 +112,7 @@ fun AppDialogLayout(
                 constraints.maxWidth - buttonsPlaceable.width,
                 (headerPlaceable?.height ?: 0) + resizedBodyPlaceable.height
             )
-            scrollbarPlaceable.placeRelative(
+            scrollbarPlaceable?.placeRelative(
                 constraints.maxWidth - scrollbarPlaceable.width, headerPlaceable?.height ?: 0
             )
         }

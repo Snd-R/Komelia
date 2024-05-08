@@ -61,12 +61,11 @@ import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
-import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.common.LabeledEntry
-import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.ItemCard
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
@@ -75,7 +74,7 @@ import io.github.snd_r.komelia.ui.common.itemlist.BooksList
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialog
+import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import io.github.snd_r.komelia.ui.library.SeriesTabFilter
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
@@ -185,7 +184,7 @@ fun SeriesToolBar(
                 series.metadata.title,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f,false)
+                modifier = Modifier.weight(1f, false)
             )
 
             Box {
@@ -534,19 +533,7 @@ private fun BooksToolBar(
                 }
             }
 
-            DropdownChoiceMenu(
-                selectedOption = intEntry(booksPageSize),
-                options = listOf(
-                    intEntry(20),
-                    intEntry(50),
-                    intEntry(100),
-                    intEntry(200),
-                    intEntry(500)
-                ),
-                onOptionChange = { onBooksPageSizeChange(it.value) },
-                label = {},
-                textFieldModifier = Modifier.width(70.dp)
-            )
+            PageSizeSelectionDropdown(booksPageSize, onBooksPageSizeChange)
 
             Row {
                 Box(Modifier

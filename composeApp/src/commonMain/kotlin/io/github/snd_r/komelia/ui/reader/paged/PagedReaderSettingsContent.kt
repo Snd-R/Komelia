@@ -33,7 +33,7 @@ fun ColumnScope.PagedReaderSettingsContent(
             selectedOption = LabeledEntry(scaleType, strings.forScaleType(scaleType)),
             options = LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) },
             onOptionChange = { pageState.onScaleTypeChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
+            inputFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.scaleType) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
@@ -51,7 +51,7 @@ fun ColumnScope.PagedReaderSettingsContent(
                 )
             },
             onOptionChange = { pageState.onReadingDirectionChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
+            inputFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.readingDirection) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
@@ -62,7 +62,7 @@ fun ColumnScope.PagedReaderSettingsContent(
                 selectedOption = LabeledEntry(layout, strings.forLayout(layout)),
                 options = PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) },
                 onOptionChange = { pageState.onLayoutChange(it.value) },
-                textFieldModifier = Modifier.fillMaxWidth(),
+                inputFieldModifier = Modifier.fillMaxWidth(),
                 label = { Text(strings.layout) },
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
             )

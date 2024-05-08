@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.ChipTextFieldState
 import com.dokar.chiptextfield.m3.ChipTextField
@@ -93,10 +94,11 @@ fun <T> LockableDropDown(
     onOptionChange: (LabeledEntry<T>) -> Unit,
     label: @Composable () -> Unit,
     lock: StateHolder<Boolean>,
-    textFieldModifier: Modifier
+    inputFieldColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    inputFieldModifier: Modifier
 ) {
 
-    Row(textFieldModifier) {
+    Row(inputFieldModifier) {
         LockIcon(lock)
 
         DropdownChoiceMenu(
@@ -104,7 +106,8 @@ fun <T> LockableDropDown(
             options = options,
             onOptionChange = onOptionChange,
             label = label,
-            textFieldModifier = Modifier.fillMaxWidth()
+            inputFieldColor = inputFieldColor,
+            inputFieldModifier = Modifier.fillMaxWidth(),
         )
     }
 

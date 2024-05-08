@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
@@ -24,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -33,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,12 +52,20 @@ import io.github.snd_r.komga.series.KomgaSeries
 fun SeriesImageCard(
     series: KomgaSeries,
     onSeriesClick: () -> Unit,
-    seriesMenuActions: SeriesMenuActions?,
+    isSelected: Boolean = false,
+    onSeriesSelect: (() -> Unit)? = null,
+    seriesMenuActions: SeriesMenuActions? = null,
     modifier: Modifier = Modifier,
 ) {
-    ItemCard(modifier, onSeriesClick) {
+    ItemCard(
+        modifier = modifier,
+        onClick = onSeriesClick,
+        onLongClick = onSeriesSelect
+    ) {
         SeriesCardHoverOverlay(
             series = series,
+            onSeriesSelect = onSeriesSelect,
+            isSelected = isSelected,
             seriesActions = seriesMenuActions,
         ) {
             SeriesImageOverlay(series) {
@@ -86,13 +99,15 @@ fun SeriesSimpleImageCard(
 @Composable
 private fun SeriesCardHoverOverlay(
     series: KomgaSeries,
+    isSelected: Boolean,
+    onSeriesSelect: (() -> Unit)?,
     seriesActions: SeriesMenuActions?,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered = interactionSource.collectIsHoveredAsState()
     var isActionsMenuExpanded by remember { mutableStateOf(false) }
-    val showOverlay = derivedStateOf { isHovered.value || isActionsMenuExpanded }
+    val showOverlay = derivedStateOf { isHovered.value || isActionsMenuExpanded || isSelected }
     val border = if (showOverlay.value) overlayBorderModifier() else Modifier
 
     Box(
@@ -104,28 +119,50 @@ private fun SeriesCardHoverOverlay(
     ) {
         content()
 
-        if (showOverlay.value && seriesActions != null) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                Spacer(Modifier.weight(1f))
-
-                Box {
-                    IconButton(
-                        onClick = { isActionsMenuExpanded = true },
-                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Icon(Icons.Default.MoreVert, contentDescription = null)
-                    }
-
-                    SeriesActionsMenu(
-                        series = series,
-                        actions = seriesActions,
-                        expanded = isActionsMenuExpanded,
-                        showEditOption = true,
-                        onDismissRequest = { isActionsMenuExpanded = false },
+        if (showOverlay.value) {
+            val backgroundModifier =
+                if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondary.copy(alpha = .5f))
+                else Modifier
+            Column(backgroundModifier.fillMaxSize()) {
+                if (onSeriesSelect != null) {
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = onSeriesSelect,
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = MaterialTheme.colorScheme.tertiary,
+                        ),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(topEnd = 17.dp, bottomEnd = 17.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = .4f))
+                            .selectable(selected = isSelected, onClick = onSeriesSelect)
                     )
+                    Spacer(Modifier.weight(1f))
+                }
+
+                if (seriesActions != null) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Spacer(Modifier.weight(1f))
+
+                        Box {
+                            IconButton(
+                                onClick = { isActionsMenuExpanded = true },
+                                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
+                            ) {
+                                Icon(Icons.Default.MoreVert, contentDescription = null)
+                            }
+
+                            SeriesActionsMenu(
+                                series = series,
+                                actions = seriesActions,
+                                expanded = isActionsMenuExpanded,
+                                showEditOption = true,
+                                onDismissRequest = { isActionsMenuExpanded = false },
+                            )
+                        }
+                    }
                 }
             }
         }

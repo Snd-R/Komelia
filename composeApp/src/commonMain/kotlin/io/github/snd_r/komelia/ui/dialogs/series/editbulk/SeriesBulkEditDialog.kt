@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.dialogs.seriesedit
+package io.github.snd_r.komelia.ui.dialogs.series.editbulk
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,17 +10,17 @@ import io.github.snd_r.komga.series.KomgaSeries
 import kotlinx.coroutines.launch
 
 @Composable
-fun SeriesEditDialog(
-    series: KomgaSeries,
+fun SeriesBulkEditDialog(
+    series: List<KomgaSeries>,
     onDismissRequest: () -> Unit
 ) {
     val viewModelFactory = LocalViewModelFactory.current
-    val vm = remember { viewModelFactory.getSeriesEditDialogViewModel(series, onDismissRequest) }
+    val vm = remember { viewModelFactory.getSeriesBulkEditDialogViewModel(series, onDismissRequest) }
     LaunchedEffect(series) { vm.initialize() }
 
     val coroutineScope = rememberCoroutineScope()
     TabDialog(
-        title = "Edit ${series.metadata.title}",
+        title = "Edit ${series.size} series",
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
         confirmationText = "Save Changes",

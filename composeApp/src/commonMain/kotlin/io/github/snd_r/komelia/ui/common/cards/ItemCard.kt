@@ -1,9 +1,10 @@
 package io.github.snd_r.komelia.ui.common.cards
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.aspectRatio
@@ -18,23 +19,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.cursorForHand
 
 const val defaultCardWidth = 240
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemCard(
     modifier: Modifier,
     onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     image: @Composable () -> Unit
 ) {
-    val clickable =
-        if (onClick != null) Modifier.clickable(onClick = onClick).cursorForHand()
-        else Modifier
-
     Card(
         shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp),
-        modifier = modifier.aspectRatio(0.703f).then(clickable)
+        modifier = modifier.aspectRatio(0.703f).combinedClickable(onClick = onClick ?: {}, onLongClick = onLongClick)
     ) {
         image()
     }

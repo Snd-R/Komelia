@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.dialogs.seriesedit
+package io.github.snd_r.komelia.ui.dialogs.series.edit
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf

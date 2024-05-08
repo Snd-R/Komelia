@@ -59,7 +59,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
         selectedOption = LabeledEntry(readingDirection.value, readingDirection.value.name),
         options = ContinuousReaderState.ReadingDirection.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { state.onReadingDirectionChange(it.value) },
-        textFieldModifier = Modifier.fillMaxWidth(),
+        inputFieldModifier = Modifier.fillMaxWidth(),
         label = { Text("Reading Direction") },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )

@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.PaginationWithSizeOptions
+import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
 import io.github.snd_r.komelia.ui.common.itemlist.BookLazyCardGrid
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.ReadListActionsMenu
@@ -54,10 +54,7 @@ fun ReadListContent(
             readList = readList,
             onReadListDelete = onReadListDelete,
 
-            totalPages = totalPages,
-            currentPage = currentPage,
             pageSize = pageSize,
-            onPageChange = onPageChange,
             onPageSizeChange = onPageSizeChange,
             onBackClick = onBackClick
         )
@@ -77,11 +74,7 @@ fun ReadListContent(
 private fun ReadListToolbar(
     readList: KomgaReadList,
     onReadListDelete: () -> Unit,
-
-    totalPages: Int,
-    currentPage: Int,
     pageSize: Int,
-    onPageChange: (Int) -> Unit,
     onPageSizeChange: (Int) -> Unit,
 
     onBackClick: () -> Unit,
@@ -114,15 +107,7 @@ private fun ReadListToolbar(
             modifier = Modifier.padding(10.dp, 0.dp),
         )
 
-        PaginationWithSizeOptions(
-            totalPages = totalPages,
-            currentPage = currentPage,
-            onPageChange = onPageChange,
-            navigationButtons = false,
-            pageSize = pageSize,
-            onPageSizeChange = onPageSizeChange,
-            spacer = { Spacer(Modifier.weight(1f)) }
-        )
-
+        Spacer(Modifier.weight(1f))
+        PageSizeSelectionDropdown(pageSize,onPageSizeChange)
     }
 }

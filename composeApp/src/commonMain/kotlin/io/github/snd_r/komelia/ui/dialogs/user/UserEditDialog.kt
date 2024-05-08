@@ -213,7 +213,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                         options = restriction.options.map { LabeledEntry(it, strings.forAgeRestriction(it)) },
                         onOptionChange = { restriction.onValueChange(it.value) },
                         label = { Text(strings.ageRestriction) },
-                        textFieldModifier = Modifier.weight(1f)
+                        inputFieldModifier = Modifier.weight(1f)
                     )
                     TextField(
                         value = age.value.toString(),

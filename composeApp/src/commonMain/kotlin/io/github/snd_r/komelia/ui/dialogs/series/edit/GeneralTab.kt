@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.dialogs.seriesedit
+package io.github.snd_r.komelia.ui.dialogs.series.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatAlignCenter
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -118,7 +119,8 @@ private fun GeneralTabContent(
                 onOptionChange = { status.onValueChange(it.value) },
                 label = { Text(strings.status) },
                 lock = statusLock,
-                textFieldModifier = Modifier.weight(.5f)
+                inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
+                inputFieldModifier = Modifier.weight(.5f)
             )
             LockableTextField(
                 text = language.value,
@@ -138,7 +140,8 @@ private fun GeneralTabContent(
             onOptionChange = { readingDirection.onValueChange(it.value) },
             label = { Text(strings.readingDirection) },
             lock = readingDirectionLock,
-            textFieldModifier = Modifier.fillMaxWidth()
+            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
+            inputFieldModifier = Modifier.fillMaxWidth()
         )
 
 

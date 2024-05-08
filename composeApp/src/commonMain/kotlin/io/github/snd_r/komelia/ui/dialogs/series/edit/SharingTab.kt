@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.dialogs.seriesedit
+package io.github.snd_r.komelia.ui.dialogs.series.edit
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.People

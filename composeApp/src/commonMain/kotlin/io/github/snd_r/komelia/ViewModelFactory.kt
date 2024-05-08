@@ -9,6 +9,8 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
+import io.github.snd_r.komelia.ui.common.menus.bulk.CollectionBulkActions
+import io.github.snd_r.komelia.ui.common.menus.bulk.SeriesBulkActions
 import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
@@ -16,7 +18,8 @@ import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.readlistedit.ReadListEditDialogViewModel
-import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.series.editbulk.SeriesBulkEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
@@ -195,6 +198,13 @@ class ViewModelFactory(
             notifications = appNotifications,
             cardWidth = settingsRepository.getCardWidth(),
         )
+    fun getSeriesBulkEditDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
+        SeriesBulkEditDialogViewModel(
+            series = series,
+            onDialogDismiss = onDismissRequest,
+            seriesClient = komgaClientFactory.seriesClient(),
+            notifications = appNotifications,
+        )
 
     fun getBookEditDialogViewModel(book: KomgaBook, onDismissRequest: () -> Unit) =
         BookEditDialogViewModel(
@@ -223,7 +233,7 @@ class ViewModelFactory(
             cardWidth = settingsRepository.getCardWidth(),
         )
 
-    fun getAddToCollectionDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit) =
+    fun getAddToCollectionDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
         AddToCollectionDialogViewModel(
             series = series,
             onDismissRequest = onDismissRequest,
@@ -376,6 +386,9 @@ class ViewModelFactory(
             appNotifications = appNotifications
         )
     }
+
+    fun getSeriesBulkActions() = SeriesBulkActions(komgaClientFactory.seriesClient(), appNotifications)
+    fun getCollectionBulkActions() = CollectionBulkActions(komgaClientFactory.collectionClient(), appNotifications)
 
     fun getAppNotifications(): AppNotifications = appNotifications
 

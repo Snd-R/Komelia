@@ -303,7 +303,7 @@ private fun <T> FilterDropdownChoice(
         label = { Text(label) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier.clip(RoundedCornerShape(5.dp)),
-        textFieldModifier = Modifier.fillMaxWidth()
+        inputFieldModifier = Modifier.fillMaxWidth()
     )
 }
 

@@ -96,7 +96,7 @@ private fun ScannerTabContent(
             selectedOption = LabeledEntry(scanInterval.value, strings.forScanInterval(scanInterval.value)),
             options = ScanInterval.entries.map { LabeledEntry(it, strings.forScanInterval(it)) },
             onOptionChange = { scanInterval.onValueChange(it.value) },
-            textFieldModifier = Modifier.fillMaxWidth(),
+            inputFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.scanInterval) }
         )
 

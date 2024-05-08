@@ -19,7 +19,7 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
-import io.github.snd_r.komelia.ui.dialogs.seriesedit.SeriesEditDialog
+import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import kotlinx.coroutines.CoroutineScope
@@ -62,7 +62,7 @@ fun SeriesActionsMenu(
     var showAddToCollectionDialog by remember { mutableStateOf(false) }
     if (showAddToCollectionDialog) {
         AddToCollectionDialog(
-            series = series,
+            series = listOf(series),
             onDismissRequest = {
                 showAddToCollectionDialog = false
                 onDismissRequest()

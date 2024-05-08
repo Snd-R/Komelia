@@ -17,7 +17,9 @@ import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komga.collection.KomgaCollection
 import io.github.snd_r.komga.collection.KomgaCollectionClient
 import io.github.snd_r.komga.collection.KomgaCollectionId
+import io.github.snd_r.komga.collection.KomgaCollectionUpdateRequest
 import io.github.snd_r.komga.common.KomgaPageRequest
+import io.github.snd_r.komga.common.PatchValue.Some
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.sse.KomgaEvent
@@ -31,8 +33,12 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -58,6 +64,12 @@ class CollectionViewModel(
         private set
     var pageLoadSize by mutableStateOf(100)
         private set
+    var isInEditMode by mutableStateOf(false)
+        private set
+    var selectedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
+        private set
+
+    private var isAnyItemDragging = MutableStateFlow(false)
 
     private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
     fun initialize() {
@@ -71,9 +83,30 @@ class CollectionViewModel(
         screenModelScope.launch { startEventListener() }
 
         reloadJobsFlow.onEach {
-            loadSeriesPage(currentSeriesPage)
+            isAnyItemDragging.first { !it } // suspend while drag is in progress
+
+            loadCollection()
+            if (isInEditMode) loadAllSeries()
+            else loadSeriesPage(currentSeriesPage)
+
+            if (selectedSeries.isNotEmpty()) {
+                val selectedIds = selectedSeries.map { it.id }
+                selectedSeries = series.filter { it.id in selectedIds }
+            }
+
             delay(1000)
-        }
+        }.launchIn(screenModelScope)
+
+        isAnyItemDragging
+            .filter { isDragging -> !isDragging && state.value != Uninitialized }
+            .onEach {
+                notifications.runCatchingToNotifications {
+                    collectionClient.updateOne(
+                        collectionId,
+                        KomgaCollectionUpdateRequest(seriesIds = Some(series.map { it.id }.toSet()))
+                    )
+                }
+            }.launchIn(screenModelScope)
     }
 
     fun seriesMenuActions() = SeriesMenuActions(seriesClient, notifications, screenModelScope)
@@ -91,6 +124,36 @@ class CollectionViewModel(
 
     fun onPageChange(pageNumber: Int) {
         screenModelScope.launch { loadSeriesPage(pageNumber) }
+    }
+
+    fun setEditMode(editMode: Boolean) {
+        this.isInEditMode = editMode
+
+        if (editMode) {
+            if (totalSeriesCount != series.size) screenModelScope.launch { loadAllSeries() }
+        } else {
+            if (pageLoadSize != series.size) screenModelScope.launch { loadSeriesPage(1) }
+            selectedSeries = emptyList()
+        }
+
+    }
+
+    fun onSeriesSelect(series: KomgaSeries) {
+        if (selectedSeries.contains(series)) selectedSeries -= series
+        else this.selectedSeries += series
+        if (selectedSeries.isNotEmpty()) setEditMode(true)
+    }
+
+    fun onSeriesReorder(fromIndex: Int, toIndex: Int) {
+        val mutable = series.toMutableList()
+        val moved = mutable.removeAt(fromIndex)
+        mutable.add(toIndex, moved)
+
+        series = mutable
+    }
+
+    fun onSeriesReorderDragStateChange(isDragging: Boolean) {
+        isAnyItemDragging.value = isDragging
     }
 
     private suspend fun loadCollection() {
@@ -121,6 +184,27 @@ class CollectionViewModel(
         }
     }
 
+    private suspend fun loadAllSeries() {
+        if (state.value is Error) return
+
+        notifications.runCatchingToNotifications {
+            mutableState.value = Loading
+            val pageRequest = KomgaPageRequest(unpaged = true)
+            val collectionPage = collectionClient.getSeriesForCollection(collectionId, pageRequest = pageRequest)
+
+            if (series != collectionPage.content) {
+                currentSeriesPage = collectionPage.number + 1
+                totalSeriesPages = collectionPage.totalPages
+                totalSeriesCount = collectionPage.totalElements
+                series = collectionPage.content
+            }
+
+            mutableState.value = Success(Unit)
+        }.onFailure {
+            mutableState.value = LoadState.Error(it)
+        }
+    }
+
     private suspend fun startEventListener() {
         komgaEvents.collect { event ->
             when (event) {
@@ -134,8 +218,10 @@ class CollectionViewModel(
         }
     }
 
-    private suspend fun onCollectionChanged(event: CollectionChanged) {
-        if (event.collectionId == collectionId) loadCollection()
+    private fun onCollectionChanged(event: CollectionChanged) {
+        if (event.collectionId == collectionId) {
+            reloadJobsFlow.tryEmit(Unit)
+        }
     }
 
     private fun onSeriesChanged(event: SeriesEvent) {
@@ -145,4 +231,5 @@ class CollectionViewModel(
     private fun onReadProgressChanged(event: ReadProgressSeriesEvent) {
         if (series.any { it.id == event.seriesId }) reloadJobsFlow.tryEmit(Unit)
     }
+
 }

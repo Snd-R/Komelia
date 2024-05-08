@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -79,18 +80,24 @@ class LibraryScreen(
         when (val state = vm.state.collectAsState().value) {
             is Error -> ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
             Uninitialized, Loading, is Success -> {
+                var showToolbar by remember { mutableStateOf(true) }
                 Column {
-                    LibraryToolBar(
-                        library = vm.library?.value,
-                        currentTab = vm.currentTab,
-                        libraryActions = vm.libraryActions(),
-                        collectionsCount = vm.collectionsCount,
-                        readListsCount = vm.readListsCount,
-                        onBrowseClick = vm::toBrowseTab,
-                        onCollectionsClick = vm::toCollectionsTab,
-                        onReadListsClick = vm::toReadListsTab
+                    if(showToolbar) {
+                        LibraryToolBar(
+                            library = vm.library?.value,
+                            currentTab = vm.currentTab,
+                            libraryActions = vm.libraryActions(),
+                            collectionsCount = vm.collectionsCount,
+                            readListsCount = vm.readListsCount,
+                            onBrowseClick = vm::toBrowseTab,
+                            onCollectionsClick = vm::toCollectionsTab,
+                            onReadListsClick = vm::toReadListsTab
+                        )
+                    }
+                    CurrentTab(
+                        tab = vm.currentTab,
+                        onLibraryToolbarToggle = { showToolbar = it }
                     )
-                    CurrentTab(vm.currentTab)
                 }
             }
         }
@@ -99,12 +106,12 @@ class LibraryScreen(
     @Composable
     private fun CurrentTab(
         tab: LibraryTab,
+        onLibraryToolbarToggle: (show: Boolean) -> Unit,
         modifier: Modifier = Modifier
     ) {
         Box(modifier) {
             when (tab) {
-                SERIES -> BrowseTab()
-//                RECOMMENDED -> RecommendedTab()
+                SERIES -> BrowseTab(onLibraryToolbarToggle)
                 COLLECTIONS -> CollectionsTab()
                 READ_LISTS -> ReadListsTab()
             }
@@ -113,13 +120,20 @@ class LibraryScreen(
     }
 
     @Composable
-    private fun BrowseTab() {
+    private fun BrowseTab(
+        onLibraryToolbarToggle: (show: Boolean) -> Unit,
+    ) {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel("browse_${libraryId?.value}") {
             viewModelFactory.getSeriesBrowseViewModel(libraryId)
         }
         LaunchedEffect(libraryId) { vm.initialize(seriesFilter) }
+
+        LaunchedEffect(Unit) {
+            snapshotFlow { vm.isInEditMode }
+                .collect { editMode -> onLibraryToolbarToggle(!editMode) }
+        }
 
         when (val state = vm.state.collectAsState().value) {
             is Error -> ErrorContent(
@@ -133,9 +147,14 @@ class LibraryScreen(
                     series = vm.series,
                     seriesActions = vm.seriesMenuActions(),
                     seriesTotalCount = vm.totalSeriesCount,
-                    onSeriesClick = { navigator.push(SeriesScreen(it)) },
-                    isLoading = loading,
+                    onSeriesClick = { navigator.push(SeriesScreen(it.id)) },
 
+                    editMode = vm.isInEditMode,
+                    onEditModeChange = vm::onEditModeChange,
+                    selectedSeries = vm.selectedSeries,
+                    onSeriesSelect = vm::onSeriesSelect,
+
+                    isLoading = loading,
                     filterState = vm.filterState,
 
                     currentPage = vm.currentSeriesPage,
