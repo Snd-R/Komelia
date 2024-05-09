@@ -62,12 +62,16 @@ private fun AuthorsTabContent(
     onLockChange: (Boolean) -> Unit,
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
 
         val warningColor = MaterialTheme.colorScheme.tertiary
-        Row(Modifier.border(Dp.Hairline, warningColor).padding(20.dp)) {
+        Row(
+            Modifier
+                .border(Dp.Hairline, warningColor)
+                .padding(20.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
             Icon(Icons.Default.PriorityHigh, null, tint = warningColor)
             Text(
                 text = "You are editing authors for multiple books. This will override existing authors of each book.",

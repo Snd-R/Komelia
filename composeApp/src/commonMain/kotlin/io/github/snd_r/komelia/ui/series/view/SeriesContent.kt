@@ -74,13 +74,15 @@ import io.github.snd_r.komelia.ui.common.itemlist.BooksList
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import io.github.snd_r.komelia.ui.common.menus.bulk.BooksBulkActionsContent
+import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
+import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import io.github.snd_r.komelia.ui.library.SeriesTabFilter
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
 import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
 import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesStatus.ABANDONED
 import io.github.snd_r.komga.series.KomgaSeriesStatus.ENDED
@@ -102,14 +104,19 @@ fun SeriesContent(
     booksLayout: BooksLayout,
     onBooksLayoutChange: (BooksLayout) -> Unit,
 
+    booksEditMode: Boolean,
+    onBooksEditModeChange: (Boolean) -> Unit,
+    selectedBooks: List<KomgaBook>,
+    onBookSelect: (KomgaBook) -> Unit,
+
     booksPageSize: Int,
     onBooksPageSizeChange: (Int) -> Unit,
 
     bookMenuActions: BookMenuActions,
     totalBookPages: Int,
     currentBookPage: Int,
-    onBookClick: (KomgaBookId) -> Unit,
-    onBookReadClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
+    onBookReadClick: (KomgaBook) -> Unit,
     onBookPageNumberClick: (Int) -> Unit,
     onBackButtonClick: () -> Unit,
 ) {
@@ -121,7 +128,14 @@ fun SeriesContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        SeriesToolBar(series, seriesMenuActions, onBackButtonClick)
+        if (booksEditMode) {
+            BulkActionsToolbar(
+                onCancel = { onBooksEditModeChange(false) },
+                books = books,
+                selectedBooks = selectedBooks,
+                onBookSelect = onBookSelect
+            )
+        } else SeriesToolBar(series, seriesMenuActions, onBackButtonClick)
 
         if (series == null) {
             LoadingMaxSizeIndicator()
@@ -133,7 +147,6 @@ fun SeriesContent(
                 ) {
 
                     Series(series, onFilterClick)
-
                     HorizontalDivider(Modifier.padding(bottom = 10.dp))
 
                     Books(
@@ -144,6 +157,11 @@ fun SeriesContent(
                         booksLoading = booksLoading,
                         booksLayout = booksLayout,
                         onBooksLayoutChange = onBooksLayoutChange,
+
+                        editMode = booksEditMode,
+                        selectedBooks = selectedBooks,
+                        onBookSelect = onBookSelect,
+
                         booksPageSize = booksPageSize,
                         onBooksPageSizeChange = onBooksPageSizeChange,
 
@@ -160,6 +178,11 @@ fun SeriesContent(
 
                 VerticalScrollbar(scrollState, Modifier.align(Alignment.CenterEnd))
             }
+        }
+
+        val width = LocalWindowWidth.current
+        if ((width == COMPACT || width == MEDIUM) && selectedBooks.isNotEmpty()) {
+            BottomPopupBulkActionsPanel { BooksBulkActionsContent(books, false) }
         }
     }
 
@@ -413,6 +436,10 @@ fun Books(
     bookCardWidth: Dp,
     booksLoading: Boolean,
 
+    editMode: Boolean,
+    selectedBooks: List<KomgaBook>,
+    onBookSelect: (KomgaBook) -> Unit,
+
     booksLayout: BooksLayout,
     onBooksLayoutChange: (BooksLayout) -> Unit,
     booksPageSize: Int,
@@ -420,8 +447,8 @@ fun Books(
 
     scrollState: ScrollState,
     bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBookId) -> Unit,
-    onBookReadClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
+    onBookReadClick: (KomgaBook) -> Unit,
     totalBookPages: Int,
     currentBookPage: Int,
     onBookPageNumberClick: (Int) -> Unit,
@@ -443,6 +470,7 @@ fun Books(
             series = series,
             booksLayout = booksLayout,
             onBooksLayoutChange = onBooksLayoutChange,
+            editMode = editMode,
             booksPageSize = booksPageSize,
             onBooksPageSizeChange = onBooksPageSizeChange,
             totalBookPages = totalBookPages,
@@ -454,39 +482,47 @@ fun Books(
             GRID -> {
                 BooksGrid(
                     books = books,
-                    cardWidth = bookCardWidth,
-                    bookMenuActions = bookMenuActions,
-                    onBookClick = onBookClick,
-                    onBookReadClick = onBookReadClick,
+                    onBookClick = if (editMode) onBookSelect else onBookClick,
+                    onBookReadClick = if (editMode) null else onBookReadClick,
+                    bookMenuActions = if (editMode) null else bookMenuActions,
+
+                    selectedBooks = selectedBooks,
+                    onBookSelect = onBookSelect,
+
                     loadPlaceholder = {
                         for (i in 0 until booksPageSize) {
                             ItemCard(Modifier.width(bookCardWidth), onClick = {}, image = {})
                         }
                     },
+                    cardWidth = bookCardWidth,
                     isLoading = booksLoading,
                 )
             }
 
             LIST -> BooksList(
                 books = books,
-                bookMenuActions = bookMenuActions,
-                onBookClick = onBookClick,
-                onBookReadClick = onBookReadClick,
+                onBookClick = if (editMode) onBookSelect else onBookClick,
+                onBookReadClick = if (editMode) null else onBookReadClick,
+                bookMenuActions = if (editMode) null else bookMenuActions,
                 isLoading = booksLoading,
+                selectedBooks = selectedBooks,
+                onBookSelect = onBookSelect,
             )
         }
 
 
-        val coroutineScope = rememberCoroutineScope()
-        Pagination(
-            totalPages = totalBookPages,
-            currentPage = currentBookPage,
-            onPageChange = {
-                onBookPageNumberClick(it)
-                coroutineScope.launch { scrollState.animateScrollTo(scrollToPosition.roundToInt()) }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+        if (!editMode) {
+            val coroutineScope = rememberCoroutineScope()
+            Pagination(
+                totalPages = totalBookPages,
+                currentPage = currentBookPage,
+                onPageChange = {
+                    onBookPageNumberClick(it)
+                    coroutineScope.launch { scrollState.animateScrollTo(scrollToPosition.roundToInt()) }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }
 
@@ -498,6 +534,7 @@ private fun BooksToolBar(
     onBooksLayoutChange: (BooksLayout) -> Unit,
     booksPageSize: Int,
     onBooksPageSizeChange: (Int) -> Unit,
+    editMode: Boolean,
 
     totalBookPages: Int,
     currentBookPage: Int,
@@ -520,20 +557,25 @@ private fun BooksToolBar(
                 label = { Text(booksLabel, style = MaterialTheme.typography.bodyMedium) },
                 modifier = Modifier.padding(10.dp, 0.dp)
             )
-            when (width) {
-                EXPANDED, FULL -> Pagination(
-                    totalPages = totalBookPages,
-                    currentPage = currentBookPage,
-                    onPageChange = onBookPageNumberClick,
-                    modifier = Modifier.weight(1f)
-                )
 
-                else -> {
-                    Spacer(Modifier.weight(1f))
+            if (editMode) {
+                Spacer(Modifier.weight(1f))
+            } else {
+                when (width) {
+                    EXPANDED, FULL -> Pagination(
+                        totalPages = totalBookPages,
+                        currentPage = currentBookPage,
+                        onPageChange = onBookPageNumberClick,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    else -> {
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
-            }
 
-            PageSizeSelectionDropdown(booksPageSize, onBooksPageSizeChange)
+                PageSizeSelectionDropdown(booksPageSize, onBooksPageSizeChange)
+            }
 
             Row {
                 Box(Modifier
@@ -555,17 +597,56 @@ private fun BooksToolBar(
                 }
             }
         }
-
-        when (width) {
-            COMPACT, MEDIUM -> Pagination(
-                totalPages = totalBookPages,
-                currentPage = currentBookPage,
-                onPageChange = onBookPageNumberClick,
-            )
-
-            else -> {}
-        }
     }
 
+    when (width) {
+        COMPACT, MEDIUM -> Pagination(
+            totalPages = totalBookPages,
+            currentPage = currentBookPage,
+            onPageChange = onBookPageNumberClick,
+        )
+
+        else -> {}
+    }
 }
 
+
+@Composable
+private fun BulkActionsToolbar(
+    onCancel: () -> Unit,
+    books: List<KomgaBook>,
+    selectedBooks: List<KomgaBook>,
+    onBookSelect: (KomgaBook) -> Unit,
+) {
+    BulkActionsContainer(
+        onCancel = onCancel,
+        selectedCount = selectedBooks.size,
+        allSelected = books.size == selectedBooks.size,
+        onSelectAll = {
+            if (books.size == selectedBooks.size) books.forEach { onBookSelect(it) }
+            else books.filter { it !in selectedBooks }.forEach { onBookSelect(it) }
+        }
+    ) {
+        when (LocalWindowWidth.current) {
+            FULL -> {
+                Text("Selection mode: Click on items to select or deselect them")
+                if (selectedBooks.isNotEmpty()) {
+                    Spacer(Modifier.weight(1f))
+
+                    BooksBulkActionsContent(selectedBooks, true)
+                }
+            }
+
+            EXPANDED -> {
+                if (selectedBooks.isEmpty()) {
+                    Text("Selection mode: Click on items to select or deselect them")
+                } else {
+                    Spacer(Modifier.weight(1f))
+                    BooksBulkActionsContent(selectedBooks, true)
+                }
+            }
+
+            COMPACT, MEDIUM -> {}
+        }
+    }
+}

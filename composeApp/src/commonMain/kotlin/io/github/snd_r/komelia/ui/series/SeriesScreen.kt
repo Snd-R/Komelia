@@ -55,16 +55,21 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
                     booksLayout = vm.booksLayout.collectAsState().value,
                     onBooksLayoutChange = vm::onBookLayoutChange,
 
+                    booksEditMode = vm.booksEditMode,
+                    onBooksEditModeChange = vm::onEditModeChange,
+                    selectedBooks = vm.selectedBooks,
+                    onBookSelect = vm::onBookSelect,
+
                     booksPageSize = vm.booksPageSize.collectAsState().value,
                     onBooksPageSizeChange = vm::onBookPageSizeChange,
 
                     bookMenuActions = vm.bookMenuActions(),
                     totalBookPages = vm.totalBookPages,
                     currentBookPage = vm.currentBookPage,
-                    onBookClick = { navigator push BookScreen(it) },
-                    onBookReadClick = { navigator.parent?.replace(ReaderScreen(it)) },
+                    onBookClick = { navigator push BookScreen(it.id) },
+                    onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
 
-                    onBookPageNumberClick = { vm.onLoadBookPage(it) },
+                    onBookPageNumberClick = { vm.onPageChange(it) },
 
                     onBackButtonClick = { onBackPress(navigator, vm.series?.libraryId) },
                 )

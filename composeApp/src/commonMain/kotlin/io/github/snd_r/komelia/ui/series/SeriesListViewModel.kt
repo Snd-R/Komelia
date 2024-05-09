@@ -136,9 +136,8 @@ class SeriesListViewModel(
 
     fun onEditModeChange(editMode: Boolean) {
         this.isInEditMode = editMode
-        if (!editMode) {
-            selectedSeries = emptyList()
-        }
+        if (!editMode) selectedSeries = emptyList()
+
     }
 
     fun onSeriesSelect(series: KomgaSeries) {
@@ -146,10 +145,7 @@ class SeriesListViewModel(
             selectedSeries = selectedSeries.filter { it.id != series.id }
         } else this.selectedSeries += series
 
-        when {
-            selectedSeries.isEmpty() -> onEditModeChange(false)
-            selectedSeries.isNotEmpty() && !isInEditMode -> onEditModeChange(true)
-        }
+        if (selectedSeries.isNotEmpty() && !isInEditMode) onEditModeChange(true)
     }
 
     private suspend fun loadSeriesPage(page: Int) {

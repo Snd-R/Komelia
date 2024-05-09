@@ -1,8 +1,9 @@
 package io.github.snd_r.komelia.ui.common.cards
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -252,30 +253,49 @@ private fun getReadProgressPercentage(book: KomgaBook): Float {
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BookDetailedListCard(
     book: KomgaBook,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
     bookMenuActions: BookMenuActions? = null,
     onBookReadClick: (() -> Unit)? = null,
+    isSelected: Boolean = false,
+    onSelect: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-
-    Card(modifier
-        .cursorForHand()
-        .clickable { onClick() }
-        .fillMaxWidth()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered = interactionSource.collectIsHoveredAsState()
+    Card(
+        modifier
+            .cursorForHand()
+            .combinedClickable(onClick = onClick ?: {}, onLongClick = onSelect)
+            .hoverable(interactionSource)
+            .fillMaxWidth()
     ) {
         Row(
-            Modifier
+            modifier = Modifier
                 .heightIn(max = 220.dp)
-                .padding(10.dp)
+                .fillMaxWidth()
+                .then(
+                    if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondary.copy(alpha = .3f))
+                    else Modifier
+                )
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            BookSimpleImageCard(book)
+            Box {
+                BookSimpleImageCard(book)
+                if (onSelect != null && (isSelected || isHovered.value)) {
+                    SelectionRadioButton(isSelected, onSelect)
+                }
+            }
             BookDetailedListDetails(
                 book = book,
                 bookMenuActions = bookMenuActions,
-                onBookReadClick = onBookReadClick
+                onBookReadClick = onBookReadClick,
+                isSelected = isSelected,
+                onSelect = onSelect
             )
         }
     }
@@ -287,17 +307,21 @@ private fun BookDetailedListDetails(
     book: KomgaBook,
     bookMenuActions: BookMenuActions?,
     onBookReadClick: (() -> Unit)? = null,
+    isSelected: Boolean,
+    onSelect: (() -> Unit)?,
 ) {
     val width = LocalWindowWidth.current
     Column(Modifier.padding(start = 10.dp)) {
-        Text(
-            book.metadata.title,
-            fontWeight = FontWeight.Bold,
-            maxLines = when (width) {
-                COMPACT, MEDIUM -> 2
-                else -> 4
-            }
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                book.metadata.title,
+                fontWeight = FontWeight.Bold,
+                maxLines = when (width) {
+                    COMPACT, MEDIUM -> 2
+                    else -> 4
+                }
+            )
+        }
 
         LazyRow(
             modifier = Modifier.padding(vertical = 5.dp),

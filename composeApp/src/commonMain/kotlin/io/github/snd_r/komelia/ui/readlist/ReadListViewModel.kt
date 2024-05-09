@@ -143,8 +143,9 @@ class ReadListViewModel(
     }
 
     fun onBookSelect(book: KomgaBook) {
-        if (selectedBooks.contains(book)) selectedBooks -= book
-        else this.selectedBooks += book
+        if (selectedBooks.any { it.id == book.id }) {
+            selectedBooks = selectedBooks.filter { it.id != book.id }
+        } else this.selectedBooks += book
         if (selectedBooks.isNotEmpty()) setEditMode(true)
     }
 

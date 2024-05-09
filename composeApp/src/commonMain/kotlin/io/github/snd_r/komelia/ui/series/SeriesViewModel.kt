@@ -55,8 +55,11 @@ class SeriesViewModel(
 
     var books by mutableStateOf<List<KomgaBook>>(emptyList())
     var booksLoading by mutableStateOf(false)
+    var booksEditMode by mutableStateOf(false)
+    var selectedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
 
     var totalBookPages by mutableStateOf(1)
+    var totalBookCount by mutableStateOf(0)
     var currentBookPage by mutableStateOf(1)
 
     fun initialize() {
@@ -99,7 +102,8 @@ class SeriesViewModel(
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    fun onLoadBookPage(page: Int) {
+    fun onPageChange(page: Int) {
+        onEditModeChange(false)
         screenModelScope.launch { loadBooksPage(page) }
     }
 
@@ -122,6 +126,7 @@ class SeriesViewModel(
             books = pageResponse.content
             currentBookPage = pageResponse.number + 1
             totalBookPages = pageResponse.totalPages
+            totalBookCount = pageResponse.totalElements
 
             loadThreshold.cancel()
             booksLoading = false
@@ -142,6 +147,20 @@ class SeriesViewModel(
     fun onBookLayoutChange(layout: BooksLayout) {
         booksLayout.value = layout
         screenModelScope.launch { settingsRepository.putBookListLayout(layout) }
+    }
+
+    fun onEditModeChange(editMode: Boolean) {
+        this.booksEditMode = editMode
+        if (!editMode) selectedBooks = emptyList()
+
+    }
+
+    fun onBookSelect(book: KomgaBook) {
+        if (selectedBooks.any { it.id == book.id }) {
+            selectedBooks = selectedBooks.filter { it.id != book.id }
+        } else this.selectedBooks += book
+
+        if (selectedBooks.isNotEmpty()) onEditModeChange(true)
     }
 
     private suspend fun onBookReadProgressChanged(eventBookId: KomgaBookId) {

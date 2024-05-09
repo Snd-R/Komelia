@@ -118,8 +118,6 @@ fun SelectionRadioButton(
             .background(MaterialTheme.colorScheme.surface.copy(alpha = .4f))
             .selectable(selected = isSelected, onClick = onSelect)
     )
-//    Spacer(Modifier.weight(1f))
-
 }
 
 @OptIn(ExperimentalFoundationApi::class)

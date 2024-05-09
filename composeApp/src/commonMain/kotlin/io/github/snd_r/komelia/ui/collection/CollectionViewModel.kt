@@ -139,8 +139,9 @@ class CollectionViewModel(
     }
 
     fun onSeriesSelect(series: KomgaSeries) {
-        if (selectedSeries.contains(series)) selectedSeries -= series
-        else this.selectedSeries += series
+        if (selectedSeries.any { it.id == series.id }) {
+            selectedSeries = selectedSeries.filter { it.id != series.id }
+        } else this.selectedSeries += series
         if (selectedSeries.isNotEmpty()) setEditMode(true)
     }
 
