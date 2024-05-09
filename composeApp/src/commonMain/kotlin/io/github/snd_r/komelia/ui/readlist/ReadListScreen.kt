@@ -37,8 +37,16 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
 
                 books = vm.books,
                 bookMenuActions = vm.bookMenuActions(),
-                onBookClick = { navigator push BookScreen(it) },
-                onBookReadClick = { navigator.parent?.replace(ReaderScreen(it)) },
+                onBookClick = { navigator push BookScreen(it.id) },
+                onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
+
+                selectedBooks = vm.selectedBooks,
+                onBookSelect = vm::onBookSelect,
+
+                editMode = vm.isInEditMode,
+                onEditModeChange = vm::setEditMode,
+                onReorder = vm::onBookReorder,
+                onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
 
                 totalPages = vm.totalBookPages,
                 currentPage = vm.currentBookPage,

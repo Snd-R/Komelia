@@ -34,6 +34,7 @@ import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.common.Pagination
+import io.github.snd_r.komelia.ui.common.cards.DraggableImageCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komga.series.KomgaSeries
@@ -90,16 +91,11 @@ fun SeriesLazyCardGrid(
 
             items(items = series, key = { it.id.value }) { series ->
                 val isSelected = remember(selectedSeries) { selectedSeries.any { it.id == series.id } }
-                if (reorderable)
-                    DraggableSeriesCard(
-                        series = series,
-                        onSeriesClick = onSeriesClick,
-                        seriesMenuActions = seriesMenuActions,
-                        isSelected = isSelected,
-                        onSeriesSelect = onSeriesSelect,
-                        reorderableState = reorderableLazyGridState,
-                    )
-                else
+                DraggableImageCard(
+                    key = series.id.value,
+                    dragEnabled = reorderable,
+                    reorderableState = reorderableLazyGridState
+                ) {
                     SeriesImageCard(
                         series = series,
                         onSeriesClick = { onSeriesClick(series) },
@@ -108,6 +104,7 @@ fun SeriesLazyCardGrid(
                         onSeriesSelect = onSeriesSelect?.let { { onSeriesSelect(series) } },
                         modifier = Modifier.fillMaxSize()
                     )
+                }
             }
 
             item(span = { GridItemSpan(maxLineSpan) }) {

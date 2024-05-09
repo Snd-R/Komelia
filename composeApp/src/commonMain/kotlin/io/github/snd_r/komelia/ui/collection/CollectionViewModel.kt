@@ -103,7 +103,7 @@ class CollectionViewModel(
                 notifications.runCatchingToNotifications {
                     collectionClient.updateOne(
                         collectionId,
-                        KomgaCollectionUpdateRequest(seriesIds = Some(series.map { it.id }.toSet()))
+                        KomgaCollectionUpdateRequest(seriesIds = Some(series.map { it.id }))
                     )
                 }
             }.launchIn(screenModelScope)
@@ -163,41 +163,26 @@ class CollectionViewModel(
     }
 
     private suspend fun loadSeriesPage(page: Int) {
+        loadSeries(
+            KomgaPageRequest(pageIndex = page - 1, size = pageLoadSize)
+        )
+    }
+
+    private suspend fun loadAllSeries() {
+        loadSeries(KomgaPageRequest(unpaged = true))
+    }
+
+    private suspend fun loadSeries(pageRequest: KomgaPageRequest) {
         if (state.value is Error) return
 
         notifications.runCatchingToNotifications {
             mutableState.value = Loading
-            val pageRequest = KomgaPageRequest(
-                page = page - 1,
-                size = pageLoadSize,
-            )
             val collectionPage = collectionClient.getSeriesForCollection(collectionId, pageRequest = pageRequest)
 
             currentSeriesPage = collectionPage.number + 1
             totalSeriesPages = collectionPage.totalPages
             totalSeriesCount = collectionPage.totalElements
             series = collectionPage.content
-
-            mutableState.value = Success(Unit)
-        }.onFailure {
-            mutableState.value = LoadState.Error(it)
-        }
-    }
-
-    private suspend fun loadAllSeries() {
-        if (state.value is Error) return
-
-        notifications.runCatchingToNotifications {
-            mutableState.value = Loading
-            val pageRequest = KomgaPageRequest(unpaged = true)
-            val collectionPage = collectionClient.getSeriesForCollection(collectionId, pageRequest = pageRequest)
-
-            if (series != collectionPage.content) {
-                currentSeriesPage = collectionPage.number + 1
-                totalSeriesPages = collectionPage.totalPages
-                totalSeriesCount = collectionPage.totalElements
-                series = collectionPage.content
-            }
 
             mutableState.value = Success(Unit)
         }.onFailure {

@@ -89,7 +89,7 @@ class SearchViewModel(
                 val page = seriesClient.getAllSeries(
                     KomgaSeriesQuery(searchTerm = query),
                     KomgaPageRequest(
-                        page = pageNumber - 1,
+                        pageIndex = pageNumber - 1,
                         size = 10,
                         sort = if (query.isBlank()) KomgaSeriesSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
                     )
@@ -112,7 +112,7 @@ class SearchViewModel(
                 val page = bookClient.getAllBooks(
                     KomgaBookQuery(searchTerm = query),
                     KomgaPageRequest(
-                        page = pageNumber - 1,
+                        pageIndex = pageNumber - 1,
                         size = 10,
                         sort = if (query.isBlank()) KomgaBooksSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
                     )

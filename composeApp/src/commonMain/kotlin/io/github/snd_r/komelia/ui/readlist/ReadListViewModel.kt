@@ -16,9 +16,11 @@ import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.common.KomgaPageRequest
+import io.github.snd_r.komga.common.PatchValue
 import io.github.snd_r.komga.readlist.KomgaReadList
 import io.github.snd_r.komga.readlist.KomgaReadListClient
 import io.github.snd_r.komga.readlist.KomgaReadListId
+import io.github.snd_r.komga.readlist.KomgaReadListUpdateRequest
 import io.github.snd_r.komga.sse.KomgaEvent
 import io.github.snd_r.komga.sse.KomgaEvent.BookChanged
 import io.github.snd_r.komga.sse.KomgaEvent.BookDeleted
@@ -29,8 +31,12 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -58,6 +64,13 @@ class ReadListViewModel(
     var pageLoadSize by mutableStateOf(100)
         private set
 
+    var isInEditMode by mutableStateOf(false)
+        private set
+    var selectedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
+        private set
+
+    private var isAnyItemDragging = MutableStateFlow(false)
+
     private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, BufferOverflow.DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -68,9 +81,31 @@ class ReadListViewModel(
         }
 
         reloadJobsFlow.onEach {
-            loadBooks(currentBookPage)
+            isAnyItemDragging.first { !it } // suspend while drag is in progress
+
+            loadReadList()
+
+            if (isInEditMode) loadAllBooks()
+            else loadBooks(currentBookPage)
+
+            if (selectedBooks.isNotEmpty()) {
+                val selectedIds = selectedBooks.map { it.id }
+                selectedBooks = books.filter { it.id in selectedIds }
+            }
+
             delay(1000)
         }
+
+        isAnyItemDragging
+            .filter { isDragging -> !isDragging && state.value != Uninitialized }
+            .onEach {
+                notifications.runCatchingToNotifications {
+                    readListClient.updateOne(
+                        readListId,
+                        KomgaReadListUpdateRequest(bookIds = PatchValue.Some(books.map { it.id }))
+                    )
+                }
+            }.launchIn(screenModelScope)
         screenModelScope.launch { startEventListener() }
     }
 
@@ -95,6 +130,36 @@ class ReadListViewModel(
         }
     }
 
+    fun setEditMode(editMode: Boolean) {
+        this.isInEditMode = editMode
+
+        if (editMode) {
+            if (totalBookCount != books.size) screenModelScope.launch { loadAllBooks() }
+        } else {
+            if (pageLoadSize != books.size) screenModelScope.launch { loadBooks(1) }
+            selectedBooks = emptyList()
+        }
+
+    }
+
+    fun onBookSelect(book: KomgaBook) {
+        if (selectedBooks.contains(book)) selectedBooks -= book
+        else this.selectedBooks += book
+        if (selectedBooks.isNotEmpty()) setEditMode(true)
+    }
+
+    fun onBookReorder(fromIndex: Int, toIndex: Int) {
+        val mutable = books.toMutableList()
+        val moved = mutable.removeAt(fromIndex)
+        mutable.add(toIndex, moved)
+
+        books = mutable
+    }
+
+    fun onSeriesReorderDragStateChange(isDragging: Boolean) {
+        isAnyItemDragging.value = isDragging
+    }
+
     private suspend fun loadReadList() {
         notifications.runCatchingToNotifications {
             readList = readListClient.getOne(readListId)
@@ -102,15 +167,21 @@ class ReadListViewModel(
 
     }
 
+    private suspend fun loadAllBooks() {
+        loadBooks(KomgaPageRequest(unpaged = true))
+    }
+
     private suspend fun loadBooks(page: Int) {
+        loadBooks(
+            KomgaPageRequest(pageIndex = page - 1, size = pageLoadSize)
+        )
+    }
+
+    private suspend fun loadBooks(pageRequest: KomgaPageRequest) {
         if (state.value is Error) return
 
         notifications.runCatchingToNotifications {
             mutableState.value = LoadState.Loading
-            val pageRequest = KomgaPageRequest(
-                page = page - 1,
-                size = pageLoadSize,
-            )
             val readListPage = readListClient.getBooksForReadList(readListId, pageRequest = pageRequest)
 
             currentBookPage = readListPage.number + 1

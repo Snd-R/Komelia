@@ -11,58 +11,59 @@ import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.collection.KomgaCollectionUpdateRequest
+import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.common.PatchValue
-import io.github.snd_r.komga.series.KomgaSeries
+import io.github.snd_r.komga.readlist.KomgaReadList
+import io.github.snd_r.komga.readlist.KomgaReadListClient
+import io.github.snd_r.komga.readlist.KomgaReadListUpdateRequest
 import kotlinx.coroutines.launch
 
 @Composable
-fun CollectionBulkActionsContent(
-    collection: KomgaCollection,
-    series: List<KomgaSeries>,
+fun ReadListBulkActionsContent(
+    readList: KomgaReadList,
+    books: List<KomgaBook>,
     iconOnly: Boolean,
 ) {
     val factory = LocalViewModelFactory.current
-    val actions = remember { factory.getCollectionBulkActions() }
+    val actions = remember { factory.getReadListBulkActions() }
     val coroutineScope = rememberCoroutineScope()
 
     var showRemovalConfirmationDialog by remember { mutableStateOf(false) }
     BulkActionButton(
-        description = "Remove from this collection",
+        description = "Remove from this read list",
         icon = Icons.Default.LayersClear,
         iconOnly = iconOnly,
         onClick = { showRemovalConfirmationDialog = true })
 
     if (showRemovalConfirmationDialog) {
         ConfirmationDialog(
-            body = "Remove selected series from this collection?",
+            body = "Remove selected books from this read list?",
             onDialogConfirm = {
-                coroutineScope.launch { actions.removeFromCollection(collection, series) }
+                coroutineScope.launch { actions.removeFromReadList(readList, books) }
                 showRemovalConfirmationDialog = false
 
             },
             onDialogDismiss = { showRemovalConfirmationDialog = false },
         )
     }
+
 }
 
-data class CollectionBulkActions(
-    val removeFromCollection: suspend (KomgaCollection, List<KomgaSeries>) -> Unit
+data class ReadListBulkActions(
+    val removeFromReadList: suspend (KomgaReadList, List<KomgaBook>) -> Unit
 ) {
     constructor(
-        collectionClient: KomgaCollectionClient,
+        readListClient: KomgaReadListClient,
         notifications: AppNotifications,
     ) : this(
-        removeFromCollection = { collection, series ->
+        removeFromReadList = { readList, books ->
             notifications.runCatchingToNotifications {
 
-                val selectedIds = series.map { it.id }
-                collectionClient.updateOne(
-                    collection.id,
-                    KomgaCollectionUpdateRequest(
-                        seriesIds = PatchValue.Some(collection.seriesIds.filter { it !in selectedIds })
+                val selectedIds = books.map { it.id }
+                readListClient.updateOne(
+                    readList.id,
+                    KomgaReadListUpdateRequest(
+                        bookIds = PatchValue.Some(readList.bookIds.filter { it !in selectedIds })
                     )
                 )
 

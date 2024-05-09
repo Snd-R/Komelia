@@ -57,7 +57,7 @@ import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialog
+import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.common.coloristRole
 import io.github.snd_r.komga.common.coverRole

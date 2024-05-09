@@ -12,7 +12,7 @@ import io.github.snd_r.komga.readlist.KomgaReadListCreateRequest
 import io.github.snd_r.komga.readlist.KomgaReadListUpdateRequest
 
 class AddToReadListDialogViewModel(
-    private val book: KomgaBook,
+    private val books: List<KomgaBook>,
     private val onDismissRequest: () -> Unit,
     private val readListClient: KomgaReadListClient,
     private val appNotifications: AppNotifications,
@@ -29,7 +29,11 @@ class AddToReadListDialogViewModel(
         appNotifications.runCatchingToNotifications {
             readListClient.updateOne(
                 readList.id,
-                KomgaReadListUpdateRequest(bookIds = PatchValue.Some(readList.bookIds + book.id))
+                KomgaReadListUpdateRequest(
+                    bookIds = PatchValue.Some(
+                        (readList.bookIds + books.map { it.id }).distinct()
+                    )
+                )
             )
             onDismissRequest()
         }
@@ -42,7 +46,7 @@ class AddToReadListDialogViewModel(
                     name = name,
                     summary = "",
                     ordered = true,
-                    bookIds = listOf(book.id)
+                    bookIds = books.map { it.id }
                 )
             )
             onDismissRequest()

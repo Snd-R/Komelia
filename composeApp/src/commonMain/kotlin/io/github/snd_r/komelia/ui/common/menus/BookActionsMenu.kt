@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialog
+import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialog
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
@@ -63,7 +63,7 @@ fun BookActionsMenu(
     var showAddToReadListDialog by remember { mutableStateOf(false) }
     if (showAddToReadListDialog) {
         AddToReadListDialog(
-            book = book,
+            books = listOf(book),
             onDismissRequest = {
                 showAddToReadListDialog = false
                 onDismissRequest()

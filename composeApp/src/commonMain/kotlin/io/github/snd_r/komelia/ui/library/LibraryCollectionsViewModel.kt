@@ -90,7 +90,7 @@ class LibraryCollectionsViewModel(
 
             if (totalCollections > pageSize) mutableState.value = Loading
 
-            val pageRequest = KomgaPageRequest(page = page - 1, size = pageSize)
+            val pageRequest = KomgaPageRequest(pageIndex = page - 1, size = pageSize)
             val libraryIds = if (library != null) listOf(requireNotNull(library.value?.id)) else emptyList()
             val collectionsPage = collectionClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest)
 

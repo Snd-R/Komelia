@@ -115,7 +115,7 @@ class SeriesViewModel(
 
             val pageResponse = seriesClient.getBooks(
                 seriesId, KomgaPageRequest(
-                    page = page - 1,
+                    pageIndex = page - 1,
                     size = booksPageSize.value,
                 )
             )

@@ -9,9 +9,12 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
+import io.github.snd_r.komelia.ui.common.menus.bulk.BookBulkActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.CollectionBulkActions
+import io.github.snd_r.komelia.ui.common.menus.bulk.ReadListBulkActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.SeriesBulkActions
-import io.github.snd_r.komelia.ui.dialogs.bookedit.BookEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.book.editbulk.BookBulkEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
@@ -198,6 +201,7 @@ class ViewModelFactory(
             notifications = appNotifications,
             cardWidth = settingsRepository.getCardWidth(),
         )
+
     fun getSeriesBulkEditDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
         SeriesBulkEditDialogViewModel(
             series = series,
@@ -213,6 +217,14 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             notifications = appNotifications,
             cardWidth = settingsRepository.getCardWidth(),
+        )
+
+    fun getBookBulkEditDialogViewModel(books: List<KomgaBook>, onDismissRequest: () -> Unit) =
+        BookBulkEditDialogViewModel(
+            books = books,
+            onDialogDismiss = onDismissRequest,
+            bookClient = komgaClientFactory.bookClient(),
+            notifications = appNotifications,
         )
 
     fun getCollectionEditDialogViewModel(collection: KomgaCollection, onDismissRequest: () -> Unit) =
@@ -241,9 +253,9 @@ class ViewModelFactory(
             appNotifications = appNotifications
         )
 
-    fun getAddToReadListDialogViewModel(book: KomgaBook, onDismissRequest: () -> Unit) =
+    fun getAddToReadListDialogViewModel(books: List<KomgaBook>, onDismissRequest: () -> Unit) =
         AddToReadListDialogViewModel(
-            book = book,
+            books = books,
             onDismissRequest = onDismissRequest,
             readListClient = komgaClientFactory.readListClient(),
             appNotifications = appNotifications
@@ -389,6 +401,8 @@ class ViewModelFactory(
 
     fun getSeriesBulkActions() = SeriesBulkActions(komgaClientFactory.seriesClient(), appNotifications)
     fun getCollectionBulkActions() = CollectionBulkActions(komgaClientFactory.collectionClient(), appNotifications)
+    fun getBookBulkActions() = BookBulkActions(komgaClientFactory.bookClient(), appNotifications)
+    fun getReadListBulkActions() = ReadListBulkActions(komgaClientFactory.readListClient(), appNotifications)
 
     fun getAppNotifications(): AppNotifications = appNotifications
 

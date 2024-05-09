@@ -38,7 +38,7 @@ class AuthenticationActivityViewModel(
             mutableState.value = LoadState.Loading
             appNotifications.runCatchingToNotifications {
                 val pageRequest = KomgaPageRequest(
-                    page = pageNumber - 1,
+                    pageIndex = pageNumber - 1,
                     size = pageSize,
                     sort = KomgaUserSort.byDateTimeDesc()
                 )

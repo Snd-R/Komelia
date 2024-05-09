@@ -31,7 +31,8 @@ class AddToCollectionDialogViewModel(
                 collection.id,
                 KomgaCollectionUpdateRequest(
                     seriesIds = PatchValue.Some(
-                        collection.seriesIds.toSet() + series.map { it.id })
+                        (collection.seriesIds + series.map { it.id }).distinct()
+                    )
                 )
             )
             onDismissRequest()
@@ -44,7 +45,7 @@ class AddToCollectionDialogViewModel(
                 KomgaCollectionCreateRequest(
                     name = name,
                     ordered = false,
-                    seriesIds = series.map { it.id }.toSet()
+                    seriesIds = series.map { it.id }
                 )
             )
             onDismissRequest()

@@ -194,7 +194,7 @@ class SeriesListViewModel(
         )
         val pageRequest = KomgaPageRequest(
             size = pageLoadSize.value,
-            page = page - 1,
+            pageIndex = page - 1,
             sort = filterState.sortOrder.komgaSort
         )
         return seriesClient.getAllSeries(query, pageRequest)

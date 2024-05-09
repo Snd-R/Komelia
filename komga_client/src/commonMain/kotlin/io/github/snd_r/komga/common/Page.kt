@@ -36,7 +36,7 @@ data class Sort(
 )
 
 data class KomgaPageRequest(
-    val page: Int? = null,
+    val pageIndex: Int? = null,
     val size: Int? = null,
     val sort: KomgaSort = KomgaSort.UNSORTED,
     val unpaged: Boolean? = false,
@@ -45,7 +45,7 @@ data class KomgaPageRequest(
 fun KomgaPageRequest.toParams(): Parameters {
     val builder = ParametersBuilder()
     size?.let { builder.append("size", it.toString()) }
-    page?.let { builder.append("page", it.toString()) }
+    pageIndex?.let { builder.append("page", it.toString()) }
     unpaged?.let { builder.append("unpaged", it.toString()) }
 
     val sort = buildString {
@@ -66,7 +66,7 @@ fun KomgaPageRequest.toMap(): Map<String, String> {
     val map = HashMap<String, String>()
 
     size?.let { map["size"] = it.toString() }
-    page?.let { map["page"] = it.toString() }
+    pageIndex?.let { map["page"] = it.toString() }
     unpaged?.let { map["unpaged"] = it.toString() }
     val sort = buildString {
         for (order in sort) {

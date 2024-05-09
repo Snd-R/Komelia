@@ -64,17 +64,25 @@ import io.github.snd_r.komga.book.KomgaBook
 @Composable
 fun BookImageCard(
     book: KomgaBook,
-    onBookClick: () -> Unit,
     bookMenuActions: BookMenuActions?,
-    onBookReadClick: () -> Unit,
-    modifier: Modifier,
+    onBookClick: (() -> Unit)? = null,
+    onBookReadClick: (() -> Unit)? = null,
+    isSelected: Boolean = false,
+    onSelect: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
 
-    ItemCard(modifier, onBookClick) {
+    ItemCard(
+        modifier = modifier,
+        onClick = onBookClick,
+        onLongClick = onSelect
+    ) {
         BookHoverOverlay(
             book = book,
             bookMenuActions = bookMenuActions,
-            onBookReadClick = onBookReadClick
+            onBookReadClick = onBookReadClick,
+            onSelect = onSelect,
+            isSelected = isSelected,
         ) {
             BookImageOverlay(book) {
                 BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
@@ -183,13 +191,15 @@ private fun BookUnreadTick() {
 private fun BookHoverOverlay(
     book: KomgaBook,
     bookMenuActions: BookMenuActions?,
-    onBookReadClick: () -> Unit,
+    onBookReadClick: (() -> Unit)?,
+    isSelected: Boolean,
+    onSelect: (() -> Unit)?,
     content: @Composable () -> Unit
 ) {
     var isActionsMenuExpanded by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered = interactionSource.collectIsHoveredAsState()
-    val showOverlay = derivedStateOf { isHovered.value || isActionsMenuExpanded }
+    val showOverlay = derivedStateOf { isHovered.value || isActionsMenuExpanded || isSelected }
 
     val border = if (showOverlay.value) overlayBorderModifier() else Modifier
 
@@ -202,50 +212,35 @@ private fun BookHoverOverlay(
     ) {
         content()
         if (showOverlay.value) {
-            if (bookMenuActions != null) {
+            val backgroundColor =
+                if (isSelected)
+                    Modifier.background(MaterialTheme.colorScheme.secondary.copy(alpha = .5f))
+                else Modifier
+            Column(backgroundColor.fillMaxSize()) {
+                if (onSelect != null) {
+                    SelectionRadioButton(isSelected, onSelect)
+                    Spacer(Modifier.weight(1f))
+                }
+
                 Row(
-                    modifier = Modifier
-                        .padding(vertical = 5.dp)
-                        .fillMaxSize(),
+                    modifier = Modifier.padding(vertical = 5.dp).fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
                 ) {
-
-                    FilledTonalButton(
-                        modifier = Modifier.padding(horizontal = 5.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        onClick = { onBookReadClick() },
-                        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
-
-                    ) {
-                        Icon(Icons.AutoMirrored.Rounded.MenuBook, null)
-                        Spacer(Modifier.width(10.dp))
-
-                        Text("Read")
+                    if (onBookReadClick != null) {
+                        ReadButton(onBookReadClick)
                     }
 
                     Spacer(Modifier.weight(1f))
-
-                    Box {
-                        IconButton(
-                            onClick = { isActionsMenuExpanded = true },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
-                        ) {
-                            Icon(Icons.Default.MoreVert, null)
-                        }
-
-                        BookActionsMenu(
+                    if (bookMenuActions != null)
+                        BookMenuActionsDropdown(
                             book = book,
-                            actions = bookMenuActions,
-                            expanded = isActionsMenuExpanded,
-                            onDismissRequest = { isActionsMenuExpanded = false },
+                            bookMenuActions = bookMenuActions,
+                            isActionsMenuExpanded = isActionsMenuExpanded,
+                            onActionsMenuExpand = { isActionsMenuExpanded = it }
                         )
-                    }
-
                 }
             }
         }
-
     }
 }
 
@@ -334,19 +329,7 @@ private fun BookDetailedListDetails(
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.Start) {
             if (onBookReadClick != null) {
-                FilledTonalButton(
-                    modifier = Modifier.padding(horizontal = 5.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { onBookReadClick() },
-                    contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
-
-                ) {
-                    Icon(Icons.AutoMirrored.Rounded.MenuBook, null)
-                    Spacer(Modifier.width(10.dp))
-
-                    Text("Read")
-                }
+                ReadButton(onBookReadClick)
             }
             if (bookMenuActions != null) {
                 Box {
@@ -367,5 +350,49 @@ private fun BookDetailedListDetails(
             }
         }
 
+    }
+}
+
+
+@Composable
+private fun ReadButton(onClick: () -> Unit) {
+
+    FilledTonalButton(
+        modifier = Modifier.padding(horizontal = 5.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        onClick = onClick,
+        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
+
+    ) {
+        Icon(Icons.AutoMirrored.Rounded.MenuBook, null)
+        Spacer(Modifier.width(10.dp))
+
+        Text("Read")
+    }
+
+}
+
+@Composable
+private fun BookMenuActionsDropdown(
+    book: KomgaBook,
+    bookMenuActions: BookMenuActions,
+    isActionsMenuExpanded: Boolean,
+    onActionsMenuExpand: (Boolean) -> Unit
+) {
+    Box {
+        IconButton(
+            onClick = { onActionsMenuExpand(true) },
+            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Icon(Icons.Default.MoreVert, null)
+        }
+
+        BookActionsMenu(
+            book = book,
+            actions = bookMenuActions,
+            expanded = isActionsMenuExpanded,
+            onDismissRequest = { onActionsMenuExpand(false) },
+        )
     }
 }

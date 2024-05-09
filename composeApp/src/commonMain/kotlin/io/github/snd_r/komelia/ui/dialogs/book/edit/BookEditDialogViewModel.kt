@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.dialogs.bookedit
+package io.github.snd_r.komelia.ui.dialogs.book.edit
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf

@@ -39,19 +39,19 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddToReadListDialog(
-    book: KomgaBook,
+    books: List<KomgaBook>,
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalViewModelFactory.current
-    val viewmodel = remember { viewModelFactory.getAddToReadListDialogViewModel(book, onDismissRequest) }
-    LaunchedEffect(book) { viewmodel.initialize() }
+    val viewmodel = remember { viewModelFactory.getAddToReadListDialogViewModel(books, onDismissRequest) }
+    LaunchedEffect(books) { viewmodel.initialize() }
     AppDialog(
         header = { Header(onDismissRequest) },
         content = {
             DialogContent(
-                book = book,
+                books = books,
                 readLists = viewmodel.readLists,
-                onCreateNewCollection = viewmodel::createNew,
+                onCreateNewReadList = viewmodel::createNew,
                 onAddToReadList = viewmodel::addTo,
             )
         },
@@ -77,15 +77,15 @@ private fun Header(onDismissRequest: () -> Unit) {
 
 @Composable
 private fun DialogContent(
-    book: KomgaBook,
+    books: List<KomgaBook>,
     readLists: List<KomgaReadList>,
-    onCreateNewCollection: suspend (name: String) -> Unit,
+    onCreateNewReadList: suspend (name: String) -> Unit,
     onAddToReadList: suspend (KomgaReadList) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     Column(Modifier.padding(20.dp)) {
         var query by remember { mutableStateOf("") }
-        val collectionExistsForQuery = derivedStateOf { readLists.any { it.name == query } }
+        val readListExistsForQuery = derivedStateOf { readLists.any { it.name == query } }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -94,20 +94,20 @@ private fun DialogContent(
             TextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("Search or create collection") },
+                label = { Text("Search or create read list") },
                 supportingText = {
-                    if (collectionExistsForQuery.value)
+                    if (readListExistsForQuery.value)
                         Text(
-                            "A collection with this name already exists",
+                            "A read list with this name already exists",
                             color = MaterialTheme.colorScheme.error
                         )
                 },
                 modifier = Modifier.weight(1f)
             )
             FilledTonalButton(
-                onClick = { coroutineScope.launch { onCreateNewCollection(query) } },
+                onClick = { coroutineScope.launch { onCreateNewReadList(query) } },
                 shape = RoundedCornerShape(5.dp),
-                enabled = query.isNotBlank() && !collectionExistsForQuery.value,
+                enabled = query.isNotBlank() && !readListExistsForQuery.value,
                 content = { Text("Create") },
             )
         }
@@ -119,7 +119,7 @@ private fun DialogContent(
                 filteredReadLists.value.forEach { readList ->
                     ReadListEntry(
                         readList = readList,
-                        alreadyContainsSeries = readList.bookIds.any { it == book.id },
+                        alreadyContainsSeries = books.size == 1 && readList.bookIds.any { it == books.first().id },
                         onClick = { coroutineScope.launch { onAddToReadList(readList) } }
                     )
                 }

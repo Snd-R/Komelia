@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class KomgaCollectionCreateRequest(
     val name: String,
     val ordered: Boolean,
-    val seriesIds: Set<KomgaSeriesId>
+    val seriesIds: List<KomgaSeriesId>
 )

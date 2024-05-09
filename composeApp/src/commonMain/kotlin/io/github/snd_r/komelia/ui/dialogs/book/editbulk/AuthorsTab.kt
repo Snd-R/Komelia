@@ -1,13 +1,17 @@
-package io.github.snd_r.komelia.ui.dialogs.bookedit
+package io.github.snd_r.komelia.ui.dialogs.book.editbulk
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -16,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -23,6 +28,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LockableChipTextField
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
@@ -30,7 +36,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komga.common.KomgaAuthor
 
 class AuthorsTab(
-    private val vm: BookEditDialogViewModel
+    private val vm: BookBulkEditDialogViewModel
 ) : DialogTab {
     override fun options() = TabItem(
         title = "AUTHORS",
@@ -55,7 +61,19 @@ private fun AuthorsTabContent(
     authorsLock: Boolean,
     onLockChange: (Boolean) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+
+        val warningColor = MaterialTheme.colorScheme.tertiary
+        Row(Modifier.border(Dp.Hairline, warningColor).padding(20.dp)) {
+            Icon(Icons.Default.PriorityHigh, null, tint = warningColor)
+            Text(
+                text = "You are editing authors for multiple books. This will override existing authors of each book.",
+                color = warningColor
+            )
+        }
 
         authors.forEach { (role, authors) ->
             LockableChipTextField(

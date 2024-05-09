@@ -37,7 +37,7 @@ class MediaAnalysisViewModel(
                 mutableState.value = LoadState.Loading
                 val pageResponse = bookClient.getAllBooks(
                     KomgaBookQuery(mediaStatus = listOf(KomgaMediaStatus.ERROR, KomgaMediaStatus.UNSUPPORTED)),
-                    KomgaPageRequest(page = page - 1, size = pageLoadSize)
+                    KomgaPageRequest(pageIndex = page - 1, size = pageLoadSize)
                 )
 
                 books = pageResponse.content

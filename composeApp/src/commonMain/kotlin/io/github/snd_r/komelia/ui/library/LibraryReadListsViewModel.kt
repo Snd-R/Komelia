@@ -87,7 +87,7 @@ class LibraryReadListsViewModel(
 
             val library = this.library?.value
             val libraryIds = if (library != null) listOf(library.id) else emptyList()
-            val pageRequest = KomgaPageRequest(page = page - 1, size = pageSize)
+            val pageRequest = KomgaPageRequest(pageIndex = page - 1, size = pageSize)
             val readListsPage = readListClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest)
 
             currentPage = readListsPage.number + 1
