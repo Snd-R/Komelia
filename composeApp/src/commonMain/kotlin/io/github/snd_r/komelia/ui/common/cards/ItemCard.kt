@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalPlatform
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyGridState
@@ -48,7 +49,10 @@ fun ItemCard(
 ) {
     Card(
         shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp),
-        modifier = modifier.aspectRatio(0.703f).combinedClickable(onClick = onClick ?: {}, onLongClick = onLongClick)
+        modifier = modifier
+            .aspectRatio(0.703f)
+            .combinedClickable(onClick = onClick ?: {}, onLongClick = onLongClick)
+            .then(if (onClick != null || onLongClick != null) Modifier.cursorForHand() else Modifier)
     ) {
         image()
     }

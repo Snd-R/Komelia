@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -97,5 +98,15 @@ fun NoPaddingChip(
             content()
         }
     }
+}
 
+
+object AppFilterChipDefaults {
+
+    @Composable
+    fun filterChipColors() = FilterChipDefaults.filterChipColors(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        selectedContainerColor = MaterialTheme.colorScheme.primary,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+    )
 }

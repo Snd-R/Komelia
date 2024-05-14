@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.LocalLibrary
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,24 +39,20 @@ import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.LoadState.Error
-import io.github.snd_r.komelia.ui.LoadState.Loading
-import io.github.snd_r.komelia.ui.LoadState.Success
-import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.LoadState.*
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
+import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
-import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
-import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
-import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
+import io.github.snd_r.komelia.ui.library.LibraryTab.*
 import io.github.snd_r.komelia.ui.library.view.LibraryCollectionsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komelia.ui.series.view.SeriesListContent
+import io.github.snd_r.komelia.ui.series.list.SeriesListContent
 import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
@@ -65,7 +60,7 @@ import io.github.snd_r.komga.series.KomgaSeriesStatus
 
 class LibraryScreen(
     val libraryId: KomgaLibraryId? = null,
-    private val seriesFilter: SeriesTabFilter? = null
+    private val seriesFilter: SeriesScreenFilter? = null
 ) : Screen {
 
     override val key: ScreenKey = libraryId.toString()
@@ -82,7 +77,7 @@ class LibraryScreen(
             Uninitialized, Loading, is Success -> {
                 var showToolbar by remember { mutableStateOf(true) }
                 Column {
-                    if(showToolbar) {
+                    if (showToolbar) {
                         LibraryToolBar(
                             library = vm.library?.value,
                             currentTab = vm.currentTab,
@@ -147,7 +142,7 @@ class LibraryScreen(
                     series = vm.series,
                     seriesActions = vm.seriesMenuActions(),
                     seriesTotalCount = vm.totalSeriesCount,
-                    onSeriesClick = { navigator.push(SeriesScreen(it.id)) },
+                    onSeriesClick = { navigator.push(SeriesScreen(it.id, it)) },
 
                     editMode = vm.isInEditMode,
                     onEditModeChange = vm::onEditModeChange,
@@ -257,11 +252,7 @@ fun LibraryToolBar(
     onReadListsClick: () -> Unit,
 ) {
 
-    val chipColors = FilterChipDefaults.filterChipColors(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        selectedContainerColor = MaterialTheme.colorScheme.primary,
-        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-    )
+    val chipColors = AppFilterChipDefaults.filterChipColors()
     var showOptionsMenu by remember { mutableStateOf(false) }
 
     LazyRow(
@@ -437,7 +428,7 @@ private fun CompactNavButton(
     }
 }
 
-data class SeriesTabFilter(
+data class SeriesScreenFilter(
     val publicationStatus: List<KomgaSeriesStatus>? = null,
     val ageRating: List<Int>? = null,
     val language: List<String>? = null,

@@ -1,11 +1,10 @@
 package io.github.snd_r.komelia.ui.series.view
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,16 +17,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,85 +36,54 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
-import io.github.snd_r.komelia.platform.WindowWidth.FULL
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
-import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.platform.WindowWidth.*
 import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
-import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
-import io.github.snd_r.komelia.ui.common.Pagination
-import io.github.snd_r.komelia.ui.common.cards.ItemCard
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
-import io.github.snd_r.komelia.ui.common.itemlist.BooksGrid
-import io.github.snd_r.komelia.ui.common.itemlist.BooksList
-import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.common.menus.bulk.BooksBulkActionsContent
-import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
-import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
-import io.github.snd_r.komelia.ui.library.SeriesTabFilter
-import io.github.snd_r.komelia.ui.series.BooksLayout
-import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
-import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
+import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
+import io.github.snd_r.komelia.ui.series.SeriesBooksState
+import io.github.snd_r.komelia.ui.series.SeriesCollectionsState
+import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komga.book.KomgaBook
+import io.github.snd_r.komga.collection.KomgaCollection
 import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesStatus.ABANDONED
-import io.github.snd_r.komga.series.KomgaSeriesStatus.ENDED
-import io.github.snd_r.komga.series.KomgaSeriesStatus.HIATUS
-import io.github.snd_r.komga.series.KomgaSeriesStatus.ONGOING
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
+import io.github.snd_r.komga.series.KomgaSeriesStatus.*
 
 @Composable
 fun SeriesContent(
     series: KomgaSeries?,
     seriesMenuActions: SeriesMenuActions,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
 
-    onFilterClick: (SeriesTabFilter) -> Unit,
+    currentTab: SeriesTab,
+    onTabChange: (SeriesTab) -> Unit,
 
-    books: List<KomgaBook>,
-    booksLoading: Boolean,
-    bookCardWidth: Dp,
-    booksLayout: BooksLayout,
-    onBooksLayoutChange: (BooksLayout) -> Unit,
-
-    booksEditMode: Boolean,
-    onBooksEditModeChange: (Boolean) -> Unit,
-    selectedBooks: List<KomgaBook>,
-    onBookSelect: (KomgaBook) -> Unit,
-
-    booksPageSize: Int,
-    onBooksPageSizeChange: (Int) -> Unit,
-
-    bookMenuActions: BookMenuActions,
-    totalBookPages: Int,
-    currentBookPage: Int,
+    booksState: SeriesBooksState,
     onBookClick: (KomgaBook) -> Unit,
     onBookReadClick: (KomgaBook) -> Unit,
-    onBookPageNumberClick: (Int) -> Unit,
+
+    collectionsState: SeriesCollectionsState,
+    onCollectionClick: (KomgaCollection) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
+
     onBackButtonClick: () -> Unit,
 ) {
     val windowWidth = LocalWindowWidth.current
@@ -128,66 +94,49 @@ fun SeriesContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (booksEditMode) {
-            BulkActionsToolbar(
-                onCancel = { onBooksEditModeChange(false) },
-                books = books,
-                selectedBooks = selectedBooks,
-                onBookSelect = onBookSelect
+        if (booksState.booksSelectionMode) {
+            BooksBulkActionsToolbar(
+                onCancel = { booksState.setSelectionMode(false) },
+                books = booksState.books,
+                selectedBooks = booksState.selectedBooks,
+                onBookSelect = booksState::onBookSelect
             )
         } else SeriesToolBar(series, seriesMenuActions, onBackButtonClick)
 
-        if (series == null) {
-            LoadingMaxSizeIndicator()
-        } else {
-            val scrollState = rememberScrollState()
-            Box {
-                Column(
-                    modifier = contentPadding.verticalScroll(scrollState),
-                ) {
+        val scrollState = rememberScrollState()
+        Box {
+            Column(
+                modifier = contentPadding.verticalScroll(scrollState),
+            ) {
 
-                    Series(series, onFilterClick)
-                    HorizontalDivider(Modifier.padding(bottom = 10.dp))
+                if (series != null) Series(series, onFilterClick)
 
-                    Books(
-                        series = series,
-                        books = books,
+                TabRow(
+                    currentTab = currentTab,
+                    onTabChange = onTabChange,
+                    showCollectionsTab = collectionsState.collections.isNotEmpty()
+                )
 
-                        bookCardWidth = bookCardWidth,
-                        booksLoading = booksLoading,
-                        booksLayout = booksLayout,
-                        onBooksLayoutChange = onBooksLayoutChange,
-
-                        editMode = booksEditMode,
-                        selectedBooks = selectedBooks,
-                        onBookSelect = onBookSelect,
-
-                        booksPageSize = booksPageSize,
-                        onBooksPageSizeChange = onBooksPageSizeChange,
-
-                        bookMenuActions = bookMenuActions,
-                        scrollState = scrollState,
+                when (currentTab) {
+                    SeriesTab.BOOKS -> SeriesBooksContent(
+                        booksState = booksState,
                         onBookClick = onBookClick,
                         onBookReadClick = onBookReadClick,
-                        totalBookPages = totalBookPages,
-                        currentBookPage = currentBookPage,
-                        onBookPageNumberClick = onBookPageNumberClick
+                        scrollState = scrollState
+                    )
+
+                    SeriesTab.COLLECTIONS -> SeriesCollectionsContent(
+                        state = collectionsState,
+                        onCollectionClick = onCollectionClick,
+                        onSeriesClick = onSeriesClick
                     )
                 }
 
-
-                VerticalScrollbar(scrollState, Modifier.align(Alignment.CenterEnd))
             }
-        }
-
-        val width = LocalWindowWidth.current
-        if ((width == COMPACT || width == MEDIUM) && selectedBooks.isNotEmpty()) {
-            BottomPopupBulkActionsPanel { BooksBulkActionsContent(books, false) }
+            VerticalScrollbar(scrollState, Modifier.align(Alignment.CenterEnd))
         }
     }
-
 }
-
 
 @Composable
 fun SeriesToolBar(
@@ -241,7 +190,7 @@ fun SeriesToolBar(
 @Composable
 fun Series(
     series: KomgaSeries,
-    onFilterClick: (SeriesTabFilter) -> Unit,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {
     val width = LocalWindowWidth.current
     val animation: FiniteAnimationSpec<IntSize> = remember(series) {
@@ -271,7 +220,7 @@ fun Series(
 @Composable
 fun SeriesInfo(
     series: KomgaSeries,
-    onFilterClick: (SeriesTabFilter) -> Unit,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
     modifier: Modifier
 ) {
     val contentSize = when (LocalWindowWidth.current) {
@@ -292,7 +241,7 @@ fun SeriesInfo(
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SuggestionChip(
-                onClick = { onFilterClick(SeriesTabFilter(publicationStatus = listOf(series.metadata.status))) },
+                onClick = { onFilterClick(SeriesScreenFilter(publicationStatus = listOf(series.metadata.status))) },
                 label = { Text(series.metadata.status.name) },
                 border = null,
                 colors = SuggestionChipDefaults.suggestionChipColors(
@@ -307,14 +256,14 @@ fun SeriesInfo(
 
             series.metadata.ageRating?.let { age ->
                 SuggestionChip(
-                    onClick = { onFilterClick(SeriesTabFilter(ageRating = listOf(age))) },
+                    onClick = { onFilterClick(SeriesScreenFilter(ageRating = listOf(age))) },
                     label = { Text("$age+") }
                 )
             }
 
             if (series.metadata.language.isNotBlank())
                 SuggestionChip(
-                    onClick = { onFilterClick(SeriesTabFilter(language = listOf(series.metadata.language))) },
+                    onClick = { onFilterClick(SeriesScreenFilter(language = listOf(series.metadata.language))) },
                     label = { Text(series.metadata.language) }
                 )
 
@@ -369,7 +318,7 @@ fun SeriesInfo(
 @Composable
 fun SeriesInfoLower(
     series: KomgaSeries,
-    onFilterClick: (SeriesTabFilter) -> Unit,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(0.dp, 30.dp),
@@ -379,19 +328,19 @@ fun SeriesInfoLower(
             DescriptionChips(
                 label = "PUBLISHER",
                 chipValue = stringEntry(series.metadata.publisher),
-                onClick = { onFilterClick(SeriesTabFilter(publisher = listOf(it))) }
+                onClick = { onFilterClick(SeriesScreenFilter(publisher = listOf(it))) }
             )
         }
         DescriptionChips(
             label = "GENRES",
             chipValues = series.metadata.genres.map { stringEntry(it) },
-            onChipClick = { onFilterClick(SeriesTabFilter(genres = listOf(it))) }
+            onChipClick = { onFilterClick(SeriesScreenFilter(genres = listOf(it))) }
         )
         DescriptionChips(
             label = "TAGS",
             chipValues = series.metadata.tags.map { stringEntry(it) },
             secondaryValues = series.booksMetadata.tags.map { stringEntry(it) },
-            onChipClick = { onFilterClick(SeriesTabFilter(tags = listOf(it))) }
+            onChipClick = { onFilterClick(SeriesScreenFilter(tags = listOf(it))) }
         )
 
         val uriHandler = LocalUriHandler.current
@@ -410,7 +359,7 @@ fun SeriesInfoLower(
                 DescriptionChips(
                     label = "WRITERS",
                     chipValues = author.map { LabeledEntry(it, it.name) },
-                    onChipClick = { onFilterClick(SeriesTabFilter(authors = listOf(it))) }
+                    onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) }
                 )
             }
 
@@ -421,232 +370,41 @@ fun SeriesInfoLower(
                 DescriptionChips(
                     label = "PENCILLERS",
                     chipValues = author.map { LabeledEntry(it, it.name) },
-                    onChipClick = { onFilterClick(SeriesTabFilter(authors = listOf(it))) }
+                    onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) }
                 )
             }
     }
-
 }
 
 @Composable
-fun Books(
-    series: KomgaSeries,
-    books: List<KomgaBook>,
-
-    bookCardWidth: Dp,
-    booksLoading: Boolean,
-
-    editMode: Boolean,
-    selectedBooks: List<KomgaBook>,
-    onBookSelect: (KomgaBook) -> Unit,
-
-    booksLayout: BooksLayout,
-    onBooksLayoutChange: (BooksLayout) -> Unit,
-    booksPageSize: Int,
-    onBooksPageSizeChange: (Int) -> Unit,
-
-    scrollState: ScrollState,
-    bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBook) -> Unit,
-    totalBookPages: Int,
-    currentBookPage: Int,
-    onBookPageNumberClick: (Int) -> Unit,
+private fun TabRow(
+    currentTab: SeriesTab,
+    onTabChange: (SeriesTab) -> Unit,
+    showCollectionsTab: Boolean,
 ) {
-    val width = LocalWindowWidth.current
-    val alignment = remember(width) {
-        when (width) {
-            COMPACT -> Alignment.CenterHorizontally
-            else -> Alignment.Start
-        }
-    }
+    val chipColors = AppFilterChipDefaults.filterChipColors()
+    Column {
+        AnimatedVisibility(showCollectionsTab) {
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Box(Modifier.clickable { onTabChange(SeriesTab.BOOKS) }) {
 
-    var scrollToPosition by remember { mutableStateOf(0f) }
-    Column(
-        modifier = Modifier.onGloballyPositioned { scrollToPosition = it.positionInParent().y },
-        horizontalAlignment = alignment
-    ) {
-        BooksToolBar(
-            series = series,
-            booksLayout = booksLayout,
-            onBooksLayoutChange = onBooksLayoutChange,
-            editMode = editMode,
-            booksPageSize = booksPageSize,
-            onBooksPageSizeChange = onBooksPageSizeChange,
-            totalBookPages = totalBookPages,
-            currentBookPage = currentBookPage,
-            onBookPageNumberClick = onBookPageNumberClick
-        )
-
-        when (booksLayout) {
-            GRID -> {
-                BooksGrid(
-                    books = books,
-                    onBookClick = if (editMode) onBookSelect else onBookClick,
-                    onBookReadClick = if (editMode) null else onBookReadClick,
-                    bookMenuActions = if (editMode) null else bookMenuActions,
-
-                    selectedBooks = selectedBooks,
-                    onBookSelect = onBookSelect,
-
-                    loadPlaceholder = {
-                        for (i in 0 until booksPageSize) {
-                            ItemCard(Modifier.width(bookCardWidth), onClick = {}, image = {})
-                        }
-                    },
-                    cardWidth = bookCardWidth,
-                    isLoading = booksLoading,
+                }
+                FilterChip(
+                    onClick = { onTabChange(SeriesTab.BOOKS) },
+                    selected = currentTab == SeriesTab.BOOKS,
+                    label = { Text("Books") },
+                    colors = chipColors,
+                    border = null,
+                )
+                FilterChip(
+                    onClick = { onTabChange(SeriesTab.COLLECTIONS) },
+                    selected = currentTab == SeriesTab.COLLECTIONS,
+                    label = { Text("Collections") },
+                    colors = chipColors,
+                    border = null,
                 )
             }
-
-            LIST -> BooksList(
-                books = books,
-                onBookClick = if (editMode) onBookSelect else onBookClick,
-                onBookReadClick = if (editMode) null else onBookReadClick,
-                bookMenuActions = if (editMode) null else bookMenuActions,
-                isLoading = booksLoading,
-                selectedBooks = selectedBooks,
-                onBookSelect = onBookSelect,
-            )
         }
-
-
-        if (!editMode) {
-            val coroutineScope = rememberCoroutineScope()
-            Pagination(
-                totalPages = totalBookPages,
-                currentPage = currentBookPage,
-                onPageChange = {
-                    onBookPageNumberClick(it)
-                    coroutineScope.launch { scrollState.animateScrollTo(scrollToPosition.roundToInt()) }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
-}
-
-@Composable
-private fun BooksToolBar(
-    series: KomgaSeries,
-
-    booksLayout: BooksLayout,
-    onBooksLayoutChange: (BooksLayout) -> Unit,
-    booksPageSize: Int,
-    onBooksPageSizeChange: (Int) -> Unit,
-    editMode: Boolean,
-
-    totalBookPages: Int,
-    currentBookPage: Int,
-    onBookPageNumberClick: (Int) -> Unit,
-) {
-    val width = LocalWindowWidth.current
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 5.dp)
-        ) {
-            val booksLabel = buildString {
-                append(series.booksCount)
-                if (series.metadata.totalBookCount != null) append(" / ${series.metadata.totalBookCount}")
-                if (series.booksCount > 1) append(" books")
-                else append(" book")
-            }
-            SuggestionChip(
-                onClick = {},
-                label = { Text(booksLabel, style = MaterialTheme.typography.bodyMedium) },
-                modifier = Modifier.padding(10.dp, 0.dp)
-            )
-
-            if (editMode) {
-                Spacer(Modifier.weight(1f))
-            } else {
-                when (width) {
-                    EXPANDED, FULL -> Pagination(
-                        totalPages = totalBookPages,
-                        currentPage = currentBookPage,
-                        onPageChange = onBookPageNumberClick,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    else -> {
-                        Spacer(Modifier.weight(1f))
-                    }
-                }
-
-                PageSizeSelectionDropdown(booksPageSize, onBooksPageSizeChange)
-            }
-
-            Row {
-                Box(Modifier
-                    .background(if (booksLayout == LIST) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
-                    .clickable { onBooksLayoutChange(LIST) }
-                    .cursorForHand()
-                    .padding(10.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ViewList, null)
-                }
-
-                Box(Modifier
-                    .background(if (booksLayout == GRID) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
-                    .clickable { onBooksLayoutChange(GRID) }
-                    .cursorForHand()
-                    .padding(10.dp)
-                ) {
-                    Icon(Icons.Default.GridView, null)
-                }
-            }
-        }
-    }
-
-    when (width) {
-        COMPACT, MEDIUM -> Pagination(
-            totalPages = totalBookPages,
-            currentPage = currentBookPage,
-            onPageChange = onBookPageNumberClick,
-        )
-
-        else -> {}
-    }
-}
-
-
-@Composable
-private fun BulkActionsToolbar(
-    onCancel: () -> Unit,
-    books: List<KomgaBook>,
-    selectedBooks: List<KomgaBook>,
-    onBookSelect: (KomgaBook) -> Unit,
-) {
-    BulkActionsContainer(
-        onCancel = onCancel,
-        selectedCount = selectedBooks.size,
-        allSelected = books.size == selectedBooks.size,
-        onSelectAll = {
-            if (books.size == selectedBooks.size) books.forEach { onBookSelect(it) }
-            else books.filter { it !in selectedBooks }.forEach { onBookSelect(it) }
-        }
-    ) {
-        when (LocalWindowWidth.current) {
-            FULL -> {
-                Text("Selection mode: Click on items to select or deselect them")
-                if (selectedBooks.isNotEmpty()) {
-                    Spacer(Modifier.weight(1f))
-
-                    BooksBulkActionsContent(selectedBooks, true)
-                }
-            }
-
-            EXPANDED -> {
-                if (selectedBooks.isEmpty()) {
-                    Text("Selection mode: Click on items to select or deselect them")
-                } else {
-                    Spacer(Modifier.weight(1f))
-                    BooksBulkActionsContent(selectedBooks, true)
-                }
-            }
-
-            COMPACT, MEDIUM -> {}
-        }
+        HorizontalDivider()
     }
 }

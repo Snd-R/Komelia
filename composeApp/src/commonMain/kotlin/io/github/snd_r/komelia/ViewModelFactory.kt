@@ -35,9 +35,9 @@ import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.reader.ReaderViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
-import io.github.snd_r.komelia.ui.series.SeriesListViewModel
-import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
@@ -127,10 +127,12 @@ class ViewModelFactory(
         )
     }
 
-    fun getSeriesViewModel(seriesId: KomgaSeriesId) = SeriesViewModel(
+    fun getSeriesViewModel(seriesId: KomgaSeriesId, series: KomgaSeries? = null) = SeriesViewModel(
         seriesId = seriesId,
+        series = series,
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
+        collectionClient = komgaClientFactory.collectionClient(),
         notifications = appNotifications,
         events = komgaEventSource.events,
         settingsRepository = settingsRepository,

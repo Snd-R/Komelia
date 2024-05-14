@@ -135,7 +135,7 @@ fun BooksGrid(
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 30.dp)
+        modifier = Modifier.padding(bottom = 30.dp)
     ) {
         if (isLoading) {
             loadPlaceholder()

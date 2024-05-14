@@ -4,8 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.ui.library.SeriesTabFilter
-import io.github.snd_r.komelia.ui.series.SeriesListViewModel.SeriesSort
+import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.library.KomgaLibrary
@@ -77,7 +77,7 @@ class SeriesFilterState(
         }
     }
 
-    fun applyFilter(filter: SeriesTabFilter) {
+    fun applyFilter(filter: SeriesScreenFilter) {
         publicationStatus = filter.publicationStatus ?: publicationStatus
         ageRatings = filter.ageRating?.map { it.toString() } ?: ageRatings
         languages = filter.language ?: languages
@@ -95,6 +95,8 @@ class SeriesFilterState(
     }
 
     fun onSearchTermChange(searchTerm: String) {
+        if (this.searchTerm == searchTerm) return
+
         this.searchTerm = searchTerm
         markChanges()
         onChange()

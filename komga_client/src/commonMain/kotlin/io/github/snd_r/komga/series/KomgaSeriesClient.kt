@@ -1,6 +1,7 @@
 package io.github.snd_r.komga.series
 
 import io.github.snd_r.komga.book.KomgaBook
+import io.github.snd_r.komga.collection.KomgaCollection
 import io.github.snd_r.komga.common.KomgaPageRequest
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.Page
@@ -169,5 +170,9 @@ class KomgaSeriesClient(private val ktor: HttpClient) {
 
     suspend fun deleteSeriesThumbnail(seriesId: KomgaSeriesId, thumbnailId: KomgaThumbnailId) {
         ktor.delete("api/v1/series/$seriesId/thumbnails/$thumbnailId")
+    }
+
+    suspend fun getAllCollectionsBySeries(seriesId: KomgaSeriesId): List<KomgaCollection> {
+        return ktor.get("api/v1/series/$seriesId/collections").body()
     }
 }

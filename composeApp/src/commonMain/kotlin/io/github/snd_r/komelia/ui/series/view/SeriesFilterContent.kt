@@ -32,10 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
-import io.github.snd_r.komelia.platform.WindowWidth.FULL
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowWidth.*
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
@@ -47,11 +44,9 @@ import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.NoPaddingTextField
 import io.github.snd_r.komelia.ui.common.TagFiltersDropdownMenu
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
-import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.ANY
-import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.COMPLETE
-import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.INCOMPLETE
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.*
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
-import io.github.snd_r.komelia.ui.series.SeriesListViewModel
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel
 import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.series.KomgaSeriesStatus
 import kotlinx.coroutines.delay
@@ -234,7 +229,6 @@ fun SeriesFilterContent(
                         .cursorForHand()
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .clip(RoundedCornerShape(5.dp)),
-//                        .padding(end = 10.dp)
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val checkboxState by derivedStateOf {

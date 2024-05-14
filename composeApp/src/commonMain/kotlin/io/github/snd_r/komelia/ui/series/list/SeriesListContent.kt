@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.series.view
+package io.github.snd_r.komelia.ui.series.list
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -25,10 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
-import io.github.snd_r.komelia.platform.WindowWidth.FULL
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowWidth.*
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
@@ -38,6 +35,7 @@ import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
 import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.common.menus.bulk.SeriesBulkActionsContent
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
+import io.github.snd_r.komelia.ui.series.view.SeriesFilterContent
 import io.github.snd_r.komga.series.KomgaSeries
 
 @Composable

@@ -19,16 +19,21 @@ import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import io.github.snd_r.komga.library.KomgaLibraryId
+import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesId
 
-class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
+class SeriesScreen(
+    val seriesId: KomgaSeriesId,
+    private val series: KomgaSeries? = null
+) : Screen {
+    constructor(series: KomgaSeries) : this(series.id, series)
 
     @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(seriesId.value) { viewModelFactory.getSeriesViewModel(seriesId) }
+        val vm = rememberScreenModel(seriesId.value) { viewModelFactory.getSeriesViewModel(seriesId, series) }
         LaunchedEffect(seriesId) { vm.initialize() }
 
         when (val state = vm.state.collectAsState().value) {
@@ -39,44 +44,36 @@ class SeriesScreen(val seriesId: KomgaSeriesId) : Screen {
 
             else -> {
                 SeriesContent(
-                    series = vm.series,
+                    series = vm.series.collectAsState().value,
                     seriesMenuActions = vm.seriesMenuActions(),
-
                     onFilterClick = { filter ->
-                        val series = requireNotNull(vm.series)
+                        val series = requireNotNull(vm.series.value)
                         navigator.popUntilRoot()
                         navigator.dispose(navigator.lastItem)
                         navigator.replaceAll(LibraryScreen(series.libraryId, filter))
                     },
 
-                    books = vm.books,
-                    booksLoading = vm.booksLoading,
-                    bookCardWidth = vm.cardWidth.collectAsState().value,
-                    booksLayout = vm.booksLayout.collectAsState().value,
-                    onBooksLayoutChange = vm::onBookLayoutChange,
+                    currentTab = vm.currentTab,
+                    onTabChange = vm::onTabChange,
 
-                    booksEditMode = vm.booksEditMode,
-                    onBooksEditModeChange = vm::onEditModeChange,
-                    selectedBooks = vm.selectedBooks,
-                    onBookSelect = vm::onBookSelect,
-
-                    booksPageSize = vm.booksPageSize.collectAsState().value,
-                    onBooksPageSizeChange = vm::onBookPageSizeChange,
-
-                    bookMenuActions = vm.bookMenuActions(),
-                    totalBookPages = vm.totalBookPages,
-                    currentBookPage = vm.currentBookPage,
+                    booksState = vm.booksState,
                     onBookClick = { navigator push BookScreen(it.id) },
                     onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
 
-                    onBookPageNumberClick = { vm.onPageChange(it) },
+                    collectionsState = vm.collectionsState,
+                    onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
+                    onSeriesClick = { series -> navigator.push(SeriesScreen(series)) },
 
-                    onBackButtonClick = { onBackPress(navigator, vm.series?.libraryId) },
+                    onBackButtonClick = {
+                        vm.series.value?.let { onBackPress(navigator, it.libraryId) }
+                    },
                 )
             }
         }
 
-        BackPressHandler { onBackPress(navigator, vm.series?.libraryId) }
+        BackPressHandler {
+            vm.series.value?.let { onBackPress(navigator, it.libraryId) }
+        }
     }
 
     private fun onBackPress(navigator: Navigator, libraryId: KomgaLibraryId?) {

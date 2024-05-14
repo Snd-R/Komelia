@@ -92,7 +92,7 @@ kotlin {
             implementation("io.github.dokar3:sonner:0.3.5")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha02")
 
-            implementation("sh.calvin.reorderable:reorderable:2.0.4")
+            implementation("sh.calvin.reorderable:reorderable:2.1.0")
 
             implementation("com.darkrockstudios:mpfilepicker")
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
