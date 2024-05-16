@@ -88,7 +88,7 @@ fun BottomPopupBulkActionsPanel(content: @Composable RowScope.() -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(60.dp)
                     .clip(RoundedCornerShape(5.dp))
                     .background(MaterialTheme.colorScheme.secondary.copy(alpha = .3f))
                     .horizontalScroll(rememberScrollState())

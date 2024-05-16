@@ -1,7 +1,10 @@
 package io.github.snd_r.komga.series
 
 import io.github.snd_r.komga.book.KomgaBook
+import io.github.snd_r.komga.book.KomgaMediaStatus
+import io.github.snd_r.komga.book.KomgaReadStatus
 import io.github.snd_r.komga.collection.KomgaCollection
+import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.common.KomgaPageRequest
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.Page
@@ -73,12 +76,34 @@ class KomgaSeriesClient(private val ktor: HttpClient) {
         }.body()
     }
 
-    suspend fun getBooks(
+    suspend fun getAllBooksBySeries(
         seriesId: KomgaSeriesId,
+        mediaStatus: List<KomgaMediaStatus>? = null,
+        readStatus: List<KomgaReadStatus>? = null,
+        tag: List<String>? = null,
+        authors: List<KomgaAuthor>? = null,
+        deleted: Boolean? = null,
         pageRequest: KomgaPageRequest? = null,
     ): Page<KomgaBook> {
         return ktor.get("api/v1/series/$seriesId/books") {
-            url.parameters.apply { pageRequest?.let { appendAll(it.toParams()) } }
+            url.parameters.apply {
+                mediaStatus?.let {
+                    if (it.isNotEmpty()) append("media_status", it.joinToString(","))
+                }
+                readStatus?.let {
+                    if (it.isNotEmpty()) append("read_status", it.joinToString(","))
+                }
+                tag?.let {
+                    if (it.isNotEmpty()) append("tag", it.joinToString(","))
+                }
+                authors?.let { authors ->
+                    if (authors.isNotEmpty())
+                        authors.forEach { author -> append("author", "${author.name},${author.role}") }
+                }
+
+                deleted?.let { append("deleted", it.toString()) }
+                pageRequest?.let { appendAll(it.toParams()) }
+            }
         }.body()
     }
 

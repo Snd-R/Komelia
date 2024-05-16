@@ -105,12 +105,13 @@ fun <T> DropdownChoiceMenu(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> DropdownMultiChoiceMenu(
-    selectedOptions: Set<LabeledEntry<T>>,
+    selectedOptions: List<LabeledEntry<T>>,
     options: List<LabeledEntry<T>>,
     onOptionSelect: (LabeledEntry<T>) -> Unit,
     textFieldModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
+    placeholder: String? = null,
     inputFieldColor: Color = MaterialTheme.colorScheme.surface,
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
@@ -121,7 +122,7 @@ fun <T> DropdownMultiChoiceMenu(
         onExpandedChange = { isExpanded = it },
     ) {
         InputField(
-            value = selectedOptions.joinToString { it.label }.ifBlank { "Any" },
+            value = selectedOptions.joinToString { it.label }.ifBlank { placeholder ?: "Any" },
             modifier = Modifier
                 .menuAnchor()
                 .then(textFieldModifier),
@@ -198,6 +199,7 @@ fun <T> DropdownChoiceMenuWithSearch(
     textFieldModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
+    placeholder: String? = null,
     inputFieldColor: Color = MaterialTheme.colorScheme.surface,
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
@@ -213,7 +215,7 @@ fun <T> DropdownChoiceMenuWithSearch(
         onExpandedChange = { isExpanded = it },
     ) {
         InputField(
-            value = selectedOptions.joinToString { it.label }.ifBlank { "Any" },
+            value = selectedOptions.joinToString { it.label }.ifBlank { placeholder ?: "Any" },
             modifier = Modifier
                 .menuAnchor()
                 .then(textFieldModifier),
@@ -272,26 +274,94 @@ fun <T> DropdownChoiceMenuWithSearch(
     }
 }
 
+@Composable
+fun <T> FilterDropdownChoice(
+    selectedOption: LabeledEntry<T>,
+    options: List<LabeledEntry<T>>,
+    onOptionChange: (LabeledEntry<T>) -> Unit,
+    label: String?,
+    modifier: Modifier
+) {
+    DropdownChoiceMenu(
+        selectedOption = selectedOption,
+        options = options,
+        onOptionChange = onOptionChange,
+        contentPadding = PaddingValues(5.dp),
+        label = label?.let { { Text(it) } },
+        inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = modifier.clip(RoundedCornerShape(5.dp)),
+        inputFieldModifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun <T> FilterDropdownMultiChoice(
+    selectedOptions: List<LabeledEntry<T>>,
+    options: List<LabeledEntry<T>>,
+    onOptionSelect: (LabeledEntry<T>) -> Unit,
+    label: String? = null,
+    placeholder: String? = null,
+    modifier: Modifier = Modifier
+) {
+    DropdownMultiChoiceMenu(
+        selectedOptions = selectedOptions,
+        options = options,
+        onOptionSelect = onOptionSelect,
+        contentPadding = PaddingValues(5.dp),
+        label = label?.let { { FilterLabelAndCount(label, selectedOptions.size) } },
+        placeholder = placeholder,
+        inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = modifier.clip(RoundedCornerShape(5.dp)),
+        textFieldModifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun <T> FilterDropdownMultiChoiceWithSearch(
+    selectedOptions: List<LabeledEntry<T>>,
+    options: List<LabeledEntry<T>>,
+    onOptionSelect: (LabeledEntry<T>) -> Unit,
+    onSearch: suspend (String) -> Unit,
+    label: String? = null,
+    placeholder: String? = null,
+    modifier: Modifier = Modifier
+) {
+    DropdownChoiceMenuWithSearch(
+        selectedOptions = selectedOptions,
+        options = options,
+        onOptionSelect = onOptionSelect,
+        onSearch = onSearch,
+        contentPadding = PaddingValues(5.dp),
+        label = label?.let { { FilterLabelAndCount(label, selectedOptions.size) } },
+        placeholder = placeholder,
+        inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = modifier.clip(RoundedCornerShape(5.dp)),
+        textFieldModifier = Modifier.fillMaxWidth()
+    )
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagFiltersDropdownMenu(
-    selectedGenres: List<String>,
-    genreOptions: List<String>,
-    onGenreSelect: (String) -> Unit,
-
     selectedTags: List<String>,
     tagOptions: List<String>,
     onTagSelect: (String) -> Unit,
 
+    selectedGenres: List<String> = emptyList(),
+    genreOptions: List<String> = emptyList(),
+    onGenreSelect: (String) -> Unit = {},
+
     onReset: () -> Unit,
 
-    textFieldModifier: Modifier = Modifier,
+    label: String? = null,
+    placeholder: String? = null,
     modifier: Modifier = Modifier,
-    label: @Composable (() -> Unit)? = null,
+    inputFieldModifier: Modifier = Modifier,
     inputFieldColor: Color = MaterialTheme.colorScheme.surface,
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
-    val strings = LocalStrings.current.seriesFilter
+    val strings = LocalStrings.current.filters
     var isExpanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     ExposedDropdownMenuBox(
@@ -300,11 +370,11 @@ fun TagFiltersDropdownMenu(
         onExpandedChange = { isExpanded = it },
     ) {
         InputField(
-            value = selectedGenres.plus(selectedTags).joinToString().ifBlank { strings.anyValue },
+            value = selectedGenres.plus(selectedTags).joinToString().ifBlank { placeholder ?: strings.anyValue },
             modifier = Modifier
                 .menuAnchor()
-                .then(textFieldModifier),
-            label = label,
+                .then(inputFieldModifier),
+            label = label?.let { { FilterLabelAndCount(label, selectedGenres.size + selectedTags.size) } },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
             color = inputFieldColor,
             contentPadding = contentPadding
@@ -344,7 +414,7 @@ private fun TagFilterDropdownContent(
 
     onReset: () -> Unit,
 ) {
-    val strings = LocalStrings.current.seriesFilter
+    val strings = LocalStrings.current.filters
     var tagsFilter by remember { mutableStateOf("") }
     var filteredGenreOptions by remember { mutableStateOf(genreOptions) }
     var filteredTagsOptions by remember { mutableStateOf(tagOptions) }
@@ -377,17 +447,21 @@ private fun TagFilterDropdownContent(
             }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(strings.filterTagsGenreLabel)
-            HorizontalDivider(Modifier.padding(start = 10.dp))
+        if (genreOptions.isNotEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(strings.filterTagsGenreLabel)
+                HorizontalDivider(Modifier.padding(start = 10.dp))
+            }
+            TagsRow(filteredGenreOptions, selectedGenres, onGenreSelect)
         }
 
-        TagsRow(filteredGenreOptions, selectedGenres, onGenreSelect)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(strings.filterTagsTagsLabel)
-            HorizontalDivider(Modifier.padding(start = 10.dp))
+        if (tagOptions.isNotEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(strings.filterTagsTagsLabel)
+                HorizontalDivider(Modifier.padding(start = 10.dp))
+            }
+            TagsRow(filteredTagsOptions, selectedTags, onTagSelect)
         }
-        TagsRow(filteredTagsOptions, selectedTags, onTagSelect)
     }
 }
 
@@ -398,7 +472,7 @@ private fun TagsRow(
     selectedTags: List<String>,
     onTagSelect: (String) -> Unit
 ) {
-    val strings = LocalStrings.current.seriesFilter
+    val strings = LocalStrings.current.filters
     val maxTagNum = 30
     var isExpanded by remember { mutableStateOf(false) }
     val tagsToTake = if (isExpanded) tags else tags.take(maxTagNum)
@@ -470,6 +544,24 @@ private fun <T> DropdownMultiChoiceItem(
     )
 }
 
+@Composable
+private fun FilterLabelAndCount(label: String, count: Int) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        if (count > 0) {
+            Text(
+                " + $count",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = MaterialTheme.colorScheme.tertiary
+                ),
+            )
+        }
+    }
+}
+
 data class LabeledEntry<T>(
     val value: T,
     val label: String
@@ -481,3 +573,4 @@ data class LabeledEntry<T>(
 
     }
 }
+

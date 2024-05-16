@@ -128,30 +128,23 @@ fun BooksGrid(
     onBookSelect: ((KomgaBook) -> Unit)? = null,
 
     cardWidth: Dp,
-
-    loadPlaceholder: @Composable () -> Unit,
-    isLoading: Boolean,
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
         modifier = Modifier.padding(bottom = 30.dp)
     ) {
-        if (isLoading) {
-            loadPlaceholder()
-        } else {
-            key(books, selectedBooks) {
-                books.forEach { book ->
-                    BookImageCard(
-                        book = book,
-                        onBookClick = onBookClick?.let { { onBookClick(book) } },
-                        onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
-                        bookMenuActions = bookMenuActions,
-                        isSelected = selectedBooks.any { it.id == book.id },
-                        onSelect = onBookSelect?.let { { onBookSelect(book) } },
-                        modifier = Modifier.width(cardWidth)
-                    )
-                }
+        key(books, selectedBooks) {
+            books.forEach { book ->
+                BookImageCard(
+                    book = book,
+                    onBookClick = onBookClick?.let { { onBookClick(book) } },
+                    onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
+                    bookMenuActions = bookMenuActions,
+                    isSelected = selectedBooks.any { it.id == book.id },
+                    onSelect = onBookSelect?.let { { onBookSelect(book) } },
+                    modifier = Modifier.width(cardWidth)
+                )
             }
         }
     }
@@ -166,8 +159,6 @@ fun BooksList(
 
     selectedBooks: List<KomgaBook> = emptyList(),
     onBookSelect: ((KomgaBook) -> Unit)? = null,
-
-    isLoading: Boolean,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -175,18 +166,16 @@ fun BooksList(
         horizontalAlignment = Alignment.Start,
     ) {
 
-        if (!isLoading) {
-            key(books, selectedBooks) {
-                books.forEach { book ->
-                    BookDetailedListCard(
-                        book = book,
-                        onClick = onBookClick?.let { { onBookClick(book) } },
-                        onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
-                        bookMenuActions = bookMenuActions,
-                        isSelected = selectedBooks.any { it.id == book.id },
-                        onSelect = onBookSelect?.let { { onBookSelect(book) } },
-                    )
-                }
+        key(books, selectedBooks) {
+            books.forEach { book ->
+                BookDetailedListCard(
+                    book = book,
+                    onClick = onBookClick?.let { { onBookClick(book) } },
+                    onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
+                    bookMenuActions = bookMenuActions,
+                    isSelected = selectedBooks.any { it.id == book.id },
+                    onSelect = onBookSelect?.let { { onBookSelect(book) } },
+                )
             }
         }
     }

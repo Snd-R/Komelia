@@ -36,9 +36,9 @@ import io.github.snd_r.komelia.platform.WindowWidth.*
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
-import io.github.snd_r.komelia.ui.common.DropdownChoiceMenuWithSearch
-import io.github.snd_r.komelia.ui.common.DropdownMultiChoiceMenu
+import io.github.snd_r.komelia.ui.common.FilterDropdownChoice
+import io.github.snd_r.komelia.ui.common.FilterDropdownMultiChoice
+import io.github.snd_r.komelia.ui.common.FilterDropdownMultiChoiceWithSearch
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.NoPaddingTextField
@@ -143,17 +143,16 @@ fun SeriesFilterContent(
                 onTagSelect = filterState::onTagSelect,
                 onReset = filterState::resetTagFilters,
                 contentPadding = PaddingValues(5.dp),
-                label = { LabelAndCount(strings.filterTags, filterState.genres.size + filterState.tags.size) },
+                label = strings.filterTagsLabel,
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier
                     .width(width)
                     .clip(RoundedCornerShape(5.dp)),
-                textFieldModifier = Modifier.fillMaxWidth()
+                inputFieldModifier = Modifier.fillMaxWidth()
             )
             FilterDropdownMultiChoice(
                 selectedOptions = filterState.readStatus
-                    .map { LabeledEntry(it, strings.forSeriesReadStatus(it)) }
-                    .toSet(),
+                    .map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
                 options = KomgaReadStatus.entries.map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
                 onOptionSelect = { changed -> filterState.onReadStatusSelect(changed.value) },
                 label = strings.readStatus,
@@ -162,8 +161,7 @@ fun SeriesFilterContent(
 
             FilterDropdownMultiChoice(
                 selectedOptions = filterState.publicationStatus
-                    .map { LabeledEntry(it, strings.forPublicationStatus(it)) }
-                    .toSet(),
+                    .map { LabeledEntry(it, strings.forPublicationStatus(it)) },
                 options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forPublicationStatus(it)) },
                 onOptionSelect = { changed -> filterState.onPublicationStatusSelect(changed.value) },
                 label = strings.publicationStatus,
@@ -186,7 +184,7 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.publishers.map { stringEntry(it) }.toSet(),
+                selectedOptions = filterState.publishers.map { stringEntry(it) },
                 options = filterState.publishersOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onPublisherSelect(changed.value) },
                 label = strings.publisher,
@@ -194,14 +192,14 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.languages.map { stringEntry(it) }.toSet(),
+                selectedOptions = filterState.languages.map { stringEntry(it) },
                 options = filterState.languagesOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onLanguageSelect(changed.value) },
                 label = strings.language,
                 modifier = Modifier.width(width),
             )
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.releaseDates.map { stringEntry(it) }.toSet(),
+                selectedOptions = filterState.releaseDates.map { stringEntry(it) },
                 options = filterState.releaseDateOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onReleaseDateSelect(changed.value) },
                 label = strings.releaseDate,
@@ -209,7 +207,7 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.ageRatings.map { stringEntry(it) }.toSet(),
+                selectedOptions = filterState.ageRatings.map { stringEntry(it) },
                 options = filterState.ageRatingsOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onAgeRatingSelect(changed.value) },
                 label = strings.ageRating,
@@ -254,9 +252,7 @@ fun SeriesFilterContent(
                         .clickable { filterState.onFormatToggle() }
                         .cursorForHand()
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clip(RoundedCornerShape(5.dp))
-//                        .padding(end = 10.dp)
-                    ,
+                        .clip(RoundedCornerShape(5.dp)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val checkboxState by derivedStateOf {
@@ -277,86 +273,5 @@ fun SeriesFilterContent(
             }
         }
 
-    }
-}
-
-
-@Composable
-private fun <T> FilterDropdownChoice(
-    selectedOption: LabeledEntry<T>,
-    options: List<LabeledEntry<T>>,
-    onOptionChange: (LabeledEntry<T>) -> Unit,
-    label: String,
-    modifier: Modifier
-) {
-    DropdownChoiceMenu(
-        selectedOption = selectedOption,
-        options = options,
-        onOptionChange = onOptionChange,
-        contentPadding = PaddingValues(5.dp),
-        label = { Text(label) },
-        inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = modifier.clip(RoundedCornerShape(5.dp)),
-        inputFieldModifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-private fun <T> FilterDropdownMultiChoice(
-    selectedOptions: Set<LabeledEntry<T>>,
-    options: List<LabeledEntry<T>>,
-    onOptionSelect: (LabeledEntry<T>) -> Unit,
-    label: String,
-    modifier: Modifier
-) {
-    DropdownMultiChoiceMenu(
-        selectedOptions = selectedOptions,
-        options = options,
-        onOptionSelect = onOptionSelect,
-        contentPadding = PaddingValues(5.dp),
-        label = { LabelAndCount(label, selectedOptions.size) },
-        inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = modifier.clip(RoundedCornerShape(5.dp)),
-        textFieldModifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-private fun <T> FilterDropdownMultiChoiceWithSearch(
-    selectedOptions: List<LabeledEntry<T>>,
-    options: List<LabeledEntry<T>>,
-    onOptionSelect: (LabeledEntry<T>) -> Unit,
-    onSearch: suspend (String) -> Unit,
-    label: String,
-    modifier: Modifier
-) {
-    DropdownChoiceMenuWithSearch(
-        selectedOptions = selectedOptions,
-        options = options,
-        onOptionSelect = onOptionSelect,
-        onSearch = onSearch,
-        contentPadding = PaddingValues(5.dp),
-        label = { LabelAndCount(label, selectedOptions.size) },
-        inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = modifier.clip(RoundedCornerShape(5.dp)),
-        textFieldModifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-private fun LabelAndCount(label: String, count: Int) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, style = MaterialTheme.typography.labelLarge)
-        if (count > 0) {
-            Text(
-                " + $count",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    color = MaterialTheme.colorScheme.tertiary
-                ),
-            )
-        }
     }
 }

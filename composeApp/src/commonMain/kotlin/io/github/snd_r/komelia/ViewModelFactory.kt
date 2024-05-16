@@ -136,6 +136,7 @@ class ViewModelFactory(
         notifications = appNotifications,
         events = komgaEventSource.events,
         settingsRepository = settingsRepository,
+        referentialClient = komgaClientFactory.referentialClient(),
     )
 
     fun getBookViewModel(bookId: KomgaBookId): BookViewModel {

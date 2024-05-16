@@ -29,9 +29,18 @@ fun BooksBulkActionsContent(
     books: List<KomgaBook>,
     iconOnly: Boolean,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val factory = LocalViewModelFactory.current
     val actions = remember { factory.getBookBulkActions() }
+    BooksBulkActionsContent(books, actions, iconOnly)
+}
+
+@Composable
+fun BooksBulkActionsContent(
+    books: List<KomgaBook>,
+    actions: BookBulkActions,
+    iconOnly: Boolean,
+) {
+    val coroutineScope = rememberCoroutineScope()
 
     var showAddToReadListDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -92,6 +101,7 @@ fun BooksBulkActionsContent(
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
     }
+
 }
 
 data class BookBulkActions(

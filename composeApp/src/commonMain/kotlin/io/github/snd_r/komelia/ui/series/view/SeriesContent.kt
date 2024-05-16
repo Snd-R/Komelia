@@ -98,6 +98,7 @@ fun SeriesContent(
             BooksBulkActionsToolbar(
                 onCancel = { booksState.setSelectionMode(false) },
                 books = booksState.books,
+                actions = booksState.bookBulkMenuActions(),
                 selectedBooks = booksState.selectedBooks,
                 onBookSelect = booksState::onBookSelect
             )
@@ -114,7 +115,7 @@ fun SeriesContent(
                 TabRow(
                     currentTab = currentTab,
                     onTabChange = onTabChange,
-                    showCollectionsTab = collectionsState.collections.isNotEmpty()
+                    showCollectionsTab = collectionsState.collections.isNotEmpty() && !booksState.booksSelectionMode
                 )
 
                 when (currentTab) {

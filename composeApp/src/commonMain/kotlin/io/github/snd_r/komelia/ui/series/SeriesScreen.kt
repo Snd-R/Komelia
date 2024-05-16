@@ -21,9 +21,11 @@ import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesId
+import kotlin.jvm.Transient
 
 class SeriesScreen(
     val seriesId: KomgaSeriesId,
+    @Transient
     private val series: KomgaSeries? = null
 ) : Screen {
     constructor(series: KomgaSeries) : this(series.id, series)

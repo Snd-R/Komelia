@@ -75,28 +75,36 @@ fun AppDialogLayout(
     SubcomposeLayout { constraints ->
         val headerPlaceable = header?.let {
             subcompose(DialogSlots.Header, header)
-                .map { it.measure(constraints) }.first()
+                .map { it.measure(constraints.copy(minHeight = 0)) }.first()
         }
         val buttonsPlaceable = controlButtons?.let {
             subcompose(DialogSlots.Buttons, controlButtons)
-                .map { it.measure(constraints.copy(minWidth = 0)) }.first()
+                .map { it.measure(constraints.copy(minWidth = 0, minHeight = 0)) }.first()
         }
 
         val dialogMaxHeight = (constraints.maxHeight * 0.9).roundToInt()
+
         val resizedBodyPlaceable = subcompose(DialogSlots.Body, body).map {
             val maxHeight = dialogMaxHeight - (headerPlaceable?.height ?: 0) - (buttonsPlaceable?.height ?: 0)
-
             it.measure(
                 Constraints(
+                    minHeight = 0,
                     maxHeight = maxHeight,
                     maxWidth = constraints.maxWidth
                 )
             )
-
         }.first()
 
         val scrollbarPlaceable = subcompose(DialogSlots.Scrollbar, scrollbar)
-            .map { it.measure(constraints.copy(minWidth = 0, maxHeight = resizedBodyPlaceable.height)) }
+            .map {
+                it.measure(
+                    constraints.copy(
+                        minWidth = 0,
+                        minHeight = 0,
+                        maxHeight = resizedBodyPlaceable.height
+                    )
+                )
+            }
             .firstOrNull()
 
         layout(

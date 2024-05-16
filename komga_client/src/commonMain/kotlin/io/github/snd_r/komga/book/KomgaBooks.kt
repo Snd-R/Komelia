@@ -115,9 +115,3 @@ enum class CopyMode {
     COPY,
     HARDLINK
 }
-
-
-enum class KomgaBookSort(val query: List<String>) {
-    TITLE_ASC(listOf()),
-    TITLE_DESC(listOf())
-}

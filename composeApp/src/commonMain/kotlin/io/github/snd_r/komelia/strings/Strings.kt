@@ -8,6 +8,7 @@ import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.*
 import io.github.snd_r.komga.book.KomgaReadStatus
@@ -24,13 +25,15 @@ import io.github.snd_r.komga.settings.KomgaThumbnailSize
 import io.github.snd_r.komga.settings.KomgaThumbnailSize.*
 
 data class Strings(
-    val errorCodes: ErrorCodes,
+    val filters: FilterStrings,
     val seriesFilter: SeriesFilterStrings,
+    val booksFilter: BookFilterStrings,
     val seriesEdit: SeriesEditStrings,
     val libraryEdit: LibraryEditStrings,
     val userEdit: UserEditStrings,
     val readerSettings: ReaderSettingsStrings,
     val settings: SettingsStrings,
+    val errorCodes: ErrorCodes,
 )
 
 data class SeriesEditStrings(
@@ -229,6 +232,17 @@ data class SettingsStrings(
     }
 }
 
+data class FilterStrings(
+    val anyValue: String,
+
+    val filterTagsSearch: String,
+    val filterTagsReset: String,
+    val filterTagsGenreLabel: String,
+    val filterTagsTagsLabel: String,
+    val filterTagsShowMore: String,
+    val filterTagsShowLess: String,
+)
+
 data class SeriesFilterStrings(
     val resetFilters: String,
     val hideFilters: String,
@@ -248,13 +262,7 @@ data class SeriesFilterStrings(
     val sortBooksCountAsc: String,
     val sortBooksCountDesc: String,
 
-    val filterTags: String,
-    val filterTagsSearch: String,
-    val filterTagsReset: String,
-    val filterTagsGenreLabel: String,
-    val filterTagsTagsLabel: String,
-    val filterTagsShowMore: String,
-    val filterTagsShowLess: String,
+    val filterTagsLabel: String,
 
     val readStatus: String,
     val readStatusUnread: String,
@@ -310,6 +318,45 @@ data class SeriesFilterStrings(
         }
     }
 
+}
+
+data class BookFilterStrings(
+    val sort: String,
+    val sortNumberAsc: String,
+    val sortNumberDesc: String,
+    val sortFileNameAsc: String,
+    val sortFileNameDesc: String,
+    val sortReleaseDateAsc: String,
+    val sortReleaseDateDesc: String,
+
+    val readStatus: String,
+    val readStatusUnread: String,
+    val readStatusInProgress: String,
+    val readStatusRead: String,
+
+    val authors: String,
+    val tags: String,
+) {
+
+    fun forReadStatus(status: KomgaReadStatus): String {
+        return when (status) {
+            UNREAD -> readStatusUnread
+            IN_PROGRESS -> readStatusInProgress
+            READ -> readStatusRead
+        }
+    }
+
+    fun forBookSort(sort: BooksSort): String {
+        return when (sort) {
+            BooksSort.NUMBER_ASC -> sortNumberAsc
+            BooksSort.NUMBER_DESC -> sortNumberDesc
+//            BooksSort.FILENAME_ASC -> sortFileNameAsc
+//            BooksSort.FILENAME_DESC -> sortFileNameDesc
+//            BooksSort.RELEASE_DATE_ASC -> sortReleaseDateAsc
+//            BooksSort.RELEASE_DATE_DESC -> sortReleaseDateDesc
+        }
+
+    }
 }
 
 data class ErrorCodes(

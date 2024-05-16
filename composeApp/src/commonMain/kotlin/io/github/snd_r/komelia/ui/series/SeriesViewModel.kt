@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.collection.KomgaCollectionClient
+import io.github.snd_r.komga.referential.KomgaReferentialClient
 import io.github.snd_r.komga.series.KomgaSeries
 import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.series.KomgaSeriesId
@@ -27,11 +28,12 @@ import kotlinx.coroutines.launch
 class SeriesViewModel(
     series: KomgaSeries?,
     private val seriesId: KomgaSeriesId,
-    private val seriesClient: KomgaSeriesClient,
     private val notifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
+    private val seriesClient: KomgaSeriesClient,
     bookClient: KomgaBookClient,
     collectionClient: KomgaCollectionClient,
+    referentialClient: KomgaReferentialClient,
     settingsRepository: SettingsRepository,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
@@ -48,6 +50,7 @@ class SeriesViewModel(
         events = events,
         screenModelScope = screenModelScope,
         cardWidth = cardWidth,
+        referentialClient = referentialClient,
     )
     val collectionsState = SeriesCollectionsState(
         series = this.series,

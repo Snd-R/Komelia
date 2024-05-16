@@ -177,7 +177,7 @@ private fun BulkActionsToolbar(
                 if (selectedBooks.isNotEmpty()) {
                     Spacer(Modifier.weight(1f))
 
-                    ReadListBulkActionsContent(readList, books, false)
+                    ReadListBulkActionsContent(readList, books, true)
                     BooksBulkActionsContent(selectedBooks, true)
                 }
             }
@@ -188,7 +188,7 @@ private fun BulkActionsToolbar(
                     else Text("Selection mode: Click on items to select or deselect them")
                 } else {
                     Spacer(Modifier.weight(1f))
-                    ReadListBulkActionsContent(readList, books, false)
+                    ReadListBulkActionsContent(readList, books, true)
                     BooksBulkActionsContent(selectedBooks, true)
                 }
             }
