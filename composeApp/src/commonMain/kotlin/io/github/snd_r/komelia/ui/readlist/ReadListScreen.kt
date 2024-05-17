@@ -6,13 +6,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.Error
-import io.github.snd_r.komelia.ui.LoadState.Loading
-import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.LoadState.*
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
@@ -20,6 +19,9 @@ import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komga.readlist.KomgaReadListId
 
 class ReadListScreen(val readListId: KomgaReadListId) : Screen {
+
+    override val key: ScreenKey = readListId.toString()
+
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current

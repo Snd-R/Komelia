@@ -35,10 +35,11 @@ class SeriesViewModel(
     collectionClient: KomgaCollectionClient,
     referentialClient: KomgaReferentialClient,
     settingsRepository: SettingsRepository,
+    defaultTab: SeriesTab,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val series = MutableStateFlow(series)
-    var currentTab by mutableStateOf(SeriesTab.BOOKS)
+    var currentTab by mutableStateOf(defaultTab)
     val cardWidth = settingsRepository.getCardWidth().stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     val booksState = SeriesBooksState(

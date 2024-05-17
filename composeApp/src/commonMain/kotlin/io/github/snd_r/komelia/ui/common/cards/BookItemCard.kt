@@ -65,7 +65,7 @@ import io.github.snd_r.komga.book.KomgaBook
 @Composable
 fun BookImageCard(
     book: KomgaBook,
-    bookMenuActions: BookMenuActions?,
+    bookMenuActions: BookMenuActions? = null,
     onBookClick: (() -> Unit)? = null,
     onBookReadClick: (() -> Unit)? = null,
     isSelected: Boolean = false,

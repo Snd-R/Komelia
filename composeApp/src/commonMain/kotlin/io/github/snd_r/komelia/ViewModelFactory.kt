@@ -127,7 +127,11 @@ class ViewModelFactory(
         )
     }
 
-    fun getSeriesViewModel(seriesId: KomgaSeriesId, series: KomgaSeries? = null) = SeriesViewModel(
+    fun getSeriesViewModel(
+        seriesId: KomgaSeriesId,
+        series: KomgaSeries? = null,
+        defaultTab: SeriesViewModel.SeriesTab,
+    ) = SeriesViewModel(
         seriesId = seriesId,
         series = series,
         seriesClient = komgaClientFactory.seriesClient(),
@@ -137,15 +141,19 @@ class ViewModelFactory(
         events = komgaEventSource.events,
         settingsRepository = settingsRepository,
         referentialClient = komgaClientFactory.referentialClient(),
+        defaultTab = defaultTab,
     )
 
-    fun getBookViewModel(bookId: KomgaBookId): BookViewModel {
+    fun getBookViewModel(bookId: KomgaBookId, book: KomgaBook?): BookViewModel {
         return BookViewModel(
-            libraryClient = komgaClientFactory.libraryClient(),
-            bookClient = komgaClientFactory.bookClient(),
+            book = book,
             bookId = bookId,
+            bookClient = komgaClientFactory.bookClient(),
             notifications = appNotifications,
-            komgaEvents = komgaEventSource.events
+            komgaEvents = komgaEventSource.events,
+            libraries = libraries,
+            settingsRepository = settingsRepository,
+            readListClient = komgaClientFactory.readListClient(),
         )
     }
 

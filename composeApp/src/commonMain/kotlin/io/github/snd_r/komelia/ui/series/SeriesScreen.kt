@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -17,6 +18,7 @@ import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
+import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.series.KomgaSeries
@@ -26,16 +28,22 @@ import kotlin.jvm.Transient
 class SeriesScreen(
     val seriesId: KomgaSeriesId,
     @Transient
-    private val series: KomgaSeries? = null
+    private val series: KomgaSeries? = null,
+    @Transient
+    private val startingTab: SeriesTab = SeriesTab.BOOKS
 ) : Screen {
-    constructor(series: KomgaSeries) : this(series.id, series)
+    constructor(series: KomgaSeries, startingTab: SeriesTab) : this(series.id, series, startingTab)
+
+    override val key: ScreenKey = seriesId.toString()
 
     @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(seriesId.value) { viewModelFactory.getSeriesViewModel(seriesId, series) }
+        val vm = rememberScreenModel(seriesId.value) {
+            viewModelFactory.getSeriesViewModel(seriesId, series, startingTab)
+        }
         LaunchedEffect(seriesId) { vm.initialize() }
 
         when (val state = vm.state.collectAsState().value) {
@@ -59,12 +67,12 @@ class SeriesScreen(
                     onTabChange = vm::onTabChange,
 
                     booksState = vm.booksState,
-                    onBookClick = { navigator push BookScreen(it.id) },
+                    onBookClick = { navigator push BookScreen(it) },
                     onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
 
                     collectionsState = vm.collectionsState,
                     onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
-                    onSeriesClick = { series -> navigator.push(SeriesScreen(series)) },
+                    onSeriesClick = { series -> navigator.push(SeriesScreen(series, vm.currentTab)) },
 
                     onBackButtonClick = {
                         vm.series.value?.let { onBackPress(navigator, it.libraryId) }

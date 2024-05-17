@@ -5,6 +5,7 @@ import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.common.Page
 import io.github.snd_r.komga.common.toParams
 import io.github.snd_r.komga.library.KomgaLibraryId
+import io.github.snd_r.komga.readlist.KomgaReadList
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -38,7 +39,6 @@ class KomgaBookClient(private val ktor: HttpClient) {
                 parameters.appendAll(params)
             }
         }.body()
-
     }
 
     suspend fun getLatestBooks(pageRequest: KomgaPageRequest? = null): Page<KomgaBook> {
@@ -149,5 +149,9 @@ class KomgaBookClient(private val ktor: HttpClient) {
 
     suspend fun deleteBookThumbnail(bookId: KomgaBookId, thumbnailId: KomgaThumbnailId) {
         ktor.delete("api/v1/books/$bookId/thumbnails/$thumbnailId")
+    }
+
+    suspend fun getAllReadListsByBook(bookId: KomgaBookId): List<KomgaReadList> {
+        return ktor.get("api/v1/books/$bookId/readlists").body()
     }
 }
