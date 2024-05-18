@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.reader.paged
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import coil3.ImageLoader
@@ -64,6 +65,9 @@ class PagedReaderState(
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
         scaleType.value = settingsRepository.getPagedReaderScaleType().first()
         readingDirection.value = settingsRepository.getPagedReaderReadingDirection().first()
+
+        screenScaleState.setScrollState(null)
+        screenScaleState.setScrollOrientation(Orientation.Vertical, false)
 
         readerState.decoder
             .drop(1)

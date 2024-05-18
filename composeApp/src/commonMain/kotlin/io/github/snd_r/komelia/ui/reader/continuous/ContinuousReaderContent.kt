@@ -30,6 +30,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
+import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -39,9 +45,11 @@ import coil3.request.ErrorResult
 import coil3.request.ImageResult
 import coil3.request.SuccessResult
 import io.github.snd_r.komelia.platform.ReaderImage
+import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.*
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
 
 @Composable
@@ -53,12 +61,21 @@ fun ContinuousReaderContent(
         val pages = state.pages.collectAsState().value
         if (pages.isEmpty()) return@ScalableContainer
 
+
         val sidePadding = with(LocalDensity.current) { state.sidePaddingPx.collectAsState().value.toDp() }
 
-        when (state.readingDirection.collectAsState().value) {
+        val readingDirection = state.readingDirection.collectAsState().value
+        when (readingDirection) {
             TOP_TO_BOTTOM -> VerticalLayout(state, pages, sidePadding)
             LEFT_TO_RIGHT -> HorizontalLayout(state, pages, sidePadding, false)
             RIGHT_TO_LEFT -> HorizontalLayout(state, pages, sidePadding, true)
+        }
+        val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
+        LaunchedEffect(readingDirection) {
+            registerPagedReaderKeyboardEvents(
+                keyEvents = keyEvents,
+                state = state,
+            )
         }
     }
 }
@@ -206,5 +223,40 @@ private fun imagePlaceholder() {
         contentAlignment = Alignment.TopCenter
     ) {
         CircularProgressIndicator()
+    }
+}
+
+private suspend fun registerPagedReaderKeyboardEvents(
+    keyEvents: SharedFlow<KeyEvent>,
+    state: ContinuousReaderState,
+) {
+
+    keyEvents.collect { event ->
+        when (event.type) {
+            KeyDown -> {
+                val readingDirection = state.readingDirection.value
+                when {
+                    readingDirection == LEFT_TO_RIGHT && event.key == Key.DirectionLeft -> state.scrollBackward(100f)
+                    readingDirection == LEFT_TO_RIGHT && event.key == Key.DirectionRight -> state.scrollForward(100f)
+
+                    readingDirection == RIGHT_TO_LEFT && event.key == Key.DirectionLeft -> state.scrollForward(100f)
+                    readingDirection == RIGHT_TO_LEFT && event.key == Key.DirectionRight -> state.scrollBackward(100f)
+
+                    readingDirection == TOP_TO_BOTTOM && event.key == Key.DirectionDown -> state.scrollForward(100f)
+                    readingDirection == TOP_TO_BOTTOM && event.key == Key.DirectionUp -> state.scrollBackward(100f)
+                }
+            }
+
+            KeyUp -> {
+                when (event.key) {
+                    Key.MoveHome -> state.scrollToPage(0)
+                    Key.MoveEnd -> state.scrollToPage(state.pages.value.size - 1)
+                    Key.V -> state.onReadingDirectionChange(TOP_TO_BOTTOM)
+                    Key.L -> state.onReadingDirectionChange(LEFT_TO_RIGHT)
+                    Key.R -> state.onReadingDirectionChange(RIGHT_TO_LEFT)
+                    else -> {}
+                }
+            }
+        }
     }
 }

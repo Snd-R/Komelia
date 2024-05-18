@@ -1,5 +1,8 @@
 package io.github.snd_r.komelia.ui.reader.common
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.Orientation.Horizontal
+import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,59 +19,131 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import io.github.snd_r.komelia.platform.WindowWidth.*
+import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.dialogs.AppDialog
 
 @Composable
-fun NavigationHelpDialog(
+fun PagedReaderHelpDialog(
     onDismissRequest: () -> Unit,
 ) {
-    Dialog(
+    AppDialog(
+        modifier = Modifier.fillMaxWidth(.9f),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(0.9f),
-
-            ) {
-            Row {
-                KeyDescriptionColumn(
-                    "Reader Navigation",
-                    mapOf(
-                        listOf("←") to "Previous page",
-                        listOf("→") to "Next page",
-                        listOf("Home") to "First page",
-                        listOf("End") to "Last page",
-                        listOf("Ctrl", "Scroll Wheel") to "Zoom"
-                    ),
-                    Modifier.weight(1f)
-                )
-
-                KeyDescriptionColumn(
-                    "Settings",
-                    mapOf(
-                        listOf("L") to "Left to Right",
-                        listOf("R") to "Right to Left",
-                        listOf("C") to "Cycle scale",
-                        listOf("D") to "Cycle page layout",
-                        listOf("O") to "Toggle double page offset",
-                        listOf("F11") to "Enter/exit full screen"
-                    ),
-                    Modifier.weight(1f)
-                )
-
-                KeyDescriptionColumn(
-                    "Menus",
-                    mapOf(
-                        listOf("M") to "Show/hide menu",
-                        listOf("H") to "Show/hide help",
-                        listOf("← Backspace") to "Return to series screen"
-                    ),
-                    Modifier.weight(1f)
-                )
+        content = {
+            when (LocalWindowWidth.current) {
+                COMPACT, MEDIUM, EXPANDED -> Column { PagedDialogContent() }
+                FULL -> Row { PagedDialogContent(Modifier.weight(1f)) }
             }
         }
+    )
+}
+
+@Composable
+fun ContinuousReaderHelpDialog(
+    orientation: Orientation,
+    onDismissRequest: () -> Unit,
+) {
+    AppDialog(
+        modifier = Modifier.fillMaxWidth(.9f),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        onDismissRequest = onDismissRequest,
+        content = {
+            when (LocalWindowWidth.current) {
+                COMPACT, MEDIUM, EXPANDED -> Column { ContinuousDialogContent(orientation) }
+                FULL -> Row { ContinuousDialogContent(orientation, Modifier.weight(1f)) }
+            }
+        }
+    )
+}
+
+@Composable
+private fun PagedDialogContent(
+    elementsModifier: Modifier = Modifier,
+) {
+    KeyDescriptionColumn(
+        "Reader Navigation",
+        mapOf(
+            listOf("←") to "Previous page",
+            listOf("→") to "Next page",
+            listOf("Home") to "First page",
+            listOf("End") to "Last page",
+            listOf("Ctrl", "Scroll Wheel") to "Zoom"
+        ),
+        elementsModifier
+    )
+
+    KeyDescriptionColumn(
+        "Settings",
+        mapOf(
+            listOf("L") to "Left to right",
+            listOf("R") to "Right to left",
+            listOf("C") to "Cycle scale",
+            listOf("D") to "Cycle page layout",
+            listOf("O") to "Toggle double page offset",
+            listOf("F11") to "Enter/exit full screen"
+        ),
+        elementsModifier
+    )
+
+    KeyDescriptionColumn(
+        "Menus",
+        mapOf(
+            listOf("M") to "Show/hide menu",
+            listOf("H") to "Show/hide help",
+            listOf("ALT", "←") to "Return to series screen"
+        ),
+        elementsModifier
+    )
+}
+
+@Composable
+private fun ContinuousDialogContent(
+    orientation: Orientation,
+    elementsModifier: Modifier = Modifier,
+) {
+    val scrollDirection = when (orientation) {
+        Vertical -> mapOf(
+            listOf("↑") to "Scroll up",
+            listOf("↓") to "Scroll down",
+        )
+
+        Horizontal -> mapOf(
+            listOf("←") to "Scroll left",
+            listOf("→") to "Scroll right",
+        )
     }
+    KeyDescriptionColumn(
+        "Reader Navigation",
+        scrollDirection + mapOf(
+            listOf("Home") to "First page",
+            listOf("End") to "Last page",
+            listOf("Ctrl", "Scroll Wheel") to "Zoom"
+        ),
+        elementsModifier
+    )
+
+    KeyDescriptionColumn(
+        "Settings",
+        mapOf(
+            listOf("V") to "Top to bottom",
+            listOf("L") to "Left to right",
+            listOf("R") to "Right to left",
+            listOf("F11") to "Enter/exit full screen"
+        ),
+        elementsModifier
+    )
+
+    KeyDescriptionColumn(
+        "Menus",
+        mapOf(
+            listOf("M") to "Show/hide menu",
+            listOf("H") to "Show/hide help",
+            listOf("ALT", "←") to "Return to series screen"
+        ),
+        elementsModifier
+    )
 }
 
 @Composable
@@ -85,7 +160,6 @@ private fun KeyDescriptionColumn(
         Row {
             Text(
                 text = "Key",
-//                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.weight(1f)
             )
             Text(

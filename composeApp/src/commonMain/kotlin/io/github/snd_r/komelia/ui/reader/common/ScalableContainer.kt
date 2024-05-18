@@ -98,7 +98,7 @@ fun ScalableContainer(
                     val centroid = it.changes[0].position
                     scaleState.addZoom(.2f * -delta.y, centroid - areaCenter)
                 } else {
-                    val pan = -delta.y * 70
+                    val pan = if (scaleState.scrollReversed.value) delta.y * 70 else -delta.y * 70
                     when (scrollOrientation) {
                         Vertical, null -> scaleState.addPan(Offset(0f, pan))
                         Horizontal -> scaleState.addPan(Offset(pan, 0f))

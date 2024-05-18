@@ -59,19 +59,15 @@ class ReaderViewModel(
     )
 
     fun initialize(bookId: KomgaBookId) {
-
         screenModelScope.launch {
             readerState.initialize(bookId)
-            screenScaleState.areaSize
-                .takeWhile { it == IntSize.Zero }
-                .collect()
+            screenScaleState.areaSize.takeWhile { it == IntSize.Zero }.collect()
 
             readerState.readerType
                 .collect {
                     when (it) {
                         ReaderType.PAGED -> {
                             continuousReaderState.stop()
-                            screenScaleState.setScrollState(null)
                             pagedReaderState.initialize()
                         }
 

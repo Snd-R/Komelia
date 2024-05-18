@@ -42,8 +42,8 @@ class ScreenScaleState {
     private val velocityTracker = VelocityTracker()
 
     val scrollOrientation = MutableStateFlow<Orientation?>(null)
+    val scrollReversed = MutableStateFlow(false)
     private val scrollState = MutableStateFlow<ScrollableState?>(null)
-    private val scrollReversed = MutableStateFlow(false)
 
     val transformation = MutableStateFlow(Transformation(offset = Offset.Zero, scale = 1f))
 
@@ -118,16 +118,41 @@ class ScreenScaleState {
             val delta = value - lastValue
             lastValue = value
 
-            if (!canPan() && scrollState.value == null) this.cancelAnimation()
-            else addPan(delta)
+            if (scrollState.value == null) {
+                val canPanHorizontally = when {
+                    delta.x < 0 -> canPanLeft()
+                    delta.x > 0 -> canPanRight()
+                    else -> false
+                }
+                val canPanVertically = when {
+                    delta.y < 0 -> canPanDown()
+                    delta.y > 0 -> canPanUp()
+                    else -> false
+                }
+                if (!canPanHorizontally && !canPanVertically) {
+                    this.cancelAnimation()
+                    return@animateDecay
+                }
+            }
+
+            addPan(delta)
         }
     }
 
-    private fun canPan(): Boolean {
-        val xLimits = offsetXLimits.value
-        val yLimits = offsetYLimits.value
-        return (currentOffset.x > xLimits.start && currentOffset.x < xLimits.endInclusive) ||
-                (currentOffset.y > yLimits.start && currentOffset.y < yLimits.endInclusive)
+    fun canPanUp(): Boolean {
+        return currentOffset.y < offsetYLimits.value.start
+    }
+
+    fun canPanDown(): Boolean {
+        return currentOffset.y > offsetYLimits.value.endInclusive
+    }
+
+    fun canPanLeft(): Boolean {
+        return currentOffset.x > offsetXLimits.value.start
+    }
+
+    fun canPanRight(): Boolean {
+        return currentOffset.x < offsetXLimits.value.endInclusive
     }
 
     fun addPan(pan: Offset) {

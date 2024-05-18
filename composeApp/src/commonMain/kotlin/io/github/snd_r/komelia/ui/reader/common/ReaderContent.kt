@@ -1,7 +1,9 @@
 package io.github.snd_r.komelia.ui.reader.common
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,10 +33,12 @@ import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderContent
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderSettingsContent
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderContent
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderPageState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderSettingsContent
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
@@ -48,126 +52,209 @@ fun ReaderContent(
     onSeriesBackClick: () -> Unit,
     onBookBackClick: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val book = settingsState.bookState.collectAsState().value?.book
-
-    var showNavMenu by remember { mutableStateOf(false) }
-    var showNavHelpDialog by remember { mutableStateOf(false) }
-
-    if (showNavHelpDialog) {
-        NavigationHelpDialog(onDismissRequest = { showNavHelpDialog = false })
-    }
-
+    var showSettingsMenu by remember { mutableStateOf(false) }
+    var showHelpDialog by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
     LaunchedEffect(Unit) {
         registerCommonKeyboardEvents(
             keyEvents = keyEvents,
-            onNavMenuToggle = { showNavMenu = !showNavMenu },
-            onShowHelpDialog = { showNavHelpDialog = !showNavHelpDialog },
+            showSettingsMenu = showSettingsMenu,
+            setShowSettingsDialog = { showSettingsMenu = it },
+            onShowHelpDialog = { showHelpDialog = !showHelpDialog },
             onClose = onSeriesBackClick
         )
     }
 
-    Box(
-        Modifier.onSizeChanged {
-            screenScaleState.setAreaSize(it)
-        }
-    ) {
+    Box(Modifier.fillMaxSize().onSizeChanged { screenScaleState.setAreaSize(it) }) {
         val currentContainerSize = screenScaleState.areaSize.collectAsState()
         if (currentContainerSize.value == IntSize.Zero) return
 
-        val readerType = settingsState.readerType.collectAsState()
+        when (settingsState.readerType.collectAsState().value) {
+            PAGED -> PagedReaderContent(
+                showHelpDialog = showHelpDialog,
+                onShowHelpDialogChange = { showHelpDialog = it },
+                showSettingsMenu = showSettingsMenu,
+                onShowSettingsMenuChange = { showSettingsMenu = it },
 
-        when (readerType.value) {
-            PAGED -> {
+                screenScaleState = screenScaleState,
+                pagedReaderState = pageState,
+                readerState = settingsState,
 
-                val layoutDirection = when (pageState.readingDirection.collectAsState().value) {
-                    PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> LayoutDirection.Ltr
-                    PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> LayoutDirection.Rtl
-                }
-                ReaderControlsOverlay(
-                    readingDirection = layoutDirection,
-                    onNexPageClick = pageState::nextPage,
-                    onPrevPageClick = pageState::previousPage,
-                    contentAreaSize = currentContainerSize.value,
-                    onNavMenuToggle = { showNavMenu = !showNavMenu },
-                ) {
-                    ScalableContainer(scaleState = screenScaleState) {
-                        PagedReaderContent(pageState = pageState)
-                    }
-                }
-
-                SettingsMenu(
-                    book = book,
-                    onMenuDismiss = { showNavMenu = !showNavMenu },
-                    onShowHelpMenu = { showNavHelpDialog = true },
-                    show = showNavMenu,
-                    settingsState = settingsState,
-                    screenScaleState = screenScaleState,
-                    onSeriesPress = onSeriesBackClick,
-                    onBookClick = onBookBackClick,
-                    readerSettingsContent = { PagedReaderSettingsContent(pageState) }
-                )
+                book = book,
+                onBookBackClick = onBookBackClick,
+                onSeriesBackClick = onSeriesBackClick,
+            )
 
 
-                PageSpreadProgressSlider(
-                    pageSpreads = pageState.pageSpreads.collectAsState().value,
-                    currentSpreadIndex = pageState.currentSpreadIndex.collectAsState().value,
-                    onPageNumberChange = pageState::onPageChange,
-                    show = showNavMenu,
-                    layoutDirection = layoutDirection,
-                    modifier = Modifier.align(Alignment.BottomStart),
-                )
-            }
+            CONTINUOUS -> ContinuousReaderContent(
+                showHelpDialog = showHelpDialog,
+                onShowHelpDialogChange = { showHelpDialog = it },
 
-            CONTINUOUS -> {
-                val layoutDirection = when (continuousReaderState.readingDirection.collectAsState().value) {
-                    ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM -> LayoutDirection.Ltr
-                    ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT -> LayoutDirection.Ltr
-                    ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT -> LayoutDirection.Rtl
-                }
-                ReaderControlsOverlay(
-                    readingDirection = layoutDirection,
-                    onNexPageClick = { coroutineScope.launch { continuousReaderState.scrollToNextPage() } },
-                    onPrevPageClick = { coroutineScope.launch { continuousReaderState.scrollToPreviousPage() } },
-                    contentAreaSize = currentContainerSize.value,
-                    onNavMenuToggle = { showNavMenu = !showNavMenu },
-                ) {
-                    ContinuousReaderContent(state = continuousReaderState)
-                }
-                SettingsMenu(
-                    book = book,
-                    onMenuDismiss = { showNavMenu = !showNavMenu },
-                    onShowHelpMenu = { showNavHelpDialog = true },
-                    show = showNavMenu,
-                    settingsState = settingsState,
-                    screenScaleState = screenScaleState,
-                    onSeriesPress = onSeriesBackClick,
-                    onBookClick = onBookBackClick,
-                    readerSettingsContent = { ContinuousReaderSettingsContent(continuousReaderState) }
-                )
+                showSettingsMenu = showSettingsMenu,
+                onShowSettingsMenuChange = { showSettingsMenu = it },
 
-                ProgressSlider(
-                    pages = continuousReaderState.pages.collectAsState().value,
-                    currentPageIndex = continuousReaderState.currentPageIndex.collectAsState(0).value,
-                    onPageNumberChange = { coroutineScope.launch { continuousReaderState.scrollToPage(it + 1) } },
-                    show = showNavMenu,
-                    layoutDirection = layoutDirection,
-                    modifier = Modifier.align(Alignment.BottomStart),
-                )
-            }
+                screenScaleState = screenScaleState,
+                continuousReaderState = continuousReaderState,
+                readerState = settingsState,
+
+                book = book,
+                onBookBackClick = onBookBackClick,
+                onSeriesBackClick = onSeriesBackClick,
+            )
         }
 
     }
 }
 
+@Composable
+private fun BoxScope.PagedReaderContent(
+    showHelpDialog: Boolean,
+    onShowHelpDialogChange: (Boolean) -> Unit,
+    showSettingsMenu: Boolean,
+    onShowSettingsMenuChange: (Boolean) -> Unit,
+
+    screenScaleState: ScreenScaleState,
+    pagedReaderState: PagedReaderPageState,
+    readerState: ReaderState,
+
+    book: KomgaBook?,
+    onBookBackClick: () -> Unit,
+    onSeriesBackClick: () -> Unit
+) {
+    val currentContainerSize = screenScaleState.areaSize.collectAsState().value
+    if (currentContainerSize == IntSize.Zero) return
+
+    if (showHelpDialog) {
+        PagedReaderHelpDialog(onDismissRequest = { onShowHelpDialogChange(false) })
+    }
+
+    val layoutDirection = when (pagedReaderState.readingDirection.collectAsState().value) {
+        PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> LayoutDirection.Ltr
+        PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> LayoutDirection.Rtl
+    }
+    ReaderControlsOverlay(
+        readingDirection = layoutDirection,
+        onNexPageClick = pagedReaderState::nextPage,
+        onPrevPageClick = pagedReaderState::previousPage,
+        contentAreaSize = currentContainerSize,
+        onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
+    ) {
+        ScalableContainer(scaleState = screenScaleState) { PagedReaderContent(pageState = pagedReaderState) }
+    }
+
+    SettingsMenu(
+        book = book,
+        onMenuDismiss = { onShowSettingsMenuChange(!showSettingsMenu) },
+        onShowHelpMenu = { onShowHelpDialogChange(true) },
+        show = showSettingsMenu,
+        settingsState = readerState,
+        screenScaleState = screenScaleState,
+        onSeriesPress = onSeriesBackClick,
+        onBookClick = onBookBackClick,
+        readerSettingsContent = { PagedReaderSettingsContent(pagedReaderState) }
+    )
+
+
+    PageSpreadProgressSlider(
+        pageSpreads = pagedReaderState.pageSpreads.collectAsState().value,
+        currentSpreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value,
+        onPageNumberChange = pagedReaderState::onPageChange,
+        show = showSettingsMenu,
+        layoutDirection = layoutDirection,
+        modifier = Modifier.align(Alignment.BottomStart),
+    )
+}
+
+@Composable
+private fun BoxScope.ContinuousReaderContent(
+    showHelpDialog: Boolean,
+    onShowHelpDialogChange: (Boolean) -> Unit,
+    showSettingsMenu: Boolean,
+    onShowSettingsMenuChange: (Boolean) -> Unit,
+
+    screenScaleState: ScreenScaleState,
+    continuousReaderState: ContinuousReaderState,
+    readerState: ReaderState,
+
+    book: KomgaBook?,
+    onBookBackClick: () -> Unit,
+    onSeriesBackClick: () -> Unit
+) {
+    val areaSize = screenScaleState.areaSize.collectAsState().value
+    if (areaSize == IntSize.Zero) return
+
+    val coroutineScope = rememberCoroutineScope()
+    val readingDirection = continuousReaderState.readingDirection.collectAsState().value
+
+    val layoutDirection = remember(readingDirection) {
+        when (readingDirection) {
+            ReadingDirection.TOP_TO_BOTTOM -> LayoutDirection.Ltr
+            ReadingDirection.LEFT_TO_RIGHT -> LayoutDirection.Ltr
+            ReadingDirection.RIGHT_TO_LEFT -> LayoutDirection.Rtl
+        }
+    }
+    val orientation = remember(readingDirection) {
+        when (readingDirection) {
+            ReadingDirection.TOP_TO_BOTTOM -> Orientation.Vertical
+            ReadingDirection.LEFT_TO_RIGHT, ReadingDirection.RIGHT_TO_LEFT -> Orientation.Horizontal
+        }
+    }
+
+    if (showHelpDialog) {
+        ContinuousReaderHelpDialog(
+            orientation = orientation,
+            onDismissRequest = { onShowHelpDialogChange(false) }
+        )
+    }
+
+    ReaderControlsOverlay(
+        readingDirection = layoutDirection,
+        onNexPageClick = {
+            when (orientation) {
+                Orientation.Vertical -> continuousReaderState.scrollForward(areaSize.height.toFloat())
+                Orientation.Horizontal -> continuousReaderState.scrollForward(areaSize.width.toFloat())
+            }
+        },
+        onPrevPageClick = {
+            when (orientation) {
+                Orientation.Vertical -> continuousReaderState.scrollBackward(areaSize.height.toFloat())
+                Orientation.Horizontal -> continuousReaderState.scrollBackward(areaSize.width.toFloat())
+            }
+        },
+        contentAreaSize = areaSize,
+        onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
+    ) {
+        ContinuousReaderContent(state = continuousReaderState)
+    }
+    SettingsMenu(
+        book = book,
+        onMenuDismiss = { onShowSettingsMenuChange(false) },
+        onShowHelpMenu = { onShowHelpDialogChange(true) },
+        show = showSettingsMenu,
+        settingsState = readerState,
+        screenScaleState = screenScaleState,
+        onSeriesPress = onSeriesBackClick,
+        onBookClick = onBookBackClick,
+        readerSettingsContent = { ContinuousReaderSettingsContent(continuousReaderState) }
+    )
+
+    ProgressSlider(
+        pages = continuousReaderState.pages.collectAsState().value,
+        currentPageIndex = continuousReaderState.currentPageIndex.collectAsState(0).value,
+        onPageNumberChange = { coroutineScope.launch { continuousReaderState.scrollToPage(it + 1) } },
+        show = showSettingsMenu,
+        layoutDirection = layoutDirection,
+        modifier = Modifier.align(Alignment.BottomStart),
+    )
+}
 
 @Composable
 fun ReaderControlsOverlay(
     readingDirection: LayoutDirection,
     onNexPageClick: () -> Unit,
     onPrevPageClick: () -> Unit,
-    onNavMenuToggle: () -> Unit,
+    onSettingsMenuToggle: () -> Unit,
     contentAreaSize: IntSize,
     content: @Composable () -> Unit,
 ) {
@@ -175,7 +262,7 @@ fun ReaderControlsOverlay(
         if (readingDirection == LayoutDirection.Ltr) onPrevPageClick()
         else onNexPageClick()
     }
-    val centerAction = { onNavMenuToggle() }
+    val centerAction = { onSettingsMenuToggle() }
     val rightAction = {
         if (readingDirection == LayoutDirection.Ltr) onNexPageClick()
         else onPrevPageClick()
@@ -184,7 +271,7 @@ fun ReaderControlsOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(contentAreaSize, readingDirection) {
+            .pointerInput(contentAreaSize, readingDirection, onSettingsMenuToggle) {
                 detectTapGestures { offset ->
                     val actionWidth = contentAreaSize.width.toFloat() / 3
                     when (offset.x) {
@@ -203,7 +290,8 @@ fun ReaderControlsOverlay(
 
 private suspend fun registerCommonKeyboardEvents(
     keyEvents: SharedFlow<KeyEvent>,
-    onNavMenuToggle: () -> Unit,
+    showSettingsMenu: Boolean,
+    setShowSettingsDialog: (Boolean) -> Unit,
     onShowHelpDialog: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -211,7 +299,8 @@ private suspend fun registerCommonKeyboardEvents(
         if (event.type != KeyUp) return@collect
 
         when (event.key) {
-            Key.M -> onNavMenuToggle()
+            Key.M -> setShowSettingsDialog(!showSettingsMenu)
+            Key.Escape -> setShowSettingsDialog(false)
             Key.H -> onShowHelpDialog()
             Key.DirectionLeft -> if (event.isAltPressed) onClose()
             else -> {}

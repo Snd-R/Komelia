@@ -44,8 +44,8 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
         Slider(
             value = padding,
             onValueChange = state::onSidePaddingChange,
-            steps = 5,
-            valueRange = 0f..0.3f,
+            steps = 7,
+            valueRange = 0f..0.4f,
             modifier = Modifier.cursorForHand(),
             colors = SliderDefaults.colors(
                 activeTrackColor = MaterialTheme.colorScheme.tertiary,

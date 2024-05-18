@@ -11,11 +11,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -25,12 +25,13 @@ import kotlin.math.roundToInt
 @Composable
 fun AppDialog(
     modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.surface,
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit,
     header: (@Composable () -> Unit)? = null,
     controlButtons: (@Composable () -> Unit)? = null,
 ) {
-    BasicAppDialog(modifier, onDismissRequest) {
+    BasicAppDialog(modifier, onDismissRequest, color) {
         val scrollState = rememberScrollState()
         AppDialogLayout(
             header = header,
@@ -47,16 +48,21 @@ fun AppDialog(
 fun BasicAppDialog(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
-    content: @Composable () -> Unit
+    color: Color = MaterialTheme.colorScheme.surface,
+    content: @Composable () -> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+
+        )
     ) {
         val focusManager = LocalFocusManager.current
         Surface(
-            border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surfaceVariant),
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant),
             shape = RoundedCornerShape(12.dp),
+            color = color,
             modifier = modifier
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
                 .animateContentSize(),
@@ -121,7 +127,7 @@ fun AppDialogLayout(
                 (headerPlaceable?.height ?: 0) + resizedBodyPlaceable.height
             )
             scrollbarPlaceable?.placeRelative(
-                constraints.maxWidth - scrollbarPlaceable.width, headerPlaceable?.height ?: 0
+                constraints.maxWidth - scrollbarPlaceable.width - 2, headerPlaceable?.height ?: 0
             )
         }
     }

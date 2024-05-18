@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.reader.continuous
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntSize
 import coil3.ImageLoader
@@ -293,6 +294,57 @@ class ContinuousReaderState(
 
     suspend fun scrollToPage(pageNumber: Int) {
         lazyListState.scrollToItem(pageNumber - 1)
+    }
+
+    fun scrollForward(amount: Float) {
+        when (readingDirection.value) {
+            TOP_TO_BOTTOM -> {
+                if (!screenScaleState.canPanDown() && !lazyListState.canScrollForward)
+                    readerState.loadNextBook()
+                else screenScaleState.addPan(Offset(0f, -amount))
+            }
+
+            LEFT_TO_RIGHT -> {
+                if (!screenScaleState.canPanRight() && !lazyListState.canScrollForward)
+                    readerState.loadNextBook()
+                else screenScaleState.addPan(Offset(-amount, 0f))
+            }
+
+            RIGHT_TO_LEFT -> {
+                if (!screenScaleState.canPanLeft() && !lazyListState.canScrollForward)
+                    readerState.loadNextBook()
+                else screenScaleState.addPan(Offset(amount, 0f))
+            }
+        }
+    }
+
+    fun scrollBackward(amount: Float) {
+        when (readingDirection.value) {
+            TOP_TO_BOTTOM -> {
+                if (!screenScaleState.canPanUp() && !lazyListState.canScrollBackward)
+                    readerState.loadPreviousBook()
+                else screenScaleState.addPan(Offset(0f, amount))
+            }
+
+
+            LEFT_TO_RIGHT -> {
+                if (!screenScaleState.canPanLeft() && !lazyListState.canScrollBackward)
+                    readerState.loadPreviousBook()
+                else screenScaleState.addPan(Offset(amount, 0f))
+
+            }
+
+            RIGHT_TO_LEFT -> {
+                if (!screenScaleState.canPanRight() && !lazyListState.canScrollBackward)
+                    readerState.loadPreviousBook()
+                else screenScaleState.addPan(Offset(-amount, 0f))
+
+            }
+        }
+    }
+
+    fun scrollForward() {
+
     }
 
     suspend fun scrollToNextPage() {
