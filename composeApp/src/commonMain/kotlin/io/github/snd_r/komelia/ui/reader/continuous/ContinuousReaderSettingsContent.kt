@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,16 +32,17 @@ import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.PageMetadata
+import kotlinx.coroutines.Dispatchers
 import kotlin.math.roundToInt
 
 @Composable
 fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     val strings = LocalStrings.current.readerSettings
-    val padding = state.sidePaddingFraction.collectAsState()
+    val padding = state.sidePaddingFraction.collectAsState().value
     Column {
-        Text("Side padding ${(padding.value * 200).roundToInt()}%")
+        Text("Side padding ${(padding * 200).roundToInt()}%")
         Slider(
-            value = padding.value,
+            value = padding,
             onValueChange = state::onSidePaddingChange,
             steps = 5,
             valueRange = 0f..0.3f,
@@ -50,6 +52,16 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
                 inactiveTrackColor = MaterialTheme.colorScheme.primary,
                 inactiveTickColor = MaterialTheme.colorScheme.surface,
             )
+        )
+        val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
+        TextField(
+            value = if (spacing == 0) "" else spacing.toString(),
+            onValueChange = { newValue ->
+                if (newValue.isBlank()) state.onPageSpacingChange(0)
+                else newValue.toIntOrNull()?.let { state.onPageSpacingChange(it) }
+            },
+            label = { Text("Page spacing") },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 

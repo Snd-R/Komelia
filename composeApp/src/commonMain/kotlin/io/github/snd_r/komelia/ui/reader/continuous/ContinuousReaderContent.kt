@@ -5,7 +5,10 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import coil3.annotation.ExperimentalCoilApi
 import coil3.request.ErrorResult
 import coil3.request.ImageResult
@@ -37,9 +41,7 @@ import coil3.request.SuccessResult
 import io.github.snd_r.komelia.platform.ReaderImage
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.common.ScalableContainer
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.*
 import kotlinx.coroutines.flow.first
 
 @Composable
@@ -78,13 +80,13 @@ private fun VerticalLayout(
             val height = remember(page.size, areaSize.value, targetSize.value) {
                 state.getContentSizePx(page).height
             }
-            Box(
-                Modifier
-                    .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
-                    .fillMaxWidth()
-                    .height(with(LocalDensity.current) { height.toDp() })
-            ) {
-                Image(state, page)
+            Column(Modifier.animateContentSize(spring(stiffness = Spring.StiffnessVeryLow)).fillMaxWidth()) {
+                Image(
+                    state = state,
+                    page = page,
+                    modifier = Modifier.height(with(LocalDensity.current) { height.toDp() })
+                )
+                Spacer(Modifier.height(state.pageSpacing.collectAsState().value.dp))
             }
         }
     }
@@ -113,14 +115,15 @@ private fun HorizontalLayout(
             val width = remember(page.size, areaSize.value, targetSize.value) {
                 state.getContentSizePx(page).width
             }
+            println("page width $width")
 
-            Box(
-                Modifier
-                    .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
-                    .fillMaxHeight()
-                    .width(with(LocalDensity.current) { width.toDp() })
-            ) {
-                Image(state, page)
+            Row(Modifier.animateContentSize(spring(stiffness = Spring.StiffnessVeryLow)).fillMaxHeight()) {
+                Image(
+                    state = state,
+                    page = page,
+                    modifier = Modifier.width(with(LocalDensity.current) { width.toDp() })
+                )
+                Spacer(Modifier.width(state.pageSpacing.collectAsState().value.dp))
             }
         }
     }
@@ -159,6 +162,7 @@ private suspend fun handlePageScrollEvents(state: ContinuousReaderState) {
 private fun Image(
     state: ContinuousReaderState,
     page: PageMetadata,
+    modifier: Modifier
 ) {
     val transforms = state.screenScaleState.transformation.collectAsState().value
     val targetSize = state.screenScaleState.targetSize.collectAsState().value
@@ -176,18 +180,20 @@ private fun Image(
     LaunchedEffect(transforms.scale, targetSize, allowUpsample) {
         image = state.getImage(page)
     }
-    when (val result = image) {
-        is ErrorResult -> Text("Page load error")
-        is SuccessResult -> {
-            ReaderImage(
-                image = result.image,
-                contentScale = imageScale,
-                modifier = Modifier.fillMaxSize()
+    Box(modifier) {
+        when (val result = image) {
+            is ErrorResult -> Text("Page load error")
+            is SuccessResult -> {
+                ReaderImage(
+                    image = result.image,
+                    contentScale = imageScale,
+                    modifier = Modifier.fillMaxSize()
 
-            )
+                )
+            }
+
+            null -> imagePlaceholder()
         }
-
-        null -> imagePlaceholder()
     }
 }
 

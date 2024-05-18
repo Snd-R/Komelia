@@ -47,7 +47,7 @@ fun ScalableContainer(
 
     val flingScope = rememberCoroutineScope()
     val flingSpec = rememberSplineBasedDecay<Offset>()
-    var isFlinging by remember { mutableStateOf(false) }
+    var flingInProgress by remember { mutableStateOf(false) }
     val scrollOrientation = scaleState.scrollOrientation.collectAsState().value
 
     Box(
@@ -64,9 +64,9 @@ fun ScalableContainer(
                     launch {
                         awaitEachGesture {
                             val down = awaitFirstDown()
-                            if (isFlinging) {
+                            if (flingInProgress) {
                                 flingScope.coroutineContext.cancelChildren()
-                                isFlinging = false
+                                flingInProgress = false
                                 down.consume()
                             }
                         }
@@ -75,9 +75,9 @@ fun ScalableContainer(
                         detectDragGestures(
                             onDragEnd = {
                                 flingScope.launch {
-                                    isFlinging = true
+                                    flingInProgress = true
                                     scaleState.performFling(flingSpec)
-                                    isFlinging = false
+                                    flingInProgress = false
                                 }
                             },
                             onDrag = { change, dragAmount ->

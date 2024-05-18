@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
@@ -212,7 +213,7 @@ private suspend fun registerCommonKeyboardEvents(
         when (event.key) {
             Key.M -> onNavMenuToggle()
             Key.H -> onShowHelpDialog()
-            Key.Backspace -> onClose()
+            Key.DirectionLeft -> if (event.isAltPressed) onClose()
             else -> {}
         }
     }

@@ -21,9 +21,7 @@ import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.*
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -62,7 +60,7 @@ class ContinuousReaderState(
 
     val sidePaddingFraction = MutableStateFlow(.3f)
     val sidePaddingPx = MutableStateFlow(0)
-    val pageDistance = MutableStateFlow(0)
+    val pageSpacing = MutableStateFlow(0)
     val pages = MutableStateFlow<List<PageMetadata>>(emptyList())
     val readingDirection = MutableStateFlow(TOP_TO_BOTTOM)
 
@@ -76,7 +74,7 @@ class ContinuousReaderState(
     suspend fun initialize() {
         readingDirection.value = settingsRepository.getContinuousReaderReadingDirection().first()
         sidePaddingFraction.value = settingsRepository.getContinuousReaderPadding().first()
-        pageDistance.value = settingsRepository.getContinuousReaderPageSpacing().first()
+        pageSpacing.value = settingsRepository.getContinuousReaderPageSpacing().first()
 
         screenScaleState.setScrollState(lazyListState)
         when (readingDirection.value) {
@@ -345,8 +343,8 @@ class ContinuousReaderState(
         stateScope.launch { settingsRepository.putContinuousReaderPadding(fraction) }
     }
 
-    fun onPageDistanceChange(distance: Int) {
-        this.pageDistance.value = distance
+    fun onPageSpacingChange(distance: Int) {
+        this.pageSpacing.value = distance
         stateScope.launch { settingsRepository.putContinuousReaderPageSpacing(distance) }
     }
 

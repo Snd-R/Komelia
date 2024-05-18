@@ -31,15 +31,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
-import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
-import io.github.snd_r.komelia.platform.PlatformType.MOBILE
-import io.github.snd_r.komelia.platform.PlatformType.WEB
+import io.github.snd_r.komelia.platform.PlatformType.*
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.cursorForHand
@@ -53,6 +57,7 @@ import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.settings.MobileSettingsScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreen
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 class MainScreen(
@@ -74,7 +79,18 @@ class MainScreen(
                 MOBILE -> MobileLayout(navigator, vm)
                 DESKTOP, WEB -> DesktopLayout(navigator, vm)
             }
+
+            val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
+            LaunchedEffect(Unit) {
+                keyEvents.collect { event ->
+                    if (event.type == KeyUp && event.key == Key.DirectionLeft && event.isAltPressed) {
+                        navigator.pop()
+                    }
+
+                }
+            }
         }
+
     }
 
     @Composable
@@ -111,7 +127,7 @@ class MainScreen(
                 else -> ModalNavigationDrawer(
                     drawerState = vm.navBarState,
                     drawerContent = { NavBar(vm, navigator, width) },
-                    content = {  CurrentScreen() }
+                    content = { CurrentScreen() }
                 )
             }
         }
