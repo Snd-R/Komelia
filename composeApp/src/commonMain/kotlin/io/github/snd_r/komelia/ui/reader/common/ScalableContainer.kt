@@ -8,14 +8,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -31,6 +24,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun ScalableContainer(
@@ -98,7 +92,8 @@ fun ScalableContainer(
                     val centroid = it.changes[0].position
                     scaleState.addZoom(.2f * -delta.y, centroid - areaCenter)
                 } else {
-                    val pan = if (scaleState.scrollReversed.value) delta.y * 70 else -delta.y * 70
+                    val maxDelta = if (abs(delta.y) > abs(delta.x)) delta.y else delta.x
+                    val pan = if (scaleState.scrollReversed.value) maxDelta * 70 else -maxDelta * 70
                     when (scrollOrientation) {
                         Vertical, null -> scaleState.addPan(Offset(0f, pan))
                         Horizontal -> scaleState.addPan(Offset(pan, 0f))

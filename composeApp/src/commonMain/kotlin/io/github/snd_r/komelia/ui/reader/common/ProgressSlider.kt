@@ -64,7 +64,7 @@ fun PageSpreadProgressSlider(
     modifier: Modifier = Modifier,
 ) {
     if (pageSpreads.isEmpty()) return
-    val currentSpread = pageSpreads[currentSpreadIndex]
+    val currentSpread = pageSpreads.getOrElse(currentSpreadIndex) { pageSpreads.last() }
     val label = currentSpread.map { it.pageNumber }.joinToString("-")
 
     val interactionSource = remember { MutableInteractionSource() }

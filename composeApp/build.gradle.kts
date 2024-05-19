@@ -58,8 +58,8 @@ kotlin {
     }
 
     val coilVersion = "3.0.0-alpha06"
-    val ktorVersion = "3.0.0-beta-2-eap-930"
-    val voyagerVersion = "1.1.0-alpha03"
+    val ktorVersion = "3.0.0-beta-2-eap-932"
+    val voyagerVersion = "1.1.0-beta01"
     sourceSets {
         all {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
@@ -73,11 +73,11 @@ kotlin {
             implementation(compose.material)
             implementation(compose.material3)
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
-            implementation("io.github.oshai:kotlin-logging:6.0.3")
+            implementation("io.github.oshai:kotlin-logging:6.0.9")
 
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.coil-kt.coil3:coil:$coilVersion")
@@ -92,21 +92,21 @@ kotlin {
             implementation("io.github.dokar3:sonner:0.3.5")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha02")
 
-            implementation("sh.calvin.reorderable:reorderable:2.1.0")
+            implementation("sh.calvin.reorderable:reorderable:2.1.1")
 
             implementation("com.darkrockstudios:mpfilepicker")
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
-            implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc04")
+            implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc05")
 
             implementation(project(":komga_client"))
         }
 
         androidMain.dependencies {
-            api("androidx.activity:activity-compose:1.8.2")
+            api("androidx.activity:activity-compose:1.9.0")
             api("androidx.appcompat:appcompat:1.6.1")
-            api("androidx.core:core-ktx:1.12.0")
+            api("androidx.core:core-ktx:1.13.1")
 
-            implementation("org.slf4j:slf4j-api:2.0.12")
+            implementation("org.slf4j:slf4j-api:2.0.13")
             implementation("com.github.tony19:logback-android:3.0.0")
 
             implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
@@ -125,20 +125,20 @@ kotlin {
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
 
-            runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
+            runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.1")
 
-            implementation("org.slf4j:slf4j-api:2.0.12")
-            implementation("ch.qos.logback:logback-core:1.5.3")
-            implementation("ch.qos.logback:logback-classic:1.5.3")
+            implementation("org.slf4j:slf4j-api:2.0.13")
+            implementation("ch.qos.logback:logback-core:1.5.6")
+            implementation("ch.qos.logback:logback-classic:1.5.6")
 
             implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
             implementation("io.ktor:ktor-client-logging:$ktorVersion")
             implementation("com.squareup.okhttp3:okhttp:4.12.0")
             implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-            implementation("com.akuleshov7:ktoml-core:0.5.0")
-            implementation("com.akuleshov7:ktoml-file:0.5.0")
-            implementation("com.akuleshov7:ktoml-source-jvm:0.5.0")
+            implementation("com.akuleshov7:ktoml-core:0.5.1")
+            implementation("com.akuleshov7:ktoml-file:0.5.1")
+            implementation("com.akuleshov7:ktoml-source-jvm:0.5.1")
 
             implementation("dev.dirs:directories:26")
             implementation("com.github.javakeyring:java-keyring:1.0.4")

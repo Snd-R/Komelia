@@ -6,7 +6,6 @@ import androidx.compose.ui.geometry.Size
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.request.ImageResult
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
@@ -36,8 +35,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-private val logger = KotlinLogging.logger {}
 
 class PagedReaderState(
     imageLoader: ImageLoader,
@@ -76,7 +73,7 @@ class PagedReaderState(
                 loadPage(currentSpreadIndex.value)
             }.launchIn(stateScope)
 
-        readerState.bookState
+        readerState.booksState
             .filterNotNull()
             .onEach { newBook -> onNewBookLoaded(newBook) }
             .launchIn(stateScope)
@@ -110,7 +107,7 @@ class PagedReaderState(
     }
 
     private fun onNewBookLoaded(bookState: BookState) {
-        val pageSpreads = buildSpreadMap(bookState.bookPages, layout.value)
+        val pageSpreads = buildSpreadMap(bookState.currentBookPages, layout.value)
         this.pageSpreads.value = pageSpreads
 
         val lastReadSpreadIndex = pageSpreads.indexOfFirst { spread ->
@@ -128,7 +125,10 @@ class PagedReaderState(
     override fun nextPage() {
         val currentSpreadIndex = currentSpreadIndex.value
         if (currentSpreadIndex == pageSpreads.value.size - 1) {
-            readerState.loadNextBook()
+            stateScope.launch {
+                readerState.loadNextBook()
+                appNotifications.add(AppNotification.Normal("Loaded next book"))
+            }
         } else {
             onPageChange(currentSpreadIndex + 1)
         }
@@ -137,7 +137,11 @@ class PagedReaderState(
     override fun previousPage() {
         val currentSpreadIndex = currentSpreadIndex.value
         if (currentSpreadIndex == 0) {
-            readerState.loadPreviousBook()
+            stateScope.launch {
+                readerState.loadPreviousBook()
+
+                appNotifications.add(AppNotification.Normal("Loaded previous book"))
+            }
             return
         }
 
@@ -152,7 +156,7 @@ class PagedReaderState(
     private fun loadPage(spreadIndex: Int) {
         if (spreadIndex != currentSpreadIndex.value) {
             val pageNumber = pageSpreads.value[spreadIndex].last().pageNumber
-            readerState.onProgressChange(pageNumber)
+            stateScope.launch { readerState.onProgressChange(pageNumber) }
             currentSpreadIndex.value = spreadIndex
         }
 
@@ -301,9 +305,8 @@ class PagedReaderState(
     override fun onLayoutChange(layout: PageDisplayLayout) {
         this.layout.value = layout
         stateScope.launch { settingsRepository.putPagedReaderDisplayLayout(layout) }
-        appNotifications.add(AppNotification.Normal("Changed layout to $layout"))
 
-        val pages = readerState.bookState.value?.bookPages ?: return
+        val pages = readerState.booksState.value?.currentBookPages ?: return
         pageSpreads.value = buildSpreadMap(pages, layout)
 
         val currentPage = currentSpread.value.pages.first().metadata
@@ -321,12 +324,11 @@ class PagedReaderState(
         if (currentLayout != DOUBLE_PAGES) return
         this.layoutOffset.value = offset
 
-        val pages = readerState.bookState.value?.bookPages ?: return
+        val pages = readerState.booksState.value?.currentBookPages ?: return
         pageSpreads.value = buildSpreadMap(pages, currentLayout)
 
         val currentPage = currentSpread.value.pages.first().metadata
         loadPage(spreadIndexOf(currentPage))
-        appNotifications.add(AppNotification.Normal("Changed offset"))
     }
 
     override fun onScaleTypeChange(scale: LayoutScaleType) {
@@ -334,7 +336,6 @@ class PagedReaderState(
         val currentPage = currentSpread.value.pages.first().metadata
         loadPage(spreadIndexOf(currentPage))
         stateScope.launch { settingsRepository.putPagedReaderScaleType(scale) }
-        appNotifications.add(AppNotification.Normal("Changed scale type to $scale"))
     }
 
     override fun onScaleTypeCycle() {
@@ -346,7 +347,6 @@ class PagedReaderState(
     override fun onReadingDirectionChange(readingDirection: ReadingDirection) {
         this.readingDirection.value = readingDirection
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
-        appNotifications.add(AppNotification.Normal("Changed reading direction to $readingDirection"))
     }
 
     enum class ReadingDirection {

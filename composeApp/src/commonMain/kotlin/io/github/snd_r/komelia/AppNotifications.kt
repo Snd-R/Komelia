@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlin.time.Duration.Companion.milliseconds
 
 class AppNotifications {
     private val notifications: MutableStateFlow<Map<Long, AppNotification>> = MutableStateFlow(emptyMap())
@@ -107,6 +108,6 @@ fun AppNotification.toToast(): Toast {
     return when (this) {
         is Error -> Toast(id = id, message = message, type = ToastType.Error)
         is Success -> Toast(id = id, message = message, type = ToastType.Success)
-        is Normal -> Toast(id = id, message = message, type = ToastType.Normal)
+        is Normal -> Toast(id = id, message = message, type = ToastType.Normal, duration = 3000.milliseconds)
     }
 }

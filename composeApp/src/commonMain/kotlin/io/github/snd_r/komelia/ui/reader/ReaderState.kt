@@ -10,7 +10,7 @@ import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookId
@@ -35,12 +35,12 @@ class ReaderState(
     private val stateScope: CoroutineScope,
 ) : ScreenModel {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
-    val bookState = MutableStateFlow<BookState?>(null)
     val readerType = MutableStateFlow(ReaderType.CONTINUOUS)
-    val readProgressPage = MutableStateFlow(1)
-
     val allowUpsample = MutableStateFlow(false)
     val decoder = MutableStateFlow<SamplerType?>(null)
+
+    val booksState = MutableStateFlow<BookState?>(null)
+    val readProgressPage = MutableStateFlow(1)
 
     suspend fun initialize(bookId: KomgaBookId) {
         allowUpsample.value = readerSettingsRepository.getUpsample().first()
@@ -52,19 +52,11 @@ class ReaderState(
 
     private suspend fun loadBook(bookId: KomgaBookId) {
         appNotifications.runCatchingToNotifications {
-            state.value = LoadState.Loading
+            val currentBooksState = booksState.value
+            if (currentBooksState == null) state.value = LoadState.Loading
             val newBook = bookClient.getBook(bookId)
-            val pages = bookClient.getBookPages(bookId)
 
-            val bookPages = pages.map {
-                val width = it.width
-                val height = it.height
-                PageMetadata(
-                    bookId = bookId,
-                    pageNumber = it.number,
-                    size = if (width != null && height != null) IntSize(width, height) else null
-                )
-            }
+            val bookPages = loadBookPages(newBook.id)
 
             val prevBook = try {
                 bookClient.getBookSiblingPrevious(bookId)
@@ -72,18 +64,22 @@ class ReaderState(
                 if (e.response.status != NotFound) throw e
                 else null
             }
+            val prevBookPages = if (prevBook != null) loadBookPages(prevBook.id) else emptyList()
             val nextBook = try {
                 bookClient.getBookSiblingNext(bookId)
             } catch (e: ClientRequestException) {
                 if (e.response.status != NotFound) throw e
                 else null
             }
+            val nextBookPages = if (nextBook != null) loadBookPages(nextBook.id) else emptyList()
 
-            bookState.value = BookState(
-                book = newBook,
-                bookPages = bookPages,
+            booksState.value = BookState(
+                currentBook = newBook,
+                currentBookPages = bookPages,
                 previousBook = prevBook,
-                nextBook = nextBook
+                previousBookPages = prevBookPages,
+                nextBook = nextBook,
+                nextBookPages = nextBookPages
             )
 
             val bookProgress = newBook.readProgress
@@ -93,46 +89,94 @@ class ReaderState(
             }
             state.value = LoadState.Success(Unit)
         }.onFailure { state.value = LoadState.Error(it) }
+    }
+
+    private suspend fun loadBookPages(bookId: KomgaBookId): List<PageMetadata> {
+        val pages = bookClient.getBookPages(bookId)
+
+        return pages.map {
+            val width = it.width
+            val height = it.height
+            PageMetadata(
+                bookId = bookId,
+                pageNumber = it.number,
+                size = if (width != null && height != null) IntSize(width, height) else null
+            )
+        }
 
     }
 
-    fun loadNextBook() {
-        val nextBook = bookState.value?.nextBook
-        if (nextBook != null) {
-            stateScope.launch {
-                loadBook(nextBook.id)
-                appNotifications.add(AppNotification.Normal("Loaded next book"))
+    suspend fun loadNextBook() {
+        val booksState = requireNotNull(booksState.value)
+        if (booksState.nextBook != null) {
+            val nextBook = try {
+                bookClient.getBookSiblingNext(booksState.nextBook.id)
+            } catch (e: ClientRequestException) {
+                if (e.response.status != NotFound) throw e
+                else null
+            }
+            val nextBookPages = if (nextBook != null) loadBookPages(nextBook.id) else emptyList()
+
+            this.booksState.value = BookState(
+                currentBook = booksState.nextBook,
+                currentBookPages = booksState.nextBookPages,
+                previousBook = booksState.currentBook,
+                previousBookPages = booksState.currentBookPages,
+
+                nextBook = nextBook,
+                nextBookPages = nextBookPages
+            )
+
+            val bookProgress = booksState.nextBook.readProgress
+            readProgressPage.value = when {
+                bookProgress == null || bookProgress.completed -> 1
+                else -> bookProgress.page
             }
         } else {
-            val currentBook = requireNotNull(bookState.value?.book)
-            navigator replace MainScreen(BookScreen(currentBook.id))
+            navigator replace MainScreen(SeriesScreen(booksState.currentBook.seriesId))
         }
     }
 
-    fun loadPreviousBook() {
-        val prevBook = bookState.value?.previousBook
-        if (prevBook != null) {
-            stateScope.launch {
-                loadBook(prevBook.id)
-                appNotifications.add(AppNotification.Normal("Loaded previous book"))
+    suspend fun loadPreviousBook() {
+        val booksState = requireNotNull(booksState.value)
+        if (booksState.previousBook != null) {
+            val previousBook = try {
+                bookClient.getBookSiblingPrevious(booksState.previousBook.id)
+            } catch (e: ClientRequestException) {
+                if (e.response.status != NotFound) throw e
+                else null
+            }
+            val previousBookPages = if (previousBook != null) loadBookPages(previousBook.id) else emptyList()
+
+            this.booksState.value = BookState(
+                currentBook = booksState.previousBook,
+                currentBookPages = booksState.previousBookPages,
+                nextBook = booksState.currentBook,
+                nextBookPages = booksState.currentBookPages,
+
+                previousBook = previousBook,
+                previousBookPages = previousBookPages,
+            )
+            val bookProgress = booksState.previousBook.readProgress
+            readProgressPage.value = when {
+                bookProgress == null || bookProgress.completed -> 1
+                else -> bookProgress.page
             }
         } else
             appNotifications.add(AppNotification.Normal("You're at the beginning of the book"))
         return
     }
 
-
-    fun onProgressChange(page: Int) {
-        stateScope.launch {
-            if (markReadProgress) {
-                val currentBook = requireNotNull(bookState.value?.book)
+    suspend fun onProgressChange(page: Int) {
+        if (markReadProgress) {
+            val currentBook = requireNotNull(booksState.value?.currentBook)
+            stateScope.launch {
                 bookClient.markReadProgress(currentBook.id, KomgaBookReadProgressUpdateRequest(page))
             }
         }
 
         readProgressPage.value = page
     }
-
 
     fun onAllowUpsampleChange(upsample: Boolean) {
         this.allowUpsample.value = upsample
@@ -142,7 +186,6 @@ class ReaderState(
         else "Disabled"
         appNotifications.add(AppNotification.Normal("$upsampleText upsample beyond image dimensions"))
     }
-
 
     fun onDecoderChange(type: SamplerType) {
         this.decoder.value = type
@@ -181,11 +224,12 @@ data class PageMetadata(
 }
 
 data class BookState(
-    val book: KomgaBook,
-    val bookPages: List<PageMetadata>,
-
+    val currentBook: KomgaBook,
+    val currentBookPages: List<PageMetadata>,
     val previousBook: KomgaBook?,
+    val previousBookPages: List<PageMetadata>,
     val nextBook: KomgaBook?,
+    val nextBookPages: List<PageMetadata>,
 )
 
 

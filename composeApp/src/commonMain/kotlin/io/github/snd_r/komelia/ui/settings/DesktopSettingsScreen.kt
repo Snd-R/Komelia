@@ -95,7 +95,7 @@ class SettingsScreen : Screen {
         contents = listOf(navMenu, content, dismissButton)
     ) { (navMenuMeasurable, contentMeasurable, dismissMeasurable), constraints ->
         val padding = ((constraints.maxWidth - (settingsDesktopNavMenuWidth + settingsDesktopContentWidth)).toFloat() / 2)
-            .roundToInt().coerceAtLeast(0)
+                .roundToInt().coerceAtLeast(0)
 
         val contentPlaceable = contentMeasurable.first()
             .measure(
@@ -123,7 +123,7 @@ class SettingsScreen : Screen {
                 0
             )
             dismissPlaceable.placeRelative(
-                (padding + settingsDesktopNavMenuWidth + settingsDesktopContentWidth).coerceAtMost(constraints.maxWidth - 50),
+                (padding + navMenuPlaceable.width + contentPlaceable.width).coerceAtMost(constraints.maxWidth - dismissPlaceable.width - 50),
                 0
             )
         }

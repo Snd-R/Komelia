@@ -55,7 +55,7 @@ class ReaderViewModel(
         imageLoaderContext = imageLoaderContext,
         readerState = readerState,
         settingsRepository = readerSettingsRepository,
-        screenScaleState = screenScaleState
+        screenScaleState = screenScaleState,
     )
 
     fun initialize(bookId: KomgaBookId) {

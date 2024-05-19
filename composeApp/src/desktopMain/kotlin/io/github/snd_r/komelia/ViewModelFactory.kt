@@ -35,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
@@ -47,60 +48,62 @@ import kotlin.time.measureTimedValue
 private val logger = KotlinLogging.logger {}
 private val stateFlowScope = CoroutineScope(Dispatchers.Default)
 actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory {
-    val initResult = measureTimedValue {
-        setLogLevel()
+    return withContext(Dispatchers.Default) {
+        val initResult = measureTimedValue {
+            setLogLevel()
 
-        measureTime {
-            try {
-                VipsDecoder.load()
-            } catch (e: UnsatisfiedLinkError) {
-                logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
+            measureTime {
+                try {
+                    VipsDecoder.load()
+                } catch (e: UnsatisfiedLinkError) {
+                    logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
+                }
+            }.also {
+                logger.info { "loaded vips in $it" }
             }
-        }.also {
-            logger.info { "loaded vips in $it" }
+
+
+            val settingsActor = createSettingsActor()
+            val settingsRepository = FilesystemSettingsRepository(settingsActor)
+            val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
+
+            val secretsRepository = measureTimedValue {
+                KeyringSecretsRepository()
+            }.also {
+                logger.info { "initialized keyring in ${it.duration}" }
+            }.value
+
+            val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
+            val decoderType = settingsRepository.getDecoderType().stateIn(stateFlowScope)
+
+            val okHttpClient = createOkHttpClient()
+            val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
+
+            measureTime {
+                cookiesStorage.loadRememberMeCookie()
+            }.also {
+                logger.info { "loaded remember-me cookie from keyring in $it" }
+            }
+
+            val ktorClient = createKtorClient(baseUrl, okHttpClient, cookiesStorage)
+            val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage)
+
+            val coil = createCoil(baseUrl, ktorClient, decoderType)
+            SingletonImageLoader.setSafe { coil }
+
+            ViewModelFactory(
+                komgaClientFactory = komgaClientFactory,
+                settingsRepository = settingsRepository,
+                readerSettingsRepository = readerSettingsRepository,
+                secretsRepository = secretsRepository,
+                imageLoader = coil,
+                imageLoaderContext = context,
+            )
         }
 
-
-        val settingsActor = createSettingsActor()
-        val settingsRepository = FilesystemSettingsRepository(settingsActor)
-        val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
-
-        val secretsRepository = measureTimedValue {
-            KeyringSecretsRepository()
-        }.also {
-            logger.info { "initialized keyring in ${it.duration}" }
-        }.value
-
-        val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
-        val decoderType = settingsRepository.getDecoderType().stateIn(stateFlowScope)
-
-        val okHttpClient = createOkHttpClient()
-        val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
-
-        measureTime {
-            cookiesStorage.loadRememberMeCookie()
-        }.also {
-            logger.info { "loaded remember-me cookie from keyring in $it" }
-        }
-
-        val ktorClient = createKtorClient(baseUrl, okHttpClient, cookiesStorage)
-        val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage)
-
-        val coil = createCoil(baseUrl, ktorClient, decoderType)
-        SingletonImageLoader.setSafe { coil }
-
-        ViewModelFactory(
-            komgaClientFactory = komgaClientFactory,
-            settingsRepository = settingsRepository,
-            readerSettingsRepository = readerSettingsRepository,
-            secretsRepository = secretsRepository,
-            imageLoader = coil,
-            imageLoaderContext = context,
-        )
+        logger.info { "completed initialization in ${initResult.duration}" }
+        initResult.value
     }
-
-    logger.info { "completed initialization in ${initResult.duration}" }
-    return initResult.value
 }
 
 private fun createOkHttpClient(): OkHttpClient {

@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.ui.reader.continuous
 
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -23,6 +22,7 @@ import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.*
+import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -57,20 +57,25 @@ class ContinuousReaderState(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val imageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
+
     val lazyListState = LazyListState(0, 0)
 
+    val allowUpsample = readerState.allowUpsample.asStateFlow()
+    val readingDirection = MutableStateFlow(TOP_TO_BOTTOM)
     val sidePaddingFraction = MutableStateFlow(.3f)
     val sidePaddingPx = MutableStateFlow(0)
     val pageSpacing = MutableStateFlow(0)
-    val pages = MutableStateFlow<List<PageMetadata>>(emptyList())
-    val readingDirection = MutableStateFlow(TOP_TO_BOTTOM)
 
-    val currentPageIndex = readerState.readProgressPage.map { it - 1 }
-    val allowUpsample = readerState.allowUpsample.asStateFlow()
+    val pageIntervals = MutableStateFlow<List<BookPagesInterval>>(emptyList())
+    private val currentIntervalIndex = MutableStateFlow(0)
 
-    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<ImageResult>>()
-        .maximumCacheSize(10)
-        .build()
+    val currentBookPages = readerState.booksState.filterNotNull().map { it.currentBookPages }
+    val currentBookPageIndex = readerState.readProgressPage.map { it - 1 }
+
+    private val nextBook = readerState.booksState.filterNotNull().map { it.nextBook }
+    private val previousBook = readerState.booksState.filterNotNull().map { it.previousBook }
+
+    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<ImageResult>>().maximumCacheSize(10).build()
 
     suspend fun initialize() {
         readingDirection.value = settingsRepository.getContinuousReaderReadingDirection().first()
@@ -84,10 +89,85 @@ class ContinuousReaderState(
             RIGHT_TO_LEFT -> screenScaleState.setScrollOrientation(Orientation.Horizontal, true)
         }
 
-        readerState.bookState
-            .filterNotNull()
-            .onEach { book -> pages.value = book.bookPages }
-            .launchIn(stateScope)
+        readerState.booksState.filterNotNull()
+            .onEach { newState ->
+                val currentIntervals = pageIntervals.value
+                val currentBook = currentIntervals.getOrNull(currentIntervalIndex.value)?.book
+                val wasPreviousBookLoaded = currentBook?.id == newState.nextBook?.id
+
+                when {
+                    currentIntervals.isEmpty() -> {
+                        pageIntervals.value = listOfNotNull(
+                            newState.previousBook?.let { BookPagesInterval(it, newState.previousBookPages) },
+                            BookPagesInterval(newState.currentBook, newState.currentBookPages),
+                            newState.nextBook?.let { BookPagesInterval(it, newState.nextBookPages) }
+                        )
+
+                        if (newState.previousBook == null) {
+                            currentIntervalIndex.value = 0
+                            lazyListState.scrollToItem(currentBookPageIndex.first() + 1)
+                        } else {
+                            currentIntervalIndex.value = 1
+                            val bookStartIndex = pageIntervals.value.first().pages.size
+                            val readProgress = currentBookPageIndex.first()
+                            lazyListState.scrollToItem(bookStartIndex + readProgress + 2)
+                        }
+                    }
+
+                    wasPreviousBookLoaded -> {
+                        val isNew = newState.previousBook != null
+                                && currentIntervals.none { it.book.id == newState.previousBook.id }
+
+                        // on new interval prepend interval index stays the same because old previous interval becomes current one
+                        // int4 -> int5 -> int6
+                        //          ^current
+                        // becomes
+                        //  int3 -> int4 -> int5 -> int6
+                        //           ^current
+                        if (isNew) {
+                            withContext(Dispatchers.Default) {
+                                pageIntervals.value = listOf(
+                                    BookPagesInterval(
+                                        newState.previousBook,
+                                        // https://issuetracker.google.com/issues/273025639
+                                        // can only prepend 130 elements without losing current items position
+                                        newState.previousBookPages.takeLast(100)
+                                    )
+                                ).plus(currentIntervals)
+                            }
+
+                        }
+                        // decrement interval index if previous interval already exists
+                        // int4 -> int5 -> int6 -> int7
+                        //                  ^current
+                        // becomes
+                        // int4 -> int5 -> int6 -> int7
+                        //          ^current
+                        else {
+                            currentIntervalIndex.update { it - 1 }
+                        }
+                    }
+
+                    !wasPreviousBookLoaded -> {
+                        val isNew = newState.nextBook != null
+                                && currentIntervals.none { it.book.id == newState.nextBook.id }
+
+                        if (isNew) {
+                            withContext(Dispatchers.Default) {
+                                pageIntervals.value = currentIntervals.plus(
+                                    BookPagesInterval(
+                                        newState.nextBook,
+                                        newState.nextBookPages
+                                    )
+                                )
+                            }
+                        }
+                        currentIntervalIndex.update { it + 1 }
+                    }
+
+                }
+
+            }.launchIn(stateScope)
 
         screenScaleState.areaSize
             .filter { it != IntSize.Zero }
@@ -96,12 +176,141 @@ class ContinuousReaderState(
                 screenScaleState.setZoom(0f)
             }
             .launchIn(stateScope)
+
     }
 
     fun stop() {
         stateScope.coroutineContext.cancelChildren()
         imageLoadScope.coroutineContext.cancelChildren()
+        pageIntervals.value = emptyList()
+        currentIntervalIndex.value = 0
         imageCache.invalidateAll()
+    }
+
+    suspend fun onCurrentPageChange(page: PageMetadata) {
+        when (page.bookId) {
+            nextBook.first()?.id -> {
+                readerState.loadNextBook()
+                readerState.onProgressChange(page.pageNumber)
+            }
+
+            previousBook.first()?.id -> {
+                readerState.loadPreviousBook()
+                readerState.onProgressChange(page.pageNumber)
+            }
+
+            else -> {
+                checkAndLoadMissingIntervalPagesAt(page)
+                readerState.onProgressChange(page.pageNumber)
+            }
+        }
+    }
+
+    private suspend fun checkAndLoadMissingIntervalPagesAt(page: PageMetadata) {
+        val currentIntervalIndex = currentIntervalIndex.value
+        val currentInterval = pageIntervals.value[currentIntervalIndex]
+
+        // only check for backwards scrolling and page prepending
+        if (currentInterval.pages.first().pageNumber == 1) return
+
+        val fullBookPages = currentBookPages.first()
+        if (currentInterval.pages.size == fullBookPages.size) return
+
+        val missingPagesSize = fullBookPages.size - currentInterval.pages.size
+
+        if (page.pageNumber == missingPagesSize + 1) {
+            withContext(Dispatchers.Default) {
+                val updatedPages = fullBookPages.subList(
+                    (missingPagesSize - 100).coerceAtLeast(0),
+                    missingPagesSize
+                ).plus(currentInterval.pages)
+                val updatedInterval = currentInterval.copy(pages = updatedPages)
+
+                pageIntervals.update { current ->
+                    current.toMutableList().apply { set(currentIntervalIndex, updatedInterval) }
+                }
+            }
+        }
+    }
+
+    suspend fun scrollToBookPage(pageNumber: Int) {
+        val currentIntervalIndex = currentIntervalIndex.value
+        val currentInterval = pageIntervals.value[currentIntervalIndex]
+
+        val fullBookPages = currentBookPages.first()
+        val hasMissingPages = currentInterval.pages.size != fullBookPages.size
+        if (hasMissingPages) {
+            withContext(Dispatchers.Default) {
+                val updatedInterval = currentInterval.copy(pages = fullBookPages)
+                pageIntervals.update { current ->
+                    current.toMutableList().apply { set(currentIntervalIndex, updatedInterval) }
+                }
+            }
+        }
+
+        val intervals = pageIntervals.value
+        val bookStartIndex = intervals.subList(0, currentIntervalIndex)
+            .fold(0) { acc, value -> acc + value.pages.size } - 1
+
+        if (hasMissingPages)
+        //FIXME can't properly change scroll position before newly added items are recomposed and registered in layout
+        // as a workaround use animated scroll that will cause recomposition and will keep scrolling until item index is reached
+        // requestScrollToItem() should solve this issue: https://developer.android.com/reference/kotlin/androidx/compose/foundation/lazy/LazyListState#requestScrollToItem(kotlin.Int,kotlin.Int)
+        // waiting until compose multiplatform is updated to use 1.7.0 foundation dependency
+            lazyListState.animateScrollToItem(bookStartIndex + pageNumber + currentIntervalIndex + 1)
+        else lazyListState.scrollToItem(bookStartIndex + pageNumber + currentIntervalIndex + 1)
+    }
+
+    fun scrollForward(amount: Float) {
+        when (readingDirection.value) {
+            TOP_TO_BOTTOM -> {
+                screenScaleState.addPan(Offset(0f, -amount))
+            }
+
+            LEFT_TO_RIGHT -> {
+                screenScaleState.addPan(Offset(-amount, 0f))
+            }
+
+            RIGHT_TO_LEFT -> {
+                screenScaleState.addPan(Offset(amount, 0f))
+            }
+        }
+    }
+
+    fun scrollBackward(amount: Float) {
+        when (readingDirection.value) {
+            TOP_TO_BOTTOM -> {
+                screenScaleState.addPan(Offset(0f, amount))
+            }
+
+
+            LEFT_TO_RIGHT -> {
+                screenScaleState.addPan(Offset(amount, 0f))
+
+            }
+
+            RIGHT_TO_LEFT -> {
+                screenScaleState.addPan(Offset(-amount, 0f))
+
+            }
+        }
+    }
+
+    private fun getPagesFor(bookId: KomgaBookId): List<PageMetadata>? {
+        val intervals = pageIntervals.value
+        val currentIntervalIndex = currentIntervalIndex.value
+
+        val currentInterval = intervals[currentIntervalIndex]
+        val nextInterval = intervals.getOrNull(currentIntervalIndex + 1)
+        val previousInterval = intervals.getOrNull(currentIntervalIndex - 1)
+
+        return when (bookId) {
+            currentInterval.book.id -> currentInterval.pages
+            nextInterval?.book?.id -> nextInterval.pages
+            previousInterval?.book?.id -> previousInterval.pages
+
+            else -> intervals.firstOrNull { it.book.id == bookId }?.pages
+        }
     }
 
     fun getContentSizePx(page: PageMetadata): IntSize {
@@ -112,8 +321,8 @@ class ContinuousReaderState(
                 val constrainedWidth = containerSize.width - (sidePaddingPx.value * 2)
                 when {
                     page.size == null -> {
-                        val previousPage = pages.value.getOrNull(page.pageNumber - 2)
-                        val nextPage = pages.value.getOrNull(page.pageNumber)
+                        val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
+                        val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
                         val otherPageSize = previousPage?.size ?: nextPage?.size
                         if (otherPageSize != null) {
                             contentSizeForArea(
@@ -136,8 +345,8 @@ class ContinuousReaderState(
                 val constrainedHeight = containerSize.height - (sidePaddingPx.value * 2)
                 val contentSize = when {
                     page.size == null -> {
-                        val previousPage = pages.value.getOrNull(page.pageNumber - 2)
-                        val nextPage = pages.value.getOrNull(page.pageNumber)
+                        val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
+                        val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
                         previousPage?.size ?: nextPage?.size
                         ?: IntSize((containerSize.width / 2), containerSize.height)
                     }
@@ -151,8 +360,8 @@ class ContinuousReaderState(
 
                 when {
                     page.size == null -> {
-                        val previousPage = pages.value.getOrNull(page.pageNumber - 2)
-                        val nextPage = pages.value.getOrNull(page.pageNumber)
+                        val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
+                        val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
                         val otherPageSize = previousPage?.size ?: nextPage?.size
                         if (otherPageSize != null) {
                             contentSizeForArea(
@@ -179,7 +388,7 @@ class ContinuousReaderState(
     suspend fun getImage(requestPage: PageMetadata): ImageResult {
         val requestedPageJob = launchImageJob(requestPage)
 
-        val nextPage = pages.value.getOrNull(requestPage.pageNumber)
+        val nextPage = getPagesFor(requestPage.bookId)?.getOrNull(requestPage.pageNumber)
         if (nextPage != null) {
             imageLoadScope.async { launchImageJob(nextPage) }
         }
@@ -274,106 +483,32 @@ class ContinuousReaderState(
         }
         if (originalSize == null) return requestPage
 
-
         val updated = requestPage.copy(size = originalSize)
 
-        pages.update { pages ->
-            pages.getOrNull(updated.pageNumber - 1) ?: return@update pages
+        pageIntervals.update { current ->
+            val intervals = pageIntervals.value
+            val currentIntervalIndex = currentIntervalIndex.value
 
-            pages.toMutableList().apply {
-                set(updated.pageNumber - 1, updated)
+            val intervalIndex = when (updated.bookId) {
+                intervals[currentIntervalIndex].book.id -> currentIntervalIndex
+                intervals.getOrNull(currentIntervalIndex + 1)?.book?.id -> currentIntervalIndex + 1
+                intervals.getOrNull(currentIntervalIndex - 1)?.book?.id -> currentIntervalIndex - 1
+
+                else -> intervals.indexOfFirst { it.book.id == updated.bookId }
             }
+            if (intervalIndex == -1) return@update current
+
+            val interval = current[intervalIndex]
+            val updatedPages = interval.pages.toMutableList()
+            updatedPages[updated.pageNumber - 1] = updated
+
+            val updatedIntervals = current.toMutableList()
+            updatedIntervals[intervalIndex] = interval.copy(pages = updatedPages)
+
+            updatedIntervals
         }
 
         return updated
-    }
-
-    fun onPageIndexChange(pageIndex: Int) {
-        readerState.onProgressChange(pageIndex + 1)
-    }
-
-    suspend fun scrollToPage(pageNumber: Int) {
-        lazyListState.scrollToItem(pageNumber - 1)
-    }
-
-    fun scrollForward(amount: Float) {
-        when (readingDirection.value) {
-            TOP_TO_BOTTOM -> {
-                if (!screenScaleState.canPanDown() && !lazyListState.canScrollForward)
-                    readerState.loadNextBook()
-                else screenScaleState.addPan(Offset(0f, -amount))
-            }
-
-            LEFT_TO_RIGHT -> {
-                if (!screenScaleState.canPanRight() && !lazyListState.canScrollForward)
-                    readerState.loadNextBook()
-                else screenScaleState.addPan(Offset(-amount, 0f))
-            }
-
-            RIGHT_TO_LEFT -> {
-                if (!screenScaleState.canPanLeft() && !lazyListState.canScrollForward)
-                    readerState.loadNextBook()
-                else screenScaleState.addPan(Offset(amount, 0f))
-            }
-        }
-    }
-
-    fun scrollBackward(amount: Float) {
-        when (readingDirection.value) {
-            TOP_TO_BOTTOM -> {
-                if (!screenScaleState.canPanUp() && !lazyListState.canScrollBackward)
-                    readerState.loadPreviousBook()
-                else screenScaleState.addPan(Offset(0f, amount))
-            }
-
-
-            LEFT_TO_RIGHT -> {
-                if (!screenScaleState.canPanLeft() && !lazyListState.canScrollBackward)
-                    readerState.loadPreviousBook()
-                else screenScaleState.addPan(Offset(amount, 0f))
-
-            }
-
-            RIGHT_TO_LEFT -> {
-                if (!screenScaleState.canPanRight() && !lazyListState.canScrollBackward)
-                    readerState.loadPreviousBook()
-                else screenScaleState.addPan(Offset(-amount, 0f))
-
-            }
-        }
-    }
-
-    fun scrollForward() {
-
-    }
-
-    suspend fun scrollToNextPage() {
-        val currentIndex = currentPageIndex.first()
-        val nextPageNumber = currentIndex + 2
-        if (nextPageNumber > pages.value.size) {
-            readerState.loadNextBook()
-        } else {
-
-            val scrollAmount = when (readingDirection.value) {
-                TOP_TO_BOTTOM -> screenScaleState.areaSize.value.height
-                LEFT_TO_RIGHT, RIGHT_TO_LEFT -> screenScaleState.areaSize.value.width
-            }
-            lazyListState.animateScrollBy(scrollAmount.toFloat())
-        }
-    }
-
-    suspend fun scrollToPreviousPage() {
-        val currentIndex = currentPageIndex.first()
-        if (currentIndex == 0) {
-            readerState.loadPreviousBook()
-        } else {
-            val scrollAmount = when (readingDirection.value) {
-                TOP_TO_BOTTOM -> screenScaleState.areaSize.value.height
-                LEFT_TO_RIGHT, RIGHT_TO_LEFT -> screenScaleState.areaSize.value.width
-            }
-            lazyListState.animateScrollBy(-scrollAmount.toFloat())
-        }
-
     }
 
     fun onReadingDirectionChange(direction: ReadingDirection) {
@@ -449,5 +584,10 @@ class ContinuousReaderState(
         val bookId: KomgaBookId,
         val pageNumber: Int,
         val size: coil3.size.Size
+    )
+
+    data class BookPagesInterval(
+        val book: KomgaBook,
+        val pages: List<PageMetadata>
     )
 }

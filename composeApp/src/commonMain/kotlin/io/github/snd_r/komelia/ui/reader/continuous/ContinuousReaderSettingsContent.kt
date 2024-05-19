@@ -81,7 +81,10 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     LaunchedEffect(state.lazyListState) {
         snapshotFlow { state.lazyListState.layoutInfo }.collect { layout ->
             visiblePages = layout.visibleItemsInfo
-                .mapNotNull { lazyItem -> state.pages.value.getOrNull(lazyItem.index) }
+                .mapNotNull { lazyItem ->
+                    if (lazyItem.key is PageMetadata) lazyItem.key as PageMetadata
+                    else null
+                }
 
         }
     }

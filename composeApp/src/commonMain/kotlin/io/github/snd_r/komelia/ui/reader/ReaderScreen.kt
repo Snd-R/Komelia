@@ -68,28 +68,30 @@ class ReaderScreen(
     @Composable
     fun ReaderScreenContent(vm: ReaderViewModel) {
         val navigator = LocalNavigator.currentOrThrow
+
         ReaderContent(
-            pageState = vm.pagedReaderState,
+            commonReaderState = vm.readerState,
+            pagedReaderState = vm.pagedReaderState,
             continuousReaderState = vm.continuousReaderState,
-            settingsState = vm.readerState,
             screenScaleState = vm.screenScaleState,
             onSeriesBackClick = {
-                vm.readerState.bookState.value?.book?.let { book ->
+                vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(
                         SeriesScreen(book.seriesId)
                     )
                 }
             },
             onBookBackClick = {
-                vm.readerState.bookState.value?.book?.let { book ->
+                vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(
                         BookScreen(book.id)
                     )
                 }
             }
         )
+
         BackPressHandler {
-            vm.readerState.bookState.value?.book?.let { book ->
+            vm.readerState.booksState.value?.currentBook?.let { book ->
                 navigator replace MainScreen(SeriesScreen(book.seriesId))
             }
         }
