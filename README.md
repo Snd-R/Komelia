@@ -4,6 +4,8 @@
 
 ## Desktop Build
 
+make sure to clone with submodules `git clone --recurse-submodules https://github.com/Snd-R/Komelia`
+
 Requires jdk 17 or higher
 
 `./gradlew run` to launch desktop app
@@ -35,16 +37,24 @@ Check vips/native directory for cmake build details
 run `./gradlew :vips:linuxBuild` to launch linux build using system toolchain
 
 alternatively you can run build inside docker
-image `cd vips/native` `docker build -t gcc-build . ` `docker run -v .:/build gcc-build <num_of_build_jobs>`
+container 
+- `cd ./vips/native`
+- `docker build -t komelia-vips-build . `
+- `docker run -v .:/build komelia-vips-build <num_of_build_jobs>`
 
 after build run `./gradlew :vips:linuxCopyVipsLibsToClasspath` to copy built libraries to be bundled with the
 application
 
 ### windows cross compilation
 
-requires mingw-w64-gcc mingw-w64-binutils
+run `./gradlew :vips:windowsBuild` to launch windows build using system toolchain (requires `mingw-w64-gcc` and `mingw-w64-binutils`)
 
-run `./gradlew :vips:windowsBuild` then `./gradlew :vips:windowsCopyVipsLibsToClasspath` to copy libraries to be bundled
+alternatively you can run build inside docker container 
+- `cd ./vips/native`
+- `docker build -t komelia-vips-w64-build . `
+- `docker run -v .:/build komelia-vips-w64-build <num_of_build_jobs>`
+
+after build `./gradlew :vips:windowsCopyVipsLibsToClasspath` to copy libraries to be bundled
 with the app
 
 ## Android Build

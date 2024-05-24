@@ -1,10 +1,11 @@
 package io.github.snd_r
 
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.createTempFile
+import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
 
 
@@ -14,9 +15,9 @@ object VipsDecoder {
     private val javaLibPath: List<Path> = System.getProperty("java.library.path").ifBlank { null }
         ?.let { path -> path.split(":").map { Path.of(it) } }
         ?: emptyList()
-
     private var loaded = AtomicBoolean(false)
 
+    private var tempDir: Path? = null
     private val linuxLibs = listOf(
         "z",
         "ffi",
@@ -29,10 +30,10 @@ object VipsDecoder {
         "fftw3",
         "hwy",
         "sharpyuv",
+        "webp",
         "webpdecoder",
         "webpdemux",
         "webpmux",
-        "webp",
         "jpeg",
         "spng",
         "tiff",
@@ -42,26 +43,30 @@ object VipsDecoder {
     )
 
     private val windowsLibs = listOf(
-//        "libintl-8",
-//        "libz1",
-//        "libffi-8",
-//        "libglib-2.0-0",
-//        "libgobject-2.0-0",
-//        "libgmodule-2.0-0",
-//        "libgio-2.0-0",
-//        "libdav1d",
-//        "libexpat-1",
-//        "libfftw3",
-//        "libhwy",
-//        "libsharpyuv",
-//        "libwebpdecoder",
-//        "libwebpdemux",
-//        "libwebpmux",
-//        "libwebp",
-//        "libjpeg-62",
-//        "libspng",
-//        "libheif",
-//        "libvips-42",
+        "libwinpthread-1",
+        "libgcc_s_seh-1",
+        "libstdc++-6",
+        "libz1",
+        "libffi-8",
+        "libintl-8",
+        "libglib-2.0-0",
+        "libgmodule-2.0-0",
+        "libgobject-2.0-0",
+        "libgio-2.0-0",
+        "libdav1d",
+        "libexpat-1",
+        "libfftw3",
+        "libhwy",
+        "libsharpyuv",
+        "libwebp",
+        "libwebpdecoder",
+        "libwebpdemux",
+        "libwebpmux",
+        "libjpeg-62",
+        "libspng",
+        "libtiff",
+        "libheif",
+        "libvips-42",
         "libkomelia",
     )
 
@@ -98,10 +103,11 @@ object VipsDecoder {
                     }
 
                     classPathFileBytes != null -> {
-                        val tmp = createTempFile(prefix = "${libName}_").toFile()
-                        tmp.deleteOnExit()
-                        tmp.outputStream().use { it.write(classPathFileBytes) }
-                        System.load(tmp.path)
+                        val tempDir = tempDir ?: createTempDirectory(prefix = "komelia").also { tempDir = it }
+
+                        val libFile = Files.write(tempDir.resolve(filename), classPathFileBytes).toFile()
+                        libFile.deleteOnExit()
+                        System.load(libFile.path)
                         logger.info("loaded bundled native library $filename")
                     }
 

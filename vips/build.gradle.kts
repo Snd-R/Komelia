@@ -163,7 +163,10 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libwebpdecoder.dll",
         "libwebpdemux.dll",
         "libwebpmux.dll",
-        "libz1.dll"
+        "libz1.dll",
+        "libstdc++-6.dll",
+        "libwinpthread-1.dll",
+        "libgcc_s_seh-1.dll",
     )
 
     from("$windowsBuildDir/fakeroot/bin/")
