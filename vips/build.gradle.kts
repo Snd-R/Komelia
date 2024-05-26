@@ -1,4 +1,5 @@
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 
 plugins {
     kotlin("jvm")
@@ -173,8 +174,10 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
     into(classpathResourcesDir)
     include { it.name in libs }
 
+    // include mingw dlls if compiled using system toolchain
     doLast {
         copy {
+            duplicatesStrategy = EXCLUDE
             from("/usr/x86_64-w64-mingw32/bin/")
             include("libstdc++-6.dll")
             include("libwinpthread-1.dll")
