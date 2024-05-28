@@ -43,7 +43,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
-import io.github.snd_r.komelia.platform.PlatformType.*
+import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
+import io.github.snd_r.komelia.platform.PlatformType.MOBILE
+import io.github.snd_r.komelia.platform.PlatformType.WEB
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.cursorForHand

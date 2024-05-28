@@ -149,6 +149,8 @@ kotlin {
             implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
             implementation(project(":vips"))
+
+            implementation(files("jbr-api/jbr-api-3.1.0.jar"))
         }
 
         val wasmJsMain by getting

@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Icon
@@ -10,6 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.PlatformTitleBar
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.search.SearchBar
 import io.github.snd_r.komelia.ui.search.SearchResults
 import io.github.snd_r.komga.book.KomgaBookId
@@ -30,44 +33,31 @@ fun AppBar(
     onBookClick: (KomgaBookId) -> Unit,
     onSeriesClick: (KomgaSeriesId) -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        NavBarButton(onMenuButtonPress)
+    PlatformTitleBar {
+        val coroutineScope = rememberCoroutineScope()
 
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.weight(1f)
-        ) {
-            SearchBar(
-                searchResults = searchResults,
-                query = query,
-                onQueryChange = onQueryChange,
-                isLoading = isLoading,
-                onSearchAllClick = onSearchAllClick,
-                libraryById = libraryById,
-                onBookClick = onBookClick,
-                onSeriesClick = onSeriesClick
-            )
-        }
-    }
-}
-
-
-@Composable
-fun NavBarButton(
-    onMenuButtonPress: suspend () -> Unit,
-) {
-    val coroutineScope = rememberCoroutineScope()
-    Box(
-        contentAlignment = Alignment.CenterStart
-    ) {
         IconButton(
+            modifier = Modifier.align(Alignment.Start),
             onClick = { coroutineScope.launch { onMenuButtonPress() } },
         ) {
-            Icon(
-                Icons.Rounded.Menu,
-                contentDescription = null,
-                modifier = Modifier
-            )
+            Icon(Icons.Rounded.Menu, null)
         }
+
+        val searchBarModifier = when (LocalWindowWidth.current) {
+            FULL -> Modifier.align(Alignment.CenterHorizontally).width(600.dp)
+            else -> Modifier.align(Alignment.Start).width(300.dp)
+        }
+
+        SearchBar(
+            modifier = searchBarModifier,
+            searchResults = searchResults,
+            query = query,
+            onQueryChange = onQueryChange,
+            isLoading = isLoading,
+            onSearchAllClick = onSearchAllClick,
+            libraryById = libraryById,
+            onBookClick = onBookClick,
+            onSeriesClick = onSeriesClick
+        )
     }
 }

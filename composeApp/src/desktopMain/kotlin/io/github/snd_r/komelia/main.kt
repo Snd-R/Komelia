@@ -3,12 +3,14 @@ package io.github.snd_r.komelia
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -48,16 +50,11 @@ import kotlin.system.exitProcess
 
 
 private val logger = KotlinLogging.logger {}
-private val os: String = System.getProperty("os.name")
 
+val LocalWindow = compositionLocalOf<ComposeWindow> { error("Compose window was not set") }
 
-@Volatile
 private var shouldRestart = true
-
-@Volatile
 private var lastError: Throwable? = null
-
-@Volatile
 private var windowLastState: WindowState? = null
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -88,7 +85,10 @@ fun main() {
             errorApp(
                 initialWindowState = windowLastState,
                 error = error,
-                onRestart = { shouldRestart = true },
+                onRestart = {
+                    shouldRestart = true
+                    lastError = null
+                },
                 onExit = { shouldRestart = false }
             )
         }
@@ -122,15 +122,14 @@ private fun ApplicationScope.MainAppContent(
 
                 if (windowState.placement == Fullscreen) {
                     // FIXME https://github.com/JetBrains/compose-multiplatform/issues/4006
-                    if (os == "Linux") windowState.placement = Floating
-                    else windowState.placement = beforeFullScreenPlacement
+                    windowState.placement = Floating
                 } else {
                     beforeFullScreenPlacement = windowState.placement
                     windowState.placement = Fullscreen
                 }
             }
             if (it.key == Key.F12 && it.type == KeyUp) {
-                showLogWindow = true
+                showLogWindow = !showLogWindow
             }
 
             false
@@ -139,11 +138,16 @@ private fun ApplicationScope.MainAppContent(
         window.minimumSize = Dimension(800, 540)
         val verticalInsets = window.insets.left + window.insets.right
         val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
-        MainView(
-            windowWidth = widthClass,
-            platformType = PlatformType.DESKTOP,
-            keyEvents = keyEvents
-        )
+        CompositionLocalProvider(
+            LocalWindow provides window
+        ) {
+
+            MainView(
+                windowWidth = widthClass,
+                platformType = PlatformType.DESKTOP,
+                keyEvents = keyEvents
+            )
+        }
     }
 
     if (showLogWindow) {

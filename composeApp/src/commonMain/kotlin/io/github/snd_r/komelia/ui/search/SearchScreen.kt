@@ -16,11 +16,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.ui.LoadState
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
@@ -33,15 +32,17 @@ class SearchScreen(
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm =
-            rememberScreenModel(initialQuery) { viewModelFactory.getSearchViewModel(initialQuery) }
+        val vm = rememberScreenModel(initialQuery) {
+            viewModelFactory.getSearchViewModel(initialQuery)
+        }
         val navigator = LocalNavigator.currentOrThrow
 
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SearchField(vm)
+            if (LocalPlatform.current == PlatformType.MOBILE)
+                SearchField(vm)
 
             when (val state = vm.state.collectAsState().value) {
                 is LoadState.Error -> ErrorContent(
@@ -78,25 +79,18 @@ class SearchScreen(
 
     @Composable
     private fun SearchField(vm: SearchViewModel) {
-        val width = LocalWindowWidth.current
+        val focusRequester = remember { FocusRequester() }
+        val focusManager = LocalFocusManager.current
 
-        if (width == COMPACT || width == MEDIUM) {
-            val focusRequester = remember { FocusRequester() }
-            val focusManager = LocalFocusManager.current
-
-            LaunchedEffect(Unit) {
-
-            }
-            SearchTextField(
-                query = vm.query,
-                onQueryChange = vm::query::set,
-                onDone = { focusManager.clearFocus() },
-                onDismiss = { vm.query = "" },
-                modifier = Modifier.focusRequester(focusRequester)
-            )
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
-            }
+        SearchTextField(
+            query = vm.query,
+            onQueryChange = vm::query::set,
+            onDone = { focusManager.clearFocus() },
+            onDismiss = { vm.query = "" },
+            modifier = Modifier.focusRequester(focusRequester)
+        )
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
         }
     }
 }

@@ -43,6 +43,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import io.github.snd_r.komelia.platform.cursorForHand
@@ -61,6 +62,7 @@ val expandedSearchBarWidth = 600.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
+    modifier: Modifier = Modifier,
     searchResults: SearchResults,
     query: String,
     isLoading: Boolean,
@@ -86,9 +88,11 @@ fun SearchBar(
 
     val focusManager = LocalFocusManager.current
     val isExpanded = derivedStateOf { isFocused && query.isNotBlank() }
-    BoxWithConstraints {
+    BoxWithConstraints(modifier) {
         val maxHeight = maxHeight
+        val maxWidth = maxWidth
         ExposedDropdownMenuBox(
+            modifier = Modifier.fillMaxWidth(),
             expanded = isExpanded.value,
             onExpandedChange = {}
         ) {
@@ -106,7 +110,7 @@ fun SearchBar(
                 onDismissRequest = {},
                 properties = PopupProperties(focusable = false),
                 modifier = Modifier
-                    .width(expandedSearchBarWidth)
+                    .width(maxWidth)
                     .heightIn(max = maxHeight - 150.dp)
                     .padding(5.dp)
             ) {
@@ -228,7 +232,7 @@ private fun SeriesSearchEntry(
                 .height(100.dp)
         )
         Column {
-            Text(series.metadata.title)
+            Text(series.metadata.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
             library?.let { Text("in ${library.name}") }
         }
     }
@@ -249,7 +253,7 @@ private fun BookSearchEntry(
                 .height(100.dp)
         )
         Column {
-            Text(book.metadata.title)
+            Text(book.metadata.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
             library?.let { Text("in ${library.name}") }
         }
     }
@@ -279,7 +283,7 @@ fun SearchTextField(
         interactionSource = interactionSource,
         modifier = modifier
             .height(45.dp)
-            .width(expandedSearchBarWidth)
+            .fillMaxWidth()
             .padding(top = 5.dp)
             .onKeyEvent { keyEvent ->
                 when {
@@ -289,7 +293,7 @@ fun SearchTextField(
                         true
                     }
 
-                    keyEvent.key == Key.Back -> {
+                    keyEvent.key == Key.Back || keyEvent.key == Key.Escape -> {
                         focusManager.clearFocus()
                         true
                     }
@@ -305,7 +309,10 @@ fun SearchTextField(
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null,
-                            onClick = onDismiss
+                            onClick = {
+                                focusManager.clearFocus()
+                                onDismiss()
+                            }
                         ).cursorForHand(),
                     tint = MaterialTheme.colorScheme.secondary
                 )
