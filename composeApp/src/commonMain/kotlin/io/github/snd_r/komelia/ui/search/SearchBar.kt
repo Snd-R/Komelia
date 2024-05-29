@@ -278,7 +278,8 @@ fun SearchTextField(
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
             unfocusedTextColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedPlaceholderColor = MaterialTheme.colorScheme.surfaceVariant
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface
         ),
         interactionSource = interactionSource,
         modifier = modifier

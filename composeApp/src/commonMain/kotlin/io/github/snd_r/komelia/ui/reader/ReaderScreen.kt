@@ -26,7 +26,11 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
-import io.github.snd_r.komelia.ui.LoadState.*
+import io.github.snd_r.komelia.platform.PlatformTitleBar
+import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
+import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
@@ -53,15 +57,18 @@ class ReaderScreen(
 
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
 
-        when (val result = vmState.value) {
-            is Error -> ErrorContent(
-                exception = result.exception,
-                onReturn = { navigator.replaceAll(MainScreen(BookScreen(bookId))) },
-                onRetry = { vm.initialize(bookId) }
-            )
+        Column {
+            PlatformTitleBar()
+            when (val result = vmState.value) {
+                is Error -> ErrorContent(
+                    exception = result.exception,
+                    onReturn = { navigator.replaceAll(MainScreen(BookScreen(bookId))) },
+                    onRetry = { vm.initialize(bookId) }
+                )
 
-            Loading, Uninitialized -> LoadIndicator()
-            is Success -> ReaderScreenContent(vm)
+                Loading, Uninitialized -> LoadIndicator()
+                is Success -> ReaderScreenContent(vm)
+            }
         }
     }
 

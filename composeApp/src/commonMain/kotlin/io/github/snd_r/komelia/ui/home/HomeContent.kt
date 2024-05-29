@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -64,7 +65,7 @@ fun HomeContent(
 ) {
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
-    Column() {
+    Column {
         Toolbar(
             currentFilter = currentFilter,
             onFilterChange = {
@@ -213,11 +214,12 @@ private fun MainContent(
 
 
     LazyVerticalGrid(
+        modifier = Modifier.padding(horizontal = 20.dp),
         state = gridState,
         columns = GridCells.Adaptive(cardWidth),
         horizontalArrangement = Arrangement.spacedBy(15.dp),
         verticalArrangement = Arrangement.spacedBy(15.dp),
-        contentPadding = PaddingValues(bottom = 30.dp)
+        contentPadding = PaddingValues(bottom = 50.dp)
     ) {
         if (keepReadingBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == KEEP_READING_BOOKS)) {
             BookFilterEntry(

@@ -1,16 +1,21 @@
 package io.github.snd_r.komelia
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -33,6 +38,7 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import ch.qos.logback.classic.LoggerContext
+import com.jetbrains.JBR
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
@@ -40,6 +46,7 @@ import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
 import io.github.snd_r.komelia.ui.log.LogbackFlowAppender
+import io.github.snd_r.komelia.window.UndecoratedWindowResizer
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
@@ -52,6 +59,8 @@ import kotlin.system.exitProcess
 private val logger = KotlinLogging.logger {}
 
 val LocalWindow = compositionLocalOf<ComposeWindow> { error("Compose window was not set") }
+val LocalWindowState = compositionLocalOf<WindowState> { error("Window state was not set") }
+val windowBorder = mutableStateOf(Color.Unspecified)
 
 private var shouldRestart = true
 private var lastError: Throwable? = null
@@ -74,7 +83,8 @@ fun main() {
                         windowLastState = windowState
                         window.dispatchEvent(WindowEvent(window, WindowEvent.WINDOW_CLOSING))
                     }
-                }
+                },
+                LocalWindowState provides windowState
             ) {
                 MainAppContent(windowState = windowState, onCloseRequest = { shouldRestart = false })
             }
@@ -97,16 +107,19 @@ fun main() {
     exitProcess(0)
 }
 
-
 @Composable
 private fun ApplicationScope.MainAppContent(
     windowState: WindowState,
     onCloseRequest: () -> Unit,
 ) {
     var showLogWindow by remember { mutableStateOf(false) }
-    var beforeFullScreenPlacement by remember { mutableStateOf(windowState.placement) }
     val keyEvents = remember { MutableSharedFlow<KeyEvent>() }
     val coroutineScope = rememberCoroutineScope()
+    val undecorated = remember {
+        JBR.isAvailable()
+                && DesktopPlatform.Current == DesktopPlatform.Linux
+                && System.getenv("USE_CSD")?.toBoolean() ?: true
+    }
     Window(
         title = "Komelia",
         onCloseRequest = {
@@ -115,16 +128,20 @@ private fun ApplicationScope.MainAppContent(
         },
         state = windowState,
         icon = BitmapPainter(useResource("ic_launcher.png", ::loadImageBitmap)),
+        undecorated = undecorated,
+        //Loses transparency on secondary monitor. See https://bugs.openjdk.org/browse/JDK-8304900
+        // fixed in jdk22
+//        transparent = undecorated,
+        transparent = false,
         onPreviewKeyEvent = {
             coroutineScope.launch { keyEvents.emit(it) }
 
             if (it.key == Key.F11 && it.type == KeyUp) {
 
                 if (windowState.placement == Fullscreen) {
-                    // FIXME https://github.com/JetBrains/compose-multiplatform/issues/4006
+                    // Does not switch back to maximized. https://github.com/JetBrains/compose-multiplatform/issues/4006
                     windowState.placement = Floating
                 } else {
-                    beforeFullScreenPlacement = windowState.placement
                     windowState.placement = Fullscreen
                 }
             }
@@ -136,17 +153,38 @@ private fun ApplicationScope.MainAppContent(
         }
     ) {
         window.minimumSize = Dimension(800, 540)
+
+        val windowResizerField = window.javaClass.getDeclaredField("undecoratedWindowResizer")
+        windowResizerField.isAccessible = true
+        val windowResizer = windowResizerField.get(window)
+        val setEnabled = windowResizer.javaClass.declaredMethods.first { it.name == "setEnabled" }
+        setEnabled.invoke(windowResizer, false)
+
         val verticalInsets = window.insets.left + window.insets.right
         val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
+        val undecoratedWindowResizer = remember {
+            UndecoratedWindowResizer(window).apply { this.enabled = undecorated }
+        }
         CompositionLocalProvider(
             LocalWindow provides window
         ) {
-
-            MainView(
-                windowWidth = widthClass,
-                platformType = PlatformType.DESKTOP,
-                keyEvents = keyEvents
-            )
+            val borderModifier = derivedStateOf {
+                if (undecorated && windowState.placement == Floating)
+                    Modifier
+                        //Loses transparency on secondary monitor. See https://bugs.openjdk.org/browse/JDK-8304900
+                        // fixed in jdk22
+//                        .clip(RoundedCornerShape(5.dp))
+                        .border(1.dp, windowBorder.value ?: Color.Unspecified)
+                else Modifier
+            }
+            Box(borderModifier.value) {
+                MainView(
+                    windowWidth = widthClass,
+                    platformType = PlatformType.DESKTOP,
+                    keyEvents = keyEvents
+                )
+            }
+            undecoratedWindowResizer.Content()
         }
     }
 
@@ -171,7 +209,6 @@ private fun ApplicationScope.MainAppContent(
             icon = BitmapPainter(useResource("ic_launcher.png", ::loadImageBitmap)),
         ) {
             window.minimumSize = Dimension(540, 540)
-            val horizontalInsets = window.insets.top + window.insets.bottom
             LogView(
                 logsFlow = logFlowAppender.logEventsFlow
             )
@@ -199,7 +236,6 @@ private fun errorApp(
             icon = BitmapPainter(useResource("ic_launcher.png", ::loadImageBitmap)),
         ) {
 
-            val horizontalInsets = window.insets.top + window.insets.bottom
             ErrorView(
                 exception = error,
                 onRestart = {

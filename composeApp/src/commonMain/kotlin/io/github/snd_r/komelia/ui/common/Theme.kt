@@ -21,17 +21,17 @@ object AppTheme {
         tertiaryContainer = Color(red = 181, green = 130, blue = 49),
         onTertiaryContainer = Color(red = 58, green = 34, blue = 0),
 
-//        background = Color(red = 15, green = 15, blue = 15),
-//        onBackground = Color(red = 237, green = 235, blue = 235),
         background = Color(red = 113, green = 116, blue = 118),
         onBackground = Color(red = 202, green = 196, blue = 208),
-//        onBackground = backgroundLighter,
 
         surface = Color(red = 15, green = 15, blue = 15),
         onSurface = Color(red = 237, green = 235, blue = 235),
 
         surfaceVariant = Color(red = 43, green = 43, blue = 43),
         onSurfaceVariant = Color(red = 202, green = 196, blue = 208),
+
+        surfaceDim = Color(red = 32, green = 31, blue = 35),
+        surfaceBright = Color(red = 49, green = 48, blue = 51),
 
         error = Color(red = 240, green = 70, blue = 60),
         errorContainer = Color(red = 140, green = 29, blue = 24)

@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.login
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -7,6 +8,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
@@ -26,20 +28,24 @@ class LoginScreen : Screen {
 
         val state = vm.state.collectAsState()
         LaunchedEffect(Unit) { vm.initialize() }
-        when (state.value) {
-            Loading, Uninitialized -> LoadingMaxSizeIndicator()
-            is Error -> LoginContent(
-                url = vm.url,
-                onUrlChange = vm::url::set,
-                user = vm.user,
-                onUserChange = { vm.user = it },
-                password = vm.password,
-                onPasswordChange = { vm.password = it },
-                errorMessage = vm.error,
-                onLogin = vm::loginWithCredentials
-            )
+        Column {
+            PlatformTitleBar { }
+            when (state.value) {
+                Loading, Uninitialized -> LoadingMaxSizeIndicator()
 
-            is Success -> navigator.replaceAll(MainScreen())
+                is Error -> LoginContent(
+                    url = vm.url,
+                    onUrlChange = vm::url::set,
+                    user = vm.user,
+                    onUserChange = { vm.user = it },
+                    password = vm.password,
+                    onPasswordChange = { vm.password = it },
+                    errorMessage = vm.error,
+                    onLogin = vm::loginWithCredentials
+                )
+
+                is Success -> navigator.replaceAll(MainScreen())
+            }
         }
     }
 }

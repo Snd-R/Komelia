@@ -73,7 +73,6 @@ fun ItemCardWithContent(
     }
 }
 
-
 @Composable
 fun CardGradientOverlay() {
     val colorStops = arrayOf(

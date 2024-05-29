@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,8 +81,8 @@ fun SeriesLazyCardGrid(
             columns = GridCells.Adaptive(minSize),
             horizontalArrangement = Arrangement.spacedBy(15.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp),
-            contentPadding = PaddingValues(bottom = 30.dp),
-            modifier = Modifier.padding(horizontal = 10.dp).fillMaxHeight()
+            contentPadding = PaddingValues(bottom = 50.dp),
+            modifier = Modifier.padding(horizontal = 20.dp)
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 beforeContent()

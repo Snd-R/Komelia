@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -30,6 +31,7 @@ import io.github.snd_r.komelia.ViewModelFactory
 import io.github.snd_r.komelia.createViewModelFactory
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.ConfigurePlatformTheme
+import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.strings.EnStrings
@@ -107,7 +109,12 @@ fun MainView(
                         )
                         AppNotifications(actualViewModelFactory.getAppNotifications())
                     }
-                } else LoadingMaxSizeIndicator()
+                } else {
+                    Column {
+                        PlatformTitleBar { }
+                        LoadingMaxSizeIndicator()
+                    }
+                }
 
                 BackPressHandler {}
             }

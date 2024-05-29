@@ -2,8 +2,10 @@ package io.github.snd_r.komelia.ui.settings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -26,6 +28,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.transitions.CrossfadeTransition
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
@@ -53,37 +56,41 @@ class SettingsScreen : Screen {
             screen = AccountSettingsScreen(),
             onBackPressed = null
         ) { navigator ->
-            SettingsScreenLayout(
-                navMenu = {
-                    Row(
-                        Modifier
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(top = settingsDesktopTopPadding, start = 10.dp, end = 10.dp)
-                    ) {
-                        Spacer(Modifier.weight(1f))
-                        SettingsNavigationMenu(
-                            currentScreen = navigator.lastItem,
-                            onNavigation = { navigator.replaceAll(it) },
-                            hasMediaErrors = vm.hasMediaErrors,
-                            onLogout = vm::logout,
-                            contentColor = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.width(settingsDesktopNavMenuWidth.dp)
+            Column {
+                PlatformTitleBar()
+                SettingsScreenLayout(
+                    navMenu = {
+                        Row(
+                            Modifier
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(top = settingsDesktopTopPadding, start = 10.dp, end = 10.dp)
+                        ) {
+                            Spacer(Modifier.weight(1f))
+                            SettingsNavigationMenu(
+                                currentScreen = navigator.lastItem,
+                                onNavigation = { navigator.replaceAll(it) },
+                                hasMediaErrors = vm.hasMediaErrors,
+                                onLogout = vm::logout,
+                                contentColor = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.width(settingsDesktopNavMenuWidth.dp)
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        OutlinedIconButton(
+                            onClick = { currentNavigator.pop() },
+                            modifier = Modifier.cursorForHand().padding(top = settingsDesktopTopPadding),
+                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                            content = { Icon(Icons.Default.Close, null) }
                         )
-                    }
-                },
-                dismissButton = {
-                    OutlinedIconButton(
-                        onClick = { currentNavigator.pop() },
-                        modifier = Modifier.cursorForHand().padding(top = settingsDesktopTopPadding),
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                        content = { Icon(Icons.Default.Close, null) }
-                    )
-                },
-                content = { CrossfadeTransition(navigator) },
-            )
+                    },
+                    content = { CrossfadeTransition(navigator) },
+                )
 
-            BackPressHandler { currentNavigator.pop() }
+            }
         }
+        BackPressHandler { currentNavigator.pop() }
+
     }
 
     @Composable
@@ -92,9 +99,11 @@ class SettingsScreen : Screen {
         content: @Composable () -> Unit,
         dismissButton: @Composable () -> Unit,
     ) = Layout(
+        modifier = Modifier.fillMaxSize(),
         contents = listOf(navMenu, content, dismissButton)
     ) { (navMenuMeasurable, contentMeasurable, dismissMeasurable), constraints ->
-        val padding = ((constraints.maxWidth - (settingsDesktopNavMenuWidth + settingsDesktopContentWidth)).toFloat() / 2)
+        val padding =
+            ((constraints.maxWidth - (settingsDesktopNavMenuWidth + settingsDesktopContentWidth)).toFloat() / 2)
                 .roundToInt().coerceAtLeast(0)
 
         val contentPlaceable = contentMeasurable.first()
