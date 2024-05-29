@@ -85,7 +85,7 @@ private fun DesktopContainer(title: String, content: @Composable ColumnScope.() 
 
 @Composable
 private fun DesktopContent(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(Modifier.widthIn(min = 0.dp, max = settingsDesktopContentWidth.dp)) {
+    Column(Modifier.widthIn(min = 0.dp, max = settingsDesktopContentWidth)) {
         Spacer(Modifier.height(50.dp))
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(start = 30.dp))
         Spacer(Modifier.height(20.dp))

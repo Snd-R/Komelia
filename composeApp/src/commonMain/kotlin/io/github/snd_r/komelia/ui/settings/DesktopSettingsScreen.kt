@@ -37,8 +37,8 @@ import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationMenu
 import kotlinx.coroutines.flow.SharedFlow
 import kotlin.math.roundToInt
 
-const val settingsDesktopNavMenuWidth = 250
-const val settingsDesktopContentWidth = 700
+val settingsDesktopNavMenuWidth = 250.dp
+val settingsDesktopContentWidth = 700.dp
 val settingsDesktopTopPadding = 50.dp
 
 class SettingsScreen : Screen {
@@ -72,7 +72,7 @@ class SettingsScreen : Screen {
                                 hasMediaErrors = vm.hasMediaErrors,
                                 onLogout = vm::logout,
                                 contentColor = MaterialTheme.colorScheme.surfaceVariant,
-                                modifier = Modifier.width(settingsDesktopNavMenuWidth.dp)
+                                modifier = Modifier.width(settingsDesktopNavMenuWidth)
                             )
                         }
                     },
@@ -102,15 +102,16 @@ class SettingsScreen : Screen {
         modifier = Modifier.fillMaxSize(),
         contents = listOf(navMenu, content, dismissButton)
     ) { (navMenuMeasurable, contentMeasurable, dismissMeasurable), constraints ->
+        val navWidth = settingsDesktopNavMenuWidth.roundToPx()
+        val contentWidth = settingsDesktopContentWidth.roundToPx()
         val padding =
-            ((constraints.maxWidth - (settingsDesktopNavMenuWidth + settingsDesktopContentWidth)).toFloat() / 2)
-                .roundToInt().coerceAtLeast(0)
+            ((constraints.maxWidth - (navWidth + contentWidth)).toFloat() / 2).roundToInt().coerceAtLeast(0)
 
         val contentPlaceable = contentMeasurable.first()
             .measure(
                 constraints.copy(
                     minWidth = 0,
-                    maxWidth = padding + settingsDesktopContentWidth.coerceAtMost(constraints.maxWidth - settingsDesktopNavMenuWidth)
+                    maxWidth = padding + contentWidth.coerceAtMost(constraints.maxWidth - navWidth)
                 )
             )
 
@@ -118,7 +119,7 @@ class SettingsScreen : Screen {
             .measure(
                 constraints.copy(
                     minWidth = 0,
-                    maxWidth = padding + settingsDesktopNavMenuWidth
+                    maxWidth = padding + navWidth
                 )
             )
         val dismissPlaceable = dismissMeasurable.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
@@ -128,11 +129,11 @@ class SettingsScreen : Screen {
                 0
             )
             contentPlaceable.placeRelative(
-                padding + settingsDesktopNavMenuWidth,
+                padding + navWidth,
                 0
             )
             dismissPlaceable.placeRelative(
-                (padding + navMenuPlaceable.width + contentPlaceable.width).coerceAtMost(constraints.maxWidth - dismissPlaceable.width - 50),
+                (padding + navWidth + contentWidth).coerceAtMost(constraints.maxWidth - dismissPlaceable.width),
                 0
             )
         }
