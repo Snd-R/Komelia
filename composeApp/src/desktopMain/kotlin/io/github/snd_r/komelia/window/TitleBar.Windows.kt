@@ -60,10 +60,8 @@ class ClientAreaHitAdapter(private val titleBar: CustomTitleBar) : MouseAdapter(
 
     private fun hit(e: MouseEvent) {
         val x = e.x.toFloat()
-        val isClientArea = e.y <= titleBar.height && (
-                startSpace?.contains(x) == true
-                        || centerSpace?.contains(x) == true
-                        || endSpace?.contains(x) == true)
+        val isClientArea = e.y <= titleBar.height &&
+                (startSpace?.contains(x) == true || centerSpace?.contains(x) == true || endSpace?.contains(x) == true)
 
         titleBar.forceHitTest(isClientArea)
     }

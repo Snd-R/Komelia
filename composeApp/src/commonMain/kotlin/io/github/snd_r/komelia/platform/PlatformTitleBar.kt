@@ -72,6 +72,7 @@ internal class TitleBarMeasurePolicy(
 
     override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
         if (measurables.isEmpty()) {
+            applyTitleBar(constraints.minHeight.toDp())
             return layout(width = constraints.minWidth, height = constraints.minHeight) {}
         }
 
