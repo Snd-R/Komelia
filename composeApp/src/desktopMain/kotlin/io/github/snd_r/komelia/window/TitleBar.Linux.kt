@@ -12,11 +12,6 @@ import androidx.compose.material.icons.filled.Minimize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -35,7 +30,6 @@ import io.github.snd_r.komelia.platform.TitleBarLayout
 import io.github.snd_r.komelia.platform.TitleBarScope
 import java.awt.Frame
 import java.awt.event.MouseEvent
-import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -48,22 +42,6 @@ internal fun TitleBarOnLinux(
 ) {
     var lastPress = 0L
     val viewConfig = LocalViewConfiguration.current
-    var isActive by remember { mutableStateOf(true) }
-    DisposableEffect(window) {
-        val adapter = object : WindowAdapter() {
-            override fun windowGainedFocus(e: WindowEvent?) {
-                isActive = true
-            }
-
-            override fun windowLostFocus(e: WindowEvent?) {
-                isActive = false
-            }
-        }
-
-        window.addWindowFocusListener(adapter)
-        onDispose { window.removeWindowFocusListener(adapter) }
-    }
-
 
     TitleBarLayout(
         modifier = modifier
@@ -90,26 +68,26 @@ internal fun TitleBarOnLinux(
         ControlButton(
             { window.dispatchEvent(WindowEvent(window, WindowEvent.WINDOW_CLOSING)) },
             Icons.Default.Close,
-            isActive,
+            state.isActive,
         )
 
         if (state.isMaximized) {
             ControlButton(
                 { window.extendedState = Frame.NORMAL },
                 Icons.Default.FilterNone,
-                isActive,
+                state.isActive,
             )
         } else {
             ControlButton(
                 { window.extendedState = Frame.MAXIMIZED_BOTH },
                 Icons.Default.CropSquare,
-                isActive,
+                state.isActive,
             )
         }
         ControlButton(
             { window.extendedState = Frame.ICONIFIED },
             Icons.Default.Minimize,
-            isActive,
+            state.isActive,
         )
         content()
     }
