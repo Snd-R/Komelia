@@ -1,14 +1,23 @@
 package io.github.snd_r.komelia.ui.login
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -17,7 +26,9 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -31,10 +42,12 @@ fun LoginContent(
     password: String,
     onPasswordChange: (String) -> Unit,
     errorMessage: String?,
-    onLogin: suspend () -> Unit,
+    onLogin: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    Box(contentAlignment = Alignment.Center) {
+    Box(
+        contentAlignment = Alignment.Center,
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Login")
 
@@ -77,10 +90,35 @@ fun LoginContent(
                 Text(errorMessage, style = TextStyle(color = MaterialTheme.colorScheme.error))
             }
 
-            Button(onClick = { coroutineScope.launch { onLogin() } }) {
+            Button(onClick = { onLogin() }) {
                 Text("Login")
             }
 
         }
     }
+}
+
+
+@Composable
+fun LoginLoadingContent(onCancel: () -> Unit) {
+    var showCancelButton by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(5000)
+        showCancelButton = true
+    }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        CircularProgressIndicator()
+        if (showCancelButton) {
+            Spacer(Modifier.height(100.dp))
+            Button(onClick = onCancel) { Text("Cancel") }
+        }
+
+    }
+
+
 }

@@ -14,6 +14,8 @@ import io.github.snd_r.komga.user.KomgaUser
 import io.github.snd_r.komga.user.KomgaUserClient
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import io.ktor.utils.io.*
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -41,11 +43,19 @@ class LoginViewModel(
         }
     }
 
-    suspend fun loginWithCredentials() {
-        error = null
-        settingsRepository.putServerUrl(url)
-        settingsRepository.putCurrentUser(user)
-        tryLogin(user, password)
+    fun cancel() {
+        screenModelScope.coroutineContext.cancelChildren()
+        mutableState.value = LoadState.Error(RuntimeException("Cancelled login attempt"))
+        error = "Cancelled login attempt"
+    }
+
+    fun loginWithCredentials() {
+        screenModelScope.launch {
+            error = null
+            settingsRepository.putServerUrl(url)
+            settingsRepository.putCurrentUser(user)
+            tryLogin(user, password)
+        }
     }
 
     private suspend fun tryLogin(
@@ -61,6 +71,8 @@ class LoginViewModel(
             authenticatedUserFlow.value = user
             availableLibrariesFlow.value = libraries
             mutableState.value = LoadState.Success(Unit)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: ClientRequestException) {
             error = if (e.response.status == Unauthorized) "Invalid credentials"
             else "Failed to login ${e.message}"

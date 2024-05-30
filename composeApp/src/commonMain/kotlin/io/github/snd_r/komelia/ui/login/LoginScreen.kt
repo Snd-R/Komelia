@@ -1,9 +1,13 @@
 package io.github.snd_r.komelia.ui.login
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -15,7 +19,6 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
-import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 
 class LoginScreen : Screen {
 
@@ -30,21 +33,27 @@ class LoginScreen : Screen {
         LaunchedEffect(Unit) { vm.initialize() }
         Column {
             PlatformTitleBar { }
-            when (state.value) {
-                Loading, Uninitialized -> LoadingMaxSizeIndicator()
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
 
-                is Error -> LoginContent(
-                    url = vm.url,
-                    onUrlChange = vm::url::set,
-                    user = vm.user,
-                    onUserChange = { vm.user = it },
-                    password = vm.password,
-                    onPasswordChange = { vm.password = it },
-                    errorMessage = vm.error,
-                    onLogin = vm::loginWithCredentials
-                )
+                when (state.value) {
+                    Loading, Uninitialized -> LoginLoadingContent(vm::cancel)
 
-                is Success -> navigator.replaceAll(MainScreen())
+                    is Error -> LoginContent(
+                        url = vm.url,
+                        onUrlChange = vm::url::set,
+                        user = vm.user,
+                        onUserChange = { vm.user = it },
+                        password = vm.password,
+                        onPasswordChange = { vm.password = it },
+                        errorMessage = vm.error,
+                        onLogin = vm::loginWithCredentials
+                    )
+
+                    is Success -> navigator.replaceAll(MainScreen())
+                }
             }
         }
     }
