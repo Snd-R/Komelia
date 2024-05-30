@@ -39,7 +39,10 @@ import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.LoadState.*
+import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
+import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
@@ -47,7 +50,9 @@ import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
-import io.github.snd_r.komelia.ui.library.LibraryTab.*
+import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
+import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
+import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
 import io.github.snd_r.komelia.ui.library.view.LibraryCollectionsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
@@ -57,9 +62,11 @@ import io.github.snd_r.komga.common.KomgaAuthor
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryId
 import io.github.snd_r.komga.series.KomgaSeriesStatus
+import kotlin.jvm.Transient
 
 class LibraryScreen(
     val libraryId: KomgaLibraryId? = null,
+    @Transient
     private val seriesFilter: SeriesScreenFilter? = null
 ) : Screen {
 

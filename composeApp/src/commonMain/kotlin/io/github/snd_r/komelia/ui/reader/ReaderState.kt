@@ -5,6 +5,9 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.CommonParcelable
+import io.github.snd_r.komelia.platform.CommonParcelize
+import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
@@ -198,11 +201,13 @@ class ReaderState(
     }
 }
 
+@CommonParcelize
 data class PageMetadata(
-    val bookId: KomgaBookId,
+
+    val bookId: @CommonParcelizeRawValue KomgaBookId,
     val pageNumber: Int,
-    val size: IntSize?,
-) {
+    val size: @CommonParcelizeRawValue IntSize?,
+) : CommonParcelable {
     fun contentSizeForArea(maxPageSize: IntSize): IntSize {
         val pageSize = size ?: return maxPageSize
 

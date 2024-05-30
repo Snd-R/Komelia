@@ -1,5 +1,9 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.proto
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -7,6 +11,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("multiplatform")
     id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.parcelize")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     kotlin("plugin.serialization")
@@ -29,11 +34,17 @@ dependencies {
 kotlin {
     jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
     androidTarget {
-        compilations.all { kotlinOptions { jvmTarget = "17" } }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+            freeCompilerArgs.addAll(
+                "-P",
+                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=io.github.snd_r.komelia.platform.CommonParcelize"
+            )
+        }
     }
 
     jvm("desktop") {
-        compilations.all { kotlinOptions { jvmTarget = "17" } }
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
     @OptIn(ExperimentalWasmDsl::class)
