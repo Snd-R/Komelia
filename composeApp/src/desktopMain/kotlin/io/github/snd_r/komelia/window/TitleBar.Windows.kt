@@ -28,6 +28,7 @@ internal fun TitleBarOnWindows(
         applyTitleBar = { height ->
             titleBar.height = height.value
             titleBar.putProperty("controls.dark", true)
+            titleBar.putProperty("controls.visible", true)
 
             JBR.getWindowDecorations().setCustomTitleBar(window, titleBar)
             PaddingValues(start = titleBar.leftInset.dp, end = titleBar.rightInset.dp)
@@ -48,6 +49,7 @@ internal fun TitleBarOnWindows(
         onDispose {
             window.removeMouseListener(titleBarClientHitAdapter)
             window.removeMouseMotionListener(titleBarClientHitAdapter)
+            titleBar.putProperty("controls.visible", false)
         }
 
     }
