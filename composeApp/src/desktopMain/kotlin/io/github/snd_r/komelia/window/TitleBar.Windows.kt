@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.WindowPlacement
 import com.jetbrains.JBR
 import com.jetbrains.WindowDecorations.CustomTitleBar
 import io.github.snd_r.komelia.platform.TitleBarLayout
@@ -49,7 +50,7 @@ internal fun TitleBarOnWindows(
         onDispose {
             window.removeMouseListener(titleBarClientHitAdapter)
             window.removeMouseMotionListener(titleBarClientHitAdapter)
-            titleBar.putProperty("controls.visible", false)
+            if (window.placement == WindowPlacement.Fullscreen) titleBar.putProperty("controls.visible", false)
         }
 
     }
