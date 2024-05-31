@@ -128,6 +128,25 @@ class AndroidReaderSettingsRepository(
         }
     }
 
+    override fun getPagedReaderStretchToFit(): Flow<Boolean> {
+        return dataStore.data.map {
+            if (!it.reader.pagedReaderSettings.hasStretchToFit()) true
+            else it.reader.pagedReaderSettings.stretchToFit
+        }
+    }
+
+    override suspend fun putPagedReaderStretchToFit(stretch: Boolean) {
+        dataStore.updateData { current ->
+            current.copy {
+                reader = reader.copy {
+                    pagedReaderSettings = pagedReaderSettings.copy {
+                        stretchToFit = stretch
+                    }
+                }
+            }
+        }
+    }
+
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {
         return dataStore.data.map {
             when (it.reader.continuousReaderSettings.readingDirection) {

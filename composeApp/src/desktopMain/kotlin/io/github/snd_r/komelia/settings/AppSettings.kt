@@ -50,6 +50,7 @@ data class ReaderBaseSettings(
 @Serializable
 data class PagedReaderSettings(
     val scaleType: LayoutScaleType = LayoutScaleType.SCREEN,
+    val stretchToFit: Boolean = true,
     val readingDirection: PagedReaderState.ReadingDirection = PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
     val pageLayout: PageDisplayLayout = SINGLE_PAGE
 )

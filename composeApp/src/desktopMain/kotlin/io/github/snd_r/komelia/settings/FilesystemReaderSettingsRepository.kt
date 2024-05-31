@@ -87,6 +87,24 @@ class FilesystemReaderSettingsRepository(
         ack.await()
     }
 
+    override fun getPagedReaderStretchToFit(): Flow<Boolean> {
+        return actor.getState().map { it.reader.pagedReaderSettings.stretchToFit }
+    }
+
+    override suspend fun putPagedReaderStretchToFit(stretch: Boolean) {
+        val ack = CompletableDeferred<AppSettings>()
+        actor.send(Transform(ack) { settings ->
+            settings.copy(
+                reader = settings.reader.copy(
+                    pagedReaderSettings = settings.reader.pagedReaderSettings.copy(
+                        stretchToFit = stretch
+                    ),
+                )
+            )
+        })
+        ack.await()
+    }
+
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {
         return actor.getState().map { it.reader.continuousReaderSettings.readingDirection }
     }

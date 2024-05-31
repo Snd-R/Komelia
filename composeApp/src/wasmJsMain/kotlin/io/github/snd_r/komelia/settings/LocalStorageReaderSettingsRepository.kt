@@ -95,6 +95,23 @@ class LocalStorageReaderSettingsRepository(private val settings: MutableStateFlo
         localStorage[pagedReaderLayoutKey] = layout.toString()
     }
 
+    override fun getPagedReaderStretchToFit(): Flow<Boolean> {
+        return settings.map { it.reader.pagedReaderSettings.stretchToFit }
+    }
+
+    override suspend fun putPagedReaderStretchToFit(stretch: Boolean) {
+        settings.update {
+            it.copy(
+                reader = it.reader.copy(
+                    pagedReaderSettings = it.reader.pagedReaderSettings.copy(
+                        stretchToFit = stretch
+                    )
+                )
+            )
+        }
+        localStorage[pagedReaderStretchToFitKey] = stretch.toString()
+    }
+
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {
         return settings.map { it.reader.continuousReaderSettings.readingDirection }
     }

@@ -110,19 +110,9 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
                 Text("${strings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
                 if (page.size != null) {
-                    val allowUpsample = state.allowUpsample.collectAsState().value
                     val scaledSize = state.getContentSizePx(page)
-                    val width = ((scaledSize.width * scaleFactor)
-                        .let {
-                            if (allowUpsample) it
-                            else it.coerceAtMost(page.size.width.toFloat())
-                        }).roundToInt()
-
-                    val height = (scaledSize.height * scaleFactor)
-                        .let {
-                            if (allowUpsample) it
-                            else it.coerceAtMost(page.size.height.toFloat())
-                        }.roundToInt()
+                    val width = (scaledSize.width * scaleFactor).roundToInt()
+                    val height = (scaledSize.height * scaleFactor).roundToInt()
                     Text("${strings.pageScaledSize} $width x $height")
                     Text("${strings.pageOriginalSize}: ${page.size.width} x ${page.size.height}")
                 }

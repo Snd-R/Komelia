@@ -21,7 +21,9 @@ import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.*
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +34,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -44,7 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger("ContinuousReaderState")
 
 class ContinuousReaderState(
     private val imageLoader: ImageLoader,
@@ -60,7 +61,6 @@ class ContinuousReaderState(
 
     val lazyListState = LazyListState(0, 0)
 
-    val allowUpsample = readerState.allowUpsample.asStateFlow()
     val readingDirection = MutableStateFlow(TOP_TO_BOTTOM)
     val sidePaddingFraction = MutableStateFlow(.3f)
     val sidePaddingPx = MutableStateFlow(0)
@@ -418,7 +418,13 @@ class ContinuousReaderState(
                 return@withContext cached
             }
 
-            logger.info { "image request $page; target size $targetSize" }
+
+            val targetSizeString = buildString {
+                append((targetSize.width as? Dimension.Pixels)?.px?.toString() ?: "Undefined")
+                append(" x ")
+                append((targetSize.height as? Dimension.Pixels)?.px?.toString() ?: "Undefined")
+            }
+            logger.info { "image request for page: $page; target size: $targetSizeString" }
             val request = ImageRequest.Builder(imageLoaderContext)
                 .data(page)
                 .size(targetSize)
@@ -442,8 +448,7 @@ class ContinuousReaderState(
                 val width = ((containerSize.width - (sidePaddingPx.value * 2)) * zoomScale).roundToInt()
                 val constrainedWidth = when {
                     page.size == null -> width.coerceAtMost(containerSize.width)
-                    readerState.allowUpsample.value -> width
-                    else -> width.coerceAtMost(page.size.width)
+                    else -> width
                 }
 
                 coil3.size.Size(
@@ -456,8 +461,7 @@ class ContinuousReaderState(
                 val height = ((containerSize.height - (sidePaddingPx.value * 2)) * zoomScale).roundToInt()
                 val constrainedHeight = when {
                     page.size == null -> height.coerceAtMost(containerSize.height)
-                    readerState.allowUpsample.value -> height
-                    else -> height.coerceAtMost(page.size.height)
+                    else -> height
                 }
 
                 coil3.size.Size(

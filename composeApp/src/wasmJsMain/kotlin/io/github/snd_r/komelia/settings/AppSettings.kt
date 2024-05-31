@@ -22,6 +22,7 @@ const val readerTypeKey = "readerType"
 const val upsampleKey = "upsample"
 
 const val pagedReaderScaleTypeKey = "pagedReaderScaleType"
+const val pagedReaderStretchToFitKey = "pagedReaderStretchToFit"
 const val pagedReaderReadingDirectionKey = "pagedReaderReadingDirection"
 const val pagedReaderLayoutKey = "pagedReaderLayout"
 
@@ -37,8 +38,8 @@ data class AppSettings(
     val appearance: AppearanceSettings,
     val reader: ReaderSettings = ReaderSettings(),
     val decoder: DecoderSettings = DecoderSettings()
-){
-    companion object{
+) {
+    companion object {
         fun loadSettings(): AppSettings {
             return AppSettings(
                 server = ServerSettings(
@@ -60,6 +61,9 @@ data class AppSettings(
                     pagedReaderSettings = PagedReaderSettings(
                         scaleType = localStorage[pagedReaderScaleTypeKey]?.let { LayoutScaleType.valueOf(it) }
                             ?: LayoutScaleType.SCREEN,
+                        stretchToFit = localStorage[pagedReaderStretchToFitKey]
+                            ?.let { it.toBoolean() }
+                            ?: true,
                         readingDirection = localStorage[pagedReaderReadingDirectionKey]
                             ?.let { PagedReaderState.ReadingDirection.valueOf(it) }
                             ?: PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
@@ -107,6 +111,7 @@ data class ReaderSettings(
 
 data class PagedReaderSettings(
     val scaleType: LayoutScaleType = LayoutScaleType.SCREEN,
+    val stretchToFit: Boolean = true,
     val readingDirection: PagedReaderState.ReadingDirection = PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
     val pageLayout: PageDisplayLayout = PageDisplayLayout.SINGLE_PAGE
 )

@@ -32,13 +32,13 @@ import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderContent
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderContent
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderPageState
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun ReaderContent(
     commonReaderState: ReaderState,
-    pagedReaderState: PagedReaderPageState,
+    pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
     screenScaleState: ScreenScaleState,
 
@@ -109,24 +109,27 @@ fun ReaderControlsOverlay(
     readingDirection: LayoutDirection,
     onNexPageClick: () -> Unit,
     onPrevPageClick: () -> Unit,
+    isSettingsMenuOpen: Boolean,
     onSettingsMenuToggle: () -> Unit,
     contentAreaSize: IntSize,
     content: @Composable () -> Unit,
 ) {
     val leftAction = {
-        if (readingDirection == LayoutDirection.Ltr) onPrevPageClick()
+        if (isSettingsMenuOpen) onSettingsMenuToggle()
+        else if (readingDirection == LayoutDirection.Ltr) onPrevPageClick()
         else onNexPageClick()
     }
     val centerAction = { onSettingsMenuToggle() }
     val rightAction = {
-        if (readingDirection == LayoutDirection.Ltr) onNexPageClick()
+        if (isSettingsMenuOpen) onSettingsMenuToggle()
+        else if (readingDirection == LayoutDirection.Ltr) onNexPageClick()
         else onPrevPageClick()
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(contentAreaSize, readingDirection, onSettingsMenuToggle) {
+            .pointerInput(contentAreaSize, readingDirection, onSettingsMenuToggle, isSettingsMenuOpen) {
                 detectTapGestures { offset ->
                     val actionWidth = contentAreaSize.width.toFloat() / 3
                     when (offset.x) {

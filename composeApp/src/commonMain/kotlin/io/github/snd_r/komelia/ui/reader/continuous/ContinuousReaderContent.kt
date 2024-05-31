@@ -5,10 +5,20 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -16,7 +26,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -53,7 +63,9 @@ import io.github.snd_r.komelia.ui.reader.common.ReaderControlsOverlay
 import io.github.snd_r.komelia.ui.reader.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.common.SettingsMenu
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.BookPagesInterval
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.*
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
 import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
@@ -115,6 +127,7 @@ fun BoxScope.ContinuousReaderContent(
             }
         },
         contentAreaSize = areaSize,
+        isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
     ) {
         ScalableContainer(continuousReaderState.screenScaleState) {
@@ -146,7 +159,7 @@ fun BoxScope.ContinuousReaderContent(
 
 
 @Composable
-private fun ReaderPages(state: ContinuousReaderState, ) {
+private fun ReaderPages(state: ContinuousReaderState) {
     val pageIntervals = state.pageIntervals.collectAsState().value
     val sidePadding = with(LocalDensity.current) { state.sidePaddingPx.collectAsState().value.toDp() }
     val readingDirection = state.readingDirection.collectAsState().value
@@ -332,7 +345,6 @@ private fun Image(
     val transforms = state.screenScaleState.transformation.collectAsState().value
     val targetSize = state.screenScaleState.targetSize.collectAsState().value
     val readingDirection = state.readingDirection.collectAsState().value
-    val allowUpsample = state.allowUpsample.collectAsState().value
 
     val imageScale = remember(readingDirection) {
         when (readingDirection) {
@@ -342,7 +354,7 @@ private fun Image(
     }
 
     var image by remember { mutableStateOf<ImageResult?>(null) }
-    LaunchedEffect(transforms.scale, targetSize, allowUpsample) {
+    LaunchedEffect(transforms.scale, targetSize) {
         image = state.getImage(page)
     }
     Box(modifier) {

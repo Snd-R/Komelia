@@ -125,8 +125,8 @@ class ScreenScaleState {
                     else -> false
                 }
                 val canPanVertically = when {
-                    delta.y < 0 -> canPanDown()
-                    delta.y > 0 -> canPanUp()
+                    delta.y > 0 -> canPanDown()
+                    delta.y < 0 -> canPanUp()
                     else -> false
                 }
                 if (!canPanHorizontally && !canPanVertically) {
@@ -139,19 +139,19 @@ class ScreenScaleState {
         }
     }
 
-    fun canPanUp(): Boolean {
-        return currentOffset.y < offsetYLimits.value.start
+    private fun canPanUp(): Boolean {
+        return currentOffset.y > offsetYLimits.value.start
     }
 
-    fun canPanDown(): Boolean {
-        return currentOffset.y > offsetYLimits.value.endInclusive
+    private fun canPanDown(): Boolean {
+        return currentOffset.y < offsetYLimits.value.endInclusive
     }
 
-    fun canPanLeft(): Boolean {
+    private fun canPanLeft(): Boolean {
         return currentOffset.x > offsetXLimits.value.start
     }
 
-    fun canPanRight(): Boolean {
+    private fun canPanRight(): Boolean {
         return currentOffset.x < offsetXLimits.value.endInclusive
     }
 

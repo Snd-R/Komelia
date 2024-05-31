@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -58,7 +59,7 @@ class ReaderScreen(
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
 
         Column {
-            PlatformTitleBar()
+            PlatformTitleBar(Modifier.zIndex(10f))
             when (val result = vmState.value) {
                 is Error -> ErrorContent(
                     exception = result.exception,

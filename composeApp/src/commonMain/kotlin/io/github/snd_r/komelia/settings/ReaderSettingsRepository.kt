@@ -20,6 +20,8 @@ interface ReaderSettingsRepository {
     suspend fun putPagedReaderReadingDirection(direction: PagedReaderState.ReadingDirection)
     fun getPagedReaderDisplayLayout(): Flow<PageDisplayLayout>
     suspend fun putPagedReaderDisplayLayout(layout: PageDisplayLayout)
+    fun getPagedReaderStretchToFit(): Flow<Boolean>
+    suspend fun putPagedReaderStretchToFit(stretch: Boolean)
 
 
     fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection>

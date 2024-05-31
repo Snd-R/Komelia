@@ -39,14 +39,12 @@ class ReaderState(
 ) : ScreenModel {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val readerType = MutableStateFlow(ReaderType.CONTINUOUS)
-    val allowUpsample = MutableStateFlow(false)
     val decoder = MutableStateFlow<SamplerType?>(null)
 
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
 
     suspend fun initialize(bookId: KomgaBookId) {
-        allowUpsample.value = readerSettingsRepository.getUpsample().first()
         decoder.value = settingsRepository.getDecoderType().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
 
@@ -179,15 +177,6 @@ class ReaderState(
         }
 
         readProgressPage.value = page
-    }
-
-    fun onAllowUpsampleChange(upsample: Boolean) {
-        this.allowUpsample.value = upsample
-        stateScope.launch { readerSettingsRepository.putUpsample(upsample) }
-
-        val upsampleText = if (upsample) "Enabled"
-        else "Disabled"
-        appNotifications.add(AppNotification.Normal("$upsampleText upsample beyond image dimensions"))
     }
 
     fun onDecoderChange(type: SamplerType) {

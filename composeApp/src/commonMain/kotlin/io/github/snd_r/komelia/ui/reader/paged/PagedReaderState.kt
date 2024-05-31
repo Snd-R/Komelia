@@ -16,7 +16,6 @@ import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.SpreadIndex
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageSpread
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +24,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
@@ -43,20 +41,21 @@ class PagedReaderState(
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
     val screenScaleState: ScreenScaleState
-) : PagedReaderPageState {
+) {
     private val pagedReaderImageLoader = PagedReaderImageLoader(imageLoader, imageLoaderContext)
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val resampleScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    override val pageSpreads = MutableStateFlow<List<List<PageMetadata>>>(emptyList())
-    override val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
-    override val currentSpreadIndex = MutableStateFlow(0)
+    val pageSpreads = MutableStateFlow<List<List<PageMetadata>>>(emptyList())
+    val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
+    val currentSpreadIndex = MutableStateFlow(0)
 
-    override val layout = MutableStateFlow(SINGLE_PAGE)
-    override val layoutOffset = MutableStateFlow(false)
-    override val scaleType = MutableStateFlow(LayoutScaleType.SCREEN)
-    override val readingDirection = MutableStateFlow(LEFT_TO_RIGHT)
+    val layout = MutableStateFlow(SINGLE_PAGE)
+    val layoutOffset = MutableStateFlow(false)
+    val scaleType = MutableStateFlow(LayoutScaleType.SCREEN)
+    val readingDirection = MutableStateFlow(LEFT_TO_RIGHT)
+    val imageStretchToFit = MutableStateFlow(true)
 
     suspend fun initialize() {
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
@@ -73,16 +72,13 @@ class PagedReaderState(
                 loadPage(currentSpreadIndex.value)
             }.launchIn(stateScope)
 
-        readerState.booksState
-            .filterNotNull()
-            .onEach { newBook -> onNewBookLoaded(newBook) }
-            .launchIn(stateScope)
-
         screenScaleState.areaSize
+            .drop(1)
             .onEach { loadPage(currentSpreadIndex.value) }
             .launchIn(stateScope)
 
         screenScaleState.transformation
+            .drop(1)
             .map { it.scale }
             .distinctUntilChanged()
             .onEach { newScaleFactor ->
@@ -94,9 +90,9 @@ class PagedReaderState(
             }
             .launchIn(stateScope)
 
-        readerState.allowUpsample
-            .drop(1)
-            .onEach { resamplePages() }
+        readerState.booksState
+            .filterNotNull()
+            .onEach { newBook -> onNewBookLoaded(newBook) }
             .launchIn(stateScope)
 
     }
@@ -122,7 +118,7 @@ class PagedReaderState(
         loadPage(lastReadSpreadIndex)
     }
 
-    override fun nextPage() {
+    fun nextPage() {
         val currentSpreadIndex = currentSpreadIndex.value
         if (currentSpreadIndex == pageSpreads.value.size - 1) {
             stateScope.launch {
@@ -134,7 +130,7 @@ class PagedReaderState(
         }
     }
 
-    override fun previousPage() {
+    fun previousPage() {
         val currentSpreadIndex = currentSpreadIndex.value
         if (currentSpreadIndex == 0) {
             stateScope.launch {
@@ -148,7 +144,7 @@ class PagedReaderState(
         onPageChange(currentSpreadIndex - 1)
     }
 
-    override fun onPageChange(page: Int) {
+    fun onPageChange(page: Int) {
         if (currentSpreadIndex.value == page) return
         loadPage(page)
     }
@@ -175,7 +171,7 @@ class PagedReaderState(
             containerSize = containerSize,
             layout = layout.value,
             scaleType = scaleType.value,
-            allowUpsample = readerState.allowUpsample.value
+            stretchToFit = imageStretchToFit.value
         )
 
         loadRange.filter { it != loadSpreadIndex }
@@ -187,7 +183,7 @@ class PagedReaderState(
                     containerSize = containerSize,
                     layout = layout.value,
                     scaleType = scaleType.value,
-                    allowUpsample = readerState.allowUpsample.value
+                    stretchToFit = imageStretchToFit.value
                 )
             }
 
@@ -241,7 +237,7 @@ class PagedReaderState(
                 containerSize = screenScaleState.areaSize.value,
                 zoomFactor = currentScaleFactor,
                 scaleType = scaleType.value,
-                allowUpsample = readerState.allowUpsample.value
+                stretchToFit = imageStretchToFit.value
             )
 
             currentSpread.update { current ->
@@ -302,7 +298,7 @@ class PagedReaderState(
         return (spreadIndex - 1).coerceAtLeast(0)..(spreadIndex + 1).coerceAtMost(spreads.size - 1)
     }
 
-    override fun onLayoutChange(layout: PageDisplayLayout) {
+    fun onLayoutChange(layout: PageDisplayLayout) {
         this.layout.value = layout
         stateScope.launch { settingsRepository.putPagedReaderDisplayLayout(layout) }
 
@@ -313,13 +309,13 @@ class PagedReaderState(
         loadPage(spreadIndexOf(currentPage))
     }
 
-    override fun onLayoutCycle() {
+    fun onLayoutCycle() {
         val options = PageDisplayLayout.entries
         val newLayout = options[(layout.value.ordinal + 1) % options.size]
         onLayoutChange(newLayout)
     }
 
-    override fun onLayoutOffsetChange(offset: Boolean) {
+    fun onLayoutOffsetChange(offset: Boolean) {
         val currentLayout = layout.value
         if (currentLayout != DOUBLE_PAGES) return
         this.layoutOffset.value = offset
@@ -331,22 +327,28 @@ class PagedReaderState(
         loadPage(spreadIndexOf(currentPage))
     }
 
-    override fun onScaleTypeChange(scale: LayoutScaleType) {
+    fun onScaleTypeChange(scale: LayoutScaleType) {
         this.scaleType.value = scale
         val currentPage = currentSpread.value.pages.first().metadata
         loadPage(spreadIndexOf(currentPage))
         stateScope.launch { settingsRepository.putPagedReaderScaleType(scale) }
     }
 
-    override fun onScaleTypeCycle() {
+    fun onScaleTypeCycle() {
         val options = LayoutScaleType.entries
         val newScale = options[(scaleType.value.ordinal + 1) % options.size]
         onScaleTypeChange(newScale)
     }
 
-    override fun onReadingDirectionChange(readingDirection: ReadingDirection) {
+    fun onReadingDirectionChange(readingDirection: ReadingDirection) {
         this.readingDirection.value = readingDirection
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
+    }
+
+    fun onStretchToFitChange(stretch: Boolean) {
+        this.imageStretchToFit.value = stretch
+        stateScope.launch { settingsRepository.putPagedReaderStretchToFit(stretch) }
+        loadPage(spreadIndexOf(currentSpread.value.pages.first().metadata))
     }
 
     enum class ReadingDirection {
@@ -429,29 +431,6 @@ class PagedReaderState(
 //
 //        return spreads
 //    }
-
-interface PagedReaderPageState {
-    val currentSpread: StateFlow<PageSpread>
-    val pageSpreads: StateFlow<List<List<PageMetadata>>>
-    val currentSpreadIndex: StateFlow<SpreadIndex>
-
-    val layout: StateFlow<PageDisplayLayout>
-    val layoutOffset: StateFlow<Boolean>
-    val scaleType: StateFlow<LayoutScaleType>
-    val readingDirection: StateFlow<PagedReaderState.ReadingDirection>
-
-    fun onPageChange(page: Int)
-    fun nextPage()
-    fun previousPage()
-
-    fun onLayoutChange(layout: PageDisplayLayout)
-    fun onLayoutCycle()
-    fun onLayoutOffsetChange(offset: Boolean)
-    fun onScaleTypeChange(scale: LayoutScaleType)
-    fun onScaleTypeCycle()
-    fun onReadingDirectionChange(readingDirection: PagedReaderState.ReadingDirection)
-}
-
 
 enum class PageDisplayLayout {
     SINGLE_PAGE,

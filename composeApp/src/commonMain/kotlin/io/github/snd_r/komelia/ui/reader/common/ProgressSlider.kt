@@ -31,6 +31,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.LayoutDirection.Ltr
+import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import kotlin.math.roundToInt
@@ -65,7 +67,10 @@ fun PageSpreadProgressSlider(
 ) {
     if (pageSpreads.isEmpty()) return
     val currentSpread = pageSpreads.getOrElse(currentSpreadIndex) { pageSpreads.last() }
-    val label = currentSpread.map { it.pageNumber }.joinToString("-")
+    val label = when (layoutDirection) {
+        Ltr -> currentSpread.map { it.pageNumber }.joinToString("-")
+        Rtl -> currentSpread.reversed().map { it.pageNumber }.joinToString("-")
+    }
 
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered = interactionSource.collectIsHoveredAsState()

@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
-import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.ReaderState
@@ -121,6 +120,9 @@ private fun ColumnScope.SettingsContent(
     val strings = LocalStrings.current.readerSettings
 
     val readerType = settingsState.readerType.collectAsState().value
+    val zoom = screenScaleState.zoom.collectAsState().value
+    val zoomPercentage = (zoom * 100).roundToInt()
+    Text("Zoom: $zoomPercentage%")
     DropdownChoiceMenu(
         selectedOption = LabeledEntry(readerType, readerType.name),
         options = ReaderType.entries.map { LabeledEntry(it, it.name) },
@@ -140,21 +142,6 @@ private fun ColumnScope.SettingsContent(
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        val zoom = screenScaleState.zoom.collectAsState().value
-        val zoomPercentage = (zoom * 100).roundToInt()
-        Text("Zoom: $zoomPercentage%")
-
-        CheckboxWithLabel(
-            settingsState.allowUpsample.collectAsState().value,
-            settingsState::onAllowUpsampleChange,
-            label = { Text(strings.upsample) },
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
 
     HorizontalDivider(Modifier.padding(vertical = 5.dp))
     readerSettingsContent()

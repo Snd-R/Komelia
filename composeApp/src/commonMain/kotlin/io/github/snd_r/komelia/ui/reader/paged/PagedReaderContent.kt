@@ -43,7 +43,7 @@ fun BoxScope.PagedReaderContent(
     onShowSettingsMenuChange: (Boolean) -> Unit,
 
     screenScaleState: ScreenScaleState,
-    pagedReaderState: PagedReaderPageState,
+    pagedReaderState: PagedReaderState,
     readerState: ReaderState,
 
     book: KomgaBook?,
@@ -73,6 +73,7 @@ fun BoxScope.PagedReaderContent(
         onNexPageClick = pagedReaderState::nextPage,
         onPrevPageClick = pagedReaderState::previousPage,
         contentAreaSize = currentContainerSize,
+        isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
     ) {
         ScalableContainer(scaleState = screenScaleState) {
@@ -145,7 +146,7 @@ fun ReaderPages(
 
 private suspend fun registerPagedReaderKeyboardEvents(
     keyEvents: SharedFlow<KeyEvent>,
-    pageState: PagedReaderPageState,
+    pageState: PagedReaderState,
 ) {
     val readingDirection = pageState.readingDirection.value
     val layoutOffset = pageState.layoutOffset.value
