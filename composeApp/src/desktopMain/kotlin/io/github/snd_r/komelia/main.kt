@@ -40,6 +40,7 @@ import androidx.compose.ui.window.rememberWindowState
 import ch.qos.logback.classic.LoggerContext
 import com.jetbrains.JBR
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.VipsDecoder
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
@@ -54,6 +55,7 @@ import org.slf4j.LoggerFactory
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import kotlin.system.exitProcess
+import kotlin.time.measureTime
 
 
 private val logger = KotlinLogging.logger {}
@@ -68,6 +70,16 @@ private var windowLastState: WindowState? = null
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    measureTime {
+        try {
+            VipsDecoder.load()
+        } catch (e: UnsatisfiedLinkError) {
+            logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
+        }
+    }.also {
+        logger.info { "loaded vips in $it" }
+    }
+
     while (shouldRestart) {
         application(exitProcessOnExit = false) {
             val windowState = windowLastState ?: rememberWindowState(

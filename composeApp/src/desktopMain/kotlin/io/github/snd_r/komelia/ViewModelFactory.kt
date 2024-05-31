@@ -7,7 +7,6 @@ import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.VipsDecoder
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.DesktopDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
@@ -52,15 +51,6 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
         val initResult = measureTimedValue {
             setLogLevel()
 
-            measureTime {
-                try {
-                    VipsDecoder.load()
-                } catch (e: UnsatisfiedLinkError) {
-                    logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
-                }
-            }.also {
-                logger.info { "loaded vips in $it" }
-            }
 
 
             val settingsActor = createSettingsActor()
