@@ -10,6 +10,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
+import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
+import io.github.snd_r.komelia.ui.reader.ReaderType.PAGED
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komga.book.KomgaBookClient
@@ -55,6 +57,7 @@ class ReaderViewModel(
         imageLoaderContext = imageLoaderContext,
         readerState = readerState,
         settingsRepository = readerSettingsRepository,
+        notifications = appNotifications,
         screenScaleState = screenScaleState,
     )
 
@@ -63,20 +66,19 @@ class ReaderViewModel(
             readerState.initialize(bookId)
             screenScaleState.areaSize.takeWhile { it == IntSize.Zero }.collect()
 
-            readerState.readerType
-                .collect {
-                    when (it) {
-                        ReaderType.PAGED -> {
-                            continuousReaderState.stop()
-                            pagedReaderState.initialize()
-                        }
+            readerState.readerType.collect {
+                when (it) {
+                    PAGED -> {
+                        continuousReaderState.stop()
+                        pagedReaderState.initialize()
+                    }
 
-                        ReaderType.CONTINUOUS -> {
-                            pagedReaderState.stop()
-                            continuousReaderState.initialize()
-                        }
+                    CONTINUOUS -> {
+                        pagedReaderState.stop()
+                        continuousReaderState.initialize()
                     }
                 }
+            }
         }
     }
 

@@ -17,6 +17,8 @@ import coil3.size.Dimension
 import coil3.size.Precision
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.reactivecircus.cache4k.Cache
+import io.github.snd_r.komelia.AppNotification
+import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
@@ -52,6 +54,7 @@ class ContinuousReaderState(
     private val imageLoaderContext: PlatformContext,
     private val readerState: ReaderState,
     private val settingsRepository: ReaderSettingsRepository,
+    private val notifications: AppNotifications,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -177,6 +180,8 @@ class ContinuousReaderState(
             }
             .launchIn(stateScope)
 
+
+        notifications.add(AppNotification.Normal("Continuous ${readingDirection.value}"))
     }
 
     fun stop() {

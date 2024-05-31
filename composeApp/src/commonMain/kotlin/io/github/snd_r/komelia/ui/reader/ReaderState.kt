@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
+import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookClient
@@ -38,7 +39,7 @@ class ReaderState(
     private val stateScope: CoroutineScope,
 ) : ScreenModel {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
-    val readerType = MutableStateFlow(ReaderType.CONTINUOUS)
+    val readerType = MutableStateFlow(CONTINUOUS)
     val decoder = MutableStateFlow<SamplerType?>(null)
 
     val booksState = MutableStateFlow<BookState?>(null)

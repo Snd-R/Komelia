@@ -20,6 +20,7 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
@@ -46,6 +47,9 @@ class PagedReaderState(
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val resampleScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private var bookSwitchConfirmed = false
+    private val bookSwitchNotificationJobs = mutableMapOf<AppNotification, Job>()
 
     val pageSpreads = MutableStateFlow<List<List<PageMetadata>>>(emptyList())
     val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
@@ -95,6 +99,7 @@ class PagedReaderState(
             .onEach { newBook -> onNewBookLoaded(newBook) }
             .launchIn(stateScope)
 
+        appNotifications.add(AppNotification.Normal("Paged ${readingDirection.value}"))
     }
 
     fun stop() {
@@ -120,28 +125,63 @@ class PagedReaderState(
 
     fun nextPage() {
         val currentSpreadIndex = currentSpreadIndex.value
-        if (currentSpreadIndex == pageSpreads.value.size - 1) {
-            stateScope.launch {
-                readerState.loadNextBook()
-                appNotifications.add(AppNotification.Normal("Loaded next book"))
+        when {
+            currentSpreadIndex != pageSpreads.value.size - 1 -> onPageChange(currentSpreadIndex + 1)
+
+            !bookSwitchConfirmed -> {
+                val notification = if (readerState.booksState.value?.nextBook == null) {
+                    AppNotification.Normal("You've reached the end of the book\nClick or press \"Next\" again to exit the reader")
+                } else {
+                    AppNotification.Normal("You've reached the end of the book\nClick or press next to move to the next book")
+                }
+
+                launchBookSwitchNotification(notification)
             }
-        } else {
-            onPageChange(currentSpreadIndex + 1)
+
+            else -> {
+                bookSwitchNotificationJobs.forEach { (notification, job) ->
+                    job.cancel()
+                    appNotifications.remove(notification.id)
+                    bookSwitchConfirmed = false
+
+                }
+                stateScope.launch { readerState.loadNextBook() }
+
+            }
+
         }
+
     }
 
     fun previousPage() {
         val currentSpreadIndex = currentSpreadIndex.value
-        if (currentSpreadIndex == 0) {
-            stateScope.launch {
-                readerState.loadPreviousBook()
+        when {
+            currentSpreadIndex != 0 -> onPageChange(currentSpreadIndex - 1)
+            readerState.booksState.value?.previousBook == null -> appNotifications.add(AppNotification.Normal("You're at the beginning of the book"))
+            !bookSwitchConfirmed -> launchBookSwitchNotification(
+                AppNotification.Normal("You're at the beginning of the book\nClick or press \"Previous\" again to move to the previous book")
+            )
 
-                appNotifications.add(AppNotification.Normal("Loaded previous book"))
+            else -> {
+                bookSwitchNotificationJobs.forEach { (notification, job) ->
+                    job.cancel()
+                    appNotifications.remove(notification.id)
+                    bookSwitchConfirmed = false
+
+                }
+                stateScope.launch { readerState.loadPreviousBook() }
             }
-            return
         }
+    }
 
-        onPageChange(currentSpreadIndex - 1)
+    private fun launchBookSwitchNotification(notification: AppNotification) {
+        appNotifications.add(notification)
+        bookSwitchConfirmed = true
+        bookSwitchNotificationJobs[notification] = stateScope.launch {
+            delay(3000)
+            bookSwitchConfirmed = false
+            appNotifications.remove(notification.id)
+        }
     }
 
     fun onPageChange(page: Int) {
