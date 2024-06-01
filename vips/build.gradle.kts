@@ -50,6 +50,7 @@ tasks.register<Sync>("linuxCopyVipsLibsToClasspath") {
         "libbrotlicommon.so",
         "libbrotlidec.so",
         "libbrotlienc.so",
+        "libde265.so",
         "libdav1d.so",
         "libexpat.so",
         "libffi.so",

@@ -41,7 +41,7 @@ object VipsDecoder {
         "brotlienc",
         "jxl_cms",
         "jxl_threads",
-        "jxl.so",
+        "jxl",
         "spng",
         "tiff",
         "heif",
