@@ -153,7 +153,6 @@ kotlin {
 
             implementation("dev.dirs:directories:26")
             implementation("com.github.javakeyring:java-keyring:1.0.4")
-            // use newer transitive dependency version for linux secret service KeePass support
             implementation("de.swiesend:secret-service:2.0.1-alpha")
 
             implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")

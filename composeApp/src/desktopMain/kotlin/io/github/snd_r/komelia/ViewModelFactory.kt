@@ -17,11 +17,13 @@ import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.secrets.AppKeyring
 import io.github.snd_r.komelia.settings.ActorMessage
 import io.github.snd_r.komelia.settings.FileSystemSettingsActor
 import io.github.snd_r.komelia.settings.FilesystemReaderSettingsRepository
 import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
+import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -51,17 +53,11 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
         val initResult = measureTimedValue {
             setLogLevel()
 
-
-
             val settingsActor = createSettingsActor()
             val settingsRepository = FilesystemSettingsRepository(settingsActor)
             val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
 
-            val secretsRepository = measureTimedValue {
-                KeyringSecretsRepository()
-            }.also {
-                logger.info { "initialized keyring in ${it.duration}" }
-            }.value
+            val secretsRepository = createSecretsRepository()
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
             val decoderType = settingsRepository.getDecoderType().stateIn(stateFlowScope)
@@ -189,6 +185,12 @@ private suspend fun createSettingsActor(): FileSystemSettingsActor {
     }
     logger.info { "loaded settings in ${result.duration}" }
     return result.value
+}
+
+private fun createSecretsRepository(): SecretsRepository {
+    return measureTimedValue { KeyringSecretsRepository(AppKeyring()) }
+        .also { logger.info { "initialized keyring in ${it.duration}" } }
+        .value
 }
 
 private fun setLogLevel() {

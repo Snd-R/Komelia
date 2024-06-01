@@ -1,25 +1,11 @@
 package io.github.snd_r.komelia.settings
 
-import com.github.javakeyring.Keyring
 import com.github.javakeyring.PasswordAccessException
-import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.secrets.AppKeyring
 
 private const val KEYRING_SERVICE_NAME = "komelia"
 
-private val logger = KotlinLogging.logger {}
-
-class KeyringSecretsRepository : SecretsRepository {
-    private val keyring: Keyring = createKeyring()
-
-    private fun createKeyring(): Keyring {
-        return try {
-            Keyring.create()
-        } catch (e: Exception) {
-            logger.error(e) {}
-            Thread.sleep(100)
-            Keyring.create()
-        }
-    }
+class KeyringSecretsRepository(private val keyring: AppKeyring) : SecretsRepository {
 
     override suspend fun getCookie(url: String): String? {
         return try {
