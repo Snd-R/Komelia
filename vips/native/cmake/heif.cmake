@@ -1,9 +1,9 @@
 include(ExternalProject)
 
-list(APPEND DEPENDENCIES ep_heif)
 ExternalProject_Add(ep_heif
     GIT_REPOSITORY      https://github.com/strukturag/libheif.git
     GIT_TAG             v1.17.6
+    DEPENDS ep_dav1d ep_de265 ep_webp ep_zlib
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/fakeroot
@@ -14,7 +14,7 @@ ExternalProject_Add(ep_heif
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_FIND_ROOT_PATH=${CMAKE_FIND_ROOT_PATH}
         -DWITH_DAV1D=ON
-        -DWITH_LIBDE265=OFF
+        -DWITH_LIBDE265=ON
         -DWITH_X265=OFF
         -DWITH_AOM_DECODER=OFF
         -DWITH_AOM_ENCODER=OFF
@@ -29,9 +29,4 @@ ExternalProject_Add(ep_heif
         -DWITH_DAV1D_PLUGIN=OFF
         -DWITH_LIBDE265_PLUGIN=OFF
         --preset=release
-        DEPENDS
-        ep_dav1d
-        ep_webp
-        ep_zlib
-        #ep_de265
 )

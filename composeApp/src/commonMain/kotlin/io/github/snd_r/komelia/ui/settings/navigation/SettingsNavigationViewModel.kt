@@ -46,9 +46,9 @@ class SettingsNavigationViewModel(
 
     fun logout() {
         appNotifications.runCatchingToNotifications(screenModelScope) {
-            authenticatedUser.value = null
-            userClient.logout()
             secretsRepository.deleteCookie(currentServerUrl.first())
+            userClient.logout()
+            authenticatedUser.value = null
             rootNavigator.replaceAll(LoginScreen())
         }
     }

@@ -1,6 +1,5 @@
 include(ExternalProject)
 
-list(APPEND DEPENDENCIES ep_de265)
 ExternalProject_Add(ep_de265
     GIT_REPOSITORY      https://github.com/strukturag/libde265.git
     GIT_TAG             v1.0.15

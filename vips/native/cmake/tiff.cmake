@@ -1,8 +1,8 @@
 include(ExternalProject)
 
-list(APPEND DEPENDENCIES ep_tiff)
 ExternalProject_Add(ep_tiff
     URL http://download.osgeo.org/libtiff/tiff-4.6.0.tar.gz
+    DEPENDS ep_zlib ep_jxl ep_webp
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/fakeroot
@@ -17,8 +17,4 @@ ExternalProject_Add(ep_tiff
         -Dlerc=OFF
         -Dlibdeflate=OFF
         -Dcxx=OFF
-        DEPENDS
-        ep_zlib
-        ep_mozjpeg
-        ep_webp
 )

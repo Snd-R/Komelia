@@ -51,7 +51,7 @@ run `./gradlew :vips:windowsBuild` to launch windows build using system toolchai
 
 alternatively you can run build inside docker container 
 - `cd ./vips/native`
-- `docker build -t komelia-vips-w64-build . `
+- `docker build -t komelia-vips-w64-build . -f w64.Dockerfile`
 - `docker run -v .:/build komelia-vips-w64-build <num_of_build_jobs>`
 
 after build `./gradlew :vips:windowsCopyVipsLibsToClasspath` to copy libraries to be bundled

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <vips/vips.h>
 #include <jni.h>
 

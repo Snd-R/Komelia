@@ -86,7 +86,7 @@ fun PageSpreadProgressSlider(
             SliderWithLabel(
                 value = currentSpreadIndex.toFloat(),
                 valueRange = 0f..(pageSpreads.size - 1).toFloat(),
-                steps = pageSpreads.size - 2,
+                steps = (pageSpreads.size - 2).coerceAtLeast(0),
                 direction = layoutDirection,
                 onValueChange = { onPageNumberChange(it.roundToInt()) },
                 label = label,

@@ -17,6 +17,7 @@ windres = 'x86_64-w64-mingw32-windres'
 cmake = 'cmake'
 
 [cmake]
+CMAKE_FIND_ROOT_PATH               = '/usr/x86_64-w64-mingw32;${CMAKE_INSTALL_PREFIX})'
 CMAKE_BUILD_WITH_INSTALL_RPATH     = 'ON'
 CMAKE_FIND_ROOT_PATH_MODE_PROGRAM  = 'NEVER'
 CMAKE_FIND_ROOT_PATH_MODE_LIBRARY  = 'ONLY'

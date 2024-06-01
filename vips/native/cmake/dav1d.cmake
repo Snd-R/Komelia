@@ -1,16 +1,17 @@
 include(ExternalProject)
 
-list(APPEND DEPENDENCIES ep_dav1d)
+if (MESON_CROSS_FILE)
+    set(MESON_CROSS_FILE_ARG --cross-file=${MESON_CROSS_FILE})
+endif()
+
 ExternalProject_Add(ep_dav1d
-        GIT_REPOSITORY https://code.videolan.org/videolan/dav1d.git
-        GIT_TAG 1.4.1
+GIT_REPOSITORY https://code.videolan.org/videolan/dav1d.git
+        GIT_TAG 1.4.2
+        DEPENDS ep_zlib
         CONFIGURE_COMMAND
-        PKG_CONFIG_PATH=${THIRD_PARTY_LIB_PATH}/lib/pkgconfig LIBRARY_PATH=${THIRD_PARTY_LIB_PATH}/lib LD_LIBRARY_PATH=${THIRD_PARTY_LIB_PATH}/lib:$ENV{LD_LIBRARY_PATH}
-         ${Meson_EXECUTABLE} setup ${MESON_CROSS_FILE_ARG} --prefix=<INSTALL_DIR> --libdir=lib <BINARY_DIR> <SOURCE_DIR>
+            ${Meson_EXECUTABLE} setup ${MESON_CROSS_FILE_ARG} --prefix=<INSTALL_DIR> --libdir=lib <BINARY_DIR> <SOURCE_DIR>
         BUILD_COMMAND
-        ${Ninja_EXECUTABLE} -C <BINARY_DIR>
+            ${Ninja_EXECUTABLE} -C <BINARY_DIR>
         INSTALL_COMMAND
-        ${Ninja_EXECUTABLE} -C <BINARY_DIR> install
-        DEPENDS
-        ep_zlib
+            ${Ninja_EXECUTABLE} -C <BINARY_DIR> install
 )

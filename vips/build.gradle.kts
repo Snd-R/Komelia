@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.12")
+    implementation("org.slf4j:slf4j-api:2.0.13")
 }
 
 kotlin {
@@ -29,6 +29,8 @@ tasks.register<Exec>("linuxPrepareBuild") {
     group = "vips"
     project.mkdir(linuxBuildDir)
     workingDir(linuxBuildDir)
+    environment("PKG_CONFIG_PATH", "$linuxBuildDir/fakeroot/lib/pkgconfig")
+    environment("PKG_CONFIG_PATH_CUSTOM", "$linuxBuildDir/fakeroot/lib/pkgconfig")
     commandLine("cmake", "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", "..")
 }
 
@@ -37,12 +39,17 @@ tasks.register<Exec>("linuxBuild") {
     dependsOn("linuxPrepareBuild")
 
     workingDir(linuxBuildDir)
+    environment("PKG_CONFIG_PATH", "$linuxBuildDir/fakeroot/lib/pkgconfig")
+    environment("PKG_CONFIG_PATH_CUSTOM", "$linuxBuildDir/fakeroot/lib/pkgconfig")
     commandLine("cmake", "--build", ".", "-j", "${Runtime.getRuntime().availableProcessors()}")
 }
 
 tasks.register<Sync>("linuxCopyVipsLibsToClasspath") {
     group = "vips"
     val libs = setOf(
+        "libbrotlicommon.so",
+        "libbrotlidec.so",
+        "libbrotlienc.so",
         "libdav1d.so",
         "libexpat.so",
         "libffi.so",
@@ -54,6 +61,9 @@ tasks.register<Sync>("linuxCopyVipsLibsToClasspath") {
         "libheif.so",
         "libhwy.so",
         "libjpeg.so",
+        "libjxl.so",
+        "libjxl_cms.so",
+        "libjxl_threads.so",
         "libsharpyuv.so",
         "libspng.so",
         "libtiff.so",
@@ -63,8 +73,8 @@ tasks.register<Sync>("linuxCopyVipsLibsToClasspath") {
         "libwebpdecoder.so",
         "libwebpdemux.so",
         "libwebpmux.so",
-        "libkomelia.so",
         "libz.so",
+        "libkomelia.so",
     )
 
     from("$linuxBuildDir/fakeroot/lib/")
@@ -118,6 +128,9 @@ tasks.register<Exec>("windowsPrepareBuild") {
     project.mkdir(windowsBuildDir)
     workingDir(windowsBuildDir)
     environment("JAVA_HOME", "$windowsBuildDir/jdk")
+    environment("PKG_CONFIG_PATH", "$windowsBuildDir/fakeroot/lib/pkgconfig")
+    environment("PKG_CONFIG_PATH_CUSTOM", "$windowsBuildDir/fakeroot/lib/pkgconfig")
+
     commandLine(
         "cmake",
         "-DCMAKE_BUILD_TYPE=Release",
@@ -137,12 +150,18 @@ tasks.register<Exec>("windowsBuild") {
         "-j", "${Runtime.getRuntime().availableProcessors()}"
     )
     environment("JAVA_HOME", "$windowsBuildDir/jdk")
+    environment("PKG_CONFIG_PATH", "$linuxBuildDir/fakeroot/lib/pkgconfig")
+    environment("PKG_CONFIG_PATH_CUSTOM", "$windowsBuildDir/fakeroot/lib/pkgconfig")
 }
 
 tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
     group = "vips"
 
     val libs = setOf(
+        "libbrotlicommon.dll",
+        "libbrotlidec.dll",
+        "libbrotlienc.dll",
+        "libde265.dll",
         "libdav1d.dll",
         "libexpat-1.dll",
         "libffi-8.dll",
@@ -155,6 +174,9 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libhwy.dll",
         "libintl-8.dll",
         "libjpeg-62.dll",
+        "libjxl.dll",
+        "libjxl_cms.dll",
+        "libjxl_threads.dll",
         "libkomelia.dll",
         "libsharpyuv.dll",
         "libspng.dll",
@@ -169,22 +191,29 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libwinpthread-1.dll",
         "libgcc_s_seh-1.dll",
     )
+    duplicatesStrategy = EXCLUDE
 
     from("$windowsBuildDir/fakeroot/bin/")
     into(classpathResourcesDir)
     include { it.name in libs }
 
     // include mingw dlls if compiled using system toolchain
-    doLast {
-        copy {
-            duplicatesStrategy = EXCLUDE
-            from("/usr/x86_64-w64-mingw32/bin/")
-            include("libstdc++-6.dll")
-            include("libwinpthread-1.dll")
-            include("libgcc_s_seh-1.dll")
-            into(classpathResourcesDir)
-        }
-    }
+    from("/usr/x86_64-w64-mingw32/bin/")
+    include("libstdc++-6.dll")
+    include("libwinpthread-1.dll")
+    include("libgcc_s_seh-1.dll")
+    into(classpathResourcesDir)
+
+//    // include mingw dlls if compiled using system toolchain
+//    doLast {
+//        copy {
+//            from("/usr/x86_64-w64-mingw32/bin/")
+//            include("libstdc++-6.dll")
+//            include("libwinpthread-1.dll")
+//            include("libgcc_s_seh-1.dll")
+//            into(classpathResourcesDir)
+//        }
+//    }
 }
 
 

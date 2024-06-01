@@ -1,8 +1,12 @@
 include(ExternalProject)
 
+if (TARGET ep_vips)
+    set(DEPENDENCY ep_vips)
+endif()
+
 ExternalProject_Add(ep_komelia
     DOWNLOAD_COMMAND ""
-    DEPENDS ${DEPENDENCIES}
+    DEPENDS ${DEPENDENCY}
     BUILD_ALWAYS 1
     SOURCE_DIR ${PROJECT_SOURCE_DIR}
     CMAKE_ARGS
@@ -16,5 +20,4 @@ ExternalProject_Add(ep_komelia
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_FIND_ROOT_PATH=${CMAKE_FIND_ROOT_PATH}
         -DCMAKE_SYSROOT=${CMAKE_SYSROOT}
-        ${EXTRA_CMAKE_ARGS}
 )

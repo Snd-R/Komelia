@@ -1,6 +1,5 @@
 include(ExternalProject)
 
-list(APPEND DEPENDENCIES ep_fftw)
 ExternalProject_Add(ep_fftw
     URL https://www.fftw.org/fftw-3.3.10.tar.gz
     CMAKE_ARGS
@@ -11,6 +10,5 @@ ExternalProject_Add(ep_fftw
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_FIND_ROOT_PATH=${CMAKE_FIND_ROOT_PATH}
-        DEPENDS
-        ep_zlib
-    )
+    DEPENDS ep_zlib
+)
