@@ -46,7 +46,11 @@ import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityVi
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
+import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesViewModel
 import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
+import io.github.snd_r.komelia.updates.AppRelease
+import io.github.snd_r.komelia.updates.AppUpdater
+import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import io.github.snd_r.komga.KomgaClientFactory
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
@@ -69,6 +73,7 @@ import kotlinx.coroutines.flow.map
 
 class ViewModelFactory(
     private val komgaClientFactory: KomgaClientFactory,
+    private val appUpdater: AppUpdater,
     private val settingsRepository: SettingsRepository,
     private val readerSettingsRepository: ReaderSettingsRepository,
     private val secretsRepository: SecretsRepository,
@@ -77,6 +82,7 @@ class ViewModelFactory(
 ) {
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
+    private val releases = MutableStateFlow<List<AppRelease>>(emptyList())
 
     private val komgaEventSource = ManagedKomgaEvents(
         authenticatedUser = authenticatedUser,
@@ -87,6 +93,8 @@ class ViewModelFactory(
         librariesFlow = libraries
     )
     private val appNotifications = AppNotifications()
+
+    private val startupUpdateChecker = StartupUpdateChecker(appUpdater, settingsRepository, releases)
 
     fun getLibraryViewModel(
         libraryId: KomgaLibraryId?,
@@ -351,7 +359,8 @@ class ViewModelFactory(
             authenticatedUser = authenticatedUser,
             secretsRepository = secretsRepository,
             currentServerUrl = settingsRepository.getServerUrl(),
-            bookClient = komgaClientFactory.bookClient()
+            bookClient = komgaClientFactory.bookClient(),
+            latestVersion = settingsRepository.getLastCheckedReleaseVersion()
         )
     }
 
@@ -359,6 +368,14 @@ class ViewModelFactory(
         return AppSettingsViewModel(settingsRepository, imageLoader)
     }
 
+    fun getSettingsUpdatesViewModel(): AppUpdatesViewModel {
+        return AppUpdatesViewModel(
+            releases = releases,
+            updater = appUpdater,
+            settings = settingsRepository,
+            notifications = appNotifications,
+        )
+    }
 
     fun getLibraryCollectionsViewModel(libraryId: KomgaLibraryId?): LibraryCollectionsViewModel {
         return LibraryCollectionsViewModel(
@@ -418,6 +435,8 @@ class ViewModelFactory(
     fun getAppNotifications(): AppNotifications = appNotifications
 
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
+
+    fun getStartupUpdateChecker() = startupUpdateChecker
 
     private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
         if (id == null) return flowOf(null)

@@ -3,7 +3,9 @@ package io.github.snd_r.komelia.settings
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.Instant
 
 
 interface SettingsRepository {
@@ -28,4 +30,17 @@ interface SettingsRepository {
 
     fun getDecoderType(): Flow<SamplerType>
     suspend fun putDecoderType(type: SamplerType)
+
+
+    fun getCheckForUpdatesOnStartup(): Flow<Boolean>
+    suspend fun putCheckForUpdatesOnStartup(check: Boolean)
+
+    fun getLastUpdateCheckTimestamp(): Flow<Instant?>
+    suspend fun putLastUpdateCheckTimestamp(timestamp: Instant)
+
+    fun getLastCheckedReleaseVersion(): Flow<AppVersion?>
+    suspend fun putLastCheckedReleaseVersion(version: AppVersion)
+
+    fun getDismissedVersion(): Flow<AppVersion?>
+    suspend fun putDismissedVersion(version: AppVersion)
 }

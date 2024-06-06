@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import io.github.snd_r.komelia.platform.cursorForHand
@@ -33,7 +32,6 @@ fun AnnouncementsContent(announcements: List<KomgaAnnouncement>) {
     }
 }
 
-@OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun Announcement(announcement: KomgaAnnouncement) {
     Column {
@@ -48,13 +46,13 @@ private fun Announcement(announcement: KomgaAnnouncement) {
         announcement.contentHtml?.let {
             SelectionContainer {
                 val state = rememberRichTextState()
-                state.setConfig(
-                    linkColor = MaterialTheme.colorScheme.secondary,
-                    linkTextDecoration = TextDecoration.Underline,
-                    codeBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                    codeStrokeColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-                state.setHtml(it)
+                state.config.apply {
+                    linkColor = MaterialTheme.colorScheme.secondary
+                    linkTextDecoration = TextDecoration.Underline
+                    codeSpanBackgroundColor = MaterialTheme.colorScheme.surfaceVariant
+                    codeSpanStrokeColor = MaterialTheme.colorScheme.surfaceVariant
+                }
+                remember { state.setHtml(it) }
                 RichText(state)
             }
         }

@@ -9,6 +9,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.login.LoginScreen
+import io.github.snd_r.komelia.updates.AppVersion
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookQuery
 import io.github.snd_r.komga.book.KomgaMediaStatus
@@ -28,8 +29,11 @@ class SettingsNavigationViewModel(
     private val secretsRepository: SecretsRepository,
     private val currentServerUrl: Flow<String>,
     private val bookClient: KomgaBookClient,
+    private val latestVersion: Flow<AppVersion?>
 ) : ScreenModel {
     var hasMediaErrors by mutableStateOf(false)
+        private set
+    var newVersionIsAvailable by mutableStateOf(false)
         private set
 
     fun initialize() {
@@ -41,6 +45,8 @@ class SettingsNavigationViewModel(
             if (pageResponse.numberOfElements > 0) {
                 hasMediaErrors = true
             }
+            val latestVersion = latestVersion.first()
+            newVersionIsAvailable = latestVersion != null && AppVersion.current < latestVersion
         }
     }
 

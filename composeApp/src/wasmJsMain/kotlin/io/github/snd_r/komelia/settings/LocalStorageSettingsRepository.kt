@@ -4,11 +4,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.Instant
 import org.w3c.dom.set
 
 class LocalStorageSettingsRepository(private val settings: MutableStateFlow<AppSettings>) : SettingsRepository {
@@ -97,5 +100,33 @@ class LocalStorageSettingsRepository(private val settings: MutableStateFlow<AppS
             it.copy(appearance = it.appearance.copy(bookListLayout = layout))
         }
         localStorage[bookListLayoutKey] = layout.name
+    }
+
+    override fun getCheckForUpdatesOnStartup(): Flow<Boolean> {
+        return flowOf(false)
+    }
+
+    override suspend fun putCheckForUpdatesOnStartup(check: Boolean) {
+    }
+
+    override fun getLastUpdateCheckTimestamp(): Flow<Instant?> {
+        return flowOf(null)
+    }
+
+    override suspend fun putLastUpdateCheckTimestamp(timestamp: Instant) {
+    }
+
+    override fun getLastCheckedReleaseVersion(): Flow<AppVersion?> {
+        return flowOf(null)
+    }
+
+    override suspend fun putLastCheckedReleaseVersion(version: AppVersion) {
+    }
+
+    override fun getDismissedVersion(): Flow<AppVersion?> {
+        return flowOf(null)
+    }
+
+    override suspend fun putDismissedVersion(version: AppVersion) {
     }
 }

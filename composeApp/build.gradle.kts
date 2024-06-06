@@ -6,17 +6,18 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.parcelize")
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
     kotlin("plugin.serialization")
 
+    id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
+
+    id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.parcelize")
     id("com.google.protobuf") version "0.9.4"
+
     id("dev.hydraulic.conveyor") version "1.9"
 }
 
@@ -91,6 +92,10 @@ kotlin {
             implementation("io.github.oshai:kotlin-logging:6.0.9")
 
             implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+            implementation("io.ktor:ktor-client-encoding:$ktorVersion")
+
             implementation("io.coil-kt.coil3:coil:$coilVersion")
             implementation("io.coil-kt.coil3:coil-compose:$coilVersion")
             implementation("io.coil-kt.coil3:coil-network-ktor:$coilVersion")
@@ -114,8 +119,10 @@ kotlin {
 
         androidMain.dependencies {
             api("androidx.activity:activity-compose:1.9.0")
-            api("androidx.appcompat:appcompat:1.6.1")
+            api("androidx.appcompat:appcompat:1.7.0")
             api("androidx.core:core-ktx:1.13.1")
+            implementation("androidx.window:window:1.3.0")
+            implementation("androidx.datastore:datastore:1.1.1")
 
             implementation("org.slf4j:slf4j-api:2.0.13")
             implementation("com.github.tony19:logback-android:3.0.0")
@@ -125,11 +132,9 @@ kotlin {
             implementation("com.squareup.okhttp3:okhttp:4.12.0")
             implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-            implementation("androidx.datastore:datastore:1.0.0")
             implementation("com.google.protobuf:protobuf-javalite:3.21.11")
             implementation("com.google.protobuf:protobuf-kotlin-lite:3.21.11")
 
-            implementation("androidx.window:window:1.2.0")
         }
 
         desktopMain.dependencies {
@@ -249,11 +254,6 @@ configurations.all {
     }
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn", "-opt-in=kotlin.ExperimentalStdlibApi")
-}
-
-
 tasks.register<Zip>("repackageUberJar") {
     val packageUberJarForCurrentOS = tasks.getByName("packageUberJarForCurrentOS")
     dependsOn(packageUberJarForCurrentOS)
@@ -279,8 +279,4 @@ tasks.register<Zip>("repackageUberJar") {
         output.renameTo(file)
         logger.lifecycle("The repackaged jar is written to ${archiveFile.get().asFile.canonicalPath}")
     }
-}
-
-compose.experimental {
-    web.application {}
 }

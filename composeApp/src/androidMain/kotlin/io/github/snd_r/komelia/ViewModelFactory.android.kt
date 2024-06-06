@@ -20,17 +20,22 @@ import io.github.snd_r.komelia.settings.AndroidReaderSettingsRepository
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AndroidSettingsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
+import io.github.snd_r.komelia.updates.AndroidAppUpdater
+import io.github.snd_r.komelia.updates.GithubClient
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -53,19 +58,21 @@ actual suspend fun createViewModelFactory(context: Context): ViewModelFactory {
 
     val okHttpClient = createOkHttpClient()
     val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository).also { it.loadRememberMeCookie() }
-    val ktorClient = createKtorClient(baseUrl, okHttpClient, cookiesStorage)
+    val ktorClient = createKtorClient(okHttpClient)
     val komgaClientFactory = createKomgaClientFactory(
         baseUrl = baseUrl,
         ktorClient = ktorClient,
         cookiesStorage = cookiesStorage,
         context = context
     )
+    val appUpdater = createAppUpdater(ktorClient, context)
 
-    val coil = createCoil(baseUrl, ktorClient, context)
+    val coil = createCoil(ktorClient, baseUrl, cookiesStorage, context)
     SingletonImageLoader.setSafe { coil }
 
     return ViewModelFactory(
         komgaClientFactory = komgaClientFactory,
+        appUpdater = appUpdater,
         settingsRepository = settingsRepository,
         readerSettingsRepository = readerSettingsRepository,
         secretsRepository = secretsRepository,
@@ -86,14 +93,10 @@ private fun createOkHttpClient(): OkHttpClient {
 }
 
 private fun createKtorClient(
-    baseUrl: StateFlow<String>,
     okHttpClient: OkHttpClient,
-    cookiesStorage: RememberMePersistingCookieStore,
 ): HttpClient {
     return HttpClient(OkHttp) {
         engine { preconfigured = okHttpClient }
-        defaultRequest { url(baseUrl.value) }
-        install(HttpCookies) { storage = cookiesStorage }
         expectSuccess = true
     }
 }
@@ -118,7 +121,16 @@ private fun createKomgaClientFactory(
         .build()
 }
 
-private fun createCoil(url: StateFlow<String>, ktorClient: HttpClient, context: PlatformContext): ImageLoader {
+private fun createCoil(
+    ktorClient: HttpClient,
+    url: StateFlow<String>,
+    cookiesStorage: RememberMePersistingCookieStore,
+    context: PlatformContext
+): ImageLoader {
+    val coilKtorClient = ktorClient.config {
+        defaultRequest { url(url.value) }
+        install(HttpCookies) { storage = cookiesStorage }
+    }
 
     return ImageLoader.Builder(context)
         .components {
@@ -129,7 +141,17 @@ private fun createCoil(url: StateFlow<String>, ktorClient: HttpClient, context: 
             add(KomgaReadListMapper(url))
             add(KomgaSeriesThumbnailMapper(url))
             add(FileMapper())
-            add(KtorNetworkFetcherFactory(httpClient = ktorClient))
+            add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
         }
         .build()
+}
+
+private fun createAppUpdater(ktor: HttpClient, context: Context): AndroidAppUpdater {
+    val githubClient = GithubClient(
+        ktor.config {
+            install(HttpCache)
+            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+        }
+    )
+    return AndroidAppUpdater(githubClient, context)
 }

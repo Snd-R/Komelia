@@ -6,9 +6,11 @@ import androidx.datastore.core.DataStore
 import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.settings.AppearanceSettings.PBBooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Instant
 import kotlin.math.roundToInt
 
 class AndroidSettingsRepository(
@@ -116,4 +118,52 @@ class AndroidSettingsRepository(
         }
     }
 
+    override fun getCheckForUpdatesOnStartup(): Flow<Boolean> {
+        return dataStore.data.map {
+            if (!it.updates.hasCheckForUpdatesOnStartup()) true
+            else it.updates.checkForUpdatesOnStartup
+        }
+    }
+
+    override suspend fun putCheckForUpdatesOnStartup(check: Boolean) {
+        dataStore.updateData { current ->
+            current.copy { updates = updates.copy { checkForUpdatesOnStartup = check } }
+        }
+    }
+
+    override fun getLastUpdateCheckTimestamp(): Flow<Instant?> {
+        return dataStore.data.map { Instant.fromEpochMilliseconds(it.updates.lastUpdateCheckTimestamp) }
+    }
+
+    override suspend fun putLastUpdateCheckTimestamp(timestamp: Instant) {
+        dataStore.updateData { current ->
+            current.copy { updates = updates.copy { lastUpdateCheckTimestamp = timestamp.toEpochMilliseconds() } }
+        }
+    }
+
+    override fun getLastCheckedReleaseVersion(): Flow<AppVersion?> {
+        return dataStore.data.map {
+            if (!it.updates.hasLastCheckedReleaseVersion()) null
+            else AppVersion.fromString(it.updates.lastCheckedReleaseVersion)
+        }
+    }
+
+    override suspend fun putLastCheckedReleaseVersion(version: AppVersion) {
+        dataStore.updateData { current ->
+            current.copy { updates = updates.copy { lastCheckedReleaseVersion = version.toString() } }
+        }
+    }
+
+    override fun getDismissedVersion(): Flow<AppVersion?> {
+        return dataStore.data.map {
+            if (!it.updates.hasDismissedVersion()) null
+            else AppVersion.fromString(it.updates.dismissedVersion)
+        }
+    }
+
+    override suspend fun putDismissedVersion(version: AppVersion) {
+        dataStore.updateData { current ->
+            current.copy { updates = updates.copy { dismissedVersion = version.toString() } }
+        }
+    }
 }

@@ -42,11 +42,13 @@ import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
+import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
 
 @Composable
 fun SettingsNavigationMenu(
     hasMediaErrors: Boolean,
+    newVersionIsAvailable: Boolean,
     currentScreen: Screen,
     onNavigation: (Screen) -> Unit = {},
     onLogout: () -> Unit,
@@ -114,6 +116,13 @@ fun SettingsNavigationMenu(
             label = "General",
             onClick = { onNavigation(AppSettingsScreen()) },
             isSelected = currentScreen is AppSettingsScreen,
+            color = contentColor,
+        )
+        NavigationButton(
+            label = "Updates",
+            onClick = { onNavigation(AppUpdatesScreen()) },
+            isSelected = currentScreen is AppUpdatesScreen,
+            error = newVersionIsAvailable,
             color = contentColor,
         )
 

@@ -47,7 +47,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
             implementation("io.ktor:ktor-client-core:$ktorVersion")
@@ -56,7 +56,7 @@ kotlin {
             implementation("io.ktor:ktor-client-encoding:$ktorVersion")
             implementation("io.ktor:ktor-client-auth:$ktorVersion")
             implementation("io.ktor:ktor-sse:$ktorVersion")
-            implementation("io.github.oshai:kotlin-logging:6.0.3")
+            implementation("io.github.oshai:kotlin-logging:6.0.9")
         }
 
         val jvmMain by getting

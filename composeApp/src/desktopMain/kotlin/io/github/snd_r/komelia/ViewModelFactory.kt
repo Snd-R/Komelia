@@ -24,19 +24,24 @@ import io.github.snd_r.komelia.settings.FilesystemReaderSettingsRepository
 import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
+import io.github.snd_r.komelia.updates.DesktopAppUpdater
+import io.github.snd_r.komelia.updates.GithubClient
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
@@ -48,6 +53,7 @@ import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 private val stateFlowScope = CoroutineScope(Dispatchers.Default)
+
 actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory {
     return withContext(Dispatchers.Default) {
         val initResult = measureTimedValue {
@@ -65,20 +71,21 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
             val okHttpClient = createOkHttpClient()
             val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
 
-            measureTime {
-                cookiesStorage.loadRememberMeCookie()
-            }.also {
-                logger.info { "loaded remember-me cookie from keyring in $it" }
-            }
+            measureTime { cookiesStorage.loadRememberMeCookie() }
+                .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
 
-            val ktorClient = createKtorClient(baseUrl, okHttpClient, cookiesStorage)
+            val ktorClient = createKtorClient(okHttpClient)
             val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage)
 
-            val coil = createCoil(baseUrl, ktorClient, decoderType)
+            val appUpdater = createAppUpdater(ktorClient)
+
+            val coil = createCoil(ktorClient, baseUrl, cookiesStorage, decoderType)
             SingletonImageLoader.setSafe { coil }
+
 
             ViewModelFactory(
                 komgaClientFactory = komgaClientFactory,
+                appUpdater = appUpdater,
                 settingsRepository = settingsRepository,
                 readerSettingsRepository = readerSettingsRepository,
                 secretsRepository = secretsRepository,
@@ -94,8 +101,10 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
 
 private fun createOkHttpClient(): OkHttpClient {
     return measureTimedValue {
-        val loggingInterceptor = HttpLoggingInterceptor { KotlinLogging.logger("http.logging").info { it } }
+        val logger = KotlinLogging.logger("http.logging")
+        val loggingInterceptor = HttpLoggingInterceptor { logger.info { it } }
             .setLevel(HttpLoggingInterceptor.Level.BASIC)
+
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -107,15 +116,11 @@ private fun createOkHttpClient(): OkHttpClient {
 }
 
 private fun createKtorClient(
-    baseUrl: StateFlow<String>,
     okHttpClient: OkHttpClient,
-    cookiesStorage: RememberMePersistingCookieStore,
 ): HttpClient {
     return measureTimedValue {
         HttpClient(OkHttp) {
             engine { preconfigured = okHttpClient }
-            defaultRequest { url(baseUrl.value) }
-            install(HttpCookies) { storage = cookiesStorage }
             expectSuccess = true
         }
     }.also { logger.info { "initialized Ktor in ${it.duration}" } }
@@ -129,7 +134,7 @@ private fun createKomgaClientFactory(
 ): KomgaClientFactory {
     return measureTimedValue {
 
-        val tempDir = Path(System.getProperty("java.io.tmpdir")).resolve("potato_http").createDirectories()
+        val tempDir = Path(System.getProperty("java.io.tmpdir")).resolve("komelia_http").createDirectories()
         val ktorKomgaClient = ktorClient.config {
             install(HttpCache) {
                 privateStorage(FileStorage(tempDir.toFile()))
@@ -147,10 +152,15 @@ private fun createKomgaClientFactory(
 }
 
 private fun createCoil(
-    url: StateFlow<String>,
     ktorClient: HttpClient,
+    url: StateFlow<String>,
+    cookiesStorage: RememberMePersistingCookieStore,
     decoderState: StateFlow<SamplerType>
 ): ImageLoader {
+    val coilKtorClient = ktorClient.config {
+        defaultRequest { url(url.value) }
+        install(HttpCookies) { storage = cookiesStorage }
+    }
 
     return measureTimedValue {
         ImageLoader.Builder(PlatformContext.INSTANCE)
@@ -163,7 +173,7 @@ private fun createCoil(
                 add(KomgaSeriesThumbnailMapper(url))
                 add(FileMapper())
                 add(DesktopDecoder.Factory(decoderState))
-                add(KtorNetworkFetcherFactory(httpClient = ktorClient))
+                add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
             }
             .memoryCache(
                 MemoryCache.Builder()
@@ -191,6 +201,16 @@ private fun createSecretsRepository(): SecretsRepository {
     return measureTimedValue { KeyringSecretsRepository(AppKeyring()) }
         .also { logger.info { "initialized keyring in ${it.duration}" } }
         .value
+}
+
+private fun createAppUpdater(ktor: HttpClient): DesktopAppUpdater {
+    val githubClient = GithubClient(
+        ktor.config {
+            install(HttpCache)
+            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+        }
+    )
+    return DesktopAppUpdater(githubClient)
 }
 
 private fun setLogLevel() {

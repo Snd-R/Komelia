@@ -19,6 +19,9 @@ import io.github.snd_r.komelia.settings.AppSettings
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
 import io.github.snd_r.komelia.settings.LocalStorageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.LocalStorageSettingsRepository
+import io.github.snd_r.komelia.updates.AppRelease
+import io.github.snd_r.komelia.updates.AppUpdater
+import io.github.snd_r.komelia.updates.DownloadProgress
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
@@ -27,6 +30,7 @@ import io.ktor.client.plugins.cache.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -57,6 +61,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
 
     return ViewModelFactory(
         komgaClientFactory = komgaClientFactory,
+        appUpdater = NoopAppUpdater,
         settingsRepository = settingsRepository,
         readerSettingsRepository = readerSettingsRepository,
         secretsRepository = secretsRepository,
@@ -127,4 +132,10 @@ private fun overrideFetch() {
     };
 """
     )
+}
+
+private object NoopAppUpdater : AppUpdater {
+    override suspend fun getReleases(): List<AppRelease> = emptyList()
+    override suspend fun updateToLatest(): Flow<DownloadProgress>? = null
+    override fun updateTo(release: AppRelease): Flow<DownloadProgress>? = null
 }

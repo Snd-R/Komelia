@@ -10,6 +10,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
@@ -39,11 +44,16 @@ import io.github.snd_r.komelia.strings.Locales
 import io.github.snd_r.komelia.toToast
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.dialogs.update.UpdateDialog
+import io.github.snd_r.komelia.ui.dialogs.update.UpdateProgressDialog
 import io.github.snd_r.komelia.ui.login.LoginScreen
+import io.github.snd_r.komelia.updates.AppRelease
+import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import io.github.snd_r.komga.sse.KomgaEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -108,6 +118,11 @@ fun MainView(
                             onBackPressed = null
                         )
                         AppNotifications(actualViewModelFactory.getAppNotifications())
+
+                        val updateChecker = remember { actualViewModelFactory.getStartupUpdateChecker() }
+                        StartupUpdateChecker(updateChecker)
+
+
                     }
                 } else {
                     Column {
@@ -148,4 +163,37 @@ fun AppNotifications(
             }
         }
     )
+}
+
+
+@Composable
+private fun StartupUpdateChecker(updater: StartupUpdateChecker) {
+    val coroutineScope = rememberCoroutineScope()
+    var newRelease by remember { mutableStateOf<AppRelease?>(null) }
+    LaunchedEffect(Unit) { updater.checkForUpdates()?.let { newRelease = it } }
+
+    val progress = updater.downloadProgress.collectAsState().value
+    val release = newRelease
+    if (release != null) {
+        UpdateDialog(
+            newRelease = release,
+            onConfirm = {
+                coroutineScope.launch {
+                    updater.onUpdate(release)
+                    newRelease = null
+                }
+            },
+            onDismiss = {
+                coroutineScope.launch { updater.onUpdateDismiss(release) }
+                newRelease = null
+            }
+        )
+    }
+    if (progress != null) {
+        UpdateProgressDialog(
+            totalSize = progress.total,
+            downloadedSize = progress.downloaded,
+            onCancel = updater::onUpdateCancel
+        )
+    }
 }

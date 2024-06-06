@@ -70,6 +70,7 @@ class SettingsScreen : Screen {
                                 currentScreen = navigator.lastItem,
                                 onNavigation = { navigator.replaceAll(it) },
                                 hasMediaErrors = vm.hasMediaErrors,
+                                newVersionIsAvailable = vm.newVersionIsAvailable,
                                 onLogout = vm::logout,
                                 contentColor = MaterialTheme.colorScheme.surfaceVariant,
                                 modifier = Modifier.width(settingsDesktopNavMenuWidth)
