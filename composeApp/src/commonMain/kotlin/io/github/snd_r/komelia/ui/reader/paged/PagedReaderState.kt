@@ -65,6 +65,7 @@ class PagedReaderState(
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
         scaleType.value = settingsRepository.getPagedReaderScaleType().first()
         readingDirection.value = settingsRepository.getPagedReaderReadingDirection().first()
+        imageStretchToFit.value = settingsRepository.getPagedReaderStretchToFit().first()
 
         screenScaleState.setScrollState(null)
         screenScaleState.setScrollOrientation(Orientation.Vertical, false)

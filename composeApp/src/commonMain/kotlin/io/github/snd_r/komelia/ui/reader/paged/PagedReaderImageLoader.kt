@@ -64,7 +64,7 @@ class PagedReaderImageLoader(
                 scaleType = scaleType,
                 stretchToFit = stretchToFit
             )
-            val spreadZoomFactor = scale.transformation.value.scale
+            val spreadScaleFactor = scale.transformation.value.scale
 
             val scaledPageSizes = spread.map {
                 scaledContentSizeForPage(
@@ -73,7 +73,7 @@ class PagedReaderImageLoader(
                     allowStretch = stretchToFit,
                     spread = spread,
                     containerSize = containerSize,
-                    zoomFactor = spreadZoomFactor
+                    scaleFactor = spreadScaleFactor
                 )
             }
 
@@ -90,10 +90,10 @@ class PagedReaderImageLoader(
                     .precision(Precision.EXACT)
                     .build()
 
-                logger.info { "Load request for page $page; zoom factor: $spreadZoomFactor; target size $maxPageSize" }
+                logger.info { "Load request for page $page; zoom factor: $spreadScaleFactor; target size $maxPageSize" }
                 imageJobs.add(page to scope.async { imageLoader.execute(request) })
             }
-            val images = imageJobs.map { (page, image) -> Page(page, image.await(), spreadZoomFactor) }
+            val images = imageJobs.map { (page, image) -> Page(page, image.await(), spreadScaleFactor) }
             SpreadImageLoadJob(images, scale)
         }
         imageLoadJobs.put(currentHash, job)
@@ -109,7 +109,7 @@ class PagedReaderImageLoader(
     ): ScreenScaleState {
         val scaleState = ScreenScaleState()
         scaleState.setAreaSize(areaSize)
-        val constrainedContentSize = pages
+        val fitToScreenSize = pages
             .map { it.contentSizeForArea(maxPageSize) }
             .reduce { total, current ->
                 IntSize(
@@ -117,45 +117,53 @@ class PagedReaderImageLoader(
                     height = max(total.height, current.height)
                 )
             }
-        scaleState.setTargetSize(constrainedContentSize.toSize())
-        val actualPageSize = pages.mapNotNull { it.size }
+        scaleState.setTargetSize(fitToScreenSize.toSize())
+
+        val actualSpreadSize = pages.mapNotNull { it.size }
             .fold(IntSize.Zero) { total, current ->
                 IntSize(
                     (total.width + current.width),
                     max(total.height, current.height)
                 )
             }
-        val imageIsSmallerThanContainer =
-            constrainedContentSize.height > actualPageSize.height || constrainedContentSize.width > actualPageSize.width
 
-        if (!stretchToFit && imageIsSmallerThanContainer) {
-            scaleState.setZoom(0f)
-        } else
-            when (scaleType) {
-                LayoutScaleType.SCREEN -> scaleState.setZoom(0f)
-                LayoutScaleType.FIT_WIDTH -> {
-                    if (constrainedContentSize.width < areaSize.width) scaleState.setZoom(1f)
-                    else scaleState.setZoom(0f)
-                }
-
-                LayoutScaleType.FIT_HEIGHT -> {
-                    if (constrainedContentSize.height < areaSize.height) scaleState.setZoom(1f)
-                    else scaleState.setZoom(0f)
-                }
-
-                LayoutScaleType.ORIGINAL -> {
-
-                    if (actualPageSize.width > areaSize.width || actualPageSize.height > areaSize.height) {
-                        val newZoom = max(
-                            actualPageSize.width.toFloat() / constrainedContentSize.width,
-                            actualPageSize.height.toFloat() / constrainedContentSize.height
-                        ) / scaleState.scaleFor100PercentZoom()
-
-                        scaleState.setZoom(newZoom)
-
-                    } else scaleState.setZoom(0f)
-                }
+        when (scaleType) {
+            LayoutScaleType.SCREEN -> scaleState.setZoom(0f)
+            LayoutScaleType.FIT_WIDTH -> {
+                if (!stretchToFit && areaSize.width > actualSpreadSize.width) {
+                    val actualWidth = actualSpreadSize.width.toFloat()
+                    val constrainedWidth = fitToScreenSize.width.toFloat()
+                    val scaleFor100Percent = scaleState.scaleFor100PercentZoom()
+                    val zoom = (actualWidth / constrainedWidth) / scaleFor100Percent
+                    scaleState.setZoom(zoom.coerceAtMost(1.0f))
+                } else if (fitToScreenSize.width < areaSize.width) scaleState.setZoom(1f)
+                else scaleState.setZoom(0f)
             }
+
+            LayoutScaleType.FIT_HEIGHT -> {
+                if (!stretchToFit && areaSize.height > actualSpreadSize.height) {
+                    val actualHeight = actualSpreadSize.height.toFloat()
+                    val constrainedHeight = fitToScreenSize.height.toFloat()
+                    val scaleFor100Percent = scaleState.scaleFor100PercentZoom()
+                    val zoom = (actualHeight / constrainedHeight) / scaleFor100Percent
+                    scaleState.setZoom(zoom.coerceAtMost(1.0f))
+
+                } else if (fitToScreenSize.height < areaSize.height) scaleState.setZoom(1f)
+                else scaleState.setZoom(0f)
+            }
+
+            LayoutScaleType.ORIGINAL -> {
+                if (actualSpreadSize.width > areaSize.width || actualSpreadSize.height > areaSize.height) {
+                    val newZoom = max(
+                        actualSpreadSize.width.toFloat() / fitToScreenSize.width,
+                        actualSpreadSize.height.toFloat() / fitToScreenSize.height
+                    ) / scaleState.scaleFor100PercentZoom()
+
+                    scaleState.setZoom(newZoom)
+
+                } else scaleState.setZoom(0f)
+            }
+        }
 
         return scaleState
     }
@@ -166,15 +174,15 @@ class PagedReaderImageLoader(
         allowStretch: Boolean,
         spread: List<PageMetadata>,
         containerSize: IntSize,
-        zoomFactor: Float,
+        scaleFactor: Float,
     ): IntSize {
         val availableContainerSize = getMaxPageSize(spread, containerSize)
         val constrainedSize = page.contentSizeForArea(availableContainerSize)
         val actualSize = page.size ?: constrainedSize
 
         val zoomedSize = IntSize(
-            width = (constrainedSize.width * zoomFactor).roundToInt(),
-            height = (constrainedSize.height * zoomFactor).roundToInt()
+            width = (constrainedSize.width * scaleFactor).roundToInt(),
+            height = (constrainedSize.height * scaleFactor).roundToInt()
         )
 
         return if (scaleType == LayoutScaleType.ORIGINAL || !allowStretch) {
@@ -256,7 +264,7 @@ class PagedReaderImageLoader(
                 allowStretch = stretchToFit,
                 spread = pages,
                 containerSize = containerSize,
-                zoomFactor = zoomFactor
+                scaleFactor = zoomFactor
             )
 
             logger.info { "Resample request: container size: $containerSize; page size ${page.size}; zoom factor: $zoomFactor target size $maxSize" }

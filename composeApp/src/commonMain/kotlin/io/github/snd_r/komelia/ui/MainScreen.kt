@@ -275,7 +275,6 @@ class MainScreen(
                 if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
             onSettingsClick = { navigator.parent!!.push(SettingsScreen()) },
-//            onSettingsClick = { navigator.parent!!.push(SettingsCompactScreen()) },
             taskQueueStatus = vm.komgaTaskQueueStatus.collectAsState().value
         )
     }
