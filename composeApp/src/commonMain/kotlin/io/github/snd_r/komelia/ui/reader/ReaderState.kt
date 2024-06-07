@@ -41,6 +41,7 @@ class ReaderState(
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val readerType = MutableStateFlow(CONTINUOUS)
     val decoder = MutableStateFlow<SamplerType?>(null)
+    val imageStretchToFit = MutableStateFlow(true)
 
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
@@ -48,6 +49,7 @@ class ReaderState(
     suspend fun initialize(bookId: KomgaBookId) {
         decoder.value = settingsRepository.getDecoderType().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
+        imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
 
         loadBook(bookId)
     }
@@ -188,6 +190,11 @@ class ReaderState(
     fun onReaderTypeChange(type: ReaderType) {
         this.readerType.value = type
         stateScope.launch { readerSettingsRepository.putReaderType(type) }
+    }
+
+    fun onStretchToFitChange(stretch: Boolean) {
+        imageStretchToFit.value = stretch
+        stateScope.launch { readerSettingsRepository.putStretchToFit(stretch) }
     }
 }
 

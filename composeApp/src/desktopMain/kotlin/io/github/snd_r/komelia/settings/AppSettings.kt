@@ -52,6 +52,7 @@ data class AppearanceSettings(
 data class ReaderBaseSettings(
     val readerType: ReaderType = ReaderType.PAGED,
     val upsample: Boolean = false,
+    val stretchToFit: Boolean = true,
     val pagedReaderSettings: PagedReaderSettings = PagedReaderSettings(),
     val continuousReaderSettings: ContinuousReaderSettings = ContinuousReaderSettings(),
 )
@@ -68,7 +69,8 @@ data class PagedReaderSettings(
 data class ContinuousReaderSettings(
     val readingDirection: ContinuousReaderState.ReadingDirection = ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM,
     val padding: Float = .3f,
-    val pageSpacing: Int = 0
+    val pageSpacing: Int = 0,
+    val stretchToFit: Boolean = true,
 )
 
 @Serializable

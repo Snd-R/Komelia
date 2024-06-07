@@ -3,10 +3,8 @@ package io.github.snd_r.komelia.settings
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.SamplerType
-import io.github.snd_r.komelia.settings.ActorMessage.Transform
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
@@ -20,7 +18,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putServerUrl(url: String) {
-        transform { settings -> settings.copy(server = settings.server.copy(url = url)) }
+        actor.transform { settings -> settings.copy(server = settings.server.copy(url = url)) }
     }
 
     override fun getCardWidth(): Flow<Dp> {
@@ -28,7 +26,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putCardWidth(cardWidth: Dp) {
-        transform { settings -> settings.copy(appearance = settings.appearance.copy(cardWidth = cardWidth.value.toInt())) }
+        actor.transform { settings -> settings.copy(appearance = settings.appearance.copy(cardWidth = cardWidth.value.toInt())) }
     }
 
     override fun getCurrentUser(): Flow<String> {
@@ -36,7 +34,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putCurrentUser(username: String) {
-        transform { settings -> settings.copy(user = settings.user.copy(username = username)) }
+        actor.transform { settings -> settings.copy(user = settings.user.copy(username = username)) }
     }
 
     override fun getDecoderType(): Flow<SamplerType> {
@@ -44,7 +42,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putDecoderType(type: SamplerType) {
-        transform { settings -> settings.copy(decoder = settings.decoder.copy(type = type)) }
+        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(type = type)) }
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {
@@ -52,7 +50,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putSeriesPageLoadSize(size: Int) {
-        transform { settings -> settings.copy(appearance = settings.appearance.copy(seriesPageLoadSize = size)) }
+        actor.transform { settings -> settings.copy(appearance = settings.appearance.copy(seriesPageLoadSize = size)) }
     }
 
     override fun getBookPageLoadSize(): Flow<Int> {
@@ -60,7 +58,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putBookPageLoadSize(size: Int) {
-        transform { settings -> settings.copy(appearance = settings.appearance.copy(bookPageLoadSize = size)) }
+        actor.transform { settings -> settings.copy(appearance = settings.appearance.copy(bookPageLoadSize = size)) }
     }
 
     override fun getBookListLayout(): Flow<BooksLayout> {
@@ -68,7 +66,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putBookListLayout(layout: BooksLayout) {
-        transform { settings -> settings.copy(appearance = settings.appearance.copy(bookListLayout = layout)) }
+        actor.transform { settings -> settings.copy(appearance = settings.appearance.copy(bookListLayout = layout)) }
     }
 
     override fun getCheckForUpdatesOnStartup(): Flow<Boolean> {
@@ -76,7 +74,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putCheckForUpdatesOnStartup(check: Boolean) {
-        transform { settings -> settings.copy(updates = settings.updates.copy(checkForUpdatesOnStartup = check)) }
+        actor.transform { settings -> settings.copy(updates = settings.updates.copy(checkForUpdatesOnStartup = check)) }
     }
 
     override fun getLastUpdateCheckTimestamp(): Flow<Instant?> {
@@ -84,7 +82,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putLastUpdateCheckTimestamp(timestamp: Instant) {
-        transform { settings -> settings.copy(updates = settings.updates.copy(lastUpdateCheckTimestamp = timestamp)) }
+        actor.transform { settings -> settings.copy(updates = settings.updates.copy(lastUpdateCheckTimestamp = timestamp)) }
     }
 
     override fun getLastCheckedReleaseVersion(): Flow<AppVersion?> {
@@ -92,7 +90,7 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putLastCheckedReleaseVersion(version: AppVersion) {
-        transform { settings -> settings.copy(updates = settings.updates.copy(lastCheckedReleaseVersion = version)) }
+        actor.transform { settings -> settings.copy(updates = settings.updates.copy(lastCheckedReleaseVersion = version)) }
     }
 
     override fun getDismissedVersion(): Flow<AppVersion?> {
@@ -100,12 +98,6 @@ class FilesystemSettingsRepository(
     }
 
     override suspend fun putDismissedVersion(version: AppVersion) {
-        transform { settings -> settings.copy(updates = settings.updates.copy(dismissedVersion = version)) }
-    }
-
-    private suspend fun transform(transform: (settings: AppSettings) -> AppSettings) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack, transform))
-        ack.await()
+        actor.transform { settings -> settings.copy(updates = settings.updates.copy(dismissedVersion = version)) }
     }
 }

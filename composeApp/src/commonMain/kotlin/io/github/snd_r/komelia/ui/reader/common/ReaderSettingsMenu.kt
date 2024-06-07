@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,6 +40,7 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
+import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
@@ -117,30 +119,36 @@ private fun ColumnScope.SettingsContent(
 
     HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
-    val strings = LocalStrings.current.readerSettings
+    val strings = LocalStrings.current.reader
 
     val readerType = settingsState.readerType.collectAsState().value
     val zoom = screenScaleState.zoom.collectAsState().value
     val zoomPercentage = (zoom * 100).roundToInt()
-    Text("Zoom: $zoomPercentage%")
+    Text("${strings.zoom}: $zoomPercentage%")
     DropdownChoiceMenu(
-        selectedOption = LabeledEntry(readerType, readerType.name),
-        options = ReaderType.entries.map { LabeledEntry(it, it.name) },
+        selectedOption = LabeledEntry(readerType, strings.forReaderType(readerType)),
+        options = remember { ReaderType.entries.map { LabeledEntry(it, strings.forReaderType(it)) } },
         onOptionChange = { settingsState.onReaderTypeChange(it.value) },
         inputFieldModifier = Modifier.fillMaxWidth(),
-        label = { Text("Reader type") },
+        label = { Text(strings.readerType) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
     val decoder = settingsState.decoder.collectAsState().value
     if (decoder != null)
         DropdownChoiceMenu(
             selectedOption = LabeledEntry(decoder, decoder.name),
-            options = SamplerType.entries.map { LabeledEntry(it, it.name) },
+            options = remember { SamplerType.entries.map { LabeledEntry(it, it.name) } },
             onOptionChange = { settingsState.onDecoderChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
             label = { Text(strings.decoder) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
+
+    SwitchWithLabel(
+        settingsState.imageStretchToFit.collectAsState().value,
+        settingsState::onStretchToFitChange,
+        label = { Text(strings.stretchToFit) },
+    )
 
 
     HorizontalDivider(Modifier.padding(vertical = 5.dp))

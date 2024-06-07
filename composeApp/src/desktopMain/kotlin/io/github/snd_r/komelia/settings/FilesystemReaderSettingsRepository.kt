@@ -1,12 +1,10 @@
 package io.github.snd_r.komelia.settings
 
-import io.github.snd_r.komelia.settings.ActorMessage.Transform
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,19 +16,17 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putReaderType(type: ReaderType) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings -> settings.copy(reader = settings.reader.copy(readerType = type)) })
-        ack.await()
+        actor.transform { settings -> settings.copy(reader = settings.reader.copy(readerType = type)) }
     }
 
-    override fun getUpsample(): Flow<Boolean> {
-        return actor.getState().map { it.reader.upsample }
+    override fun getStretchToFit(): Flow<Boolean> {
+        return actor.getState().map { it.reader.stretchToFit }
     }
 
-    override suspend fun putUpsample(upsample: Boolean) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings -> settings.copy(reader = settings.reader.copy(upsample = upsample)) })
-        ack.await()
+    override suspend fun putStretchToFit(stretch: Boolean) {
+        actor.transform { settings ->
+            settings.copy(reader = settings.reader.copy(stretchToFit = stretch))
+        }
     }
 
     override fun getPagedReaderScaleType(): Flow<LayoutScaleType> {
@@ -38,8 +34,7 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putPagedReaderScaleType(type: LayoutScaleType) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
+        actor.transform { settings ->
             settings.copy(
                 reader = settings.reader.copy(
                     pagedReaderSettings = settings.reader.pagedReaderSettings.copy(
@@ -47,8 +42,7 @@ class FilesystemReaderSettingsRepository(
                     )
                 )
             )
-        })
-        ack.await()
+        }
     }
 
     override fun getPagedReaderReadingDirection(): Flow<PagedReaderState.ReadingDirection> {
@@ -56,8 +50,7 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putPagedReaderReadingDirection(direction: PagedReaderState.ReadingDirection) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
+        actor.transform { settings ->
             settings.copy(
                 reader = settings.reader.copy(
                     pagedReaderSettings = settings.reader.pagedReaderSettings.copy(
@@ -65,8 +58,7 @@ class FilesystemReaderSettingsRepository(
                     )
                 )
             )
-        })
-        ack.await()
+        }
     }
 
     override fun getPagedReaderDisplayLayout(): Flow<PageDisplayLayout> {
@@ -74,8 +66,7 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putPagedReaderDisplayLayout(layout: PageDisplayLayout) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
+        actor.transform { settings ->
             settings.copy(
                 reader = settings.reader.copy(
                     pagedReaderSettings = settings.reader.pagedReaderSettings.copy(
@@ -83,26 +74,7 @@ class FilesystemReaderSettingsRepository(
                     )
                 )
             )
-        })
-        ack.await()
-    }
-
-    override fun getPagedReaderStretchToFit(): Flow<Boolean> {
-        return actor.getState().map { it.reader.pagedReaderSettings.stretchToFit }
-    }
-
-    override suspend fun putPagedReaderStretchToFit(stretch: Boolean) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
-            settings.copy(
-                reader = settings.reader.copy(
-                    pagedReaderSettings = settings.reader.pagedReaderSettings.copy(
-                        stretchToFit = stretch
-                    ),
-                )
-            )
-        })
-        ack.await()
+        }
     }
 
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {
@@ -110,8 +82,7 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putContinuousReaderReadingDirection(direction: ContinuousReaderState.ReadingDirection) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
+        actor.transform { settings ->
             settings.copy(
                 reader = settings.reader.copy(
                     continuousReaderSettings = settings.reader.continuousReaderSettings.copy(
@@ -119,8 +90,7 @@ class FilesystemReaderSettingsRepository(
                     )
                 )
             )
-        })
-        ack.await()
+        }
     }
 
     override fun getContinuousReaderPadding(): Flow<Float> {
@@ -128,8 +98,7 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putContinuousReaderPadding(padding: Float) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
+        actor.transform { settings ->
             settings.copy(
                 reader = settings.reader.copy(
                     continuousReaderSettings = settings.reader.continuousReaderSettings.copy(
@@ -137,8 +106,7 @@ class FilesystemReaderSettingsRepository(
                     )
                 )
             )
-        })
-        ack.await()
+        }
     }
 
     override fun getContinuousReaderPageSpacing(): Flow<Int> {
@@ -146,8 +114,7 @@ class FilesystemReaderSettingsRepository(
     }
 
     override suspend fun putContinuousReaderPageSpacing(spacing: Int) {
-        val ack = CompletableDeferred<AppSettings>()
-        actor.send(Transform(ack) { settings ->
+        actor.transform { settings ->
             settings.copy(
                 reader = settings.reader.copy(
                     continuousReaderSettings = settings.reader.continuousReaderSettings.copy(
@@ -155,8 +122,6 @@ class FilesystemReaderSettingsRepository(
                     )
                 )
             )
-        })
-        ack.await()
+        }
     }
-
 }

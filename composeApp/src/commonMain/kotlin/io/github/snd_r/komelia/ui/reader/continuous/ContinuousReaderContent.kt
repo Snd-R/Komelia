@@ -201,20 +201,28 @@ private fun VerticalLayout(
 ) {
     val areaSize = state.screenScaleState.areaSize.collectAsState()
     val targetSize = state.screenScaleState.targetSize.collectAsState()
+    val stretchToFit = state.imageStretchToFit.collectAsState()
     LazyColumn(
         state = state.lazyListState,
         contentPadding = PaddingValues(start = sidePadding, end = sidePadding),
         userScrollEnabled = false,
     ) {
         continuousPagesLayout(pageIntervals) { page ->
-            val height = remember(page.size, areaSize.value, targetSize.value) {
+            val height = remember(page.size, areaSize.value, targetSize.value, stretchToFit.value) {
                 state.getContentSizePx(page).height
             }
-            Column(Modifier.animateContentSize(spring(stiffness = Spring.StiffnessVeryLow)).fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceDim)
+            ) {
                 Image(
                     state = state,
                     page = page,
-                    modifier = Modifier.height(with(LocalDensity.current) { height.toDp() })
+                    stretchToFit = stretchToFit.value,
+                    modifier = Modifier
+                        .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
+                        .height(with(LocalDensity.current) { height.toDp() })
                 )
                 Spacer(Modifier.height(state.pageSpacing.collectAsState().value.dp))
             }
@@ -235,6 +243,7 @@ private fun HorizontalLayout(
 
     val areaSize = state.screenScaleState.areaSize.collectAsState()
     val targetSize = state.screenScaleState.targetSize.collectAsState()
+    val stretchToFit = state.imageStretchToFit.collectAsState()
 
     LazyRow(
         state = state.lazyListState,
@@ -243,11 +252,20 @@ private fun HorizontalLayout(
         reverseLayout = reversed
     ) {
         continuousPagesLayout(pageIntervals) { page ->
-            val width = remember(page.size, areaSize.value, targetSize.value) { state.getContentSizePx(page).width }
+            val width = remember(
+                page.size,
+                areaSize.value,
+                targetSize.value,
+                stretchToFit.value
+            ) {
+                state.getContentSizePx(page).width
+            }
+
             Row(Modifier.animateContentSize(spring(stiffness = Spring.StiffnessVeryLow)).fillMaxHeight()) {
                 Image(
                     state = state,
                     page = page,
+                    stretchToFit = stretchToFit.value,
                     modifier = Modifier.width(with(LocalDensity.current) { width.toDp() })
                 )
                 Spacer(Modifier.width(state.pageSpacing.collectAsState().value.dp))
@@ -339,6 +357,7 @@ private suspend fun handlePageScrollEvents(state: ContinuousReaderState) {
 @Composable
 private fun Image(
     state: ContinuousReaderState,
+    stretchToFit: Boolean,
     page: PageMetadata,
     modifier: Modifier
 ) {
@@ -354,35 +373,22 @@ private fun Image(
     }
 
     var image by remember { mutableStateOf<ImageResult?>(null) }
-    LaunchedEffect(transforms.scale, targetSize) {
+    LaunchedEffect(transforms.scale, targetSize, stretchToFit) {
         image = state.getImage(page)
     }
-    Box(modifier) {
-        when (val result = image) {
-            is ErrorResult -> Text("Page load error")
-            is SuccessResult -> {
-                ReaderImage(
-                    image = result.image,
-                    contentScale = imageScale,
-                    modifier = Modifier.fillMaxSize()
-
-                )
-            }
-
-            null -> imagePlaceholder()
-        }
-    }
-}
-
-@Composable
-private fun imagePlaceholder() {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        contentAlignment = Alignment.TopCenter
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator()
+        when (val result = image) {
+            is ErrorResult -> Text(result.throwable.message ?: "Page load error")
+            is SuccessResult -> ReaderImage(image = result.image, contentScale = imageScale)
+            null -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter,
+                content = { CircularProgressIndicator() }
+            )
+        }
     }
 }
 

@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 interface ReaderSettingsRepository {
     fun getReaderType(): Flow<ReaderType>
     suspend fun putReaderType(type: ReaderType)
-    fun getUpsample(): Flow<Boolean>
-    suspend fun putUpsample(upsample: Boolean)
+    fun getStretchToFit(): Flow<Boolean>
+    suspend fun putStretchToFit(stretch: Boolean)
 
 
     fun getPagedReaderScaleType(): Flow<LayoutScaleType>
@@ -20,8 +20,6 @@ interface ReaderSettingsRepository {
     suspend fun putPagedReaderReadingDirection(direction: PagedReaderState.ReadingDirection)
     fun getPagedReaderDisplayLayout(): Flow<PageDisplayLayout>
     suspend fun putPagedReaderDisplayLayout(layout: PageDisplayLayout)
-    fun getPagedReaderStretchToFit(): Flow<Boolean>
-    suspend fun putPagedReaderStretchToFit(stretch: Boolean)
 
 
     fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection>

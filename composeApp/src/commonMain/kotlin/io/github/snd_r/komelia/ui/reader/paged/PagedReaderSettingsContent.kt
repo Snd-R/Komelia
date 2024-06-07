@@ -28,34 +28,23 @@ fun ColumnScope.PagedReaderSettingsContent(
     pageState: PagedReaderState,
 ) {
 
-    val strings = LocalStrings.current.readerSettings
+    val strings = LocalStrings.current.pagedReader
     val scaleType = pageState.scaleType.collectAsState().value
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            DropdownChoiceMenu(
-                selectedOption = LabeledEntry(scaleType, strings.forScaleType(scaleType)),
-                options = LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) },
-                onOptionChange = { pageState.onScaleTypeChange(it.value) },
-                modifier = Modifier.weight(1f),
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text(strings.scaleType) },
-                inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-            AnimatedVisibility(scaleType != LayoutScaleType.ORIGINAL) {
-                CheckboxWithLabel(
-                    pageState.imageStretchToFit.collectAsState().value,
-                    pageState::onStretchToFitChange,
-                    label = { Text("Stretch small images") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
+        DropdownChoiceMenu(
+            selectedOption = LabeledEntry(scaleType, strings.forScaleType(scaleType)),
+            options = remember { LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) } },
+            onOptionChange = { pageState.onScaleTypeChange(it.value) },
+            inputFieldModifier = Modifier.fillMaxWidth(),
+            label = { Text(strings.scaleType) },
+            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+        )
 
         val layout = pageState.layout.collectAsState().value
         Row(verticalAlignment = Alignment.CenterVertically) {
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(layout, strings.forLayout(layout)),
-                options = PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) },
+                options = remember { PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) } },
                 onOptionChange = { pageState.onLayoutChange(it.value) },
                 modifier = Modifier.weight(1f),
                 inputFieldModifier = Modifier.fillMaxWidth(),
@@ -80,11 +69,8 @@ fun ColumnScope.PagedReaderSettingsContent(
                 readingDirection,
                 strings.forReadingDirection(readingDirection)
             ),
-            options = PagedReaderState.ReadingDirection.entries.map {
-                LabeledEntry(
-                    it,
-                    strings.forReadingDirection(it)
-                )
+            options = remember {
+                PagedReaderState.ReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) }
             },
             onOptionChange = { pageState.onReadingDirectionChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
@@ -94,29 +80,30 @@ fun ColumnScope.PagedReaderSettingsContent(
 
         HorizontalDivider(Modifier.padding(vertical = 5.dp))
 
+        val readerStrings = LocalStrings.current.reader
         val currentSpread = pageState.currentSpread.collectAsState()
         currentSpread.value.pages.forEach { page ->
             val sizeInMb = remember(currentSpread.value) {
                 page.imageResult?.image?.size?.let { (it.toFloat() / 1024 / 1024).formatDecimal(2) }
             }
             val pageText = buildString {
-                append("${strings.pageNumber} ${page.metadata.pageNumber}.")
-                if (sizeInMb != null) append(" ${strings.memoryUsage}: ${sizeInMb}Mb")
+                append("${readerStrings.pageNumber} ${page.metadata.pageNumber}.")
+                if (sizeInMb != null) append(" ${readerStrings.memoryUsage}: ${sizeInMb}Mb")
             }
 
             Text(pageText, style = MaterialTheme.typography.bodyMedium)
 
-            Text("${strings.pageScaledSize} ${page.imageResult?.image?.width} x ${page.imageResult?.image?.height}")
+            Text("${readerStrings.pageScaledSize} ${page.imageResult?.image?.width} x ${page.imageResult?.image?.height}")
 
             if (page.metadata.size == null) {
                 Text(
-                    strings.noPageDimensionsWarning,
+                    readerStrings.noPageDimensionsWarning,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.error
                     )
                 )
             } else {
-                Text("${strings.pageOriginalSize}: ${page.metadata.size.width} x ${page.metadata.size.height}")
+                Text("${readerStrings.pageOriginalSize}: ${page.metadata.size.width} x ${page.metadata.size.height}")
             }
 
             HorizontalDivider(Modifier.padding(vertical = 5.dp))

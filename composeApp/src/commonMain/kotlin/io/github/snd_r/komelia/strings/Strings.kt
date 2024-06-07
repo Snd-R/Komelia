@@ -1,28 +1,61 @@
 package io.github.snd_r.komelia.strings
 
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
-import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.*
+import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
+import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUDE
+import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.NONE
+import io.github.snd_r.komelia.ui.reader.ReaderType
+import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.*
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.FIT_HEIGHT
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.FIT_WIDTH
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.ORIGINAL
+import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType.SCREEN
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
-import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.*
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.DATE_ADDED_ASC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.DATE_ADDED_DESC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.RELEASE_DATE_ASC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.RELEASE_DATE_DESC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.TITLE_ASC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.TITLE_DESC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.UPDATED_ASC
+import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.UPDATED_DESC
 import io.github.snd_r.komga.book.KomgaReadStatus
-import io.github.snd_r.komga.book.KomgaReadStatus.*
+import io.github.snd_r.komga.book.KomgaReadStatus.IN_PROGRESS
+import io.github.snd_r.komga.book.KomgaReadStatus.READ
+import io.github.snd_r.komga.book.KomgaReadStatus.UNREAD
 import io.github.snd_r.komga.common.KomgaReadingDirection
-import io.github.snd_r.komga.common.KomgaReadingDirection.*
+import io.github.snd_r.komga.common.KomgaReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komga.common.KomgaReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komga.common.KomgaReadingDirection.VERTICAL
+import io.github.snd_r.komga.common.KomgaReadingDirection.WEBTOON
 import io.github.snd_r.komga.library.ScanInterval
-import io.github.snd_r.komga.library.ScanInterval.*
+import io.github.snd_r.komga.library.ScanInterval.DAILY
+import io.github.snd_r.komga.library.ScanInterval.DISABLED
+import io.github.snd_r.komga.library.ScanInterval.EVERY_12H
+import io.github.snd_r.komga.library.ScanInterval.EVERY_6H
+import io.github.snd_r.komga.library.ScanInterval.HOURLY
+import io.github.snd_r.komga.library.ScanInterval.WEEKLY
 import io.github.snd_r.komga.library.SeriesCover
-import io.github.snd_r.komga.library.SeriesCover.*
+import io.github.snd_r.komga.library.SeriesCover.FIRST
+import io.github.snd_r.komga.library.SeriesCover.FIRST_UNREAD_OR_FIRST
+import io.github.snd_r.komga.library.SeriesCover.FIRST_UNREAD_OR_LAST
+import io.github.snd_r.komga.library.SeriesCover.LAST
 import io.github.snd_r.komga.series.KomgaSeriesStatus
-import io.github.snd_r.komga.series.KomgaSeriesStatus.*
+import io.github.snd_r.komga.series.KomgaSeriesStatus.ABANDONED
+import io.github.snd_r.komga.series.KomgaSeriesStatus.ENDED
+import io.github.snd_r.komga.series.KomgaSeriesStatus.HIATUS
+import io.github.snd_r.komga.series.KomgaSeriesStatus.ONGOING
 import io.github.snd_r.komga.settings.KomgaThumbnailSize
-import io.github.snd_r.komga.settings.KomgaThumbnailSize.*
+import io.github.snd_r.komga.settings.KomgaThumbnailSize.DEFAULT
+import io.github.snd_r.komga.settings.KomgaThumbnailSize.LARGE
+import io.github.snd_r.komga.settings.KomgaThumbnailSize.MEDIUM
+import io.github.snd_r.komga.settings.KomgaThumbnailSize.XLARGE
 
 data class Strings(
     val filters: FilterStrings,
@@ -31,7 +64,9 @@ data class Strings(
     val seriesEdit: SeriesEditStrings,
     val libraryEdit: LibraryEditStrings,
     val userEdit: UserEditStrings,
-    val readerSettings: ReaderSettingsStrings,
+    val reader: ReaderStrings,
+    val pagedReader: PagedReaderStrings,
+    val continuousReader: ContinuousReaderStrings,
     val settings: SettingsStrings,
     val errorCodes: ErrorCodes,
 )
@@ -147,26 +182,44 @@ data class UserEditStrings(
     }
 }
 
-data class ReaderSettingsStrings(
-    val scaleType: String,
-    val scaleScreen: String,
-    val scaleFitWidth: String,
-    val scaleFitHeight: String,
-    val scaleOriginal: String,
-    val upsample: String,
-    val readingDirection: String,
-    val readingDirectionLeftToRight: String,
-    val readingDirectionRightToLeft: String,
-    val layout: String,
-    val layoutSinglePage: String,
-    val layoutDoublePages: String,
-    val offsetPages: String,
+data class ReaderStrings(
+    val zoom: String,
+    val readerPaged: String,
+    val readerType: String,
+    val readerContinuous: String,
+    val stretchToFit: String,
     val decoder: String,
+    val pagesInfo: String,
     val pageNumber: String,
     val memoryUsage: String,
     val pageScaledSize: String,
     val pageOriginalSize: String,
     val noPageDimensionsWarning: String,
+) {
+    fun forReaderType(type: ReaderType): String {
+        return when (type) {
+            ReaderType.PAGED -> readerPaged
+            ReaderType.CONTINUOUS -> readerContinuous
+        }
+    }
+
+}
+
+data class PagedReaderStrings(
+    val scaleType: String,
+    val scaleScreen: String,
+    val scaleFitWidth: String,
+    val scaleFitHeight: String,
+    val scaleOriginal: String,
+
+    val readingDirection: String,
+    val readingDirectionLeftToRight: String,
+    val readingDirectionRightToLeft: String,
+
+    val layout: String,
+    val layoutSinglePage: String,
+    val layoutDoublePages: String,
+    val offsetPages: String,
 ) {
     fun forScaleType(type: LayoutScaleType): String {
         return when (type) {
@@ -190,7 +243,25 @@ data class ReaderSettingsStrings(
             DOUBLE_PAGES -> layoutDoublePages
         }
     }
+}
 
+data class ContinuousReaderStrings(
+    val sidePadding: String,
+    val pageSpacing: String,
+
+    val readingDirection: String,
+    val readingDirectionTopToBottom: String,
+    val readingDirectionLeftToRight: String,
+    val readingDirectionRightToLeft: String,
+) {
+
+    fun forReadingDirection(direction: ContinuousReaderState.ReadingDirection): String {
+        return when (direction) {
+            ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM -> readingDirectionTopToBottom
+            ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT -> readingDirectionLeftToRight
+            ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT -> readingDirectionRightToLeft
+        }
+    }
 }
 
 data class SettingsStrings(

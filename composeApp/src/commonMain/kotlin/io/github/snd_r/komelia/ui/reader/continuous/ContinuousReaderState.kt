@@ -36,6 +36,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -68,6 +69,7 @@ class ContinuousReaderState(
     val sidePaddingFraction = MutableStateFlow(.3f)
     val sidePaddingPx = MutableStateFlow(0)
     val pageSpacing = MutableStateFlow(0)
+    val imageStretchToFit = readerState.imageStretchToFit.asStateFlow()
 
     val pageIntervals = MutableStateFlow<List<BookPagesInterval>>(emptyList())
     private val currentIntervalIndex = MutableStateFlow(0)
@@ -339,6 +341,11 @@ class ContinuousReaderState(
                         }
                     }
 
+                    !readerState.imageStretchToFit.value -> contentSizeForArea(
+                        contentSize = page.size,
+                        maxPageSize = IntSize(constrainedWidth.coerceAtMost(page.size.width), Int.MAX_VALUE)
+                    )
+
                     else -> contentSizeForArea(
                         contentSize = page.size,
                         maxPageSize = IntSize(constrainedWidth, Int.MAX_VALUE)
@@ -348,21 +355,6 @@ class ContinuousReaderState(
 
             LEFT_TO_RIGHT, RIGHT_TO_LEFT -> {
                 val constrainedHeight = containerSize.height - (sidePaddingPx.value * 2)
-                val contentSize = when {
-                    page.size == null -> {
-                        val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
-                        val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
-                        previousPage?.size ?: nextPage?.size
-                        ?: IntSize((containerSize.width / 2), containerSize.height)
-                    }
-
-                    else -> page.size
-                }
-                contentSizeForArea(
-                    contentSize = contentSize,
-                    maxPageSize = IntSize(Int.MAX_VALUE, constrainedHeight)
-                )
-
                 when {
                     page.size == null -> {
                         val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
@@ -377,6 +369,11 @@ class ContinuousReaderState(
                             IntSize((containerSize.width / 2), containerSize.height)
                         }
                     }
+
+                    !readerState.imageStretchToFit.value -> contentSizeForArea(
+                        contentSize = page.size,
+                        maxPageSize = IntSize(Int.MAX_VALUE, constrainedHeight.coerceAtMost(page.size.height))
+                    )
 
                     else -> contentSizeForArea(
                         contentSize = page.size,
@@ -453,6 +450,7 @@ class ContinuousReaderState(
                 val width = ((containerSize.width - (sidePaddingPx.value * 2)) * zoomScale).roundToInt()
                 val constrainedWidth = when {
                     page.size == null -> width.coerceAtMost(containerSize.width)
+                    !readerState.imageStretchToFit.value -> width.coerceAtMost(page.size.width)
                     else -> width
                 }
 
@@ -466,6 +464,7 @@ class ContinuousReaderState(
                 val height = ((containerSize.height - (sidePaddingPx.value * 2)) * zoomScale).roundToInt()
                 val constrainedHeight = when {
                     page.size == null -> height.coerceAtMost(containerSize.height)
+                    !readerState.imageStretchToFit.value -> height.coerceAtMost(page.size.width)
                     else -> height
                 }
 

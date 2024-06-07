@@ -59,13 +59,11 @@ class PagedReaderState(
     val layoutOffset = MutableStateFlow(false)
     val scaleType = MutableStateFlow(LayoutScaleType.SCREEN)
     val readingDirection = MutableStateFlow(LEFT_TO_RIGHT)
-    val imageStretchToFit = MutableStateFlow(true)
 
     suspend fun initialize() {
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
         scaleType.value = settingsRepository.getPagedReaderScaleType().first()
         readingDirection.value = settingsRepository.getPagedReaderReadingDirection().first()
-        imageStretchToFit.value = settingsRepository.getPagedReaderStretchToFit().first()
 
         screenScaleState.setScrollState(null)
         screenScaleState.setScrollOrientation(Orientation.Vertical, false)
@@ -76,6 +74,11 @@ class PagedReaderState(
                 pagedReaderImageLoader.clearCache()
                 loadPage(currentSpreadIndex.value)
             }.launchIn(stateScope)
+
+        readerState.imageStretchToFit
+            .drop(1)
+            .onEach { loadPage(spreadIndexOf(currentSpread.value.pages.first().metadata)) }
+            .launchIn(stateScope)
 
         screenScaleState.areaSize
             .drop(1)
@@ -212,7 +215,7 @@ class PagedReaderState(
             containerSize = containerSize,
             layout = layout.value,
             scaleType = scaleType.value,
-            stretchToFit = imageStretchToFit.value
+            stretchToFit = readerState.imageStretchToFit.value
         )
 
         loadRange.filter { it != loadSpreadIndex }
@@ -224,7 +227,7 @@ class PagedReaderState(
                     containerSize = containerSize,
                     layout = layout.value,
                     scaleType = scaleType.value,
-                    stretchToFit = imageStretchToFit.value
+                    stretchToFit = readerState.imageStretchToFit.value
                 )
             }
 
@@ -278,7 +281,7 @@ class PagedReaderState(
                 containerSize = screenScaleState.areaSize.value,
                 zoomFactor = currentScaleFactor,
                 scaleType = scaleType.value,
-                stretchToFit = imageStretchToFit.value
+                stretchToFit = readerState.imageStretchToFit.value
             )
 
             currentSpread.update { current ->
@@ -384,12 +387,6 @@ class PagedReaderState(
     fun onReadingDirectionChange(readingDirection: ReadingDirection) {
         this.readingDirection.value = readingDirection
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
-    }
-
-    fun onStretchToFitChange(stretch: Boolean) {
-        this.imageStretchToFit.value = stretch
-        stateScope.launch { settingsRepository.putPagedReaderStretchToFit(stretch) }
-        loadPage(spreadIndexOf(currentSpread.value.pages.first().metadata))
     }
 
     enum class ReadingDirection {

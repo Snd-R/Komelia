@@ -71,6 +71,12 @@ class FileSystemSettingsActor {
         queue.send(msg)
     }
 
+    suspend fun transform(transform: suspend (settings: AppSettings) -> AppSettings) {
+        val ack = CompletableDeferred<AppSettings>()
+        queue.send(Transform(ack, transform))
+        ack.await()
+    }
+
     private fun handleRead(read: ActorMessage.Read) {
         read.ack.completeWith(
             runCatching {

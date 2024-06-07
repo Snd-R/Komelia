@@ -37,10 +37,10 @@ import kotlin.math.roundToInt
 
 @Composable
 fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
-    val strings = LocalStrings.current.readerSettings
+    val strings = LocalStrings.current.continuousReader
     val padding = state.sidePaddingFraction.collectAsState().value
     Column {
-        Text("Side padding ${(padding * 200).roundToInt()}%")
+        Text("${strings.sidePadding} ${(padding * 200).roundToInt()}%")
         Slider(
             value = padding,
             onValueChange = state::onSidePaddingChange,
@@ -60,7 +60,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
                 if (newValue.isBlank()) state.onPageSpacingChange(0)
                 else newValue.toIntOrNull()?.let { state.onPageSpacingChange(it) }
             },
-            label = { Text("Page spacing") },
+            label = { Text(strings.pageSpacing) },
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -68,11 +68,13 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
 
     val readingDirection = state.readingDirection.collectAsState()
     DropdownChoiceMenu(
-        selectedOption = LabeledEntry(readingDirection.value, readingDirection.value.name),
-        options = ContinuousReaderState.ReadingDirection.entries.map { LabeledEntry(it, it.name) },
+        selectedOption = LabeledEntry(readingDirection.value, strings.forReadingDirection(readingDirection.value)),
+        options = remember {
+            ContinuousReaderState.ReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) }
+        },
         onOptionChange = { state.onReadingDirectionChange(it.value) },
         inputFieldModifier = Modifier.fillMaxWidth(),
-        label = { Text("Reading Direction") },
+        label = { Text(strings.readingDirection) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
@@ -90,6 +92,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     }
 
     var showPagesInfo by remember { mutableStateOf(false) }
+    val readerStrings = LocalStrings.current.reader
     Row(
         Modifier
             .fillMaxWidth()
@@ -97,7 +100,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
             .cursorForHand()
             .padding(10.dp)
     ) {
-        Text("Pages info")
+        Text(readerStrings.pagesInfo)
         if (showPagesInfo) Icon(Icons.Default.ExpandLess, null)
         else Icon(Icons.Default.ExpandMore, null)
     }
@@ -107,14 +110,14 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
             HorizontalDivider(Modifier.padding(vertical = 5.dp))
             val scaleFactor = state.screenScaleState.transformation.collectAsState().value.scale
             visiblePages.forEach { page ->
-                Text("${strings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
+                Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
                 if (page.size != null) {
                     val scaledSize = state.getContentSizePx(page)
                     val width = (scaledSize.width * scaleFactor).roundToInt()
                     val height = (scaledSize.height * scaleFactor).roundToInt()
-                    Text("${strings.pageScaledSize} $width x $height")
-                    Text("${strings.pageOriginalSize}: ${page.size.width} x ${page.size.height}")
+                    Text("${readerStrings.pageScaledSize} $width x $height")
+                    Text("${readerStrings.pageOriginalSize}: ${page.size.width} x ${page.size.height}")
                 }
 
                 HorizontalDivider(Modifier.padding(vertical = 5.dp))
