@@ -131,22 +131,24 @@ class PagedReaderImageLoader(
             LayoutScaleType.SCREEN -> scaleState.setZoom(0f)
             LayoutScaleType.FIT_WIDTH -> {
                 if (!stretchToFit && areaSize.width > actualSpreadSize.width) {
-                    val actualWidth = actualSpreadSize.width.toFloat()
-                    val constrainedWidth = fitToScreenSize.width.toFloat()
-                    val scaleFor100Percent = scaleState.scaleFor100PercentZoom()
-                    val zoom = (actualWidth / constrainedWidth) / scaleFor100Percent
-                    scaleState.setZoom(zoom.coerceAtMost(1.0f))
+                    val newZoom = zoomForOriginalSize(
+                        actualSpreadSize,
+                        fitToScreenSize,
+                        scaleState.scaleFor100PercentZoom()
+                    )
+                    scaleState.setZoom(newZoom.coerceAtMost(1.0f))
                 } else if (fitToScreenSize.width < areaSize.width) scaleState.setZoom(1f)
                 else scaleState.setZoom(0f)
             }
 
             LayoutScaleType.FIT_HEIGHT -> {
                 if (!stretchToFit && areaSize.height > actualSpreadSize.height) {
-                    val actualHeight = actualSpreadSize.height.toFloat()
-                    val constrainedHeight = fitToScreenSize.height.toFloat()
-                    val scaleFor100Percent = scaleState.scaleFor100PercentZoom()
-                    val zoom = (actualHeight / constrainedHeight) / scaleFor100Percent
-                    scaleState.setZoom(zoom.coerceAtMost(1.0f))
+                    val newZoom = zoomForOriginalSize(
+                        actualSpreadSize,
+                        fitToScreenSize,
+                        scaleState.scaleFor100PercentZoom()
+                    )
+                    scaleState.setZoom(newZoom.coerceAtMost(1.0f))
 
                 } else if (fitToScreenSize.height < areaSize.height) scaleState.setZoom(1f)
                 else scaleState.setZoom(0f)
@@ -154,11 +156,11 @@ class PagedReaderImageLoader(
 
             LayoutScaleType.ORIGINAL -> {
                 if (actualSpreadSize.width > areaSize.width || actualSpreadSize.height > areaSize.height) {
-                    val newZoom = max(
-                        actualSpreadSize.width.toFloat() / fitToScreenSize.width,
-                        actualSpreadSize.height.toFloat() / fitToScreenSize.height
-                    ) / scaleState.scaleFor100PercentZoom()
-
+                    val newZoom = zoomForOriginalSize(
+                        actualSpreadSize,
+                        fitToScreenSize,
+                        scaleState.scaleFor100PercentZoom()
+                    )
                     scaleState.setZoom(newZoom)
 
                 } else scaleState.setZoom(0f)
@@ -166,6 +168,13 @@ class PagedReaderImageLoader(
         }
 
         return scaleState
+    }
+
+    private fun zoomForOriginalSize(originalSize: IntSize, targetSize: IntSize, scaleFor100Percent: Float): Float {
+        return max(
+            originalSize.width.toFloat() / targetSize.width,
+            originalSize.height.toFloat() / targetSize.height
+        ) / scaleFor100Percent
     }
 
     private fun scaledContentSizeForPage(
