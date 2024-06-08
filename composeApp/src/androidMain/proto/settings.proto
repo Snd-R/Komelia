@@ -37,7 +37,7 @@ message AppearanceSettings{
 
 message ReaderBaseSettings{
   PBReaderType readerType = 1;
-  optional bool upsample = 2;
+  optional bool stretchToFit = 2;
   PagedReaderSettings pagedReaderSettings = 3;
   ContinuousReaderSettings continuousReaderSettings = 4;
 
@@ -50,9 +50,8 @@ message ReaderBaseSettings{
 
 message PagedReaderSettings{
   PBLayoutScaleType scaleType = 1;
-  optional bool stretchToFit = 2;
-  PBReadingDirection readingDirection = 3;
-  PBPageDisplayLayout pageLayout = 4;
+  PBReadingDirection readingDirection = 2;
+  PBPageDisplayLayout pageLayout = 3;
 
   enum PBLayoutScaleType{
     SCREEN = 0;

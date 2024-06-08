@@ -19,10 +19,9 @@ const val bookPageLoadSizeKey = "bookPageLoadSize"
 const val bookListLayoutKey = "bookListLayout"
 
 const val readerTypeKey = "readerType"
-const val upsampleKey = "upsample"
+const val stretchToFitKey = "stretchToFit"
 
 const val pagedReaderScaleTypeKey = "pagedReaderScaleType"
-const val pagedReaderStretchToFitKey = "pagedReaderStretchToFit"
 const val pagedReaderReadingDirectionKey = "pagedReaderReadingDirection"
 const val pagedReaderLayoutKey = "pagedReaderLayout"
 
@@ -57,13 +56,10 @@ data class AppSettings(
                 ),
                 reader = ReaderSettings(
                     readerType = localStorage[readerTypeKey]?.let { ReaderType.valueOf(it) } ?: ReaderType.PAGED,
-                    upsample = localStorage[upsampleKey]?.toBoolean() ?: false,
+                    stretchToFit = localStorage[stretchToFitKey]?.let { it.toBoolean() } ?: true,
                     pagedReaderSettings = PagedReaderSettings(
                         scaleType = localStorage[pagedReaderScaleTypeKey]?.let { LayoutScaleType.valueOf(it) }
                             ?: LayoutScaleType.SCREEN,
-                        stretchToFit = localStorage[pagedReaderStretchToFitKey]
-                            ?.let { it.toBoolean() }
-                            ?: true,
                         readingDirection = localStorage[pagedReaderReadingDirectionKey]
                             ?.let { PagedReaderState.ReadingDirection.valueOf(it) }
                             ?: PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
@@ -104,14 +100,13 @@ data class AppearanceSettings(
 
 data class ReaderSettings(
     val readerType: ReaderType = ReaderType.PAGED,
-    val upsample: Boolean = false,
+    val stretchToFit: Boolean = true,
     val pagedReaderSettings: PagedReaderSettings = PagedReaderSettings(),
     val continuousReaderSettings: ContinuousReaderSettings = ContinuousReaderSettings(),
 )
 
 data class PagedReaderSettings(
     val scaleType: LayoutScaleType = LayoutScaleType.SCREEN,
-    val stretchToFit: Boolean = true,
     val readingDirection: PagedReaderState.ReadingDirection = PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
     val pageLayout: PageDisplayLayout = PageDisplayLayout.SINGLE_PAGE
 )

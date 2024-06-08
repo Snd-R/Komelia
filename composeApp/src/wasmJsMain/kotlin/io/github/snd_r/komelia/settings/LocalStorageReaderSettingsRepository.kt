@@ -19,29 +19,17 @@ class LocalStorageReaderSettingsRepository(private val settings: MutableStateFlo
     }
 
     override suspend fun putReaderType(type: ReaderType) {
-        settings.update {
-            it.copy(
-                reader = it.reader.copy(
-                    readerType = type
-                )
-            )
-        }
+        settings.update { it.copy(reader = it.reader.copy(readerType = type)) }
         localStorage[readerTypeKey] = type.name
     }
 
-    override fun getUpsample(): Flow<Boolean> {
-        return settings.map { it.reader.upsample }
+    override fun getStretchToFit(): Flow<Boolean> {
+        return settings.map { it.reader.stretchToFit }
     }
 
-    override suspend fun putUpsample(upsample: Boolean) {
-        settings.update {
-            it.copy(
-                reader = it.reader.copy(
-                    upsample = upsample
-                )
-            )
-        }
-        localStorage[upsampleKey] = upsample.toString()
+    override suspend fun putStretchToFit(stretch: Boolean) {
+        settings.update { it.copy(reader = it.reader.copy(stretchToFit = stretch)) }
+        localStorage[stretchToFitKey] = stretch.toString()
     }
 
     override fun getPagedReaderScaleType(): Flow<LayoutScaleType> {
@@ -93,23 +81,6 @@ class LocalStorageReaderSettingsRepository(private val settings: MutableStateFlo
             )
         }
         localStorage[pagedReaderLayoutKey] = layout.toString()
-    }
-
-    override fun getPagedReaderStretchToFit(): Flow<Boolean> {
-        return settings.map { it.reader.pagedReaderSettings.stretchToFit }
-    }
-
-    override suspend fun putPagedReaderStretchToFit(stretch: Boolean) {
-        settings.update {
-            it.copy(
-                reader = it.reader.copy(
-                    pagedReaderSettings = it.reader.pagedReaderSettings.copy(
-                        stretchToFit = stretch
-                    )
-                )
-            )
-        }
-        localStorage[pagedReaderStretchToFitKey] = stretch.toString()
     }
 
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {

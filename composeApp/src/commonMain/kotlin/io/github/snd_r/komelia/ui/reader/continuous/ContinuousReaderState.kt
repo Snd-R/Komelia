@@ -343,7 +343,7 @@ class ContinuousReaderState(
 
                     !readerState.imageStretchToFit.value -> contentSizeForArea(
                         contentSize = page.size,
-                        maxPageSize = IntSize(constrainedWidth.coerceAtMost(page.size.width), Int.MAX_VALUE)
+                        maxPageSize = IntSize(constrainedWidth.coerceAtMost(page.size.width), page.size.height)
                     )
 
                     else -> contentSizeForArea(
@@ -372,7 +372,7 @@ class ContinuousReaderState(
 
                     !readerState.imageStretchToFit.value -> contentSizeForArea(
                         contentSize = page.size,
-                        maxPageSize = IntSize(Int.MAX_VALUE, constrainedHeight.coerceAtMost(page.size.height))
+                        maxPageSize = IntSize(page.size.width, constrainedHeight.coerceAtMost(page.size.height))
                     )
 
                     else -> contentSizeForArea(
@@ -464,7 +464,7 @@ class ContinuousReaderState(
                 val height = ((containerSize.height - (sidePaddingPx.value * 2)) * zoomScale).roundToInt()
                 val constrainedHeight = when {
                     page.size == null -> height.coerceAtMost(containerSize.height)
-                    !readerState.imageStretchToFit.value -> height.coerceAtMost(page.size.width)
+                    !readerState.imageStretchToFit.value -> height.coerceAtMost(page.size.height)
                     else -> height
                 }
 

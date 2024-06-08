@@ -38,17 +38,16 @@ class AndroidReaderSettingsRepository(
         }
     }
 
-    override fun getUpsample(): Flow<Boolean> {
-        return dataStore.data.map { it.reader.upsample }
+    override fun getStretchToFit(): Flow<Boolean> {
+        return dataStore.data.map {
+            if (!it.reader.hasStretchToFit()) true
+            else it.reader.stretchToFit
+        }
     }
 
-    override suspend fun putUpsample(upsample: Boolean) {
+    override suspend fun putStretchToFit(stretch: Boolean) {
         dataStore.updateData { current ->
-            current.copy {
-                reader = reader.copy {
-                    this.upsample = upsample
-                }
-            }
+            current.copy { reader = reader.copy { stretchToFit = stretch } }
         }
     }
 
@@ -122,25 +121,6 @@ class AndroidReaderSettingsRepository(
                             PageDisplayLayout.SINGLE_PAGE -> PBPageDisplayLayout.SINGLE_PAGE
                             PageDisplayLayout.DOUBLE_PAGES -> PBPageDisplayLayout.DOUBLE_PAGES
                         }
-                    }
-                }
-            }
-        }
-    }
-
-    override fun getPagedReaderStretchToFit(): Flow<Boolean> {
-        return dataStore.data.map {
-            if (!it.reader.pagedReaderSettings.hasStretchToFit()) true
-            else it.reader.pagedReaderSettings.stretchToFit
-        }
-    }
-
-    override suspend fun putPagedReaderStretchToFit(stretch: Boolean) {
-        dataStore.updateData { current ->
-            current.copy {
-                reader = reader.copy {
-                    pagedReaderSettings = pagedReaderSettings.copy {
-                        stretchToFit = stretch
                     }
                 }
             }

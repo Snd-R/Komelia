@@ -161,6 +161,7 @@ fun BoxScope.ContinuousReaderContent(
 @Composable
 private fun ReaderPages(state: ContinuousReaderState) {
     val pageIntervals = state.pageIntervals.collectAsState().value
+    if (pageIntervals.isEmpty()) return
     val sidePadding = with(LocalDensity.current) { state.sidePaddingPx.collectAsState().value.toDp() }
     val readingDirection = state.readingDirection.collectAsState().value
     when (readingDirection) {
@@ -213,6 +214,7 @@ private fun VerticalLayout(
             }
             Column(
                 modifier = Modifier
+                    .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceDim)
             ) {
@@ -220,9 +222,7 @@ private fun VerticalLayout(
                     state = state,
                     page = page,
                     stretchToFit = stretchToFit.value,
-                    modifier = Modifier
-                        .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
-                        .height(with(LocalDensity.current) { height.toDp() })
+                    modifier = Modifier.height(with(LocalDensity.current) { height.toDp() })
                 )
                 Spacer(Modifier.height(state.pageSpacing.collectAsState().value.dp))
             }
@@ -260,8 +260,12 @@ private fun HorizontalLayout(
             ) {
                 state.getContentSizePx(page).width
             }
-
-            Row(Modifier.animateContentSize(spring(stiffness = Spring.StiffnessVeryLow)).fillMaxHeight()) {
+            Row(
+                Modifier
+                    .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.surfaceDim)
+            ) {
                 Image(
                     state = state,
                     page = page,
