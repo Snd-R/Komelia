@@ -3,6 +3,7 @@ package io.github.snd_r.komelia
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
+import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
@@ -43,6 +44,7 @@ import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
+import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
@@ -79,6 +81,7 @@ class ViewModelFactory(
     private val secretsRepository: SecretsRepository,
     private val imageLoader: ImageLoader,
     private val imageLoaderContext: PlatformContext,
+    private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
 ) {
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
@@ -190,6 +193,7 @@ class ViewModelFactory(
             appNotifications = appNotifications,
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
+            availableDecoders = availableDecoders,
             markReadProgress = markReadProgress,
         )
     }
@@ -365,7 +369,11 @@ class ViewModelFactory(
     }
 
     fun getAppearanceViewModel(): AppSettingsViewModel {
-        return AppSettingsViewModel(settingsRepository, imageLoader)
+        return AppSettingsViewModel(settingsRepository)
+    }
+
+    fun getDecoderSettingsViewModel(): DecoderSettingsViewModel {
+        return DecoderSettingsViewModel(settingsRepository, imageLoader, availableDecoders)
     }
 
     fun getSettingsUpdatesViewModel(): AppUpdatesViewModel {

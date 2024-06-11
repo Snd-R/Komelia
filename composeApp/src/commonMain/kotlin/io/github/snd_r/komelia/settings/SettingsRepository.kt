@@ -1,7 +1,7 @@
 package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
@@ -28,9 +28,11 @@ interface SettingsRepository {
     fun getBookListLayout(): Flow<BooksLayout>
     suspend fun putBookListLayout(layout: BooksLayout)
 
-    fun getDecoderType(): Flow<SamplerType>
-    suspend fun putDecoderType(type: SamplerType)
+    fun getDecoderType(): Flow<PlatformDecoderSettings>
+    suspend fun putDecoderType(decoder: PlatformDecoderSettings)
 
+    fun getOnnxModelsPath(): Flow<String>
+    suspend fun putOnnxModelsPath(path: String)
 
     fun getCheckForUpdatesOnStartup(): Flow<Boolean>
     suspend fun putCheckForUpdatesOnStartup(check: Boolean)

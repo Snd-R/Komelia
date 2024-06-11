@@ -13,12 +13,10 @@ class AppSettingsScreen : Screen {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getAppearanceViewModel() }
 
-        SettingsScreenContainer("App Settings") {
-            AppSettingsContent(
+        SettingsScreenContainer("Appearance") {
+            AppearanceSettingsContent(
                 cardWidth = vm.cardWidth,
                 onCardWidthChange = vm::onCardWidthChange,
-                decoder = vm.decoder,
-                onDecoderTypeChange = vm::onDecoderChange
             )
         }
     }

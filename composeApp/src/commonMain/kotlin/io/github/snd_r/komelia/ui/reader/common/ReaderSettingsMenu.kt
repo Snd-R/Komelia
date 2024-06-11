@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
@@ -134,15 +133,18 @@ private fun ColumnScope.SettingsContent(
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
     val decoder = settingsState.decoder.collectAsState().value
-    if (decoder != null)
+    val decoderDescriptor = settingsState.currentDecoderDescriptor.collectAsState().value
+
+    if (decoder != null && decoderDescriptor != null && decoderDescriptor.upscaleOptions.size > 1) {
         DropdownChoiceMenu(
-            selectedOption = LabeledEntry(decoder, decoder.name),
-            options = remember { SamplerType.entries.map { LabeledEntry(it, it.name) } },
-            onOptionChange = { settingsState.onDecoderChange(it.value) },
+            selectedOption = LabeledEntry(decoder.upscaleOption, decoder.upscaleOption.value),
+            options = remember { decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) } },
+            onOptionChange = { settingsState.onUpscaleMethodChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.decoder) },
+            label = { Text("Upscale method") },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
+    }
 
     SwitchWithLabel(
         settingsState.imageStretchToFit.collectAsState().value,

@@ -8,7 +8,9 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.CommonParcelable
 import io.github.snd_r.komelia.platform.CommonParcelize
 import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
@@ -22,8 +24,11 @@ import io.github.snd_r.komga.book.KomgaBookReadProgressUpdateRequest
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -35,14 +40,17 @@ class ReaderState(
     private val appNotifications: AppNotifications,
     private val settingsRepository: SettingsRepository,
     private val readerSettingsRepository: ReaderSettingsRepository,
+    private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
 ) : ScreenModel {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
-    val readerType = MutableStateFlow(CONTINUOUS)
-    val decoder = MutableStateFlow<SamplerType?>(null)
-    val imageStretchToFit = MutableStateFlow(true)
 
+    val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
+    val decoder = MutableStateFlow<PlatformDecoderSettings?>(null)
+
+    val readerType = MutableStateFlow(CONTINUOUS)
+    val imageStretchToFit = MutableStateFlow(true)
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
 
@@ -50,6 +58,10 @@ class ReaderState(
         decoder.value = settingsRepository.getDecoderType().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
+
+        availableDecoders.onEach { decoders ->
+            currentDecoderDescriptor.value = decoders.first { it.platformType == decoder.value?.platformType }
+        }.launchIn(stateScope)
 
         loadBook(bookId)
     }
@@ -182,9 +194,16 @@ class ReaderState(
         readProgressPage.value = page
     }
 
-    fun onDecoderChange(type: SamplerType) {
+    fun onDecoderChange(type: PlatformDecoderSettings) {
         this.decoder.value = type
         stateScope.launch { settingsRepository.putDecoderType(type) }
+    }
+
+    fun onUpscaleMethodChange(upscaleOption: UpscaleOption) {
+        val currentDecoder = requireNotNull(this.decoder.value)
+        val newDecoder = currentDecoder.copy(upscaleOption = upscaleOption)
+        this.decoder.value = newDecoder
+        stateScope.launch { settingsRepository.putDecoderType(newDecoder) }
     }
 
     fun onReaderTypeChange(type: ReaderType) {

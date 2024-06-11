@@ -6,35 +6,30 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import io.github.snd_r.komelia.platform.SamplerType
-import io.github.snd_r.komelia.platform.SamplerType.IMAGEIO_LANCZOS
-import io.github.snd_r.komelia.platform.SamplerType.SKIA_CATMULL_ROM
-import io.github.snd_r.komelia.platform.SamplerType.SKIA_MITCHELL
-import io.github.snd_r.komelia.platform.SamplerType.SKIA_NEAREST
-import io.github.snd_r.komelia.platform.SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.platform.PlatformDecoderType.IMAGE_IO
+import io.github.snd_r.komelia.platform.PlatformDecoderType.VIPS
+import io.github.snd_r.komelia.platform.PlatformDecoderType.VIPS_ONNX
 import kotlinx.coroutines.flow.StateFlow
-import org.jetbrains.skia.SamplingMode
 
 class DesktopDecoder(
     private val source: ImageSource,
     private val options: Options,
-    private val samplerType: SamplerType
+    private val decoderOptions: PlatformDecoderSettings
 ) : Decoder {
 
     override suspend fun decode(): DecodeResult? {
-        val decoder = when (samplerType) {
-            VIPS_LANCZOS_DOWN_BICUBIC_UP -> VipsImageDecoder(source, options)
-            IMAGEIO_LANCZOS -> ImageIODecoder(source, options)
-            SKIA_MITCHELL -> SkiaImageDecoder(source, options, SamplingMode.MITCHELL)
-            SKIA_CATMULL_ROM -> SkiaImageDecoder(source, options, SamplingMode.CATMULL_ROM)
-            SKIA_NEAREST -> SkiaImageDecoder(source, options, SamplingMode.DEFAULT)
+        val decoder = when (decoderOptions.platformType) {
+            VIPS -> VipsImageDecoder(source, options)
+            VIPS_ONNX -> VipsImageDecoder(source, options)
+            IMAGE_IO -> ImageIODecoder(source, options)
         }
 
         return decoder.decode()
     }
 
     class Factory(
-        private val decoderOption: StateFlow<SamplerType>
+        private val decoderOption: StateFlow<PlatformDecoderSettings>
     ) : Decoder.Factory {
 
         override fun create(

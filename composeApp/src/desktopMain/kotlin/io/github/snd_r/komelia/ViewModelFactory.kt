@@ -7,6 +7,7 @@ import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.VipsDecoder
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.DesktopDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
@@ -16,7 +17,15 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.platform.PlatformDecoderType
+import io.github.snd_r.komelia.platform.PlatformDecoderType.IMAGE_IO
+import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.platform.imageIoDownscale
+import io.github.snd_r.komelia.platform.imageIoUpscale
+import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
+import io.github.snd_r.komelia.platform.vipsUpscaleBicubic
 import io.github.snd_r.komelia.secrets.AppKeyring
 import io.github.snd_r.komelia.settings.ActorMessage
 import io.github.snd_r.komelia.settings.FileSystemSettingsActor
@@ -38,16 +47,26 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.isDirectory
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
@@ -82,6 +101,8 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
             val coil = createCoil(ktorClient, baseUrl, cookiesStorage, decoderType)
             SingletonImageLoader.setSafe { coil }
 
+            val availableDecoders = createAvailableDecodersFlow(settingsRepository)
+
 
             ViewModelFactory(
                 komgaClientFactory = komgaClientFactory,
@@ -91,6 +112,7 @@ actual suspend fun createViewModelFactory(context: PlatformContext): ViewModelFa
                 secretsRepository = secretsRepository,
                 imageLoader = coil,
                 imageLoaderContext = context,
+                availableDecoders = availableDecoders
             )
         }
 
@@ -155,7 +177,7 @@ private fun createCoil(
     ktorClient: HttpClient,
     url: StateFlow<String>,
     cookiesStorage: RememberMePersistingCookieStore,
-    decoderState: StateFlow<SamplerType>
+    decoderState: StateFlow<PlatformDecoderSettings>
 ): ImageLoader {
     val coilKtorClient = ktorClient.config {
         defaultRequest { url(url.value) }
@@ -211,6 +233,74 @@ private fun createAppUpdater(ktor: HttpClient): DesktopAppUpdater {
         }
     )
     return DesktopAppUpdater(githubClient)
+}
+
+private suspend fun createAvailableDecodersFlow(settingsRepository: FilesystemSettingsRepository): Flow<List<PlatformDecoderDescriptor>> {
+    val decoderFlow = if (VipsDecoder.isAvailable) {
+        settingsRepository.getOnnxModelsPath()
+            .map { listOf(getOnnxDecoderDescriptor(Path.of(it))) }
+            .stateIn(
+                stateFlowScope, SharingStarted.Eagerly,
+                listOf(getOnnxDecoderDescriptor(Path.of(settingsRepository.getOnnxModelsPath().first())))
+            )
+
+    } else {
+        MutableStateFlow(
+            listOf(
+                PlatformDecoderDescriptor(
+                    platformType = IMAGE_IO,
+                    upscaleOptions = listOf(imageIoUpscale),
+                    downscaleOptions = listOf(imageIoDownscale),
+                    isOnnx = false
+                )
+            )
+        )
+    }
+
+    decoderFlow.onEach { decoders ->
+        val current = settingsRepository.getDecoderType().first()
+        val currentDescriptor = decoders.firstOrNull { it.platformType == current.platformType }
+        if (currentDescriptor == null) {
+            val newDecoder = decoders.first()
+            settingsRepository.putDecoderType(
+                PlatformDecoderSettings(
+                    platformType = newDecoder.platformType,
+                    upscaleOption = newDecoder.upscaleOptions.first(),
+                    downscaleOption = newDecoder.downscaleOptions.first()
+                )
+            )
+        } else if (!currentDescriptor.upscaleOptions.contains(current.upscaleOption)) {
+            settingsRepository.putDecoderType(
+                current.copy(upscaleOption = currentDescriptor.upscaleOptions.first())
+            )
+        }
+    }.launchIn(stateFlowScope)
+
+    return decoderFlow
+}
+
+private fun getOnnxDecoderDescriptor(path: Path): PlatformDecoderDescriptor {
+    try {
+        val models = Files.list(path)
+            .filter { !it.isDirectory() }
+            .map { it.fileName.toString() }
+            .filter { it.endsWith(".onnx") }
+            .sorted()
+            .toList()
+        return PlatformDecoderDescriptor(
+            platformType = PlatformDecoderType.VIPS_ONNX,
+            upscaleOptions = listOf(vipsUpscaleBicubic) + models.map { UpscaleOption(it) },
+            downscaleOptions = listOf(vipsDownscaleLanczos),
+            isOnnx = true
+        )
+    } catch (e: java.nio.file.NoSuchFileException) {
+        return PlatformDecoderDescriptor(
+            platformType = PlatformDecoderType.VIPS_ONNX,
+            upscaleOptions = listOf(vipsUpscaleBicubic),
+            downscaleOptions = listOf(vipsDownscaleLanczos),
+            isOnnx = true
+        )
+    }
 }
 
 private fun setLogLevel() {

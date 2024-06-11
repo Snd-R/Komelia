@@ -2,7 +2,9 @@ package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.DownscaleOption
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
@@ -37,12 +39,35 @@ class FilesystemSettingsRepository(
         actor.transform { settings -> settings.copy(user = settings.user.copy(username = username)) }
     }
 
-    override fun getDecoderType(): Flow<SamplerType> {
-        return actor.getState().map { it.decoder.type }
+    override fun getDecoderType(): Flow<PlatformDecoderSettings> {
+        return actor.getState().map {
+            val decoderSettings = it.decoder
+            PlatformDecoderSettings(
+                platformType = decoderSettings.decoder,
+                upscaleOption = UpscaleOption(decoderSettings.upscaleOption),
+                downscaleOption = DownscaleOption(decoderSettings.downscaleOption)
+            )
+        }
     }
 
-    override suspend fun putDecoderType(type: SamplerType) {
-        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(type = type)) }
+    override suspend fun putDecoderType(decoder: PlatformDecoderSettings) {
+        actor.transform { settings ->
+            settings.copy(
+                decoder = settings.decoder.copy(
+                    decoder = decoder.platformType,
+                    upscaleOption = decoder.upscaleOption.value,
+                    downscaleOption = decoder.downscaleOption.value
+                )
+            )
+        }
+    }
+
+    override fun getOnnxModelsPath(): Flow<String> {
+        return actor.getState().map { it.decoder.onnxModelsPath }
+    }
+
+    override suspend fun putOnnxModelsPath(path: String) {
+        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(onnxModelsPath = path)) }
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {

@@ -41,6 +41,7 @@ import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisScreen
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
+import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
@@ -55,6 +56,7 @@ fun SettingsNavigationMenu(
     contentColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val platform = LocalPlatform.current
     Column(
         modifier = modifier.verticalScroll(rememberScrollState())
     ) {
@@ -113,11 +115,18 @@ fun SettingsNavigationMenu(
 
         Text("App Settings", style = MaterialTheme.typography.titleSmall)
         NavigationButton(
-            label = "General",
+            label = "Appearance",
             onClick = { onNavigation(AppSettingsScreen()) },
             isSelected = currentScreen is AppSettingsScreen,
             color = contentColor,
         )
+        if (platform == DESKTOP)
+            NavigationButton(
+                label = "Decoder",
+                onClick = { onNavigation(DecoderSettingsScreen()) },
+                isSelected = currentScreen is DecoderSettingsScreen,
+                color = contentColor,
+            )
         NavigationButton(
             label = "Updates",
             onClick = { onNavigation(AppUpdatesScreen()) },

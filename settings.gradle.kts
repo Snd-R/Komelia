@@ -35,7 +35,7 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp", ":komga_client")
-include("vips")
+include("image-decoder")
 include("wasmImageWorker")
 
 // TODO remove after wasm target is published

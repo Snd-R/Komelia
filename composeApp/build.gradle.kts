@@ -86,7 +86,7 @@ kotlin {
             implementation(compose.material3)
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
             implementation("io.github.oshai:kotlin-logging:6.0.9")
@@ -163,7 +163,7 @@ kotlin {
             implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
-            implementation(project(":vips"))
+            implementation(project(":image-decoder"))
 
             implementation(files("jbr-api/jbr-api-3.1.0.jar"))
         }

@@ -15,7 +15,9 @@ object VipsDecoder {
     private val javaLibPath: List<Path> = System.getProperty("java.library.path").ifBlank { null }
         ?.let { path -> path.split(":").map { Path.of(it) } }
         ?: emptyList()
-    private var loaded = AtomicBoolean(false)
+    private val loaded = AtomicBoolean(false)
+    var isAvailable = false
+        private set
 
     private var tempDir: Path? = null
     private val linuxLibs = listOf(
@@ -95,6 +97,7 @@ object VipsDecoder {
         }
 
         init()
+        isAvailable = true
     }
 
     @Suppress("UnsafeDynamicallyLoadedCode")

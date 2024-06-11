@@ -8,6 +8,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
@@ -16,6 +17,7 @@ import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookId
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
@@ -30,6 +32,7 @@ class ReaderViewModel(
     appNotifications: AppNotifications,
     settingsRepository: SettingsRepository,
     readerSettingsRepository: ReaderSettingsRepository,
+    availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     markReadProgress: Boolean,
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
@@ -40,6 +43,7 @@ class ReaderViewModel(
         appNotifications = appNotifications,
         settingsRepository = settingsRepository,
         readerSettingsRepository = readerSettingsRepository,
+        availableDecoders = availableDecoders,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope
     )

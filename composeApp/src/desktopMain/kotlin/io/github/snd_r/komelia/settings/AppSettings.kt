@@ -1,6 +1,9 @@
 package io.github.snd_r.komelia.settings
 
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.PlatformDecoderType
+import io.github.snd_r.komelia.platform.PlatformDecoderType.VIPS
+import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
+import io.github.snd_r.komelia.platform.vipsUpscaleBicubic
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
@@ -75,7 +78,10 @@ data class ContinuousReaderSettings(
 
 @Serializable
 data class DecoderSettings(
-    val type: SamplerType = SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
+    val decoder: PlatformDecoderType = VIPS,
+    val upscaleOption: String = vipsUpscaleBicubic.value,
+    val downscaleOption: String = vipsDownscaleLanczos.value,
+    val onnxModelsPath: String = System.getProperty("user.home") ?: "/",
 )
 
 @Serializable
