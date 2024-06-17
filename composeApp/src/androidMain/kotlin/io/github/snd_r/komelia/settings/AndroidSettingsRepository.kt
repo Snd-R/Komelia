@@ -3,7 +3,10 @@ package io.github.snd_r.komelia.settings
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.DownscaleOption
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.platform.PlatformDecoderType
+import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.settings.AppearanceSettings.PBBooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
@@ -57,11 +60,17 @@ class AndroidSettingsRepository(
         }
     }
 
-    override fun getDecoderType(): Flow<SamplerType> {
-        return flowOf(SamplerType.DEFAULT)
+    override fun getDecoderType(): Flow<PlatformDecoderSettings> {
+        return flowOf(
+            PlatformDecoderSettings(
+                PlatformDecoderType.DEFAULT,
+                upscaleOption = UpscaleOption("Default"),
+                downscaleOption = DownscaleOption("Default"),
+            )
+        )
     }
 
-    override suspend fun putDecoderType(type: SamplerType) {
+    override suspend fun putDecoderType(decoder: PlatformDecoderSettings) {
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {

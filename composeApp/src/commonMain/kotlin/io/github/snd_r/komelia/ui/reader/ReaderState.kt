@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.reader
 import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.Extras
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.CommonParcelable
@@ -33,6 +34,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 typealias SpreadIndex = Int
+
+val upscaleKey = Extras.Key<String?>(null)
 
 class ReaderState(
     private val bookClient: KomgaBookClient,

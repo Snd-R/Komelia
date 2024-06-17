@@ -26,6 +26,7 @@ import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
+import io.github.snd_r.komelia.ui.reader.upscaleKey
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.CoroutineScope
@@ -432,6 +433,7 @@ class ContinuousReaderState(
                 .size(targetSize)
                 .memoryCacheKeyExtra("size_cache", targetSize.toString())
                 .precision(Precision.EXACT)
+                .apply { extras[upscaleKey] = "${page.bookId}_${page.pageNumber}" }
                 .build()
 
             val imageJob = imageLoader.enqueue(request)
@@ -580,7 +582,6 @@ class ContinuousReaderState(
 
         return scaledSize
     }
-
 
     enum class ReadingDirection {
         TOP_TO_BOTTOM,

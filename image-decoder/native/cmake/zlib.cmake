@@ -16,4 +16,6 @@ ExternalProject_Add(ep_zlib
             -DZLIB_COMPAT=ON
             -DZLIB_ENABLE_TESTS=OFF
          PATCH_COMMAND patch < ${CMAKE_CURRENT_LIST_DIR}/patches/zlib-ng-2-fixes.patch
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_BUILD true
 )

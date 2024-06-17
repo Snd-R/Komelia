@@ -44,7 +44,6 @@ import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
-import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
@@ -72,17 +71,38 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
+interface DependencyContainer {
+    val settingsRepository: SettingsRepository
+    val readerSettingsRepository: ReaderSettingsRepository
+    val secretsRepository: SecretsRepository
+    val appUpdater: AppUpdater
+    val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
+    val komgaClientFactory: KomgaClientFactory
+    val imageLoader: ImageLoader
+    val imageLoaderContext: PlatformContext
+    val appNotifications: AppNotifications
+}
 
-class ViewModelFactory(
-    private val komgaClientFactory: KomgaClientFactory,
-    private val appUpdater: AppUpdater,
-    private val settingsRepository: SettingsRepository,
-    private val readerSettingsRepository: ReaderSettingsRepository,
-    private val secretsRepository: SecretsRepository,
-    private val imageLoader: ImageLoader,
-    private val imageLoaderContext: PlatformContext,
+class ViewModelFactory(private val dependencies: DependencyContainer) {
+    private val komgaClientFactory: KomgaClientFactory
+        get() = dependencies.komgaClientFactory
+    private val appUpdater: AppUpdater
+        get() = dependencies.appUpdater
+    private val settingsRepository: SettingsRepository
+        get() = dependencies.settingsRepository
+    private val readerSettingsRepository: ReaderSettingsRepository
+        get() = dependencies.readerSettingsRepository
+    private val secretsRepository: SecretsRepository
+        get() = dependencies.secretsRepository
+    private val imageLoader: ImageLoader
+        get() = dependencies.imageLoader
+    private val imageLoaderContext: PlatformContext
+        get() = dependencies.imageLoaderContext
     private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
-) {
+        get() = dependencies.availableDecoders
+    val appNotifications
+        get() = dependencies.appNotifications
+
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
     private val releases = MutableStateFlow<List<AppRelease>>(emptyList())
@@ -95,7 +115,6 @@ class ViewModelFactory(
         libraryClient = komgaClientFactory.libraryClient(),
         librariesFlow = libraries
     )
-    private val appNotifications = AppNotifications()
 
     private val startupUpdateChecker = StartupUpdateChecker(appUpdater, settingsRepository, releases)
 
@@ -372,10 +391,6 @@ class ViewModelFactory(
         return AppSettingsViewModel(settingsRepository)
     }
 
-    fun getDecoderSettingsViewModel(): DecoderSettingsViewModel {
-        return DecoderSettingsViewModel(settingsRepository, imageLoader, availableDecoders)
-    }
-
     fun getSettingsUpdatesViewModel(): AppUpdatesViewModel {
         return AppUpdatesViewModel(
             releases = releases,
@@ -440,8 +455,6 @@ class ViewModelFactory(
     fun getBookBulkActions() = BookBulkActions(komgaClientFactory.bookClient(), appNotifications)
     fun getReadListBulkActions() = ReadListBulkActions(komgaClientFactory.readListClient(), appNotifications)
 
-    fun getAppNotifications(): AppNotifications = appNotifications
-
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
 
     fun getStartupUpdateChecker() = startupUpdateChecker
@@ -452,4 +465,4 @@ class ViewModelFactory(
     }
 }
 
-expect suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory
+//expect suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory

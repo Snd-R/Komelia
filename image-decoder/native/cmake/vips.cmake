@@ -1,26 +1,8 @@
 include(ExternalProject)
 
-find_library(VIPS_LIB NAMES vips PATHS ${CMAKE_BINARY_DIR}/fakeroot PATH_SUFFIXES lib NO_DEFAULT_PATH)
-if(VIPS_LIB)
-    return()
+if (MESON_CROSS_FILE)
+    set(MESON_CROSS_FILE_ARG --cross-file=${MESON_CROSS_FILE})
 endif()
-
-include("cmake/iconv.cmake")
-include("cmake/zlib.cmake")
-include("cmake/ffi.cmake")
-include("cmake/glib.cmake")
-include("cmake/expat.cmake")
-include("cmake/fftw.cmake")
-include("cmake/highway.cmake")
-
-include("cmake/mozjpeg.cmake")
-include("cmake/jxl.cmake")
-include("cmake/spng.cmake")
-include("cmake/webp.cmake")
-include("cmake/dav1d.cmake")
-include("cmake/de265.cmake")
-include("cmake/heif.cmake")
-include("cmake/tiff.cmake")
 
 ExternalProject_Add(ep_vips
         GIT_REPOSITORY https://github.com/libvips/libvips.git
@@ -68,7 +50,9 @@ ExternalProject_Add(ep_vips
             -Dwebp=enabled
             <BINARY_DIR> <SOURCE_DIR>
         BUILD_COMMAND
-            ${FIX_ANDROID_BUILD} ${Ninja_EXECUTABLE} -C <BINARY_DIR>
+            ${Ninja_EXECUTABLE} -C <BINARY_DIR>
         INSTALL_COMMAND
             ${Ninja_EXECUTABLE} -C <BINARY_DIR> install
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_BUILD true
 )

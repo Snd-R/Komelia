@@ -20,4 +20,6 @@ ExternalProject_Add(ep_glib
             ${Meson_EXECUTABLE} compile -C <BINARY_DIR>
         INSTALL_COMMAND
             ${Meson_EXECUTABLE} install -C <BINARY_DIR>
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_BUILD true
 )

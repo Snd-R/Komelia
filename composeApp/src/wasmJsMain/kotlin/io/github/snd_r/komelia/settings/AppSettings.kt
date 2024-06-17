@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.settings
 
-import io.github.snd_r.komelia.platform.SamplerType
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
@@ -36,7 +35,6 @@ data class AppSettings(
     val user: UserSettings,
     val appearance: AppearanceSettings,
     val reader: ReaderSettings = ReaderSettings(),
-    val decoder: DecoderSettings = DecoderSettings()
 ) {
     companion object {
         fun loadSettings(): AppSettings {
@@ -74,10 +72,6 @@ data class AppSettings(
                         pageSpacing = localStorage[continuousReaderPageSpacingKey]?.toInt() ?: 0,
                     )
                 ),
-                decoder = DecoderSettings(
-                    type = localStorage[decoderTypeKey]?.let { SamplerType.valueOf(it) }
-                        ?: SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
-                )
             )
         }
     }
@@ -115,10 +109,6 @@ data class ContinuousReaderSettings(
     val readingDirection: ContinuousReaderState.ReadingDirection = ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM,
     val padding: Float = .3f,
     val pageSpacing: Int = 0
-)
-
-data class DecoderSettings(
-    val type: SamplerType = SamplerType.VIPS_LANCZOS_DOWN_BICUBIC_UP
 )
 
 

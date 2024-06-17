@@ -2,8 +2,14 @@
 set -e
 
 rm -rf ./build-w64
-mkdir -p ./build-w64
+mkdir -p ./build-w64/fakeroot
 cd ./build-w64
+
+wget --retry-connrefused --waitretry=1 \
+	--read-timeout=20 --timeout=15 -t 0 \
+        https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-win-x64-1.18.0.zip \
+        && unzip onnxruntime-win-x64-1.18.0.zip \
+        && mv ./onnxruntime-win-x64-1.18.0/* ./fakeroot
 
 export PKG_CONFIG_PATH="$(readlink -f .)/fakeroot/lib/pkgconfig"
 export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/fakeroot/lib/pkgconfig"

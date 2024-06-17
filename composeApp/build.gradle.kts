@@ -70,7 +70,7 @@ kotlin {
     }
 
     val coilVersion = "3.0.0-alpha06"
-    val ktorVersion = "3.0.0-beta-2-eap-932"
+    val ktorVersion = "3.0.0-beta-2-eap-942"
     val voyagerVersion = "1.1.0-beta01"
     sourceSets {
         all {
@@ -159,6 +159,7 @@ kotlin {
             implementation("dev.dirs:directories:26")
             implementation("com.github.javakeyring:java-keyring:1.0.4")
             implementation("de.swiesend:secret-service:2.0.1-alpha")
+            implementation("org.apache.commons:commons-compress:1.26.2")
 
             implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")

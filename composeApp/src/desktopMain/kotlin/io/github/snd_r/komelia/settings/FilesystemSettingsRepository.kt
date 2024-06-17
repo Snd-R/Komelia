@@ -62,14 +62,6 @@ class FilesystemSettingsRepository(
         }
     }
 
-    override fun getOnnxModelsPath(): Flow<String> {
-        return actor.getState().map { it.decoder.onnxModelsPath }
-    }
-
-    override suspend fun putOnnxModelsPath(path: String) {
-        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(onnxModelsPath = path)) }
-    }
-
     override fun getSeriesPageLoadSize(): Flow<Int> {
         return actor.getState().map { it.appearance.seriesPageLoadSize }
     }
@@ -124,5 +116,14 @@ class FilesystemSettingsRepository(
 
     override suspend fun putDismissedVersion(version: AppVersion) {
         actor.transform { settings -> settings.copy(updates = settings.updates.copy(dismissedVersion = version)) }
+    }
+
+
+    fun getOnnxModelsPath(): Flow<String> {
+        return actor.getState().map { it.decoder.onnxModelsPath }
+    }
+
+    suspend fun putOnnxModelsPath(path: String) {
+        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(onnxModelsPath = path)) }
     }
 }

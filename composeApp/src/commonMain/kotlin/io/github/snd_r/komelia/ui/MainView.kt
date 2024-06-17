@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.lyricist.ProvideStrings
 import cafe.adriel.lyricist.rememberStrings
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.PlatformContext
 import coil3.compose.LocalPlatformContext
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
@@ -32,8 +31,8 @@ import com.dokar.sonner.ToasterState
 import com.dokar.sonner.listenMany
 import com.dokar.sonner.rememberToasterState
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.DependencyContainer
 import io.github.snd_r.komelia.ViewModelFactory
-import io.github.snd_r.komelia.createViewModelFactory
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.ConfigurePlatformTheme
 import io.github.snd_r.komelia.platform.PlatformTitleBar
@@ -50,12 +49,9 @@ import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import io.github.snd_r.komga.sse.KomgaEvent
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
 val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }
@@ -69,19 +65,9 @@ val strings = mapOf(
     Locales.EN to EnStrings
 )
 
-private object ViewModelFactoryHolder {
-    val instance: MutableStateFlow<ViewModelFactory?> = MutableStateFlow(null)
-    private val mutex = Mutex()
-
-    suspend fun createInstance(context: PlatformContext) {
-        mutex.withLock {
-            if (instance.value == null) instance.value = createViewModelFactory(context)
-        }
-    }
-}
-
 @Composable
 fun MainView(
+    dependencies: DependencyContainer?,
     windowWidth: WindowWidth,
     platformType: PlatformType,
     keyEvents: SharedFlow<KeyEvent>
@@ -95,44 +81,46 @@ fun MainView(
                 .fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
         ) {
+            if (dependencies == null) {
+                Column {
+                    PlatformTitleBar { }
+                    LoadingMaxSizeIndicator()
+                }
+                return@Surface
+            }
+
             val lyricist = rememberStrings(strings)
             ProvideStrings(lyricist, LocalStrings) {
+
+
                 val notificationToaster = rememberToasterState()
+                val viewModelFactory = remember(dependencies) { ViewModelFactory(dependencies) }
 
-                val viewModelFactory = ViewModelFactoryHolder.instance.collectAsState()
-                LaunchedEffect(Unit) { ViewModelFactoryHolder.createInstance(context) }
+                CompositionLocalProvider(
+                    LocalViewModelFactory provides viewModelFactory,
+                    LocalToaster provides notificationToaster,
+                    LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
+                    LocalKeyEvents provides keyEvents,
+                    LocalWindowWidth provides windowWidth,
+                    LocalPlatform provides platformType
+                ) {
 
-                val actualViewModelFactory = viewModelFactory.value
-                if (actualViewModelFactory != null) {
-                    CompositionLocalProvider(
-                        LocalViewModelFactory provides actualViewModelFactory,
-                        LocalToaster provides notificationToaster,
-                        LocalKomgaEvents provides actualViewModelFactory.getKomgaEvents(),
-                        LocalKeyEvents provides keyEvents,
-                        LocalWindowWidth provides windowWidth,
-                        LocalPlatform provides platformType
-                    ) {
+                    Navigator(
+                        screen = LoginScreen(),
+                        onBackPressed = null
+                    )
 
-                        Navigator(
-                            screen = LoginScreen(),
-                            onBackPressed = null
-                        )
-                        AppNotifications(actualViewModelFactory.getAppNotifications())
+                    AppNotifications(viewModelFactory.appNotifications)
 
-                        val updateChecker = remember { actualViewModelFactory.getStartupUpdateChecker() }
-                        StartupUpdateChecker(updateChecker)
+                    val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
+
+                    StartupUpdateChecker(updateChecker)
 
 
-                    }
-                } else {
-                    Column {
-                        PlatformTitleBar { }
-                        LoadingMaxSizeIndicator()
-                    }
                 }
-
-                BackPressHandler {}
             }
+
+            BackPressHandler {}
         }
     }
 }
@@ -192,7 +180,7 @@ private fun StartupUpdateChecker(updater: StartupUpdateChecker) {
     if (progress != null) {
         UpdateProgressDialog(
             totalSize = progress.total,
-            downloadedSize = progress.downloaded,
+            downloadedSize = progress.completed,
             onCancel = updater::onUpdateCancel
         )
     }

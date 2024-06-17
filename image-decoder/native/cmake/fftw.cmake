@@ -11,4 +11,6 @@ ExternalProject_Add(ep_fftw
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_FIND_ROOT_PATH=${CMAKE_FIND_ROOT_PATH}
     DEPENDS ep_zlib
+    USES_TERMINAL_DOWNLOAD true
+    USES_TERMINAL_BUILD true
 )

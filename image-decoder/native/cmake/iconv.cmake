@@ -8,4 +8,6 @@ ExternalProject_Add(ep_iconv
         ${Make_EXECUTABLE}
     INSTALL_COMMAND
         ${Make_EXECUTABLE} install
+    USES_TERMINAL_DOWNLOAD true
+    USES_TERMINAL_BUILD true
 )

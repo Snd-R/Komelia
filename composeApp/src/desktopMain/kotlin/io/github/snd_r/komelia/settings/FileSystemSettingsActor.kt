@@ -37,7 +37,7 @@ class FileSystemSettingsActor {
     private val state: MutableStateFlow<State> = MutableStateFlow(UnInitialized)
 
     private val configFile = Path.of(
-        ProjectDirectories.from("io.github.snd_r.komelia", "", "Komelia").configDir
+        ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia").configDir
     ).resolve("komelia.toml")
     private val tomlFileReader = TomlFileReader(inputConfig = TomlInputConfig.compliant(ignoreUnknownNames = true))
     private val tomlFileWriter = TomlFileWriter(outputConfig = TomlOutputConfig.compliant(indentation = NONE))

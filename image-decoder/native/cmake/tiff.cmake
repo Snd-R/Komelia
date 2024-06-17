@@ -17,4 +17,6 @@ ExternalProject_Add(ep_tiff
         -Dlerc=OFF
         -Dlibdeflate=OFF
         -Dcxx=OFF
+    USES_TERMINAL_DOWNLOAD true
+    USES_TERMINAL_BUILD true
 )

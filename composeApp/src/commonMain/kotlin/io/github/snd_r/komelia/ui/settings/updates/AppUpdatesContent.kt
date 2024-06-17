@@ -25,7 +25,7 @@ import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.update.UpdateProgressDialog
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppVersion
-import io.github.snd_r.komelia.updates.DownloadProgress
+import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -55,7 +55,7 @@ fun AppUpdatesContent(
 
     onUpdate: () -> Unit,
     onUpdateCancel: () -> Unit,
-    downloadProgress: DownloadProgress?,
+    downloadProgress: UpdateProgress?,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -101,7 +101,7 @@ fun AppUpdatesContent(
         if (downloadProgress != null) {
             UpdateProgressDialog(
                 totalSize = downloadProgress.total,
-                downloadedSize = downloadProgress.downloaded,
+                downloadedSize = downloadProgress.completed,
                 onCancel = onUpdateCancel
 
             )

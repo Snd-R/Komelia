@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation("org.slf4j:slf4j-api:2.0.13")
+    implementation("dev.dirs:directories:26")
 }
 
 kotlin {
@@ -75,7 +76,8 @@ tasks.register<Sync>("linuxCopyVipsLibsToClasspath") {
         "libwebpdemux.so",
         "libwebpmux.so",
         "libz.so",
-        "libkomelia.so",
+        "libkomelia_vips.so",
+        "libkomelia_vips_ort.so",
     )
 
     from("$linuxBuildDir/fakeroot/lib/")
@@ -204,17 +206,6 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
     include("libwinpthread-1.dll")
     include("libgcc_s_seh-1.dll")
     into(classpathResourcesDir)
-
-//    // include mingw dlls if compiled using system toolchain
-//    doLast {
-//        copy {
-//            from("/usr/x86_64-w64-mingw32/bin/")
-//            include("libstdc++-6.dll")
-//            include("libwinpthread-1.dll")
-//            include("libgcc_s_seh-1.dll")
-//            into(classpathResourcesDir)
-//        }
-//    }
 }
 
 

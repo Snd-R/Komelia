@@ -21,4 +21,6 @@ ExternalProject_Add(ep_jxl
         -DJPEGXL_ENABLE_JNI=false
         -DJPEGXL_ENABLE_SJPEG=false
         -DBUILD_TESTING=false
+    USES_TERMINAL_DOWNLOAD true
+    USES_TERMINAL_BUILD true
 )

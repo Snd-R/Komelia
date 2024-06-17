@@ -7,7 +7,7 @@ class DesktopAppUpdater(
     private val githubClient: GithubClient
 ) : AppUpdater {
     override suspend fun getReleases(): List<AppRelease> {
-        return githubClient.getReleases().map {
+        return githubClient.getKomeliaReleases().map {
             AppRelease(
                 version = AppVersion.fromString(it.tagName),
                 publishDate = it.publishedAt,
@@ -19,13 +19,13 @@ class DesktopAppUpdater(
         }
     }
 
-    override suspend fun updateToLatest(): Flow<DownloadProgress>? {
-        val latest = githubClient.getLatestRelease()
+    override suspend fun updateToLatest(): Flow<UpdateProgress>? {
+        val latest = githubClient.getKomeliaLatestRelease()
         URIManager().openUri(latest.htmlUrl)
         return null
     }
 
-    override fun updateTo(release: AppRelease): Flow<DownloadProgress>? {
+    override fun updateTo(release: AppRelease): Flow<UpdateProgress>? {
         URIManager().openUri(release.htmlUrl)
         return null
     }
