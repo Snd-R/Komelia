@@ -2,6 +2,7 @@
 
 import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.proto
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
@@ -70,7 +71,7 @@ kotlin {
     }
 
     val coilVersion = "3.0.0-alpha06"
-    val ktorVersion = "3.0.0-beta-2-eap-932"
+    val ktorVersion = "3.0.0-beta-2-eap-942"
     val voyagerVersion = "1.1.0-beta01"
     sourceSets {
         all {
@@ -152,13 +153,14 @@ kotlin {
             implementation("com.squareup.okhttp3:okhttp:4.12.0")
             implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-            implementation("com.akuleshov7:ktoml-core:0.5.1")
-            implementation("com.akuleshov7:ktoml-file:0.5.1")
-            implementation("com.akuleshov7:ktoml-source-jvm:0.5.1")
+            implementation("com.akuleshov7:ktoml-core:0.5.2")
+            implementation("com.akuleshov7:ktoml-file:0.5.2")
+            implementation("com.akuleshov7:ktoml-source-jvm:0.5.2")
 
             implementation("dev.dirs:directories:26")
             implementation("com.github.javakeyring:java-keyring:1.0.4")
             implementation("de.swiesend:secret-service:2.0.1-alpha")
+            implementation("org.apache.commons:commons-compress:1.26.2")
 
             implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
             implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
@@ -238,9 +240,15 @@ android {
 compose.desktop {
     application {
         mainClass = "io.github.snd_r.komelia.MainKt"
+        nativeDistributions {
+            targetFormats(TargetFormat.Deb)
+            packageName = "Komelia"
+            packageVersion = "0.4.0"
+            modules("jdk.security.auth")
+        }
 
         buildTypes.release.proguard {
-            version.set("7.4.2")
+            version.set("7.5.0")
             optimize.set(false)
             configurationFiles.from(project.file("no_icons.pro"))
         }

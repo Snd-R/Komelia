@@ -9,7 +9,7 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.AppVersion
-import io.github.snd_r.komelia.updates.DownloadProgress
+import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
@@ -34,7 +34,7 @@ class AppUpdatesViewModel(
     val lastUpdateCheck = MutableStateFlow<Instant?>(null)
 
     private val updateScope = CoroutineScope(Dispatchers.Default)
-    val downloadProgress = MutableStateFlow<DownloadProgress?>(null)
+    val downloadProgress = MutableStateFlow<UpdateProgress?>(null)
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return

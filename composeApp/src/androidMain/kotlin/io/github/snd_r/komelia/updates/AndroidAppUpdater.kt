@@ -17,26 +17,26 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.use
 
 class AndroidAppUpdater(
-    private val githubClient: GithubClient,
+    private val githubClient: UpdateClient,
     private val context: Context,
 ) : AppUpdater {
     private var inProgress = AtomicBoolean(false)
 
     override suspend fun getReleases(): List<AppRelease> {
-        return githubClient.getReleases().map { it.toAppRelease() }
+        return githubClient.getKomeliaReleases().map { it.toAppRelease() }
     }
 
-    override suspend fun updateToLatest(): Flow<DownloadProgress>? {
-        val latest = githubClient.getLatestRelease().toAppRelease()
+    override suspend fun updateToLatest(): Flow<UpdateProgress>? {
+        val latest = githubClient.getKomeliaLatestRelease().toAppRelease()
         return updateTo(latest)
     }
 
-    override fun updateTo(release: AppRelease): Flow<DownloadProgress>? {
+    override fun updateTo(release: AppRelease): Flow<UpdateProgress>? {
         if (!inProgress.compareAndSet(false, true)) return null
         if (release.assetUrl == null) return null
 
         return flow {
-            emit(DownloadProgress(0, 0))
+            emit(UpdateProgress(0, 0))
             val sessionParams = PackageInstaller.SessionParams(MODE_FULL_INSTALL)
             val packageInstaller = context.packageManager.packageInstaller
             val sessionId = packageInstaller.createSession(sessionParams)
@@ -57,12 +57,12 @@ class AndroidAppUpdater(
         }
     }
 
-    private suspend fun FlowCollector<DownloadProgress>.streamToSession(
+    private suspend fun FlowCollector<UpdateProgress>.streamToSession(
         response: HttpResponse,
         session: PackageInstaller.Session
     ) {
         val length = response.headers["Content-Length"]?.toLong() ?: 0L
-        emit(DownloadProgress(length, 0))
+        emit(UpdateProgress(length, 0))
         val channel = response.bodyAsChannel()
         val sessionStream = session.openWrite("komelia", 0, -1)
         sessionStream.buffered().use { bufferedSessionStream ->
@@ -73,7 +73,7 @@ class AndroidAppUpdater(
                     val bytes = packet.readBytes()
                     bufferedSessionStream.write(bytes)
                 }
-                emit(DownloadProgress(length, channel.totalBytesRead))
+                emit(UpdateProgress(length, channel.totalBytesRead))
             }
             bufferedSessionStream.flush()
             session.fsync(sessionStream)

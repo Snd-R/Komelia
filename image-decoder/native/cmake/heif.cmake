@@ -29,4 +29,6 @@ ExternalProject_Add(ep_heif
         -DWITH_DAV1D_PLUGIN=OFF
         -DWITH_LIBDE265_PLUGIN=OFF
         --preset=release
+    USES_TERMINAL_DOWNLOAD true
+    USES_TERMINAL_BUILD true
 )

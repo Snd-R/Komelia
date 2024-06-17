@@ -18,6 +18,7 @@ import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.Page
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.SpreadImageLoadJob
+import io.github.snd_r.komelia.ui.reader.upscaleKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -88,6 +89,7 @@ class PagedReaderImageLoader(
                     )
                     .memoryCacheKeyExtra("size_cache", maxPageSize.toString())
                     .precision(Precision.EXACT)
+                    .apply { extras[upscaleKey] = "${page.bookId}_${page.pageNumber}" }
                     .build()
 
                 logger.info { "Load request for page $page; zoom factor: $spreadScaleFactor; target size $maxPageSize" }
@@ -283,6 +285,7 @@ class PagedReaderImageLoader(
                 .size(width = maxSize.width, height = maxSize.height)
                 .memoryCacheKeyExtra("size_cache", maxSize.toString())
                 .precision(Precision.EXACT)
+                .apply { extras[upscaleKey] = "${page.bookId}_${page.pageNumber}" }
                 .build()
 
             val newImage = imageLoader.execute(request)

@@ -6,9 +6,6 @@ data class PlatformDecoderDescriptor(
     val platformType: PlatformDecoderType,
     val upscaleOptions: List<UpscaleOption>,
     val downscaleOptions: List<DownscaleOption>,
-
-    //TODO move out of common?
-    val isOnnx: Boolean,
 )
 
 data class PlatformDecoderSettings(
@@ -23,8 +20,6 @@ expect enum class PlatformDecoderType {
     fun getDisplayName(): String
 
 }
-
-expect fun getPlatformDecoders(): List<PlatformDecoderDescriptor>
 
 @JvmInline
 value class UpscaleOption(val value: String)

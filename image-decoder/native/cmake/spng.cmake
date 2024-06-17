@@ -13,4 +13,6 @@ ExternalProject_Add(ep_spng
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
             -DZLIB_ROOT:STRING=${CMAKE_BINARY_DIR}/fakeroot
             -DCMAKE_FIND_ROOT_PATH=${CMAKE_FIND_ROOT_PATH}
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_BUILD true
 )

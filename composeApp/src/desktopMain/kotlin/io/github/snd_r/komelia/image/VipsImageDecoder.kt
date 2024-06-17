@@ -1,12 +1,10 @@
 package io.github.snd_r.komelia.image
 
-import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asCoilImage
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
 import coil3.decode.ImageSource
-import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import coil3.size.Dimension
 import coil3.size.Scale
@@ -18,6 +16,8 @@ import io.github.snd_r.VipsImage
 import io.github.snd_r.VipsInterpretation.VIPS_INTERPRETATION_B_W
 import io.github.snd_r.VipsInterpretation.VIPS_INTERPRETATION_ERROR
 import io.github.snd_r.VipsInterpretation.VIPS_INTERPRETATION_sRGB
+import io.github.snd_r.VipsOnnxRuntimeDecoder
+import io.github.snd_r.komelia.ui.reader.upscaleKey
 import okio.use
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
@@ -36,6 +36,7 @@ private const val vipsMaxSize = 10000000
 class VipsImageDecoder(
     private val source: ImageSource,
     private val options: Options,
+    private val onnxModelPath: String?,
 ) : Decoder {
 
     override suspend fun decode(): DecodeResult {
@@ -48,7 +49,18 @@ class VipsImageDecoder(
                 val dstHeight = options.size.height.pxOrElse { vipsMaxSize }
                 val crop = options.scale == Scale.FILL
                         && options.size.width != Dimension.Undefined && options.size.height != Dimension.Undefined
-                VipsDecoder.vipsDecodeAndResize(bytes, dstWidth, dstHeight, crop)
+
+                if (onnxModelPath != null && options.extras[upscaleKey] != null) {
+                    VipsOnnxRuntimeDecoder.decodeAndResize(
+                        bytes,
+                        onnxModelPath,
+                        "${onnxModelPath}_${options.extras[upscaleKey]}",
+                        dstWidth,
+                        dstHeight,
+                        crop
+                    )
+                } else VipsDecoder.vipsDecodeAndResize(bytes, dstWidth, dstHeight, crop)
+
             }
             if (decoded == null) throw IllegalStateException("Could not decode image")
 
@@ -109,17 +121,5 @@ class VipsImageDecoder(
         bitmap.installPixels(image.data)
         return bitmap
     }
-
-    class Factory : Decoder.Factory {
-
-        override fun create(
-            result: SourceFetchResult,
-            options: Options,
-            imageLoader: ImageLoader,
-        ): Decoder {
-            return VipsImageDecoder(result.source, options)
-        }
-    }
-
 }
 

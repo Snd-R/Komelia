@@ -1,25 +1,25 @@
 package io.github.snd_r
 
+import io.github.snd_r.DesktopPlatform.Linux
+import io.github.snd_r.DesktopPlatform.MacOS
+import io.github.snd_r.DesktopPlatform.Unknown
+import io.github.snd_r.DesktopPlatform.Windows
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.exists
-
 
 object VipsDecoder {
     private val logger = LoggerFactory.getLogger(VipsDecoder::class.java)
-    private val osName: String = System.getProperty("os.name")
-    private val javaLibPath: List<Path> = System.getProperty("java.library.path").ifBlank { null }
-        ?.let { path -> path.split(":").map { Path.of(it) } }
-        ?: emptyList()
     private val loaded = AtomicBoolean(false)
     var isAvailable = false
         private set
 
-    private var tempDir: Path? = null
+
+    private val linuxRequiredLibs = listOf(
+        "glib-2.0",
+        "gobject-2.0",
+        "vips",
+        "komelia_vips",
+    )
     private val linuxLibs = listOf(
         "z",
         "ffi",
@@ -48,7 +48,7 @@ object VipsDecoder {
         "tiff",
         "heif",
         "vips",
-        "komelia",
+        "komelia_vips",
     )
 
     private val windowsLibs = listOf(
@@ -83,61 +83,35 @@ object VipsDecoder {
         "libtiff",
         "libheif",
         "libvips-42",
-        "libkomelia",
+        "libkomelia_vips",
     )
 
     @Synchronized
     fun load() {
         if (!loaded.compareAndSet(false, true)) return
-        when {
-            osName.startsWith("linux", true) -> loadLibs(linuxLibs)
-            osName.startsWith("windows", true) -> loadLibs(windowsLibs)
-//            osName.startsWith("Mac OS X", true) -> {}
-            else -> throw IllegalStateException("Unsupported OS")
+        when (DesktopPlatform.Current) {
+            Linux -> loadLinuxLibs()
+            Windows -> loadLibs(windowsLibs)
+            MacOS, Unknown -> error("Unsupported OS")
         }
-
         init()
         isAvailable = true
     }
 
-    @Suppress("UnsafeDynamicallyLoadedCode")
+    private fun loadLinuxLibs() {
+        try {
+            loadLibs(linuxLibs)
+            isAvailable = true
+        } catch (e: UnsatisfiedLinkError) {
+            loadLibs(linuxRequiredLibs)
+            isAvailable = true
+        }
+    }
+
     private fun loadLibs(libs: List<String>) {
         logger.info("libraries search path: ${System.getProperty("java.library.path")}")
         for (libName in libs) {
-            try {
-                val filename = System.mapLibraryName(libName)
-                val classPathFileBytes = VipsDecoder::class.java.getResource("/${filename}")?.readBytes()
-
-                val javaPathFile =
-                    if (classPathFileBytes == null)
-                        javaLibPath.map { it.resolve(filename) }.firstOrNull { it.exists() }
-                    else null
-
-                when {
-                    classPathFileBytes == null && javaPathFile == null -> {
-                        logger.warn("$filename is not found in bundled libraries. loading system library")
-                        System.loadLibrary(libName)
-                    }
-
-                    classPathFileBytes != null -> {
-                        val tempDir = tempDir ?: createTempDirectory(prefix = "komelia").also { tempDir = it }
-
-                        val libFile = Files.write(tempDir.resolve(filename), classPathFileBytes).toFile()
-                        libFile.deleteOnExit()
-                        System.load(libFile.path)
-                        logger.info("loaded bundled native library $filename")
-                    }
-
-                    javaPathFile != null -> {
-                        System.load(javaPathFile.absolutePathString())
-                        logger.info("loaded native library from java path $filename")
-                    }
-                }
-
-            } catch (e: UnsatisfiedLinkError) {
-                logger.error("failed to load native library $libName")
-                throw e
-            }
+            SharedLibrariesLoader.loadLibrary(libName)
         }
     }
 

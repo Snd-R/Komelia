@@ -2,7 +2,10 @@ package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.SamplerType
+import io.github.snd_r.komelia.platform.DownscaleOption
+import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.platform.PlatformDecoderType
+import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.browser.localStorage
@@ -58,15 +61,17 @@ class LocalStorageSettingsRepository(private val settings: MutableStateFlow<AppS
         localStorage[usernameKey] = username
     }
 
-    override fun getDecoderType(): Flow<SamplerType> {
-        return settings.map { it.decoder.type }
+    override fun getDecoderType(): Flow<PlatformDecoderSettings> {
+        return flowOf(
+            PlatformDecoderSettings(
+                PlatformDecoderType.DEFAULT,
+                upscaleOption = UpscaleOption("Default"),
+                downscaleOption = DownscaleOption("Default"),
+            )
+        )
     }
 
-    override suspend fun putDecoderType(type: SamplerType) {
-        settings.update {
-            it.copy(decoder = it.decoder.copy(type = type))
-        }
-        localStorage[decoderTypeKey] = type.name
+    override suspend fun putDecoderType(decoder: PlatformDecoderSettings) {
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {

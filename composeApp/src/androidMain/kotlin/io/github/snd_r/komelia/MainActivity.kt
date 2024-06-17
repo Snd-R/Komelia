@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toComposeRect
 import androidx.compose.ui.platform.LocalConfiguration
@@ -14,15 +15,33 @@ import androidx.window.layout.WindowMetricsCalculator
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+private val initScope = CoroutineScope(Dispatchers.Default)
+private val initMutex = Mutex()
+private val dependencies = MutableStateFlow<AndroidDependencyContainer?>(null)
 
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initScope.launch {
+            initMutex.withLock {
+                if (dependencies.value == null)
+                    dependencies.value = AndroidDependencyContainer.createInstance(initScope, this@MainActivity)
+            }
+        }
+
         setContent {
-            val size = rememberWindowSize()
             MainView(
-                windowWidth = WindowWidth.fromDp(size.width),
+                dependencies = dependencies.collectAsState().value,
+                windowWidth = WindowWidth.fromDp(rememberWindowSize().width),
                 platformType = PlatformType.MOBILE,
                 keyEvents = MutableSharedFlow()
             )

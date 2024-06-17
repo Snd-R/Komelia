@@ -22,7 +22,7 @@ class StartupUpdateChecker(
     private val releaseFlow: MutableStateFlow<List<AppRelease>>,
 ) {
     private val updateScope = CoroutineScope(Dispatchers.Default)
-    val downloadProgress = MutableStateFlow<DownloadProgress?>(null)
+    val downloadProgress = MutableStateFlow<UpdateProgress?>(null)
 
     suspend fun checkForUpdates(): AppRelease? {
         try {

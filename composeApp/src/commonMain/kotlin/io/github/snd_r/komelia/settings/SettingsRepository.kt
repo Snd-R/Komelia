@@ -31,9 +31,6 @@ interface SettingsRepository {
     fun getDecoderType(): Flow<PlatformDecoderSettings>
     suspend fun putDecoderType(decoder: PlatformDecoderSettings)
 
-    fun getOnnxModelsPath(): Flow<String>
-    suspend fun putOnnxModelsPath(path: String)
-
     fun getCheckForUpdatesOnStartup(): Flow<Boolean>
     suspend fun putCheckForUpdatesOnStartup(check: Boolean)
 

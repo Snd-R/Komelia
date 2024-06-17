@@ -14,4 +14,6 @@ GIT_REPOSITORY https://code.videolan.org/videolan/dav1d.git
             ${Ninja_EXECUTABLE} -C <BINARY_DIR>
         INSTALL_COMMAND
             ${Ninja_EXECUTABLE} -C <BINARY_DIR> install
+        USES_TERMINAL_DOWNLOAD true
+        USES_TERMINAL_BUILD true
 )

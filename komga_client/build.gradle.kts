@@ -18,7 +18,7 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
 }
 
-val ktorVersion = "3.0.0-beta-2-eap-932"
+val ktorVersion = "3.0.0-beta-2-eap-942"
 
 kotlin {
     jvmToolchain(17)

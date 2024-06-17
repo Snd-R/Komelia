@@ -6,12 +6,13 @@ interface AppUpdater {
 
     suspend fun getReleases(): List<AppRelease>
 
-    suspend fun updateToLatest(): Flow<DownloadProgress>?
+    suspend fun updateToLatest(): Flow<UpdateProgress>?
 
-    fun updateTo(release: AppRelease): Flow<DownloadProgress>?
+    fun updateTo(release: AppRelease): Flow<UpdateProgress>?
 }
 
-data class DownloadProgress(
+data class UpdateProgress(
     val total: Long,
-    val downloaded: Long,
+    val completed: Long,
+    val description: String? = null,
 )

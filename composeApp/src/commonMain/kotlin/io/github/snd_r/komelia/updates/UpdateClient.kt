@@ -8,18 +8,24 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-private const val repoBaseUrl = "https://api.github.com/repos/Snd-R/Komelia"
+private const val komeliaBaseUrl = "https://api.github.com/repos/Snd-R/Komelia"
+private const val onnxRuntimeBaseUrl = "https://api.github.com/repos/microsoft/onnxruntime"
 
-class GithubClient(private val ktor: HttpClient) {
+class UpdateClient(private val ktor: HttpClient) {
 
-    suspend fun getReleases(): List<GithubRelease> {
-        return ktor.get("$repoBaseUrl/releases") {
+    suspend fun getKomeliaReleases(): List<GithubRelease> {
+        return ktor.get("$komeliaBaseUrl/releases") {
             parameter("per_page", 5)
         }.body()
     }
 
-    suspend fun getLatestRelease(): GithubRelease {
-        return ktor.get("$repoBaseUrl/releases/latest").body()
+    suspend fun getKomeliaLatestRelease(): GithubRelease {
+        return ktor.get("$komeliaBaseUrl/releases/latest").body()
+    }
+
+    suspend fun getOnnxRuntimeRelease(tagName: String): GithubRelease {
+        return ktor.get("$onnxRuntimeBaseUrl/releases/tags/$tagName").body()
+
     }
 
     suspend fun streamFile(url: String, block: suspend (response: HttpResponse) -> Unit) {

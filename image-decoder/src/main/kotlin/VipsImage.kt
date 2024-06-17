@@ -1,6 +1,9 @@
 package io.github.snd_r
 
-
+/**
+ * [VipsInterpretation.VIPS_INTERPRETATION_sRGB] uses RGBA_8888 format
+ * [VipsInterpretation.VIPS_INTERPRETATION_B_W] uses GRAYSCALE_8 format
+ */
 class VipsImage(
     val data: ByteArray,
     val width: Int,

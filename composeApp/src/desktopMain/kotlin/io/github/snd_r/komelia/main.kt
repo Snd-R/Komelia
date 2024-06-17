@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -37,10 +39,12 @@ import androidx.compose.ui.window.WindowPlacement.Maximized
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
 import com.jetbrains.JBR
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
+import io.github.snd_r.VipsOnnxRuntimeDecoder
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
@@ -48,7 +52,12 @@ import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
 import io.github.snd_r.komelia.ui.log.LogbackFlowAppender
 import io.github.snd_r.komelia.window.UndecoratedWindowResizer
+import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
@@ -62,26 +71,60 @@ private val logger = KotlinLogging.logger {}
 
 val LocalWindow = compositionLocalOf<ComposeWindow> { error("Compose window was not set") }
 val LocalWindowState = compositionLocalOf<WindowState> { error("Window state was not set") }
+val LocalDesktopViewModelFactory = compositionLocalOf<DesktopViewModelFactory?> {
+    error("DesktopViewModel factory is not set")
+}
 val windowBorder = mutableStateOf(Color.Unspecified)
 
 private var shouldRestart = true
-private var lastError: Throwable? = null
 private var windowLastState: WindowState? = null
+
+private val initScope = CoroutineScope(Dispatchers.Default)
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    val rootLogger = LoggerFactory.getLogger(ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+    rootLogger.level = Level.INFO
+    (LoggerFactory.getLogger("org.freedesktop") as ch.qos.logback.classic.Logger).level = Level.WARN
     measureTime {
         try {
             VipsDecoder.load()
         } catch (e: UnsatisfiedLinkError) {
             logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
         }
-    }.also {
-        logger.info { "loaded vips in $it" }
+    }.also { logger.info { "completed vips load in $it" } }
+
+    measureTime {
+        try {
+            VipsOnnxRuntimeDecoder.load()
+        } catch (e: UnsatisfiedLinkError) {
+            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+        }
+    }.also { logger.info { "completed ONNX Runtime load in $it" } }
+
+    val lastError = MutableStateFlow<Throwable?>(null)
+    val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)
+    val initError = MutableStateFlow<Throwable?>(null)
+    initScope.launch {
+        try {
+            dependencies.value = DesktopDependencyContainer.createInstance(initScope)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            initError.value = e
+        }
     }
 
     while (shouldRestart) {
         application(exitProcessOnExit = false) {
+            LaunchedEffect(Unit) {
+                initError.filterNotNull().collect {
+                    lastError.value = it
+                    initError.value = null
+                    exitApplication()
+                }
+            }
+
             val windowState = windowLastState ?: rememberWindowState(
                 placement = Maximized,
                 size = DpSize(1280.dp, 720.dp),
@@ -91,25 +134,30 @@ fun main() {
                 LocalWindowExceptionHandlerFactory provides WindowExceptionHandlerFactory { window ->
                     WindowExceptionHandler {
                         logger.error(it) { it.message }
-                        lastError = it
+                        lastError.value = it
                         windowLastState = windowState
                         window.dispatchEvent(WindowEvent(window, WindowEvent.WINDOW_CLOSING))
                     }
                 },
-                LocalWindowState provides windowState
+                LocalWindowState provides windowState,
             ) {
-                MainAppContent(windowState = windowState, onCloseRequest = { shouldRestart = false })
+
+                MainAppContent(
+                    windowState = windowState,
+                    dependencies = dependencies.collectAsState().value,
+                    onCloseRequest = { shouldRestart = false }
+                )
             }
         }
 
-        val error = lastError
+        val error = lastError.value
         if (error != null) {
             errorApp(
                 initialWindowState = windowLastState,
                 error = error,
                 onRestart = {
                     shouldRestart = true
-                    lastError = null
+                    lastError.value = null
                 },
                 onExit = { shouldRestart = false }
             )
@@ -122,6 +170,7 @@ fun main() {
 @Composable
 private fun ApplicationScope.MainAppContent(
     windowState: WindowState,
+    dependencies: DesktopDependencyContainer?,
     onCloseRequest: () -> Unit,
 ) {
     var showLogWindow by remember { mutableStateOf(false) }
@@ -177,9 +226,7 @@ private fun ApplicationScope.MainAppContent(
         val undecoratedWindowResizer = remember {
             UndecoratedWindowResizer(window).apply { this.enabled = undecorated }
         }
-        CompositionLocalProvider(
-            LocalWindow provides window
-        ) {
+        CompositionLocalProvider(LocalWindow provides window) {
             val borderModifier = derivedStateOf {
                 if (undecorated && windowState.placement == Floating)
                     Modifier
@@ -189,12 +236,17 @@ private fun ApplicationScope.MainAppContent(
                         .border(1.dp, windowBorder.value ?: Color.Unspecified)
                 else Modifier
             }
+
             Box(borderModifier.value) {
-                MainView(
-                    windowWidth = widthClass,
-                    platformType = PlatformType.DESKTOP,
-                    keyEvents = keyEvents
-                )
+                val vmFactory = remember(dependencies) { dependencies?.let { DesktopViewModelFactory(it) } }
+                CompositionLocalProvider(LocalDesktopViewModelFactory provides vmFactory) {
+                    MainView(
+                        dependencies = dependencies,
+                        windowWidth = widthClass,
+                        platformType = PlatformType.DESKTOP,
+                        keyEvents = keyEvents
+                    )
+                }
             }
             undecoratedWindowResizer.Content()
         }
@@ -226,7 +278,6 @@ private fun ApplicationScope.MainAppContent(
             )
         }
     }
-
 }
 
 private fun errorApp(
@@ -243,7 +294,10 @@ private fun errorApp(
 
         Window(
             title = "Komelia Error",
-            onCloseRequest = ::exitApplication,
+            onCloseRequest = {
+                onExit()
+                exitApplication()
+            },
             state = windowState,
             icon = BitmapPainter(useResource("ic_launcher.png", ::loadImageBitmap)),
         ) {

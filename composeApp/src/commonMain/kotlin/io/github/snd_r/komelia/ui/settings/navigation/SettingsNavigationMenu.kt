@@ -42,6 +42,7 @@ import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
 import io.github.snd_r.komelia.ui.settings.app.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsScreen
+import io.github.snd_r.komelia.ui.settings.decoder.getDecoderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
@@ -122,8 +123,8 @@ fun SettingsNavigationMenu(
         )
         if (platform == DESKTOP)
             NavigationButton(
-                label = "Decoder",
-                onClick = { onNavigation(DecoderSettingsScreen()) },
+                label = "Image Decoder",
+                onClick = { onNavigation(getDecoderSettingsScreen()) },
                 isSelected = currentScreen is DecoderSettingsScreen,
                 color = contentColor,
             )

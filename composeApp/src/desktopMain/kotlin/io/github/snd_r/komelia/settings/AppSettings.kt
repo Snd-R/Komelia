@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.settings
 
+import com.akuleshov7.ktoml.annotations.TomlLiteral
 import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.PlatformDecoderType.VIPS
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
@@ -20,8 +21,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-
-const val defaultCardWidth = 240
 
 @Serializable
 data class AppSettings(
@@ -45,7 +44,7 @@ data class UserSettings(
 
 @Serializable
 data class AppearanceSettings(
-    val cardWidth: Int = defaultCardWidth,
+    val cardWidth: Int = 200,
     val seriesPageLoadSize: Int = 20,
     val bookPageLoadSize: Int = 20,
     val bookListLayout: BooksLayout = BooksLayout.GRID
@@ -81,6 +80,7 @@ data class DecoderSettings(
     val decoder: PlatformDecoderType = VIPS,
     val upscaleOption: String = vipsUpscaleBicubic.value,
     val downscaleOption: String = vipsDownscaleLanczos.value,
+    @TomlLiteral
     val onnxModelsPath: String = System.getProperty("user.home") ?: "/",
 )
 
