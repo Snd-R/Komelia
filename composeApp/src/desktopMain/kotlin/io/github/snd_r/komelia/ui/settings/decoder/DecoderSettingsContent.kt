@@ -62,9 +62,11 @@ fun DecoderSettingsContent(
     onOnnxPathChange: (String) -> Unit,
     onOrtProviderInstall: suspend (OnnxRuntimeExecutionProvider) -> Unit,
     onOrtProviderInstallCancel: () -> Unit,
-    ortInstallProgress: UpdateProgress?
-) {
+    ortInstallProgress: UpdateProgress?,
 
+    ortInstallError: String?,
+    onOrtInstallErrorDismiss: () -> Unit,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -86,6 +88,7 @@ fun DecoderSettingsContent(
                     val ortExecutionProvider = remember {
                         if (VipsOnnxRuntimeDecoder.isCudaAvailable) "Cuda"
                         else if (VipsOnnxRuntimeDecoder.isRocmAvailable) "ROCm"
+                        else if (DesktopPlatform.Current == Windows) "DirectML"
                         else "CPU"
                     }
                     Text(
@@ -133,7 +136,9 @@ fun DecoderSettingsContent(
                 onOnnxPathChange = onOnnxPathChange,
                 onOrtProviderInstall = onOrtProviderInstall,
                 onOrtProviderInstallCancel = onOrtProviderInstallCancel,
-                ortInstallProgress = ortInstallProgress
+                ortInstallProgress = ortInstallProgress,
+                ortInstallError = ortInstallError,
+                onOrtInstallErrorDismiss = onOrtInstallErrorDismiss
             )
         }
     }
@@ -146,25 +151,30 @@ private fun OnnxRuntimeContent(
     onOnnxPathChange: (String) -> Unit,
     onOrtProviderInstall: suspend (OnnxRuntimeExecutionProvider) -> Unit,
     onOrtProviderInstallCancel: () -> Unit,
-    ortInstallProgress: UpdateProgress?
+    ortInstallProgress: UpdateProgress?,
+    ortInstallError: String?,
+    onOrtInstallErrorDismiss: () -> Unit,
 ) {
     var showOrtInstallDialog by remember { mutableStateOf(false) }
-    var showRestartDialog by remember { mutableStateOf(false) }
+    var showPostInstallDialog by remember { mutableStateOf(false) }
     if (showOrtInstallDialog) {
         OrtInstallDialog(
             updateProgress = ortInstallProgress,
             onInstallRequest = {
                 onOrtProviderInstall(it)
                 showOrtInstallDialog = false
-                showRestartDialog = true
+                showPostInstallDialog = true
             },
             onDismiss = {
                 showOrtInstallDialog = false
                 onOrtProviderInstallCancel()
             })
     }
-    if (showRestartDialog) {
-        RestartDialog(onConfirm = { showRestartDialog = false })
+    if (showPostInstallDialog) {
+        RestartDialog(error = ortInstallError, onConfirm = {
+            showPostInstallDialog = false
+            onOrtInstallErrorDismiss()
+        })
     }
 
     if (decoder == PlatformDecoderType.VIPS_ONNX) {
@@ -351,12 +361,18 @@ private fun OrtDownloadProgressDialogContent(
 }
 
 @Composable
-private fun RestartDialog(onConfirm: () -> Unit) {
+private fun RestartDialog(
+    error: String?,
+    onConfirm: () -> Unit,
+) {
     AppDialog(
         modifier = Modifier.widthIn(max = 600.dp),
         content = {
             Box(Modifier.padding(30.dp)) {
-                Text("Restart is required for changes to take effect")
+                if (error != null)
+                    Text("Error occurred during installation:\n$error")
+                else
+                    Text("Restart is required for changes to take effect")
             }
         },
         controlButtons = {

@@ -37,6 +37,7 @@ class DecoderSettingsViewModel(
     val downscaleOption = MutableStateFlow<DownscaleOption?>(null)
     val onnxModelsPath = MutableStateFlow<String?>(null)
     val ortUpdateProgress = MutableStateFlow<UpdateProgress?>(null)
+    val ortInstallError = MutableStateFlow<String?>(null)
 
     private val ortInstallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -96,11 +97,18 @@ class DecoderSettingsViewModel(
                 .conflate()
                 .onCompletion { ortUpdateProgress.value = null }
                 .collect { ortUpdateProgress.value = it }
-        }.onFailure { ortUpdateProgress.value = null }
+        }.onFailure {
+            ortInstallError.value = "${it.javaClass.simpleName} ${it.message}" ?: "Unknown error"
+            ortUpdateProgress.value = null
+        }
     }
 
     fun onOrtInstallCancel() {
         ortInstallScope.coroutineContext.cancelChildren()
+    }
+
+    fun onOrtInstallErrorDismiss() {
+        ortInstallError.value = null
     }
 
     private fun updateDecoderSettings() {

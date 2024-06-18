@@ -93,13 +93,13 @@ actual fun PlatformTitleBar(
     } else {
         when (DesktopPlatform.Current) {
             Windows -> TitleBarOnWindows(
-                modifier.heightIn(min = 48.dp).background(MaterialTheme.colorScheme.surfaceDim),
+                modifier.heightIn(min = 32.dp).background(MaterialTheme.colorScheme.surfaceDim),
                 window,
                 content
             )
 
             Linux -> TitleBarOnLinux(
-                modifier.heightIn(min = 48.dp).background(MaterialTheme.colorScheme.surfaceDim),
+                modifier.heightIn(min = 32.dp).background(MaterialTheme.colorScheme.surfaceDim),
                 window,
                 decoratedWindowState,
                 content

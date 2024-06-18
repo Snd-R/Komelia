@@ -4,10 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import org.jetbrains.skiko.URIManager
 
 class DesktopAppUpdater(
-    private val githubClient: GithubClient
+    private val updateClient: UpdateClient
 ) : AppUpdater {
     override suspend fun getReleases(): List<AppRelease> {
-        return githubClient.getKomeliaReleases().map {
+        return updateClient.getKomeliaReleases().map {
             AppRelease(
                 version = AppVersion.fromString(it.tagName),
                 publishDate = it.publishedAt,
@@ -20,7 +20,7 @@ class DesktopAppUpdater(
     }
 
     override suspend fun updateToLatest(): Flow<UpdateProgress>? {
-        val latest = githubClient.getKomeliaLatestRelease()
+        val latest = updateClient.getKomeliaLatestRelease()
         URIManager().openUri(latest.htmlUrl)
         return null
     }

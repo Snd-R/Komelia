@@ -14,7 +14,7 @@ object SharedLibrariesLoader {
     private val javaLibPath: List<Path> = System.getProperty("java.library.path").ifBlank { null }
         ?.let { path -> path.split(":").map { Path.of(it) } }
         ?: emptyList()
-    private var tempDir: Path? = null
+    internal val tempDir: Path = Path(System.getProperty("java.io.tmpdir")).resolve("komelia_libs").createDirectories()
 
     @Suppress("UnsafeDynamicallyLoadedCode")
     fun loadLibrary(libName: String) {
@@ -34,10 +34,6 @@ object SharedLibrariesLoader {
                 }
 
                 classPathFileBytes != null -> {
-                    val tempDir = tempDir ?: Path(System.getProperty("java.io.tmpdir"))
-                        .resolve("komelia_libs").createDirectories()
-                        .also { tempDir = it }
-
                     val libFile =
                         Files.write(tempDir.resolve(filename), classPathFileBytes, StandardOpenOption.CREATE).toFile()
                     libFile.deleteOnExit()

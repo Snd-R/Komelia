@@ -50,7 +50,7 @@ class VipsImageDecoder(
                 val crop = options.scale == Scale.FILL
                         && options.size.width != Dimension.Undefined && options.size.height != Dimension.Undefined
 
-                if (onnxModelPath != null) {
+                if (onnxModelPath != null && options.extras[upscaleKey] != null) {
                     VipsOnnxRuntimeDecoder.decodeAndResize(
                         bytes,
                         onnxModelPath,

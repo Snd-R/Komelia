@@ -83,7 +83,7 @@ object VipsDecoder {
         "libtiff",
         "libheif",
         "libvips-42",
-        "libkomelia",
+        "libkomelia_vips",
     )
 
     @Synchronized

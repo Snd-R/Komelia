@@ -83,9 +83,27 @@ fun main() {
     (LoggerFactory.getLogger("org.freedesktop") as ch.qos.logback.classic.Logger).level = Level.WARN
 
     val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)
-    initScope.launch { dependencies.value = DesktopDependencyContainer.createInstance(initScope) }
+
+    try {
+        initScope.launch { dependencies.value = DesktopDependencyContainer.createInstance(initScope) }
+    } catch (e: Exception) {
+        lastError = e
+    }
 
     while (shouldRestart) {
+        val error = lastError
+        if (error != null) {
+            errorApp(
+                initialWindowState = windowLastState,
+                error = error,
+                onRestart = {
+                    shouldRestart = true
+                    lastError = null
+                },
+                onExit = { shouldRestart = false }
+            )
+        }
+
         application(exitProcessOnExit = false) {
             val windowState = windowLastState ?: rememberWindowState(
                 placement = Maximized,
@@ -109,19 +127,6 @@ fun main() {
                     onCloseRequest = { shouldRestart = false }
                 )
             }
-        }
-
-        val error = lastError
-        if (error != null) {
-            errorApp(
-                initialWindowState = windowLastState,
-                error = error,
-                onRestart = {
-                    shouldRestart = true
-                    lastError = null
-                },
-                onExit = { shouldRestart = false }
-            )
         }
     }
 

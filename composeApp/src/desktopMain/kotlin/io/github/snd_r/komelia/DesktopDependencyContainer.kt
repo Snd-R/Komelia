@@ -35,8 +35,8 @@ import io.github.snd_r.komelia.settings.KeyringSecretsRepository
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
-import io.github.snd_r.komelia.updates.GithubClient
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
+import io.github.snd_r.komelia.updates.UpdateClient
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -120,13 +120,13 @@ class DesktopDependencyContainer private constructor(
             val ktorClient = createKtorClient(okHttpClient)
             val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage)
 
-            val githubClient = GithubClient(
+            val updateClient = UpdateClient(
                 ktorClient.config {
                     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
                 }
             )
-            val appUpdater = DesktopAppUpdater(githubClient)
-            val onnxRuntimeInstaller = OnnxRuntimeInstaller(githubClient)
+            val appUpdater = DesktopAppUpdater(updateClient)
+            val onnxRuntimeInstaller = OnnxRuntimeInstaller(updateClient)
 
             val coil = createCoil(ktorClient, baseUrl, cookiesStorage, decoderType, onnxModelsPath)
             SingletonImageLoader.setSafe { coil }

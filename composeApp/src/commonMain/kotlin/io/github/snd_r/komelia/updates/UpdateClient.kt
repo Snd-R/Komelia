@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 private const val komeliaBaseUrl = "https://api.github.com/repos/Snd-R/Komelia"
 private const val onnxRuntimeBaseUrl = "https://api.github.com/repos/microsoft/onnxruntime"
 
-class GithubClient(private val ktor: HttpClient) {
+class UpdateClient(private val ktor: HttpClient) {
 
     suspend fun getKomeliaReleases(): List<GithubRelease> {
         return ktor.get("$komeliaBaseUrl/releases") {

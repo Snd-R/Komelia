@@ -29,6 +29,7 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
             val downscale = vm.downscaleOption.collectAsState().value
             val onnxPath = vm.onnxModelsPath.collectAsState().value
             val updateProgress = vm.ortUpdateProgress.collectAsState().value
+            val installError = vm.ortInstallError.collectAsState().value
 
             if (currentDecoderDescriptor == null || decoder == null || upscale == null || downscale == null || onnxPath == null) {
                 LoadingMaxSizeIndicator()
@@ -47,6 +48,8 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
                     onOrtProviderInstall = vm::onOrtInstallRequest,
                     onOrtProviderInstallCancel = vm::onOrtInstallCancel,
                     ortInstallProgress = updateProgress,
+                    ortInstallError = installError,
+                    onOrtInstallErrorDismiss = vm::onOrtInstallErrorDismiss
                 )
         }
     }

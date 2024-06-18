@@ -152,9 +152,9 @@ kotlin {
             implementation("com.squareup.okhttp3:okhttp:4.12.0")
             implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-            implementation("com.akuleshov7:ktoml-core:0.5.1")
-            implementation("com.akuleshov7:ktoml-file:0.5.1")
-            implementation("com.akuleshov7:ktoml-source-jvm:0.5.1")
+            implementation("com.akuleshov7:ktoml-core:0.5.2")
+            implementation("com.akuleshov7:ktoml-file:0.5.2")
+            implementation("com.akuleshov7:ktoml-source-jvm:0.5.2")
 
             implementation("dev.dirs:directories:26")
             implementation("com.github.javakeyring:java-keyring:1.0.4")
