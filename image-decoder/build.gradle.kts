@@ -180,7 +180,6 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libjxl.dll",
         "libjxl_cms.dll",
         "libjxl_threads.dll",
-        "libkomelia.dll",
         "libsharpyuv.dll",
         "libspng.dll",
         "libtiff.dll",
@@ -193,6 +192,9 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libstdc++-6.dll",
         "libwinpthread-1.dll",
         "libgcc_s_seh-1.dll",
+        "libkomelia_vips.dll",
+        "libkomelia_vips_ort.dll",
+        "libkomelia_vips_ort_dml.dll",
     )
     duplicatesStrategy = EXCLUDE
 

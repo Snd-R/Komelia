@@ -1,6 +1,35 @@
 #include "vips_jni.h"
-#include "onnxruntime/onnxruntime_c_api.h"
+#include "onnxruntime_c_api.h"
 #include <pthread.h>
+
+#ifdef _WIN32
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+#include <windows.h>
+
+wchar_t *fromUTF8(
+        const char *src,
+        size_t src_length,  /* = 0 */
+        size_t *out_length  /* = NULL */
+) {
+    if (!src) { return NULL; }
+
+    if (src_length == 0) { src_length = strlen(src); }
+    int length = MultiByteToWideChar(CP_UTF8, 0, src, src_length, 0, 0);
+    wchar_t *output_buffer = (wchar_t *) malloc((length + 1) * sizeof(wchar_t));
+    if (output_buffer) {
+        MultiByteToWideChar(CP_UTF8, 0, src, src_length, output_buffer, length);
+        output_buffer[length] = L'\0';
+    }
+    if (out_length) { *out_length = length; }
+    return output_buffer;
+}
+#endif
+
+#ifdef USE_DML
+#include "dml_provider_factory.h"
+#endif
 
 typedef enum {
     CUDA,
@@ -99,6 +128,7 @@ Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_init(JNIEnv *env, jobject this, jst
     const char *provider_chars = (*env)->GetStringUTFChars(env, provider, 0);
     if (strcmp(provider_chars, "CUDA") == 0) session_execution_provider = CUDA;
     else if (strcmp(provider_chars, "ROCM") == 0) session_execution_provider = ROCm;
+    else if (strcmp(provider_chars, "DML") == 0) session_execution_provider = DML;
     else if (strcmp(provider_chars, "CPU") == 0) session_execution_provider = CPU;
     (*env)->ReleaseStringUTFChars(env, provider, provider_chars);
 
@@ -137,7 +167,6 @@ static void chw_to_hwc(const float *input, size_t h, size_t w, uint8_t **output)
 }
 
 VipsImage *run_inference(JNIEnv *env, VipsImage *input, const char *cache_key, int key_length) {
-    fprintf(stderr, "run inference\n");
     VipsImage *cache_entry = get_cache_entry(cache_key);
     if (cache_entry != NULL) return cache_entry;
 
@@ -280,14 +309,15 @@ int enable_rocm(JNIEnv *env) {
     return 0;
 }
 
-#ifdef _WIN32
-void enable_dml(JNIEnv *env) {
-    OrtStatus *onnx_status = g_ort->OrtSessionOptionsAppendExecutionProvider_DML(session_options, 0);
+#ifdef USE_DML
+int enable_dml(JNIEnv *env) {
+    OrtStatus *onnx_status = OrtSessionOptionsAppendExecutionProvider_DML(session_options, 0);
     if (onnx_status != NULL) {
         throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
         g_ort->ReleaseStatus(onnx_status);
         return -1;
     }
+    return 0;
 }
 #endif
 
@@ -303,10 +333,9 @@ int init_onnx_session(JNIEnv *env,
         g_ort->ReleaseSession(session);
         g_ort->ReleaseMemoryInfo(memory_info);
 
-        jsize stringLength = (*env)->GetStringLength(env, modelPath);
-        session_model_path = malloc(sizeof(char) * stringLength);
+        jsize model_path_char_length = (*env)->GetStringLength(env, modelPath);
+        session_model_path = malloc(sizeof(char) * model_path_char_length);
         strcpy(session_model_path, model_path_chars);
-        (*env)->ReleaseStringUTFChars(env, modelPath, model_path_chars);
 
         OrtStatus *onnx_status = g_ort->CreateSessionOptions(&session_options);
         if (onnx_status != NULL) {
@@ -338,7 +367,7 @@ int init_onnx_session(JNIEnv *env,
                 provider_init_error = enable_rocm(env);
                 break;
             case DML:
-#ifdef _WIN32
+#ifdef USE_DML
                 provider_init_error = enable_dml(env);
 #endif
                 break;
@@ -349,7 +378,15 @@ int init_onnx_session(JNIEnv *env,
             return -1;
         }
 
+#ifdef _WIN32
+        size_t *wide_length = NULL;
+        wchar_t *wide = fromUTF8(model_path_chars, model_path_char_length, wide_length);
+        onnx_status = g_ort->CreateSession(ort_env, wide, session_options, &session);
+        free(wide);
+#else
         onnx_status = g_ort->CreateSession(ort_env, session_model_path, session_options, &session);
+#endif
+        (*env)->ReleaseStringUTFChars(env, modelPath, model_path_chars);
         if (onnx_status != NULL) {
             throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
             g_ort->ReleaseStatus(onnx_status);

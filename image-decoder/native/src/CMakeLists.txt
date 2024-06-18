@@ -21,3 +21,14 @@ target_link_libraries(komelia_vips_ort PkgConfig::VIPS Threads::Threads ${ONNXRU
 
 install(TARGETS komelia_vips LIBRARY)
 install(TARGETS komelia_vips_ort LIBRARY)
+
+if(WIN32)
+    add_library(komelia_vips_ort_dml SHARED komelia_vips_ort_decoder.c vips_jni.h vips_jni.c)
+    target_compile_definitions(komelia_vips_ort_dml PUBLIC USE_DML)
+    target_include_directories(komelia_vips_ort_dml PRIVATE ${VIPS_INCLUDE_DIRS} ${JNI_INCLUDE_DIRS}
+            ${ONNXRUNTIME_PATH}/include
+            ${ONNXRUNTIME_PATH}/include/onnxruntime
+    )
+    target_link_libraries(komelia_vips_ort_dml PkgConfig::VIPS Threads::Threads ${ONNXRUNTIME_LIB})
+    install(TARGETS komelia_vips_ort_dml LIBRARY)
+endif()
