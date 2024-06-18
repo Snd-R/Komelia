@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.use
 
 class AndroidAppUpdater(
-    private val githubClient: GithubClient,
+    private val githubClient: UpdateClient,
     private val context: Context,
 ) : AppUpdater {
     private var inProgress = AtomicBoolean(false)

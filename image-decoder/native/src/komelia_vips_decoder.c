@@ -16,6 +16,9 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecode(
     VipsImage *decoded = vips_image_new_from_buffer((unsigned char *) inputBytes, inputLen, "", NULL);
 
     if (!decoded) {
+        throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         return NULL;
     }
 
@@ -53,6 +56,9 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecodeAndResize(
         );
     }
     if (!decoded) {
+        throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         return NULL;
     }
 

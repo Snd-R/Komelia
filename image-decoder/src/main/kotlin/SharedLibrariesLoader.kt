@@ -52,7 +52,4 @@ object SharedLibrariesLoader {
             throw e
         }
     }
-
-    private fun createTempDir() = Path(System.getProperty("java.io.tmpdir"))
-        .resolve("komelia_libs").createDirectories()
 }

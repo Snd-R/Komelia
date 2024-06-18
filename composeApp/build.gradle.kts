@@ -2,6 +2,7 @@
 
 import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.proto
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
@@ -239,9 +240,15 @@ android {
 compose.desktop {
     application {
         mainClass = "io.github.snd_r.komelia.MainKt"
+        nativeDistributions {
+            targetFormats(TargetFormat.Deb)
+            packageName = "Komelia"
+            packageVersion = "0.4.0"
+            modules("jdk.security.auth")
+        }
 
         buildTypes.release.proguard {
-            version.set("7.4.2")
+            version.set("7.5.0")
             optimize.set(false)
             configurationFiles.from(project.file("no_icons.pro"))
         }

@@ -26,7 +26,7 @@ import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.updates.AndroidAppUpdater
 import io.github.snd_r.komelia.updates.AppUpdater
-import io.github.snd_r.komelia.updates.GithubClient
+import io.github.snd_r.komelia.updates.UpdateClient
 import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -166,7 +166,7 @@ class AndroidDependencyContainer(
         }
 
         private fun createAppUpdater(ktor: HttpClient, context: Context): AndroidAppUpdater {
-            val githubClient = GithubClient(
+            val githubClient = UpdateClient(
                 ktor.config {
                     install(HttpCache)
                     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }

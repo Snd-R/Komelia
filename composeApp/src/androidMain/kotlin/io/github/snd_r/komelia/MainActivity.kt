@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         initScope.launch {
             initMutex.withLock {
                 if (dependencies.value == null)
-                    AndroidDependencyContainer.createInstance(initScope, this@MainActivity)
+                    dependencies.value = AndroidDependencyContainer.createInstance(initScope, this@MainActivity)
             }
         }
 

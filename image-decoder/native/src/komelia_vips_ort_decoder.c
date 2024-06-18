@@ -105,10 +105,6 @@ void throw_jvm_ort_exception(JNIEnv *env, const char *message) {
     (*env)->ThrowNew(env, (*env)->FindClass(env, "io/github/snd_r/OrtException"), message);
 }
 
-void throw_jvm_vips_exception(JNIEnv *env, const char *message) {
-    (*env)->ThrowNew(env, (*env)->FindClass(env, "io/github/snd_r/VipsException"), message);
-}
-
 JNIEXPORT void JNICALL
 Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_init(JNIEnv *env, jobject this, jstring provider, jstring tempDir) {
     g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
@@ -407,7 +403,7 @@ int init_onnx_session(JNIEnv *env,
             return -1;
         }
 
-        onnx_status = g_ort->AddRunConfigEntry(run_options, "kOrtRunOptionsConfigEnableMemoryArenaShrinkage", "cpu:0");
+        onnx_status = g_ort->AddRunConfigEntry(run_options, "kOrtRunOptionsConfigEnableMemoryArenaShrinkage", "cpu:0;gpu:0");
         if (onnx_status != NULL) {
             throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
             g_ort->ReleaseStatus(onnx_status);
@@ -467,6 +463,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
             g_object_unref(input_image);
             throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
+            (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
             return NULL;
         } else {
             jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
@@ -493,6 +490,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
 
         if (!output_image) {
             g_object_unref(input_image);
+            (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
             return NULL;
         }
     }
