@@ -240,11 +240,32 @@ android {
 compose.desktop {
     application {
         mainClass = "io.github.snd_r.komelia.MainKt"
+
+        jvmArgs += listOf(
+            "-Dkotlinx.coroutines.scheduler.max.pool.size=3",
+            "-Dkotlinx.coroutines.scheduler.core.pool.size=3",
+            "-XX:+UnlockExperimentalVMOptions",
+            "-XX:+UseShenandoahGC",
+            "-XX:ShenandoahGCHeuristics=compact",
+            "-XX:ConcGCThreads=1",
+            "-XX:TrimNativeHeapInterval=60000",
+        )
+
         nativeDistributions {
-            targetFormats(TargetFormat.Deb)
+            targetFormats(TargetFormat.Msi)
             packageName = "Komelia"
             packageVersion = "0.4.0"
-            modules("jdk.security.auth")
+            modules("jdk.unsupported", "jdk.security.auth")
+
+            windows {
+                menu = true
+                upgradeUuid = "D0F7FE8A-D535-4DB2-AF36-80AC904A0C46"
+                iconFile.set(project.file("src/desktopMain/resources/ic_launcher.ico"))
+            }
+
+            linux {
+                iconFile.set(project.file("src/desktopMain/resources/ic_launcher.png"))
+            }
         }
 
         buildTypes.release.proguard {
@@ -263,7 +284,8 @@ configurations.all {
 }
 
 tasks.register<Zip>("repackageUberJar") {
-    val packageUberJarForCurrentOS = tasks.getByName("packageUberJarForCurrentOS")
+    group = "compose desktop"
+    val packageUberJarForCurrentOS = tasks.getByName("packageReleaseUberJarForCurrentOS")
     dependsOn(packageUberJarForCurrentOS)
     val file = packageUberJarForCurrentOS.outputs.files.first()
     val output = File(file.parentFile, "${file.nameWithoutExtension}-repacked.jar")
