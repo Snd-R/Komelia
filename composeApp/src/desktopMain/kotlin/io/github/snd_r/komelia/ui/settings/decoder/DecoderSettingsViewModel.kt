@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import coil3.ImageLoader
 import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider
+import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
@@ -111,9 +112,18 @@ class DecoderSettingsViewModel(
         ortInstallError.value = null
     }
 
-    private fun updateDecoderSettings() {
+    fun onClearImageCache(){
+        clearImageCache()
+        appNotifications.add(AppNotification.Success("Cleared image cache"))
+    }
+
+    private fun clearImageCache() {
         imageLoader.memoryCache?.clear()
         imageLoader.diskCache?.clear()
+    }
+
+    private fun updateDecoderSettings() {
+        clearImageCache()
 
         val currentDecoder = requireNotNull(currentDecoderDescriptor.value)
         val upscaleOption = requireNotNull(upscaleOption.value)
