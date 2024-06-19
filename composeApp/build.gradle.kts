@@ -23,7 +23,7 @@ plugins {
 }
 
 group = "io.github.snd-r"
-version = "0.4"
+version = "0.5.0"
 
 dependencies {
     // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
@@ -252,9 +252,9 @@ compose.desktop {
         )
 
         nativeDistributions {
-            targetFormats(TargetFormat.Msi)
+            targetFormats(TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Komelia"
-            packageVersion = "0.4.0"
+            packageVersion = "0.5.0"
             modules("jdk.unsupported", "jdk.security.auth")
 
             windows {
