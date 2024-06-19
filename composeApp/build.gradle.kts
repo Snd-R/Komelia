@@ -255,11 +255,13 @@ compose.desktop {
             targetFormats(TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Komelia"
             packageVersion = "0.5.0"
+            description = "Komga media client"
+            vendor = "Snd-R"
             modules("jdk.unsupported", "jdk.security.auth")
 
             windows {
                 menu = true
-                upgradeUuid = "D0F7FE8A-D535-4DB2-AF36-80AC904A0C46"
+                upgradeUuid = "40E86376-4E7C-41BF-8E3B-754065032B22"
                 iconFile.set(project.file("src/desktopMain/resources/ic_launcher.ico"))
             }
 
