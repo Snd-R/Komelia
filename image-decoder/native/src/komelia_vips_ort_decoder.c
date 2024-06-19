@@ -1,6 +1,7 @@
 #include "vips_jni.h"
 #include "onnxruntime_c_api.h"
 #include <pthread.h>
+#include <onnxruntime_run_options_config_keys.h>
 
 #ifdef _WIN32
 #include <stdlib.h>
@@ -72,14 +73,11 @@ VipsImage *get_cache_entry(const char *key) {
     return NULL;
 }
 
-
 void addToCache(VipsImage *image, const char *key, int key_length) {
     if (key == NULL) return;
-
     char *cache_key = malloc(sizeof(char *) * key_length);
     strcpy(cache_key, key);
     struct UpscaleCacheEntry cacheEntry = {cache_key, image};
-
 
     if (cache_next_element_index == 4) {
         struct UpscaleCacheEntry first_entry = upscaled_cache[0];
@@ -162,109 +160,209 @@ static void chw_to_hwc(const float *input, size_t h, size_t w, uint8_t **output)
     *output = output_data;
 }
 
-VipsImage *run_inference(JNIEnv *env, VipsImage *input, const char *cache_key, int key_length) {
-    VipsImage *cache_entry = get_cache_entry(cache_key);
-    if (cache_entry != NULL) return cache_entry;
-
-    int input_height = vips_image_get_height(input);
-    int input_width = vips_image_get_width(input);
-
-    VipsInterpretation interpretation = vips_image_get_interpretation(input);
-    int input_bands = vips_image_get_bands(input);
+VipsImage *transform_for_inference(JNIEnv *env, VipsImage *input_image) {
+    VipsInterpretation interpretation = vips_image_get_interpretation(input_image);
+    int input_bands = vips_image_get_bands(input_image);
+    VipsImage *transformed = NULL;
 
     if (interpretation != VIPS_INTERPRETATION_sRGB) {
-        VipsImage *transformed;
-        int vips_error = vips_colourspace(input, &transformed, VIPS_INTERPRETATION_sRGB, NULL);
-        if (vips_error) { return NULL; }
-        g_object_unref(input);
-        input = transformed;
+        int vips_error = vips_colourspace(input_image, &transformed, VIPS_INTERPRETATION_sRGB, NULL);
+        if (vips_error) {
+            throw_jvm_vips_exception(env, vips_error_buffer());
+            vips_error_clear();
+            return NULL;
+        }
     }
 
     if (input_bands == 4) {
-        VipsImage *flattened;
-        int vips_error = vips_flatten(input, &flattened, NULL);
-        if (vips_error) { return NULL; }
-        g_object_unref(input);
-        input = flattened;
+        VipsImage *without_alpha = NULL;
+        int vips_error;
+
+        if (transformed != NULL) {
+            vips_error = vips_flatten(transformed, &without_alpha, NULL);
+            g_object_unref(transformed);
+        } else {
+            vips_error = vips_flatten(input_image, &without_alpha, NULL);
+        }
+
+        if (vips_error) {
+            throw_jvm_vips_exception(env, vips_error_buffer());
+            vips_error_clear();
+            return NULL;
+        }
+        transformed = without_alpha;
     }
+
+    return transformed;
+}
+
+VipsImage *run_inference(JNIEnv *env, VipsImage *input_image, const char *cache_key, int key_length) {
+    VipsImage *cache_entry = get_cache_entry(cache_key);
+    if (cache_entry != NULL) return cache_entry;
+    VipsImage *transformed_input_image = transform_for_inference(env, input_image);
+
+    int input_height = vips_image_get_height(input_image);
+    int input_width = vips_image_get_width(input_image);
 
     float *model_input_data;
     size_t model_input_ele_count = input_height * input_width * 3;
-    unsigned char *input_data = (unsigned char *) vips_image_get_data(input);
-    hwc_to_chw(input_data, input_height, input_width, &model_input_data);
+
+    if (transformed_input_image != NULL) {
+        unsigned char *image_input_data = (unsigned char *) vips_image_get_data(transformed_input_image);
+        hwc_to_chw(image_input_data, input_height, input_width, &model_input_data);
+        g_object_unref(transformed_input_image);
+    } else {
+        unsigned char *image_input_data = (unsigned char *) vips_image_get_data(input_image);
+        hwc_to_chw(image_input_data, input_height, input_width, &model_input_data);
+    }
 
     const int64_t input_shape[] = {1, 3, input_height, input_width};
     const size_t input_shape_len = sizeof(input_shape) / sizeof(input_shape[0]);
     const size_t model_input_len = model_input_ele_count * sizeof(float);
 
     OrtValue *input_tensor = NULL;
-    OrtStatus *onnx_status = g_ort->CreateTensorWithDataAsOrtValue(memory_info,
-                                                                   model_input_data, model_input_len,
-                                                                   input_shape, input_shape_len,
-                                                                   ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT,
-                                                                   &input_tensor);
-    if (onnx_status != NULL) {
-        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-        g_ort->ReleaseStatus(onnx_status);
+    OrtStatus *ort_status = g_ort->CreateTensorWithDataAsOrtValue(memory_info,
+                                                                  model_input_data, model_input_len,
+                                                                  input_shape, input_shape_len,
+                                                                  ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT,
+                                                                  &input_tensor);
+
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        free(model_input_data);
         return NULL;
     }
+
     int is_tensor;
-    onnx_status = g_ort->IsTensor(input_tensor, &is_tensor);
-    if (onnx_status != NULL) {
-        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-        g_ort->ReleaseStatus(onnx_status);
+    ort_status = g_ort->IsTensor(input_tensor, &is_tensor);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        free(model_input_data);
         return NULL;
     }
 
     if (!is_tensor) {
+        free(model_input_data);
         return NULL;
     }
 
+    const char *input_names[1];
+    const char *output_names[1];
 
-    const char *input_names[] = {"input"};
-    const char *output_names[] = {"output"};
+    OrtAllocator *allocator = NULL;
+    ort_status = g_ort->GetAllocatorWithDefaultOptions(&allocator);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        free(model_input_data);
+        return NULL;
+    }
+
+    char *input_name;
+    ort_status = g_ort->SessionGetInputName(session, 0, allocator, &input_name);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        free(model_input_data);
+        return NULL;
+    }
+
+    char *output_name;
+    ort_status = g_ort->SessionGetOutputName(session, 0, allocator, &output_name);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        free(model_input_data);
+        allocator->Free(allocator, input_name);
+        return NULL;
+    }
+
+    input_names[0] = input_name;
+    output_names[0] = output_name;
+
     OrtValue *output_tensor = NULL;
 
+    ort_status = g_ort->Run(session, run_options, input_names, (const OrtValue *const *) &input_tensor, 1,
+                            output_names, 1, &output_tensor);
 
-    onnx_status = g_ort->Run(session, run_options, input_names, (const OrtValue *const *) &input_tensor, 1,
-                             output_names, 1, &output_tensor);
-    if (onnx_status != NULL) {
-        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-        g_ort->ReleaseStatus(onnx_status);
+    g_ort->ReleaseValue(input_tensor);
+    allocator->Free(allocator, input_name);
+    allocator->Free(allocator, output_name);
+    free(model_input_data);
+
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
         return NULL;
     }
 
-    onnx_status = g_ort->IsTensor(output_tensor, &is_tensor);
-    if (onnx_status != NULL) {
-        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-        g_ort->ReleaseStatus(onnx_status);
+    ort_status = g_ort->IsTensor(output_tensor, &is_tensor);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
         return NULL;
     }
-    if (!is_tensor) { return NULL; }
+    if (!is_tensor) {
+        return NULL;
+    }
 
     float *output_tensor_data = NULL;
-    onnx_status = g_ort->GetTensorMutableData(output_tensor, (void **) &output_tensor_data);
-    if (onnx_status != NULL) {
-        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-        g_ort->ReleaseStatus(onnx_status);
+    ort_status = g_ort->GetTensorMutableData(output_tensor, (void **) &output_tensor_data);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
         return NULL;
     }
 
-    int output_height = input_height * 2;
-    int output_width = input_width * 2;
+    OrtTensorTypeAndShapeInfo *out_shape_info;
+    ort_status = g_ort->GetTensorTypeAndShape(output_tensor, &out_shape_info);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        return NULL;
+    }
+
+    size_t dim_length;
+    ort_status = g_ort->GetDimensionsCount(out_shape_info, &dim_length);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        return NULL;
+    }
+    if (dim_length != 4) {
+        char *message;
+        asprintf(&message, "Unexpected number of output dimensions, %zu", dim_length);
+        throw_jvm_ort_exception(env, message);
+        free(message);
+        return NULL;
+    }
+
+    int64_t dim_values[dim_length];
+    ort_status = g_ort->GetDimensions(out_shape_info, dim_values, dim_length);
+    if (ort_status != NULL) {
+        throw_jvm_ort_exception(env, g_ort->GetErrorMessage(ort_status));
+        g_ort->ReleaseStatus(ort_status);
+        return NULL;
+    }
+
+    int output_width = (int) dim_values[dim_length - 1];
+    int output_height = (int) dim_values[dim_length - 2];
     int output_size = output_height * output_width * 3;
+
 
     uint8_t *output_image_data = NULL;
     chw_to_hwc(output_tensor_data, output_height, output_width, &output_image_data);
+    g_ort->ReleaseTensorTypeAndShapeInfo(out_shape_info);
+    g_ort->ReleaseValue(output_tensor);
 
-    g_object_unref(input);
-    free(model_input_data);
-    VipsImage *output_image = vips_image_new_from_memory_copy(output_image_data, output_size,
-                                                              output_width, output_height, 3,
-                                                              VIPS_FORMAT_UCHAR);
+    VipsImage *inferred_image = vips_image_new_from_memory_copy(output_image_data, output_size,
+                                                                output_width, output_height, 3,
+                                                                VIPS_FORMAT_UCHAR);
     free(output_image_data);
-    addToCache(output_image, cache_key, key_length);
-    return output_image;
+    addToCache(inferred_image, cache_key, key_length);
+    return inferred_image;
 }
 
 int enable_cuda(JNIEnv *env) {
@@ -324,6 +422,7 @@ int init_onnx_session(JNIEnv *env,
 
     const char *model_path_chars = (*env)->GetStringUTFChars(env, modelPath, 0);
     if (session_model_path == NULL || strcmp(session_model_path, model_path_chars) != 0) {
+
         free(session_model_path);
         g_ort->ReleaseSessionOptions(session_options);
         g_ort->ReleaseSession(session);
@@ -334,13 +433,6 @@ int init_onnx_session(JNIEnv *env,
         strcpy(session_model_path, model_path_chars);
 
         OrtStatus *onnx_status = g_ort->CreateSessionOptions(&session_options);
-        if (onnx_status != NULL) {
-            throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-            g_ort->ReleaseStatus(onnx_status);
-            return -1;
-        }
-
-        onnx_status = g_ort->CreateSessionOptions(&session_options);
         if (onnx_status != NULL) {
             throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
             g_ort->ReleaseStatus(onnx_status);
@@ -403,12 +495,12 @@ int init_onnx_session(JNIEnv *env,
             return -1;
         }
 
-        onnx_status = g_ort->AddRunConfigEntry(run_options, "kOrtRunOptionsConfigEnableMemoryArenaShrinkage", "cpu:0;gpu:0");
-        if (onnx_status != NULL) {
-            throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
-            g_ort->ReleaseStatus(onnx_status);
-            return -1;
-        }
+//        onnx_status = g_ort->AddRunConfigEntry(run_options, kOrtRunOptionsConfigEnableMemoryArenaShrinkage, "cpu:0");
+//        if (onnx_status != NULL) {
+//            throw_jvm_ort_exception(env, g_ort->GetErrorMessage(onnx_status));
+//            g_ort->ReleaseStatus(onnx_status);
+//            return -1;
+//        }
     } else {
         (*env)->ReleaseStringUTFChars(env, modelPath, model_path_chars);
     }
@@ -434,6 +526,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
     if (!input_image) {
         throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
+        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         return NULL;
     }
 
@@ -441,14 +534,13 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
     int input_height = vips_image_get_height(input_image);
     if (input_width == scaleWidth && input_height == scaleHeight) {
         jobject jvm_image = komelia_vips_image_to_jvm(env, input_image);
-        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         g_object_unref(input_image);
+        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         return jvm_image;
     }
 
-    VipsImage *output_image = NULL;
-    if (vips_image_get_width(input_image) >= scaleWidth ||
-        vips_image_get_height(input_image) >= scaleHeight) {
+    if (vips_image_get_width(input_image) >= scaleWidth || vips_image_get_height(input_image) >= scaleHeight) {
+        VipsImage *output_image = NULL;
         if (crop) {
             vips_thumbnail_image(input_image, &output_image, scaleWidth,
                                  "height", scaleHeight,
@@ -459,66 +551,69 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
             vips_thumbnail_image(input_image, &output_image, scaleWidth, "height", scaleHeight, NULL);
         }
 
+        g_object_unref(input_image);
+
         if (!output_image) {
-            g_object_unref(input_image);
             throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
             (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
             return NULL;
-        } else {
-            jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
-            (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
-            g_object_unref(output_image);
-            return jvm_image;
         }
+
+        jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
+        g_object_unref(output_image);
+        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
+        return jvm_image;
 
     } else {
+        VipsImage *inferred_image = NULL;
         pthread_mutex_lock(&session_mutex);
         int initError = init_onnx_session(env, modelPath);
-        if (initError) { return NULL; }
-
-        if (cacheKey != NULL) {
-            const char *cache_key_chars = (*env)->GetStringUTFChars(env, cacheKey, 0);
-            int cache_key_length = (*env)->GetStringLength(env, cacheKey);
-            output_image = run_inference(env, input_image, cache_key_chars, cache_key_length);
-            (*env)->ReleaseStringUTFChars(env, modelPath, cache_key_chars);
-        } else {
-            output_image = run_inference(env, input_image, NULL, 0);
-        }
-
-        pthread_mutex_unlock(&session_mutex);
-
-        if (!output_image) {
+        if (initError) {
             g_object_unref(input_image);
             (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
             return NULL;
         }
-    }
 
-    int output_width = vips_image_get_width(input_image);
-    int output_height = vips_image_get_height(input_image);
-    if (output_width != scaleWidth || output_height != scaleHeight) {
-        VipsImage *rescaled_image = NULL;
-        vips_thumbnail_image(output_image, &rescaled_image, scaleWidth,
+        if (cacheKey != NULL) {
+            const char *cache_key_chars = (*env)->GetStringUTFChars(env, cacheKey, 0);
+            int cache_key_length = (*env)->GetStringLength(env, cacheKey);
+            inferred_image = run_inference(env, input_image, cache_key_chars, cache_key_length);
+            (*env)->ReleaseStringUTFChars(env, modelPath, cache_key_chars);
+        } else {
+            inferred_image = run_inference(env, input_image, NULL, 0);
+        }
+
+        g_object_unref(input_image);
+        (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
+        pthread_mutex_unlock(&session_mutex);
+
+        if (!inferred_image) {
+            return NULL;
+        }
+
+        int inferred_width = vips_image_get_width(inferred_image);
+        int inferred_height = vips_image_get_height(inferred_image);
+        if (inferred_width == scaleWidth && inferred_height == scaleHeight) {
+            jobject jvm_image = komelia_vips_image_to_jvm(env, inferred_image);
+            return jvm_image;
+        }
+
+        VipsImage *output_image = NULL;
+        vips_thumbnail_image(inferred_image, &output_image, scaleWidth,
                              "height", scaleHeight,
                              "crop", VIPS_INTERESTING_ENTROPY,
                              NULL
         );
 
-        if (!rescaled_image) {
-            g_object_unref(output_image);
+        if (!output_image) {
             throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
             return NULL;
         }
+
+        jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
         g_object_unref(output_image);
-        output_image = rescaled_image;
+        return jvm_image;
     }
-
-    jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
-    (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
-
-    g_object_unref(output_image);
-
-    return jvm_image;
 }
