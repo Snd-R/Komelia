@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.ui.home
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
@@ -54,13 +53,18 @@ class HomeViewModel(
 
     var keepReadingBooks by mutableStateOf<List<KomgaBook>>(emptyList())
         private set
-    var recentlyReleasedBooks = mutableStateListOf<KomgaBook>()
+    var onDeckBooks by mutableStateOf<List<KomgaBook>>(emptyList())
         private set
-    var recentlyAddedBooks = mutableStateListOf<KomgaBook>()
+    var recentlyReleasedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
         private set
-    var recentlyAddedSeries = mutableStateListOf<KomgaSeries>()
+    var recentlyAddedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
         private set
-    var recentlyUpdatedSeries = mutableStateListOf<KomgaSeries>()
+    var recentlyReadBooks by mutableStateOf<List<KomgaBook>>(emptyList())
+        private set
+
+    var recentlyAddedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
+        private set
+    var recentlyUpdatedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
         private set
 
     var activeFilter by mutableStateOf(HomeScreenFilter.ALL)
@@ -90,10 +94,12 @@ class HomeViewModel(
 
             mutableState.value = LoadState.Loading
             loadKeepReadingBooks()
+            loadOnDeckBooks()
             loadRecentlyReleasedBooks()
             loadRecentlyAddedBooks()
             loadRecentlyAddedSeries()
             loadRecentlyUpdatedSeries()
+            loadRecentlyReadBooks()
             mutableState.value = LoadState.Success(Unit)
 
         }.onFailure { mutableState.value = LoadState.Error(it) }
@@ -103,57 +109,79 @@ class HomeViewModel(
     fun bookMenuActions() = BookMenuActions(bookClient, appNotifications, screenModelScope)
 
     private suspend fun loadKeepReadingBooks() {
-        val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReadDateDesc())
+        appNotifications.runCatchingToNotifications {
+            val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReadDateDesc())
 
-        val books = bookClient.getAllBooks(
-            query = KomgaBookQuery(
-                readStatus = listOf(KomgaReadStatus.IN_PROGRESS),
-            ),
-            pageRequest = pageRequest
-        ).content
+            val books = bookClient.getAllBooks(
+                query = KomgaBookQuery(
+                    readStatus = listOf(KomgaReadStatus.IN_PROGRESS),
+                ),
+                pageRequest = pageRequest
+            ).content
 
-        keepReadingBooks = books
+            keepReadingBooks = books
+        }
+    }
+
+    private suspend fun loadOnDeckBooks() {
+        appNotifications.runCatchingToNotifications {
+            onDeckBooks = bookClient.getBooksOnDeck().content
+        }
+    }
+
+    private suspend fun loadRecentlyReadBooks() {
+        appNotifications.runCatchingToNotifications {
+            val books = bookClient.getAllBooks(
+                query = KomgaBookQuery(readStatus = listOf(KomgaReadStatus.READ)),
+                pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReadDateDesc())
+            ).content
+            recentlyReadBooks = books
+        }
     }
 
     private suspend fun loadRecentlyReleasedBooks() {
-        val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReleaseDateDesc())
+        appNotifications.runCatchingToNotifications {
+            val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReleaseDateDesc())
 
-        val books = bookClient.getAllBooks(
-            pageRequest = pageRequest,
-            query = KomgaBookQuery(
-                releasedAfter = Clock.System.todayIn(UTC).minus(1, MONTH)
-            ),
-        ).content
+            val books = bookClient.getAllBooks(
+                pageRequest = pageRequest,
+                query = KomgaBookQuery(
+                    releasedAfter = Clock.System.todayIn(UTC).minus(1, MONTH)
+                ),
+            ).content
 
-        recentlyReleasedBooks.clear()
-        recentlyReleasedBooks.addAll(books)
+            recentlyReleasedBooks = books
+        }
     }
 
     private suspend fun loadRecentlyAddedBooks() {
-        val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byCreatedDateDesc())
+        appNotifications.runCatchingToNotifications {
+            val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byCreatedDateDesc())
 
-        val books = bookClient.getAllBooks(
-            pageRequest = pageRequest,
-        ).content
+            val books = bookClient.getAllBooks(
+                pageRequest = pageRequest,
+            ).content
 
-        recentlyAddedBooks.clear()
-        recentlyAddedBooks.addAll(books)
+            recentlyAddedBooks = books
+        }
     }
 
     private suspend fun loadRecentlyAddedSeries() {
-        val series = seriesClient.getNewSeries(
-            oneshot = false
-        ).content
-        recentlyAddedSeries.clear()
-        recentlyAddedSeries.addAll(series)
+        appNotifications.runCatchingToNotifications {
+            val series = seriesClient.getNewSeries(
+                oneshot = false
+            ).content
+            recentlyAddedSeries = series
+        }
     }
 
     private suspend fun loadRecentlyUpdatedSeries() {
-        val series = seriesClient.getUpdatedSeries(
-            oneshot = false
-        ).content
-        recentlyUpdatedSeries.clear()
-        recentlyUpdatedSeries.addAll(series)
+        appNotifications.runCatchingToNotifications {
+            val series = seriesClient.getUpdatedSeries(
+                oneshot = false
+            ).content
+            recentlyUpdatedSeries = series
+        }
     }
 
     private suspend fun startEventListener() {
@@ -195,8 +223,10 @@ class HomeViewModel(
     enum class HomeScreenFilter {
         ALL,
         KEEP_READING_BOOKS,
+        ON_DECK_BOOKS,
         RECENTLY_RELEASED_BOOKS,
         RECENTLY_ADDED_BOOKS,
+        RECENTLY_READ_BOOKS,
         RECENTLY_ADDED_SERIES,
         RECENTLY_UPDATED_SERIES
 

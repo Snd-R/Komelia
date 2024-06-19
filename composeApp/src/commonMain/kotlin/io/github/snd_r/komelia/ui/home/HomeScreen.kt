@@ -33,8 +33,10 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
 
                 HomeContent(
                     keepReadingBooks = vm.keepReadingBooks,
+                    onDeckBooks = vm.onDeckBooks,
                     recentlyReleasedBooks = vm.recentlyReleasedBooks,
                     recentlyAddedBooks = vm.recentlyAddedBooks,
+                    recentlyReadBooks = vm.recentlyReadBooks,
                     recentlyAddedSeries = vm.recentlyAddedSeries,
                     recentlyUpdatedSeries = vm.recentlyUpdatedSeries,
                     currentFilter = vm.activeFilter,

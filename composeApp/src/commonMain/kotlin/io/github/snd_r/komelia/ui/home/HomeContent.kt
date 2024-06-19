@@ -35,8 +35,10 @@ import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.ALL
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.KEEP_READING_BOOKS
+import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.ON_DECK_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_ADDED_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_ADDED_SERIES
+import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_READ_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_RELEASED_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_UPDATED_SERIES
 import io.github.snd_r.komga.book.KomgaBook
@@ -48,8 +50,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeContent(
     keepReadingBooks: List<KomgaBook>,
+    onDeckBooks: List<KomgaBook>,
     recentlyReleasedBooks: List<KomgaBook>,
     recentlyAddedBooks: List<KomgaBook>,
+    recentlyReadBooks: List<KomgaBook>,
+
     recentlyAddedSeries: List<KomgaSeries>,
     recentlyUpdatedSeries: List<KomgaSeries>,
 
@@ -73,16 +78,20 @@ fun HomeContent(
                 coroutineScope.launch { gridState.animateScrollToItem(0) }
             },
             keepReadingBooks = keepReadingBooks,
+            onDeckBooks = onDeckBooks,
             recentlyReleasedBooks = recentlyReleasedBooks,
             recentlyAddedBooks = recentlyAddedBooks,
+            recentlyReadBooks = recentlyReadBooks,
             recentlyAddedSeries = recentlyAddedSeries,
             recentlyUpdatedSeries = recentlyUpdatedSeries,
         )
         MainContent(
             currentFilter = currentFilter,
             keepReadingBooks = keepReadingBooks,
+            onDeckBooks = onDeckBooks,
             recentlyReleasedBooks = recentlyReleasedBooks,
             recentlyAddedBooks = recentlyAddedBooks,
+            recentlyReadBooks = recentlyReadBooks,
             recentlyAddedSeries = recentlyAddedSeries,
             recentlyUpdatedSeries = recentlyUpdatedSeries,
             gridState = gridState,
@@ -102,8 +111,10 @@ private fun Toolbar(
     currentFilter: HomeScreenFilter,
     onFilterChange: (HomeScreenFilter) -> Unit,
     keepReadingBooks: List<KomgaBook>,
+    onDeckBooks: List<KomgaBook>,
     recentlyReleasedBooks: List<KomgaBook>,
     recentlyAddedBooks: List<KomgaBook>,
+    recentlyReadBooks: List<KomgaBook>,
     recentlyAddedSeries: List<KomgaSeries>,
     recentlyUpdatedSeries: List<KomgaSeries>,
 ) {
@@ -137,6 +148,16 @@ private fun Toolbar(
                     onClick = { onFilterChange(KEEP_READING_BOOKS) },
                     selected = currentFilter == KEEP_READING_BOOKS,
                     label = { Text("Keep Reading") },
+                    colors = chipColors,
+                    border = null,
+                )
+            }
+        if (onDeckBooks.isNotEmpty())
+            item {
+                FilterChip(
+                    onClick = { onFilterChange(ON_DECK_BOOKS) },
+                    selected = currentFilter == ON_DECK_BOOKS,
+                    label = { Text("On deck") },
                     colors = chipColors,
                     border = null,
                 )
@@ -186,6 +207,16 @@ private fun Toolbar(
                     border = null,
                 )
             }
+        if (recentlyReadBooks.isNotEmpty())
+            item {
+                FilterChip(
+                    onClick = { onFilterChange(RECENTLY_READ_BOOKS) },
+                    selected = currentFilter == RECENTLY_READ_BOOKS,
+                    label = { Text("Recently read books") },
+                    colors = chipColors,
+                    border = null,
+                )
+            }
 
         item {
             Spacer(Modifier.width(40.dp))
@@ -198,8 +229,10 @@ private fun Toolbar(
 private fun MainContent(
     currentFilter: HomeScreenFilter,
     keepReadingBooks: List<KomgaBook>,
+    onDeckBooks: List<KomgaBook>,
     recentlyReleasedBooks: List<KomgaBook>,
     recentlyAddedBooks: List<KomgaBook>,
+    recentlyReadBooks: List<KomgaBook>,
     recentlyAddedSeries: List<KomgaSeries>,
     recentlyUpdatedSeries: List<KomgaSeries>,
     gridState: LazyGridState,
@@ -225,6 +258,15 @@ private fun MainContent(
             BookFilterEntry(
                 label = "Keep reading",
                 books = keepReadingBooks,
+                bookMenuActions = bookMenuActions,
+                onBookClick = onBookClick,
+                onBookReadClick = onBookReadClick
+            )
+        }
+        if (onDeckBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == ON_DECK_BOOKS)) {
+            BookFilterEntry(
+                label = "On deck",
+                books = onDeckBooks,
                 bookMenuActions = bookMenuActions,
                 onBookClick = onBookClick,
                 onBookReadClick = onBookReadClick
@@ -262,6 +304,15 @@ private fun MainContent(
                 series = recentlyUpdatedSeries,
                 onSeriesClick = onSeriesClick,
                 seriesMenuActions = seriesMenuActions
+            )
+        }
+        if (recentlyReadBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == RECENTLY_READ_BOOKS)) {
+            BookFilterEntry(
+                label = "Recently read books",
+                books = recentlyReadBooks,
+                bookMenuActions = bookMenuActions,
+                onBookClick = onBookClick,
+                onBookReadClick = onBookReadClick
             )
         }
     }

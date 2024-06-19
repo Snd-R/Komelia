@@ -22,7 +22,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class DecoderSettingsViewModel(
@@ -43,17 +45,22 @@ class DecoderSettingsViewModel(
     private val ortInstallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
-
-        val decoder = settingsRepository.getDecoderType().first()
-        decoderType.value = decoder.platformType
-        upscaleOption.value = decoder.upscaleOption
-        downscaleOption.value = decoder.downscaleOption
-
         onnxModelsPath.value = settingsRepository.getOnnxModelsPath().first()
 
-        availableDecoders.collect { decoders ->
-            currentDecoderDescriptor.value = decoders.first { it.platformType == decoderType.value }
-        }
+        settingsRepository.getDecoderType().onEach { decoder ->
+            decoderType.value = decoder.platformType
+            upscaleOption.value = decoder.upscaleOption
+            downscaleOption.value = decoder.downscaleOption
+        }.launchIn(screenModelScope)
+
+        availableDecoders.onEach { decoders ->
+            val newDescriptor = decoders.firstOrNull { it.platformType == decoderType.value }
+            currentDecoderDescriptor.value = newDescriptor
+        }.launchIn(screenModelScope)
+    }
+
+    private suspend fun initDecoderSettings() {
+
     }
 
     fun onDecoderChange(type: PlatformDecoderType) {
@@ -112,7 +119,7 @@ class DecoderSettingsViewModel(
         ortInstallError.value = null
     }
 
-    fun onClearImageCache(){
+    fun onClearImageCache() {
         clearImageCache()
         appNotifications.add(AppNotification.Success("Cleared image cache"))
     }
