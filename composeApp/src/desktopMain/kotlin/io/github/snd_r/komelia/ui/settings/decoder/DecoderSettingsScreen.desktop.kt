@@ -49,7 +49,8 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
                     onOrtProviderInstallCancel = vm::onOrtInstallCancel,
                     ortInstallProgress = updateProgress,
                     ortInstallError = installError,
-                    onOrtInstallErrorDismiss = vm::onOrtInstallErrorDismiss
+                    onOrtInstallErrorDismiss = vm::onOrtInstallErrorDismiss,
+                    onCacheClear = vm::onClearImageCache
                 )
         }
     }

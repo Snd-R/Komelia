@@ -66,6 +66,8 @@ fun DecoderSettingsContent(
 
     ortInstallError: String?,
     onOrtInstallErrorDismiss: () -> Unit,
+
+    onCacheClear: () -> Unit,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -129,7 +131,7 @@ fun DecoderSettingsContent(
         }
 
         if (DesktopPlatform.Current == Linux || DesktopPlatform.Current == Windows) {
-            HorizontalDivider()
+            HorizontalDivider(Modifier.padding(vertical = 10.dp))
             OnnxRuntimeContent(
                 decoder = decoder,
                 onnxPath = onnxPath,
@@ -141,6 +143,14 @@ fun DecoderSettingsContent(
                 onOrtInstallErrorDismiss = onOrtInstallErrorDismiss
             )
         }
+
+        HorizontalDivider(Modifier.padding(vertical = 10.dp))
+
+        Text("Image cache")
+        FilledTonalButton(
+            onClick = onCacheClear,
+            shape = RoundedCornerShape(5.dp)
+        ) { Text("Clear image cache") }
     }
 }
 
@@ -177,6 +187,7 @@ private fun OnnxRuntimeContent(
         })
     }
 
+    Text("ONNX runtime settings")
     if (decoder == PlatformDecoderType.VIPS_ONNX) {
         var showFilePicker by remember { mutableStateOf(false) }
         DirectoryPicker(show = showFilePicker) { path ->
