@@ -10,16 +10,11 @@ Requires jdk 17 or higher
 
 `./gradlew run` to launch desktop app
 
-`./gradlew repackageUberJar` to build and package app in jar (output in `composeApp/build/compose/jars`)
+`./gradlew repackageUberJar` package jar for current OS (output in `composeApp/build/compose/jars`)
 
-### Package app with Conveyor:
+`./gradlew packageReleaseDeb` package Linux deb file (output in `composeApp/build/compose/binaries`)
 
-requires Conveyor binary https://conveyor.hydraulic.dev
-
-first run `./gradlew desktopJar` then run `conveyor make` command for target platform
-
-- `conveyor make linux-tarball`
-- `conveyor make windows-zip`
+`./gradlew packageReleaseMsi` package Windows msi installer (output in `composeApp/build/compose/binaries`)
 
 ### Depends on libvips and its dependencies for image decoding
 
@@ -40,7 +35,7 @@ alternatively you can run build inside docker
 container 
 - `cd ./vips/native`
 - `docker build -t komelia-vips-build . `
-- `docker run -v .:/build komelia-vips-build <num_of_build_jobs>`
+- `docker run -v .:/build komelia-vips-build`
 
 after build run `./gradlew :vips:linuxCopyVipsLibsToClasspath` to copy built libraries to be bundled with the
 application
@@ -52,7 +47,7 @@ run `./gradlew :vips:windowsBuild` to launch windows build using system toolchai
 alternatively you can run build inside docker container 
 - `cd ./vips/native`
 - `docker build -t komelia-vips-w64-build . -f w64.Dockerfile`
-- `docker run -v .:/build komelia-vips-w64-build <num_of_build_jobs>`
+- `docker run -v .:/build komelia-vips-w64-build`
 
 after build `./gradlew :vips:windowsCopyVipsLibsToClasspath` to copy libraries to be bundled
 with the app
@@ -60,3 +55,5 @@ with the app
 ## Android Build
 
 debug apk build:`./gradlew :composeApp:assemble` (output in `composeApp/build/outputs/apk/debug`)
+
+unsigned release apk build:`./gradlew :composeApp:assembleRelease` (output in `composeApp/build/outputs/apk/release`)
