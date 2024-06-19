@@ -41,7 +41,11 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.FileAppender
 import com.jetbrains.JBR
+import dev.dirs.ProjectDirectories
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
 import io.github.snd_r.VipsOnnxRuntimeDecoder
@@ -63,6 +67,7 @@ import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import java.awt.Dimension
 import java.awt.event.WindowEvent
+import java.nio.file.Path
 import kotlin.system.exitProcess
 import kotlin.time.measureTime
 
@@ -81,11 +86,11 @@ private var windowLastState: WindowState? = null
 
 private val initScope = CoroutineScope(Dispatchers.Default)
 
+val projectDirectories: ProjectDirectories = ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia")
+
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    val rootLogger = LoggerFactory.getLogger(ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
-    rootLogger.level = Level.INFO
-    (LoggerFactory.getLogger("org.freedesktop") as ch.qos.logback.classic.Logger).level = Level.WARN
+    configureLogging()
     measureTime {
         try {
             VipsDecoder.load()
@@ -316,4 +321,26 @@ private fun errorApp(
         }
 
     }
+}
+
+private fun configureLogging() {
+    val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
+    val rootLogger = loggerContext.getLogger(ROOT_LOGGER_NAME)
+    rootLogger.level = Level.INFO
+    (LoggerFactory.getLogger("org.freedesktop") as ch.qos.logback.classic.Logger).level = Level.WARN
+
+    val logEncoder = PatternLayoutEncoder()
+    logEncoder.pattern = "%date %level [%thread] %logger{10} [%file:%line] %msg%n"
+    logEncoder.context = loggerContext
+    logEncoder.start()
+
+    val fileAppender = FileAppender<ILoggingEvent>()
+    val logFile = Path.of(projectDirectories.dataDir).resolve("komelia.log").toString()
+    fileAppender.file = logFile
+    fileAppender.isAppend = false
+    fileAppender.encoder = logEncoder
+    fileAppender.context = loggerContext
+    fileAppender.start()
+
+    rootLogger.addAppender(fileAppender)
 }

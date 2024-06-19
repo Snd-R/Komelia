@@ -5,7 +5,7 @@ import com.akuleshov7.ktoml.TomlInputConfig
 import com.akuleshov7.ktoml.TomlOutputConfig
 import com.akuleshov7.ktoml.file.TomlFileReader
 import com.akuleshov7.ktoml.file.TomlFileWriter
-import dev.dirs.ProjectDirectories
+import io.github.snd_r.komelia.projectDirectories
 import io.github.snd_r.komelia.settings.ActorMessage.Transform
 import io.github.snd_r.komelia.settings.State.Initialized
 import io.github.snd_r.komelia.settings.State.UnInitialized
@@ -36,9 +36,7 @@ class FileSystemSettingsActor {
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val state: MutableStateFlow<State> = MutableStateFlow(UnInitialized)
 
-    private val configFile = Path.of(
-        ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia").configDir
-    ).resolve("komelia.toml")
+    private val configFile = Path.of(projectDirectories.configDir).resolve("komelia.toml")
     private val tomlFileReader = TomlFileReader(inputConfig = TomlInputConfig.compliant(ignoreUnknownNames = true))
     private val tomlFileWriter = TomlFileWriter(outputConfig = TomlOutputConfig.compliant(indentation = NONE))
 
