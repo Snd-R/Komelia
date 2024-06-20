@@ -85,6 +85,13 @@ class DesktopDependencyContainer private constructor(
 
     companion object {
         suspend fun createInstance(scope: CoroutineScope): DesktopDependencyContainer {
+            measureTime {
+                try {
+                    VipsOnnxRuntimeDecoder.load()
+                } catch (e: UnsatisfiedLinkError) {
+                    logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+                }
+            }.also { logger.info { "completed ONNX Runtime load in $it" } }
 
             val settingsActor = createSettingsActor()
             val settingsRepository = FilesystemSettingsRepository(settingsActor)

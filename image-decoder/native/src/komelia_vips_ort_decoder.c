@@ -1,7 +1,6 @@
 #include "vips_jni.h"
 #include "onnxruntime_c_api.h"
 #include <pthread.h>
-#include <onnxruntime_run_options_config_keys.h>
 
 #ifdef _WIN32
 #include <stdlib.h>
@@ -515,8 +514,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         jstring modelPath,
         jstring cacheKey,
         jint scaleWidth,
-        jint scaleHeight,
-        jboolean crop
+        jint scaleHeight
 ) {
 
     jsize inputLen = (*env)->GetArrayLength(env, encoded);
@@ -539,17 +537,9 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         return jvm_image;
     }
 
-    if (vips_image_get_width(input_image) >= scaleWidth || vips_image_get_height(input_image) >= scaleHeight) {
+    if (vips_image_get_width(input_image) >= scaleWidth && vips_image_get_height(input_image) >= scaleHeight) {
         VipsImage *output_image = NULL;
-        if (crop) {
-            vips_thumbnail_image(input_image, &output_image, scaleWidth,
-                                 "height", scaleHeight,
-                                 "crop", VIPS_INTERESTING_ENTROPY,
-                                 NULL
-            );
-        } else {
-            vips_thumbnail_image(input_image, &output_image, scaleWidth, "height", scaleHeight, NULL);
-        }
+        vips_thumbnail_image(input_image, &output_image, scaleWidth, "height", scaleHeight, NULL);
 
         g_object_unref(input_image);
 
@@ -571,6 +561,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         int initError = init_onnx_session(env, modelPath);
         if (initError) {
             g_object_unref(input_image);
+            pthread_mutex_unlock(&session_mutex);
             (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
             return NULL;
         }
@@ -600,11 +591,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         }
 
         VipsImage *output_image = NULL;
-        vips_thumbnail_image(inferred_image, &output_image, scaleWidth,
-                             "height", scaleHeight,
-                             "crop", VIPS_INTERESTING_ENTROPY,
-                             NULL
-        );
+        vips_thumbnail_image(inferred_image, &output_image, scaleWidth, "height", scaleHeight, NULL);
 
         if (!output_image) {
             throw_jvm_vips_exception(env, vips_error_buffer());

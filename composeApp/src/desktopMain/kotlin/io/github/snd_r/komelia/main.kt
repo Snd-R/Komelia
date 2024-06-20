@@ -48,7 +48,6 @@ import com.jetbrains.JBR
 import dev.dirs.ProjectDirectories
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
-import io.github.snd_r.VipsOnnxRuntimeDecoder
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
@@ -98,14 +97,6 @@ fun main() {
             logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
         }
     }.also { logger.info { "completed vips load in $it" } }
-
-    measureTime {
-        try {
-            VipsOnnxRuntimeDecoder.load()
-        } catch (e: UnsatisfiedLinkError) {
-            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-        }
-    }.also { logger.info { "completed ONNX Runtime load in $it" } }
 
     val lastError = MutableStateFlow<Throwable?>(null)
     val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)

@@ -57,7 +57,6 @@ class VipsImageDecoder(
                         "${onnxModelPath}_${options.extras[upscaleKey]}",
                         dstWidth,
                         dstHeight,
-                        crop
                     )
                 } else VipsDecoder.vipsDecodeAndResize(bytes, dstWidth, dstHeight, crop)
 

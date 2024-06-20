@@ -117,7 +117,6 @@ object VipsOnnxRuntimeDecoder {
         cacheKey: String?,
         scaleWidth: Int,
         scaleHeight: Int,
-        crop: Boolean,
     ): VipsImage?
 
     enum class OnnxRuntimeExecutionProvider {

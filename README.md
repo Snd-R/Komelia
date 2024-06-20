@@ -33,7 +33,7 @@ run `./gradlew :vips:linuxBuild` to launch linux build using system toolchain
 
 alternatively you can run build inside docker
 container 
-- `cd ./vips/native`
+- `cd ./image-decoder/native`
 - `docker build -t komelia-vips-build . `
 - `docker run -v .:/build komelia-vips-build`
 
@@ -45,7 +45,7 @@ application
 run `./gradlew :vips:windowsBuild` to launch windows build using system toolchain (requires `mingw-w64-gcc` and `mingw-w64-binutils`)
 
 alternatively you can run build inside docker container 
-- `cd ./vips/native`
+- `cd ./image-decoder/native`
 - `docker build -t komelia-vips-w64-build . -f w64.Dockerfile`
 - `docker run -v .:/build komelia-vips-w64-build`
 
