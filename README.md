@@ -29,7 +29,7 @@ Check vips/native directory for cmake build details
 - nasm
 - autotools
 
-run `./gradlew :vips:linuxBuild` to launch linux build using system toolchain
+run `./gradlew :image-decoder:linuxBuild` to launch linux build using system toolchain
 
 alternatively you can run build inside docker
 container 
@@ -37,19 +37,19 @@ container
 - `docker build -t komelia-vips-build . `
 - `docker run -v .:/build komelia-vips-build`
 
-after build run `./gradlew :vips:linuxCopyVipsLibsToClasspath` to copy built libraries to be bundled with the
+after build run `./gradlew :image-decoder:linuxCopyVipsLibsToClasspath` to copy built libraries to be bundled with the
 application
 
 ### windows cross compilation
 
-run `./gradlew :vips:windowsBuild` to launch windows build using system toolchain (requires `mingw-w64-gcc` and `mingw-w64-binutils`)
+run `./gradlew :image-decoder:windowsBuild` to launch windows build using system toolchain (requires `mingw-w64-gcc` and `mingw-w64-binutils`)
 
 alternatively you can run build inside docker container 
 - `cd ./image-decoder/native`
 - `docker build -t komelia-vips-w64-build . -f w64.Dockerfile`
 - `docker run -v .:/build komelia-vips-w64-build`
 
-after build `./gradlew :vips:windowsCopyVipsLibsToClasspath` to copy libraries to be bundled
+after build `./gradlew :image-decoder:windowsCopyVipsLibsToClasspath` to copy libraries to be bundled
 with the app
 
 ## Android Build
