@@ -56,9 +56,9 @@ object VipsOnnxRuntimeDecoder {
             directMLPath?.let { loadOrtLibrary(it) }
             onnxruntimePath?.let { loadOrtLibrary(it) }
                 ?: throw UnsatisfiedLinkError("could not find ONNX Runtime library")
-            sharedProvidersPath?.let { loadOrtLibrary(it) }
-            cudaProviderPath?.let { loadOrtLibrary(it) }
-            rocmProviderPath?.let { loadOrtLibrary(it) }
+//            sharedProvidersPath?.let { loadOrtLibrary(it) }
+//            cudaProviderPath?.let { loadOrtLibrary(it) }
+//            rocmProviderPath?.let { loadOrtLibrary(it) }
 
             when (DesktopPlatform.Current) {
                 Linux -> SharedLibrariesLoader.loadLibrary("komelia_vips_ort")
@@ -96,12 +96,14 @@ object VipsOnnxRuntimeDecoder {
     }
 
     // copy to temp dir on windows to allow overriding original dlls during runtime
+    @Suppress("UnsafeDynamicallyLoadedCode")
     private fun loadOrtLibrary(path: Path) {
         val loadFile =
             if (DesktopPlatform.Current == Windows)
                 Files.copy(path, SharedLibrariesLoader.tempDir.resolve(path.fileName), REPLACE_EXISTING)
             else path
         System.load(loadFile.toString())
+        logger.info("loaded $path")
     }
 
     @Throws(OrtException::class)
