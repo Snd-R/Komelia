@@ -28,6 +28,7 @@ cmake --build . -j $(nproc)
 
 cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libstdc++-6.dll ./fakeroot/bin
 cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libgcc_s_seh-1.dll ./fakeroot/bin
+cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libgomp-1.dll ./fakeroot/bin
 cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll ./fakeroot/bin
 
 for lib in fakeroot/bin/*dll; do

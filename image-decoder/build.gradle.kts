@@ -192,6 +192,7 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libstdc++-6.dll",
         "libwinpthread-1.dll",
         "libgcc_s_seh-1.dll",
+        "libgomp-1.dll",
         "libkomelia_vips.dll",
         "libkomelia_vips_ort.dll",
         "libkomelia_vips_ort_dml.dll",
@@ -207,6 +208,7 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
     include("libstdc++-6.dll")
     include("libwinpthread-1.dll")
     include("libgcc_s_seh-1.dll")
+    include("libgomp-1.dll")
     into(classpathResourcesDir)
 }
 

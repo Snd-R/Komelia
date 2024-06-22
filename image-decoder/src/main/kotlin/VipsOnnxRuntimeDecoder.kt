@@ -12,6 +12,8 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.io.path.listDirectoryEntries
 
 object VipsOnnxRuntimeDecoder {
@@ -21,6 +23,8 @@ object VipsOnnxRuntimeDecoder {
             .resolve("onnxruntime").createDirectories()
             .toString()
     private val initialized = AtomicBoolean(false)
+    private const val windowsLibGomp = "libgomp-1"
+
 
     var loadErrorMessage: String? = null
         private set
@@ -35,6 +39,10 @@ object VipsOnnxRuntimeDecoder {
     @Synchronized
     @Suppress("UnsafeDynamicallyLoadedCode")
     fun load() {
+        if (DesktopPlatform.Current == Windows) {
+            SharedLibrariesLoader.loadLibrary(windowsLibGomp)
+        }
+
         logger.info("searching for ONNX Runtime libraries in $ortSearchPath")
 
         var onnxruntimePath: Path? = null
@@ -56,9 +64,13 @@ object VipsOnnxRuntimeDecoder {
             directMLPath?.let { loadOrtLibrary(it) }
             onnxruntimePath?.let { loadOrtLibrary(it) }
                 ?: throw UnsatisfiedLinkError("could not find ONNX Runtime library")
-//            sharedProvidersPath?.let { loadOrtLibrary(it) }
-//            cudaProviderPath?.let { loadOrtLibrary(it) }
-//            rocmProviderPath?.let { loadOrtLibrary(it) }
+
+            // copy to temp dir on windows to allow overriding original dlls during runtime
+            if (DesktopPlatform.Current == Windows) {
+                sharedProvidersPath?.let { copyToTempDir(it) }
+                cudaProviderPath?.let { copyToTempDir(it) }
+                rocmProviderPath?.let { copyToTempDir(it) }
+            }
 
             when (DesktopPlatform.Current) {
                 Linux -> SharedLibrariesLoader.loadLibrary("komelia_vips_ort")
@@ -95,15 +107,25 @@ object VipsOnnxRuntimeDecoder {
         if (rocmProviderPath != null) isRocmAvailable = true
     }
 
-    // copy to temp dir on windows to allow overriding original dlls during runtime
     @Suppress("UnsafeDynamicallyLoadedCode")
     private fun loadOrtLibrary(path: Path) {
         val loadFile =
-            if (DesktopPlatform.Current == Windows)
-                Files.copy(path, SharedLibrariesLoader.tempDir.resolve(path.fileName), REPLACE_EXISTING)
-            else path
+            if (DesktopPlatform.Current == Windows) {
+                copyToTempDir(path)
+            } else {
+                path
+            }
         System.load(loadFile.toString())
-        logger.info("loaded $path")
+        logger.info("loaded $loadFile")
+    }
+
+    private fun copyToTempDir(path: Path): Path {
+        val destinationPath = SharedLibrariesLoader.tempDir.resolve(path.fileName)
+        if (destinationPath.exists() && path.fileSize() != destinationPath.fileSize()) {
+            Files.copy(path, destinationPath, REPLACE_EXISTING)
+        }
+
+        return destinationPath
     }
 
     @Throws(OrtException::class)
