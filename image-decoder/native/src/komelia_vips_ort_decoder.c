@@ -264,7 +264,7 @@ int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **ou
 OrtStatus *create_tensor_f32(JNIEnv *env,
                              VipsImage *input_image,
                              OrtMemoryInfo *memory_info,
-                             float *tensor_data,
+                             float **tensor_data,
                              OrtValue **tensor
 ) {
     int input_height = vips_image_get_height(input_image);
@@ -275,14 +275,14 @@ OrtStatus *create_tensor_f32(JNIEnv *env,
     const size_t tensor_shape_len = sizeof(tensor_shape) / sizeof(tensor_shape[0]);
 
     const size_t tensor_data_len = tensor_input_ele_count * sizeof(float);
-    tensor_data = (float *) malloc(tensor_data_len);
+    *tensor_data = (float *) malloc(tensor_data_len);
 
     unsigned char *image_input_data = (unsigned char *) vips_image_get_data(input_image);
-    hwc_to_chw(image_input_data, input_height, input_width, 3, tensor_data);
+    hwc_to_chw(image_input_data, input_height, input_width, 3, *tensor_data);
 
     OrtStatus *ort_status = NULL;
     ort_status = g_ort->CreateTensorWithDataAsOrtValue(memory_info,
-                                                       tensor_data, tensor_data_len,
+                                                       *tensor_data, tensor_data_len,
                                                        tensor_shape, tensor_shape_len,
                                                        ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT,
                                                        tensor
@@ -294,7 +294,7 @@ OrtStatus *create_tensor_f32(JNIEnv *env,
 OrtStatus *create_tensor_f16(JNIEnv *env,
                              VipsImage *input_image,
                              OrtMemoryInfo *memory_info,
-                             _Float16 *tensor_data,
+                             _Float16 **tensor_data,
                              OrtValue **tensor
 ) {
     int input_height = vips_image_get_height(input_image);
@@ -305,13 +305,13 @@ OrtStatus *create_tensor_f16(JNIEnv *env,
     const size_t tensor_shape_len = sizeof(tensor_shape) / sizeof(tensor_shape[0]);
 
     const size_t tensor_data_len = tensor_input_ele_count * sizeof(_Float16);
-    tensor_data = (_Float16 *) malloc(tensor_data_len);
+    *tensor_data = (_Float16 *) malloc(tensor_data_len);
     unsigned char *image_input_data = (unsigned char *) vips_image_get_data(input_image);
-    hwc_to_chw_f16(image_input_data, input_height, input_width, 3, tensor_data);
+    hwc_to_chw_f16(image_input_data, input_height, input_width, 3, *tensor_data);
 
     OrtStatus *ort_status = NULL;
     ort_status = g_ort->CreateTensorWithDataAsOrtValue(memory_info,
-                                                       tensor_data, tensor_data_len,
+                                                       *tensor_data, tensor_data_len,
                                                        tensor_shape, tensor_shape_len,
                                                        ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16,
                                                        tensor
@@ -355,13 +355,15 @@ VipsImage *run_inference(JNIEnv *env,
         case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
             ORT_RETURN_ON_ERROR(env, inference_data,
                                 create_tensor_f32(env, inference_data.preprocessed_image, session_info->memory_info,
-                                                  inference_data.model_input_data, &inference_data.input_tensor
+                                                  (float **) &inference_data.model_input_data,
+                                                  &inference_data.input_tensor
                                 ));
             break;
         case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16:
             ORT_RETURN_ON_ERROR(env, inference_data,
                                 create_tensor_f16(env, inference_data.preprocessed_image, session_info->memory_info,
-                                                  inference_data.model_input_data, &inference_data.input_tensor)
+                                                  (_Float16 * *) & inference_data.model_input_data,
+                                                  &inference_data.input_tensor)
             );
             break;
         default: {
@@ -640,6 +642,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         if (!output_image) {
             throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
+            g_object_unref(input_image);
             (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
             return NULL;
         }
