@@ -2,54 +2,76 @@ package io.github.snd_r.komelia.ui.reader.paged
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import coil3.ImageLoader
-import coil3.PlatformContext
-import coil3.request.ImageResult
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.toSize
+import io.github.reactivecircus.cache4k.Cache
+import io.github.reactivecircus.cache4k.CacheEvent.Evicted
+import io.github.reactivecircus.cache4k.CacheEvent.Expired
+import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.image.ReaderImage
+import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.BookState
+import io.github.snd_r.komelia.ui.reader.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.SpreadIndex
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 class PagedReaderState(
-    imageLoader: ImageLoader,
-    imageLoaderContext: PlatformContext,
     private val settingsRepository: ReaderSettingsRepository,
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
-    val screenScaleState: ScreenScaleState
+    private val imageLoader: ReaderImageLoader,
+    val screenScaleState: ScreenScaleState,
 ) {
-    private val pagedReaderImageLoader = PagedReaderImageLoader(imageLoader, imageLoaderContext)
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val resampleScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private var bookSwitchConfirmed = false
     private val bookSwitchNotificationJobs = mutableMapOf<AppNotification, Job>()
+    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<Page>>()
+        .maximumCacheSize(10)
+        .eventListener {
+            val value = when (it) {
+                is Evicted -> it.value
+                is Expired -> it.value
+                is Removed -> it.value
+                else -> null
+            } ?: return@eventListener
+
+            stateScope.launch { value.await().imageResult?.image?.close() }
+        }
+        .build()
 
     val pageSpreads = MutableStateFlow<List<List<PageMetadata>>>(emptyList())
     val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
@@ -68,13 +90,6 @@ class PagedReaderState(
         screenScaleState.setScrollState(null)
         screenScaleState.setScrollOrientation(Orientation.Vertical, false)
 
-        readerState.decoder
-            .drop(1)
-            .onEach {
-                pagedReaderImageLoader.clearCache()
-                loadPage(currentSpreadIndex.value)
-            }.launchIn(stateScope)
-
         readerState.imageStretchToFit
             .drop(1)
             .onEach { loadPage(spreadIndexOf(currentSpread.value.pages.first().metadata)) }
@@ -87,14 +102,14 @@ class PagedReaderState(
 
         screenScaleState.transformation
             .drop(1)
-            .map { it.scale }
-            .distinctUntilChanged()
-            .onEach { newScaleFactor ->
-                if (screenScaleState.targetSize.value != Size.Zero
-                    && currentSpread.value.pages.any { it.scaleFactor != newScaleFactor }
-                ) {
-                    resamplePages()
-                }
+            .conflate()
+            .onEach {
+                updateSpreadImageState(
+                    currentSpread.value,
+                    screenScaleState,
+                    readingDirection.value
+                )
+                delay(100)
             }
             .launchIn(stateScope)
 
@@ -108,7 +123,80 @@ class PagedReaderState(
 
     fun stop() {
         stateScope.coroutineContext.cancelChildren()
-        pagedReaderImageLoader.clearCache()
+        imageCache.invalidateAll()
+    }
+
+    private fun updateSpreadImageState(
+        spread: PageSpread,
+        screenScaleState: ScreenScaleState,
+        readingDirection: ReadingDirection
+    ) {
+        val maxPageSize = getMaxPageSize(spread.pages.map { it.metadata }, screenScaleState.areaSize.value)
+        val zoomFactor = screenScaleState.transformation.value.scale
+        val offset = screenScaleState.transformation.value.offset
+        val areaSize = screenScaleState.areaSize.value.toSize()
+
+
+        val pages = spread.pages
+        var xOffset = offset.x
+        pages.forEachIndexed { index, result ->
+            if (result.imageResult is Success) {
+                val image = result.imageResult.image
+                val imageDisplaySize = image.getDisplaySizeFor(maxPageSize)
+
+                val imageHorizontalVisibleWidth =
+                    (imageDisplaySize.width * zoomFactor - areaSize.width) / 2
+
+                val imageHorizontalDisplayOffset = when (pages.size) {
+                    1 -> offset.x
+                    2 -> {
+                        //TODO simplify
+                        when (readingDirection) {
+                            LEFT_TO_RIGHT -> {
+                                if (index == 0) offset.x - (imageDisplaySize.width / 2 * zoomFactor)
+                                else offset.x + (imageDisplaySize.width / 2 * zoomFactor)
+                            }
+
+                            RIGHT_TO_LEFT -> {
+                                if (index == 0) offset.x + (imageDisplaySize.width / 2 * zoomFactor)
+                                else offset.x - (imageDisplaySize.width / 2 * zoomFactor)
+                            }
+                        }
+                    }
+
+                    else -> throw IllegalStateException("can't display more than 2 images")   //TODO 3 or more images?
+                }
+
+                val top =
+                    ((((imageDisplaySize.height * zoomFactor - areaSize.height) / 2) - offset.y) / zoomFactor)
+                        .roundToInt()
+                        .coerceIn(0..imageDisplaySize.height)
+
+                val left =
+                    ((imageHorizontalVisibleWidth - imageHorizontalDisplayOffset) / zoomFactor)
+                        .roundToInt()
+                        .coerceIn(0..imageDisplaySize.width)
+
+                val visibleArea = IntRect(
+                    top = top,
+                    left = left,
+                    bottom = (top + areaSize.height / zoomFactor)
+                        .roundToInt()
+                        .coerceAtMost(imageDisplaySize.height),
+                    right = (left + (areaSize.width) / zoomFactor)
+                        .roundToInt()
+                        .coerceAtMost(imageDisplaySize.width),
+                )
+
+                image.updateState(
+                    viewportSize = imageDisplaySize,
+                    visibleViewportArea = visibleArea,
+                    zoomFactor = zoomFactor,
+                )
+                xOffset += maxPageSize.width
+
+            }
+        }
     }
 
     private fun onNewBookLoaded(bookState: BookState) {
@@ -120,7 +208,7 @@ class PagedReaderState(
         }
 
         currentSpread.value = PageSpread(
-            pages = pageSpreads[lastReadSpreadIndex].map { Page(it, null, null) },
+            pages = pageSpreads[lastReadSpreadIndex].map { Page(it, null) },
         )
         currentSpreadIndex.value = lastReadSpreadIndex
 
@@ -204,91 +292,112 @@ class PagedReaderState(
         pageLoadScope.launch { loadSpread(spreadIndex) }
     }
 
+    private fun IntSize.coerceAtMost(other: IntSize): IntSize {
+        return IntSize(
+            width.coerceAtMost(other.width),
+            height.coerceAtMost(other.height)
+        )
+    }
+
+    private fun IntSize.coerceAtLeast(other: IntSize): IntSize {
+        return IntSize(
+            width.coerceAtLeast(other.width),
+            height.coerceAtLeast(other.height)
+        )
+    }
+
     private suspend fun loadSpread(loadSpreadIndex: Int) {
         val loadRange = getSpreadLoadRange(loadSpreadIndex)
-        val containerSize = screenScaleState.areaSize.value
+        val currentSpreadMetadata = pageSpreads.value[loadSpreadIndex]
+        val currentSpreadJob = launchSpreadLoadJob(currentSpreadMetadata)
 
-        val maybeUnsizedPages = pageSpreads.value[loadSpreadIndex]
-        val displayJob = pagedReaderImageLoader.launchImageLoadJob(
-            scope = pageLoadScope,
-            loadPages = maybeUnsizedPages,
-            containerSize = containerSize,
-            layout = layout.value,
-            scaleType = scaleType.value,
-            stretchToFit = readerState.imageStretchToFit.value
-        )
+        loadRange.filter { it != loadSpreadIndex }.forEach { spreadIndex ->
+            enqueueSpreadLoadJob(pageSpreads.value[spreadIndex])
+        }
 
-        loadRange.filter { it != loadSpreadIndex }
-            .map { index -> pageSpreads.value[index] }
-            .forEach { spread ->
-                pagedReaderImageLoader.launchImageLoadJob(
-                    scope = pageLoadScope,
-                    loadPages = spread,
-                    containerSize = containerSize,
-                    layout = layout.value,
-                    scaleType = scaleType.value,
-                    stretchToFit = readerState.imageStretchToFit.value
-                )
-            }
-
-        if (displayJob.isActive) {
-            currentSpread.value = PageSpread(maybeUnsizedPages.map { Page(it, null, null) })
+        if (currentSpreadJob.isActive) {
+            currentSpread.value = PageSpread(currentSpreadMetadata.map { Page(it, null) })
             currentSpreadIndex.value = loadSpreadIndex
         }
 
-        val completedJob = displayJob.await()
-        val loadedPageMetadata = completedJob.pages.map { it.metadata }
-        if (maybeUnsizedPages.any { it.size == null }) {
-            pageSpreads.update { current ->
-                val mutable = current.toMutableList()
-                mutable[loadSpreadIndex] = loadedPageMetadata
-                mutable
-            }
-        }
-
-        currentSpread.value = PageSpread(completedJob.pages)
+        val completedPagesJob = currentSpreadJob.await()
+        currentSpread.value = completedPagesJob.spread
         currentSpreadIndex.value = loadSpreadIndex
 
-        screenScaleState.setTargetSize(
-            targetSize = completedJob.scale.targetSize.value,
-            zoom = completedJob.scale.zoom.value
-        )
-        when (readingDirection.value) {
-            LEFT_TO_RIGHT -> screenScaleState.addPan(
-                Offset(
-                    screenScaleState.offsetXLimits.value.endInclusive,
-                    screenScaleState.offsetYLimits.value.endInclusive
-                )
-            )
+        val newScale = completedPagesJob.scale
+        screenScaleState.apply(newScale)
+    }
 
-            RIGHT_TO_LEFT -> screenScaleState.addPan(
-                Offset(
-                    screenScaleState.offsetXLimits.value.start,
-                    screenScaleState.offsetYLimits.value.endInclusive
-                )
-            )
+    data class PagesLoadJob(
+        val spread: PageSpread,
+        val scale: ScreenScaleState
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun launchSpreadLoadJob(pagesMeta: List<PageMetadata>): Deferred<PagesLoadJob> {
+        val pages = pagesMeta.map { meta ->
+            val cacheKey = ImageCacheKey(meta.bookId, meta.pageNumber)
+            val cached = imageCache.get(cacheKey)
+
+            if (cached != null && !cached.isCancelled) cached
+            else pageLoadScope.async {
+                Page(meta, imageLoader.load(meta.bookId, meta.pageNumber))
+            }.also { imageCache.put(cacheKey, it) }
+        }
+
+        if (pages.all { it.isCompleted }) {
+            val completed = pages.map { it.getCompleted() }
+            return CompletableDeferred(completeLoadJob(completed))
+        } else {
+            return pageLoadScope.async {
+                val completed = pages.map { it.await() }
+                completeLoadJob(completed)
+            }
         }
     }
 
-    private fun resamplePages() {
-        resampleScope.coroutineContext.cancelChildren()
-        resampleScope.launch {
-            delay(100) // debounce
-
-            val currentScaleFactor = screenScaleState.transformation.value.scale
-            val resampled = pagedReaderImageLoader.loadScaledPages(
-                pages = currentSpread.value.pages.map { it.metadata },
-                containerSize = screenScaleState.areaSize.value,
-                zoomFactor = currentScaleFactor,
-                scaleType = scaleType.value,
-                stretchToFit = readerState.imageStretchToFit.value
+    private fun completeLoadJob(pages: List<Page>): PagesLoadJob {
+        val containerSize = screenScaleState.areaSize.value
+        val maxPageSize = getMaxPageSize(pages.map { it.metadata }, containerSize)
+        val newScale = calculateScreenScale(
+            pages,
+            areaSize = containerSize,
+            maxPageSize = maxPageSize,
+            scaleType = scaleType.value,
+            stretchToFit = readerState.imageStretchToFit.value
+        )
+        val spread = PageSpread(pages)
+        when (readingDirection.value) {
+            LEFT_TO_RIGHT -> newScale.addPan(
+                Offset(
+                    newScale.offsetXLimits.value.endInclusive,
+                    newScale.offsetYLimits.value.endInclusive
+                )
             )
 
-            currentSpread.update { current ->
-                current.copy(
-                    pages = resampled.map { Page(it.page, it.image, currentScaleFactor) })
-            }
+            RIGHT_TO_LEFT -> newScale.addPan(
+                Offset(
+                    newScale.offsetXLimits.value.start,
+                    newScale.offsetYLimits.value.endInclusive
+                )
+            )
         }
+        updateSpreadImageState(spread, newScale, readingDirection.value)
+
+        return PagesLoadJob(spread, newScale)
+
+    }
+
+    @Suppress("DeferredResultUnused")
+    private fun enqueueSpreadLoadJob(pagesMeta: List<PageMetadata>) {
+        launchSpreadLoadJob(pagesMeta)
+    }
+
+    private fun getMaxPageSize(pages: List<PageMetadata>, containerSize: IntSize): IntSize {
+        return IntSize(
+            width = containerSize.width / pages.size,
+            height = containerSize.height
+        )
     }
 
     private fun buildSpreadMap(pages: List<PageMetadata>, layout: PageDisplayLayout): List<List<PageMetadata>> {
@@ -399,13 +508,28 @@ class PagedReaderState(
     data class Page(
         val metadata: PageMetadata,
         val imageResult: ImageResult?,
-        val scaleFactor: Float?,
     )
 
     data class SpreadImageLoadJob(
         val pages: List<Page>,
         val scale: ScreenScaleState,
     )
+
+    sealed interface ImageResult {
+        val image: ReaderImage?
+
+        data class Success(
+            override val image: ReaderImage,
+        ) : ImageResult
+
+        data class Error(
+            val throwable: Throwable,
+        ) : ImageResult {
+
+            override val image: ReaderImage? = null
+        }
+
+    }
 
 }
 
@@ -469,6 +593,98 @@ class PagedReaderState(
 //
 //        return spreads
 //    }
+
+data class ImageLoadParams(
+    val zoomScaleFactor: Float,
+    val displayScaleFactor: Float,
+    val targetSize: IntSize
+)
+
+private fun calculateScreenScale(
+    pages: List<PagedReaderState.Page>,
+    areaSize: IntSize,
+    maxPageSize: IntSize,
+    scaleType: LayoutScaleType,
+    stretchToFit: Boolean,
+): ScreenScaleState {
+    val scaleState = ScreenScaleState()
+    scaleState.setAreaSize(areaSize)
+    val fitToScreenSize = pages
+        .map {
+            when (it.imageResult) {
+                is Error, null -> maxPageSize
+                is Success -> it.imageResult.image.getDisplaySizeFor(maxPageSize)
+            }
+        }
+        .reduce { total, current ->
+            IntSize(
+                width = (total.width + current.width),
+                height = max(total.height, current.height)
+            )
+        }
+    scaleState.setTargetSize(fitToScreenSize.toSize())
+
+    val actualSpreadSize = pages.map {
+        when (val result = it.imageResult) {
+            is Error, null -> maxPageSize
+            is Success -> IntSize(result.image.width, result.image.height)
+        }
+    }.fold(IntSize.Zero) { total, current ->
+        IntSize(
+            (total.width + current.width),
+            max(total.height, current.height)
+        )
+    }
+
+    when (scaleType) {
+        LayoutScaleType.SCREEN -> scaleState.setZoom(0f)
+        LayoutScaleType.FIT_WIDTH -> {
+            if (!stretchToFit && areaSize.width > actualSpreadSize.width) {
+                val newZoom = zoomForOriginalSize(
+                    actualSpreadSize,
+                    fitToScreenSize,
+                    scaleState.scaleFor100PercentZoom()
+                )
+                scaleState.setZoom(newZoom.coerceAtMost(1.0f))
+            } else if (fitToScreenSize.width < areaSize.width) scaleState.setZoom(1f)
+            else scaleState.setZoom(0f)
+        }
+
+        LayoutScaleType.FIT_HEIGHT -> {
+            if (!stretchToFit && areaSize.height > actualSpreadSize.height) {
+                val newZoom = zoomForOriginalSize(
+                    actualSpreadSize,
+                    fitToScreenSize,
+                    scaleState.scaleFor100PercentZoom()
+                )
+                scaleState.setZoom(newZoom.coerceAtMost(1.0f))
+
+            } else if (fitToScreenSize.height < areaSize.height) scaleState.setZoom(1f)
+            else scaleState.setZoom(0f)
+        }
+
+        LayoutScaleType.ORIGINAL -> {
+            if (actualSpreadSize.width > areaSize.width || actualSpreadSize.height > areaSize.height) {
+                val newZoom = zoomForOriginalSize(
+                    actualSpreadSize,
+                    fitToScreenSize,
+                    scaleState.scaleFor100PercentZoom()
+                )
+                scaleState.setZoom(newZoom)
+
+            } else scaleState.setZoom(0f)
+        }
+    }
+
+    return scaleState
+}
+
+private fun zoomForOriginalSize(originalSize: IntSize, targetSize: IntSize, scaleFor100Percent: Float): Float {
+    return max(
+        originalSize.width.toFloat() / targetSize.width,
+        originalSize.height.toFloat() / targetSize.height
+    ) / scaleFor100Percent
+}
 
 enum class PageDisplayLayout {
     SINGLE_PAGE,

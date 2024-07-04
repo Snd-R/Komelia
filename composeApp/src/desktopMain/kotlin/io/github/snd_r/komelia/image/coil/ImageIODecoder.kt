@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.image
+package io.github.snd_r.komelia.image.coil
 
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
@@ -165,5 +165,3 @@ class ImageIODecoder(
         }
     }
 }
-
-

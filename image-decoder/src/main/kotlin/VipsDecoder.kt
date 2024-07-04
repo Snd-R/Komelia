@@ -116,7 +116,4 @@ object VipsDecoder {
     }
 
     private external fun init()
-
-    external fun vipsDecode(encoded: ByteArray): VipsImage?
-    external fun vipsDecodeAndResize(encoded: ByteArray, scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImage?
 }

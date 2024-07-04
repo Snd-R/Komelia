@@ -15,14 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import coil3.annotation.ExperimentalCoilApi
-import io.github.snd_r.komelia.platform.formatDecimal
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ColumnScope.PagedReaderSettingsContent(
     pageState: PagedReaderState,
@@ -83,9 +80,10 @@ fun ColumnScope.PagedReaderSettingsContent(
         val readerStrings = LocalStrings.current.reader
         val currentSpread = pageState.currentSpread.collectAsState()
         currentSpread.value.pages.forEach { page ->
-            val sizeInMb = remember(currentSpread.value) {
-                page.imageResult?.image?.size?.let { (it.toFloat() / 1024 / 1024).formatDecimal(2) }
-            }
+            val sizeInMb = null
+//            val sizeInMb = remember(currentSpread.value) {
+//                page.imageResult?.image?.size?.let { (it.toFloat() / 1024 / 1024).formatDecimal(2) }
+//            }
             val pageText = buildString {
                 append("${readerStrings.pageNumber} ${page.metadata.pageNumber}.")
                 if (sizeInMb != null) append(" ${readerStrings.memoryUsage}: ${sizeInMb}Mb")
@@ -93,7 +91,7 @@ fun ColumnScope.PagedReaderSettingsContent(
 
             Text(pageText, style = MaterialTheme.typography.bodyMedium)
 
-            Text("${readerStrings.pageScaledSize} ${page.imageResult?.image?.width} x ${page.imageResult?.image?.height}")
+//            Text("${readerStrings.pageScaledSize} ${page.imageResult?.image?.image?.width} x ${page.imageResult?.image?.image?.height}")
 
             if (page.metadata.size == null) {
                 Text(

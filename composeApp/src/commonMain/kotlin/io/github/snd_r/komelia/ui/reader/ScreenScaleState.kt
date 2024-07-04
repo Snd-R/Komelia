@@ -211,6 +211,21 @@ class ScreenScaleState {
         applyLimits()
     }
 
+    fun apply(other: ScreenScaleState) {
+        currentOffset = other.currentOffset
+
+        if (other.targetSize.value != this.targetSize.value || other.zoom.value != this.zoom.value) {
+            this.areaSize.value = other.areaSize.value
+            this.targetSize.value = Size(
+                width = other.targetSize.value.width,
+                height = other.targetSize.value.height
+            )
+            zoomLimits.value = (scaleForFullVisibility() / scaleFor100PercentZoom())..zoomLimits.value.endInclusive
+            this.zoom.value = other.zoom.value
+        }
+        applyLimits()
+    }
+
     data class Transformation(
         val offset: Offset,
         val scale: Float,

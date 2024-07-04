@@ -4,6 +4,10 @@ JNIEXPORT void JNICALL Java_io_github_snd_1r_VipsDecoder_init() {
     komelia_vips_init();
 }
 
+JNIEXPORT void JNICALL Java_io_github_snd_1r_VipsDecoder_shutdown() {
+    komelia_vips_shutdown();
+}
+
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsDecoder_vipsDecode(
         JNIEnv *env,
@@ -23,7 +27,7 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecode(
     }
 
 
-    jobject javaImage = komelia_vips_image_to_jvm(env, decoded);
+    jobject javaImage = komelia_image_to_jvm_image_data(env, decoded);
     g_object_unref(decoded);
     (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
     return javaImage;
@@ -62,7 +66,7 @@ Java_io_github_snd_1r_VipsDecoder_vipsDecodeAndResize(
         return NULL;
     }
 
-    jobject javaImage = komelia_vips_image_to_jvm(env, decoded);
+    jobject javaImage = komelia_image_to_jvm_image_data(env, decoded);
     g_object_unref(decoded);
     (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
     return javaImage;

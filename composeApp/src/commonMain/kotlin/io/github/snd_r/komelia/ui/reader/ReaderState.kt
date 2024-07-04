@@ -3,7 +3,6 @@ package io.github.snd_r.komelia.ui.reader
 import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.Extras
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.CommonParcelable
@@ -35,8 +34,6 @@ import kotlin.math.roundToInt
 
 typealias SpreadIndex = Int
 
-val upscaleKey = Extras.Key<String?>(null)
-
 class ReaderState(
     private val bookClient: KomgaBookClient,
     private val navigator: Navigator,
@@ -50,7 +47,7 @@ class ReaderState(
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
 
     val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
-    val decoder = MutableStateFlow<PlatformDecoderSettings?>(null)
+    val decoderSettings = MutableStateFlow<PlatformDecoderSettings?>(null)
 
     val readerType = MutableStateFlow(CONTINUOUS)
     val imageStretchToFit = MutableStateFlow(true)
@@ -58,12 +55,12 @@ class ReaderState(
     val readProgressPage = MutableStateFlow(1)
 
     suspend fun initialize(bookId: KomgaBookId) {
-        decoder.value = settingsRepository.getDecoderType().first()
+        decoderSettings.value = settingsRepository.getDecoderType().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
 
         availableDecoders.onEach { decoders ->
-            currentDecoderDescriptor.value = decoders.first { it.platformType == decoder.value?.platformType }
+            currentDecoderDescriptor.value = decoders.first { it.platformType == decoderSettings.value?.platformType }
         }.launchIn(stateScope)
 
         loadBook(bookId)
@@ -198,14 +195,14 @@ class ReaderState(
     }
 
     fun onDecoderChange(type: PlatformDecoderSettings) {
-        this.decoder.value = type
+        this.decoderSettings.value = type
         stateScope.launch { settingsRepository.putDecoderType(type) }
     }
 
     fun onUpscaleMethodChange(upscaleOption: UpscaleOption) {
-        val currentDecoder = requireNotNull(this.decoder.value)
+        val currentDecoder = requireNotNull(this.decoderSettings.value)
         val newDecoder = currentDecoder.copy(upscaleOption = upscaleOption)
-        this.decoder.value = newDecoder
+        this.decoderSettings.value = newDecoder
         stateScope.launch { settingsRepository.putDecoderType(newDecoder) }
     }
 
@@ -245,7 +242,14 @@ data class PageMetadata(
         if (size == null) return false
         return size.width > size.height
     }
+
+    fun toCacheKey() = ImageCacheKey(bookId, pageNumber)
 }
+
+data class ImageCacheKey(
+    val bookId: KomgaBookId,
+    val pageNumber: Int
+)
 
 data class BookState(
     val currentBook: KomgaBook,

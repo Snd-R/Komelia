@@ -11,7 +11,7 @@ find_package(Threads REQUIRED)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
-add_library(komelia_vips SHARED komelia_vips_decoder.c vips_jni.h vips_jni.c)
+add_library(komelia_vips SHARED komelia_vips_decoder.c vips_jni.h vips_jni.c komelia_vips.c)
 add_library(komelia_vips_ort SHARED komelia_vips_ort_decoder.c vips_jni.h vips_jni.c
         ort_conversions.h
         ort_conversions.c)

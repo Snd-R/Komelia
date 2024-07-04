@@ -3,6 +3,7 @@ package io.github.snd_r.komelia
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
+import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
@@ -81,6 +82,7 @@ interface DependencyContainer {
     val imageLoader: ImageLoader
     val imageLoaderContext: PlatformContext
     val appNotifications: AppNotifications
+    val readerDecoder: ReaderImageLoader
 }
 
 class ViewModelFactory(private val dependencies: DependencyContainer) {
@@ -206,12 +208,11 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
     fun getBookReaderViewModel(navigator: Navigator, markReadProgress: Boolean): ReaderViewModel {
         return ReaderViewModel(
             bookClient = komgaClientFactory.bookClient(),
-            imageLoader = imageLoader,
-            imageLoaderContext = imageLoaderContext,
             navigator = navigator,
             appNotifications = appNotifications,
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
+            imageLoader = dependencies.readerDecoder,
             availableDecoders = availableDecoders,
             markReadProgress = markReadProgress,
         )

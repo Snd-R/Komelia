@@ -132,7 +132,7 @@ private fun ColumnScope.SettingsContent(
         label = { Text(strings.readerType) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
-    val decoder = settingsState.decoder.collectAsState().value
+    val decoder = settingsState.decoderSettings.collectAsState().value
     val decoderDescriptor = settingsState.currentDecoderDescriptor.collectAsState().value
 
     if (decoder != null && decoderDescriptor != null && decoderDescriptor.upscaleOptions.size > 1) {

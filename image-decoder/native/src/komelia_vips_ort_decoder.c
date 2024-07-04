@@ -190,8 +190,6 @@ Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_init(JNIEnv *env, jobject this, jst
 }
 
 int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **output_image) {
-    double start, end;
-    start = millis();
 
     VipsInterpretation interpretation = vips_image_get_interpretation(input_image);
     int input_bands = vips_image_get_bands(input_image);
@@ -256,8 +254,6 @@ int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **ou
 
     *output_image = transformed;
 
-    end = millis();
-    fprintf(stderr, "preprocessed image in %.2f ms\n", end - start);
     return 0;
 }
 
@@ -325,7 +321,6 @@ VipsImage *run_inference(JNIEnv *env,
                          VipsImage *input_image,
                          const char *cache_key
 ) {
-    double start, end;
     VipsImage *cache_entry = get_cache_entry(cache_key);
     if (cache_entry != NULL) return cache_entry;
     struct InferenceData inference_data = {0};
@@ -350,7 +345,6 @@ VipsImage *run_inference(JNIEnv *env,
         g_object_ref(inference_data.preprocessed_image);
     }
 
-    start = millis();
     switch (input_element_type) {
         case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
             ORT_RETURN_ON_ERROR(env, inference_data,
@@ -371,8 +365,6 @@ VipsImage *run_inference(JNIEnv *env,
             return NULL;
         }
     }
-    end = millis();
-    fprintf(stderr, "created input tensor in %.2f ms\n", end - start);
     const char *input_names[1];
     const char *output_names[1];
 
@@ -387,15 +379,12 @@ VipsImage *run_inference(JNIEnv *env,
     input_names[0] = inference_data.input_name;
     output_names[0] = inference_data.output_name;
 
-    start = millis();
     ORT_RETURN_ON_ERROR(env, inference_data,
                         g_ort->Run(session_info->session, session_info->run_options, input_names,
                                    (const OrtValue *const *) &inference_data.input_tensor, 1,
                                    output_names, 1, &inference_data.output_tensor
                         )
     );
-    end = millis();
-    fprintf(stderr, "finished image inference in %.2f ms\n", end - start);
 
 
     ORT_RETURN_ON_ERROR(env, inference_data,
@@ -430,12 +419,9 @@ VipsImage *run_inference(JNIEnv *env,
         chw_to_hwc_f16(output_tensor_data, output_height, output_width, 3, output_image_data);
     }
 
-    start = millis();
     VipsImage *inferred_image = vips_image_new_from_memory_copy(output_image_data, output_size,
                                                                 output_width, output_height, 3,
                                                                 VIPS_FORMAT_UCHAR);
-    end = millis();
-    fprintf(stderr, "vips copied output in %.2f ms\n", end - start);
     free(output_image_data);
     addToCache(inferred_image, cache_key);
     release_resources(inference_data);
@@ -601,8 +587,6 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         jint scaleWidth,
         jint scaleHeight
 ) {
-    double start, end, total;
-    total = millis();
 
     jsize inputLen = (*env)->GetArrayLength(env, encoded);
     jbyte *inputBytes = (*env)->GetByteArrayElements(env, encoded, JNI_FALSE);
@@ -613,7 +597,6 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         cache_key_chars = "unknown";
     }
 
-    start = millis();
     VipsImage *input_image = vips_image_new_from_buffer((unsigned char *) inputBytes, inputLen, "", NULL);
     if (!input_image) {
         throw_jvm_vips_exception(env, vips_error_buffer());
@@ -621,14 +604,12 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         return NULL;
     }
-    end = millis();
-    fprintf(stderr, "%s: vips read image %.2f ms\n", cache_key_chars, end - start);
 
     int input_width = vips_image_get_width(input_image);
     int input_height = vips_image_get_height(input_image);
 
     if (input_width == scaleWidth && input_height == scaleHeight) {
-        jobject jvm_image = komelia_vips_image_to_jvm(env, input_image);
+        jobject jvm_image = komelia_image_to_jvm_image_data(env, input_image);
         g_object_unref(input_image);
         (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         return jvm_image;
@@ -636,7 +617,6 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
 
     if (input_width >= scaleWidth && input_height >= scaleHeight) {
         VipsImage *output_image = NULL;
-        start = millis();
         vips_thumbnail_image(input_image, &output_image, scaleWidth, "height", scaleHeight, NULL);
 
         if (!output_image) {
@@ -647,18 +627,15 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
             return NULL;
         }
 
-        jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
+        jobject jvm_image = komelia_image_to_jvm_image_data(env, output_image);
         g_object_unref(input_image);
         g_object_unref(output_image);
         (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
-        end = millis();
-        fprintf(stderr, "%s: vips resized image in %.2f ms\n", cache_key_chars, end - start);
         return jvm_image;
 
     } else {
         VipsImage *inferred_image = NULL;
         pthread_mutex_lock(&session_mutex);
-        fprintf(stderr, "%s: locked for inference\n", cache_key_chars);
         int initError = init_onnx_session(env, modelPath, &current_session);
         if (initError) {
             g_object_unref(input_image);
@@ -672,7 +649,6 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         g_object_unref(input_image);
         (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         pthread_mutex_unlock(&session_mutex);
-        fprintf(stderr, "%s unlocked\n", cache_key_chars);
 
         if (!inferred_image) {
             return NULL;
@@ -681,12 +657,11 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
         int inferred_width = vips_image_get_width(inferred_image);
         int inferred_height = vips_image_get_height(inferred_image);
         if (inferred_width == scaleWidth && inferred_height == scaleHeight) {
-            jobject jvm_image = komelia_vips_image_to_jvm(env, inferred_image);
+            jobject jvm_image = komelia_image_to_jvm_image_data(env, inferred_image);
             return jvm_image;
         }
 
         VipsImage *output_image = NULL;
-        start = millis();
         vips_thumbnail_image(inferred_image, &output_image, scaleWidth, "height", scaleHeight, NULL);
 
 
@@ -696,12 +671,8 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsOnnxRuntimeDecoder_decodeAnd
             return NULL;
         }
 
-        jobject jvm_image = komelia_vips_image_to_jvm(env, output_image);
+        jobject jvm_image = komelia_image_to_jvm_image_data(env, output_image);
         g_object_unref(output_image);
-
-        end = millis();
-        fprintf(stderr, "vips resized image in %.2f ms\n", end - start);
-        fprintf(stderr, "%s: time spent upscaling total: %.2f ms\n", cache_key_chars, end - total);
 
         if (cacheKey != NULL) {
             (*env)->ReleaseStringUTFChars(env, modelPath, cache_key_chars);

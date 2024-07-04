@@ -8,6 +8,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     nasm \
     openjdk-17-jdk-headless \
     texinfo \
+    gettext \
     python3-pip \
     python3-packaging \
     -t bullseye-backports \

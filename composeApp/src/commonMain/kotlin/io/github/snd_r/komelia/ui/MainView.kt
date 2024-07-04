@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.lyricist.ProvideStrings
 import cafe.adriel.lyricist.rememberStrings
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.compose.LocalPlatformContext
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.ToasterState
@@ -75,7 +74,6 @@ fun MainView(
     MaterialTheme(colorScheme = AppTheme.dark) {
         ConfigurePlatformTheme(MaterialTheme.colorScheme)
         val focusManager = LocalFocusManager.current
-        val context = LocalPlatformContext.current
         Surface(
             modifier = Modifier
                 .fillMaxSize()

@@ -3,13 +3,16 @@ package io.github.snd_r.komelia
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsDecoder
 import io.github.snd_r.VipsOnnxRuntimeDecoder
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
-import io.github.snd_r.komelia.image.DesktopDecoder
+import io.github.snd_r.komelia.image.DesktopImageDecoder
+import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.coil.DesktopDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -59,6 +62,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.Path.Companion.toOkioPath
+import org.jetbrains.skia.SamplingMode
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -78,6 +83,7 @@ class DesktopDependencyContainer private constructor(
     override val secretsRepository: KeyringSecretsRepository,
     override val imageLoader: ImageLoader,
     override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
+    override val readerDecoder: ReaderImageLoader,
     val onnxRuntimeInstaller: OnnxRuntimeInstaller
 ) : DependencyContainer {
     override val imageLoaderContext: PlatformContext = PlatformContext.INSTANCE
@@ -109,8 +115,10 @@ class DesktopDependencyContainer private constructor(
             measureTime { cookiesStorage.loadRememberMeCookie() }
                 .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
 
+            val tempDir = Path(System.getProperty("java.io.tmpdir"))
+
             val ktorClient = createKtorClient(okHttpClient)
-            val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage)
+            val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage, tempDir)
 
             val updateClient = UpdateClient(
                 ktorClient.config {
@@ -120,8 +128,18 @@ class DesktopDependencyContainer private constructor(
             val appUpdater = DesktopAppUpdater(updateClient)
             val onnxRuntimeInstaller = OnnxRuntimeInstaller(updateClient)
 
-            val coil = createCoil(ktorClient, baseUrl, cookiesStorage, decoderType, onnxModelsPath)
+            val coil = createCoil(ktorClient, baseUrl, cookiesStorage, decoderType, onnxModelsPath, tempDir)
             SingletonImageLoader.setSafe { coil }
+            val readerDir = tempDir.resolve("komelia_reader").createDirectories()
+            val decoder =
+                DesktopImageDecoder(decoderType, onnxModelsPath, MutableStateFlow(SamplingMode.DEFAULT), readerDir)
+            val readerImageLoader = ReaderImageLoader(
+                komgaClientFactory.bookClient(),
+                decoder,
+                DiskCache.Builder()
+                    .directory(readerDir.toOkioPath())
+                    .build()
+            )
 
             val availableDecoders = createAvailableDecodersFlow(settingsRepository, scope)
 
@@ -133,6 +151,7 @@ class DesktopDependencyContainer private constructor(
                 secretsRepository = secretsRepository,
                 imageLoader = coil,
                 availableDecoders = availableDecoders,
+                readerDecoder = readerImageLoader,
                 onnxRuntimeInstaller = onnxRuntimeInstaller
             )
         }
@@ -169,10 +188,10 @@ class DesktopDependencyContainer private constructor(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
             cookiesStorage: RememberMePersistingCookieStore,
+            tempDir: Path,
         ): KomgaClientFactory {
             return measureTimedValue {
 
-                val tempDir = Path(System.getProperty("java.io.tmpdir")).resolve("komelia_http").createDirectories()
                 val ktorKomgaClient = ktorClient.config {
                     install(HttpCache) {
                         privateStorage(FileStorage(tempDir.toFile()))
@@ -195,6 +214,7 @@ class DesktopDependencyContainer private constructor(
             cookiesStorage: RememberMePersistingCookieStore,
             decoderState: StateFlow<PlatformDecoderSettings>,
             onnxModelsPath: StateFlow<String>,
+            tempDir: Path,
         ): ImageLoader {
             val coilKtorClient = ktorClient.config {
                 defaultRequest { url(url.value) }
@@ -219,6 +239,11 @@ class DesktopDependencyContainer private constructor(
                             .maxSizeBytes(128 * 1024 * 1024) // 128 Mib
                             .build()
                     )
+                    .diskCache {
+                        DiskCache.Builder()
+                            .directory(tempDir.resolve("komelia_coil").toOkioPath())
+                            .build()
+                    }
                     .build()
             }.also { logger.info { "initialized Coil in ${it.duration}" } }.value
         }

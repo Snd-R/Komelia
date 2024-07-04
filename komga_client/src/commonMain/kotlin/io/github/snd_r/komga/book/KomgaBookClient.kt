@@ -10,6 +10,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 
 
@@ -153,5 +154,13 @@ class KomgaBookClient(private val ktor: HttpClient) {
 
     suspend fun getAllReadListsByBook(bookId: KomgaBookId): List<KomgaReadList> {
         return ktor.get("api/v1/books/$bookId/readlists").body()
+    }
+
+    suspend fun getBookPage(bookId: KomgaBookId, page: Int): ByteArray {
+        return ktor.get("api/v1/books/${bookId}/pages/$page").body()
+    }
+
+    suspend fun <T> streamBookPage(bookId: KomgaBookId, page: Int, block: suspend (response: HttpResponse) -> T): T {
+        return ktor.prepareGet("api/v1/books/${bookId}/pages/$page").execute { block(it) }
     }
 }

@@ -1,0 +1,52 @@
+package io.github.snd_r.komelia.image
+
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.roundToInt
+
+interface ReaderImage : AutoCloseable {
+    val width: Int
+    val height: Int
+
+    val painter: StateFlow<Painter>
+
+    fun updateState(
+        viewportSize: IntSize,
+        visibleViewportArea: IntRect,
+        zoomFactor: Float,
+    )
+
+    fun getDisplaySizeFor(maxDisplaySize: IntSize): IntSize {
+        val widthRatio = maxDisplaySize.width.toDouble() / width
+        val heightRatio = maxDisplaySize.height.toDouble() / height
+        val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
+        return IntSize(
+            (width * displayScaleFactor).roundToInt(),
+            (height * displayScaleFactor).roundToInt()
+        )
+    }
+}
+
+data class ReaderImageData(
+    val width: Int,
+    val height: Int,
+    val bitmap: Bitmap,
+)
+
+sealed interface ReaderImageResult {
+    val image: ReaderImageData?
+
+    data class Success(
+        override val image: ReaderImageData
+    ) : ReaderImageResult
+
+    data class Error(
+        val throwable: Throwable,
+    ) : ReaderImageResult {
+
+        override val image: ReaderImageData? = null
+    }
+
+}

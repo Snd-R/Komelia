@@ -1,8 +1,12 @@
 package io.github.snd_r.komelia.ui.reader.paged
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,18 +14,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.LayoutDirection
-import coil3.annotation.ExperimentalCoilApi
-import coil3.request.ErrorResult
-import coil3.request.SuccessResult
-import io.github.snd_r.komelia.platform.ReaderImage
 import io.github.snd_r.komelia.ui.LocalKeyEvents
-import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.common.PageSpreadProgressSlider
@@ -107,7 +107,6 @@ fun BoxScope.PagedReaderContent(
     )
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ReaderPages(
     currentPages: List<Page>,
@@ -124,18 +123,25 @@ fun ReaderPages(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(1f, false)
-                )
-                {
+                ) {
                     when (val result = page.imageResult) {
-                        is SuccessResult -> ReaderImage(result.image)
-                        is ErrorResult -> Text(
+                        is PagedReaderState.ImageResult.Success -> Image(
+                            modifier = Modifier.background(Color.White),
+                            painter = result.image.painter.collectAsState().value,
+                            contentDescription = null,
+                        )
+
+                        is PagedReaderState.ImageResult.Error -> Text(
                             "Error :${result.throwable.message}",
                             color = MaterialTheme.colorScheme.error
                         )
 
-                        null -> {
-                            LoadingMaxSizeIndicator()
-                        }
+                        null -> Box(
+                            modifier = Modifier.fillMaxSize().background(Color.White),
+                            contentAlignment = Alignment.TopCenter,
+                            content = { CircularProgressIndicator(color = Color.Black) }
+                        )
+
                     }
                 }
 

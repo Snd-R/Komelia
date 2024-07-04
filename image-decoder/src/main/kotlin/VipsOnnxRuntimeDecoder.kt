@@ -76,10 +76,8 @@ object VipsOnnxRuntimeDecoder {
                 Linux -> SharedLibrariesLoader.loadLibrary("komelia_vips_ort")
                 Windows -> {
                     if (cudaProviderPath == null && rocmProviderPath == null) {
-                        println("loaded onnx dml")
                         SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort_dml")
                     } else {
-                        println("loaded onnx regular")
                         SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort")
                     }
                 }
@@ -141,7 +139,7 @@ object VipsOnnxRuntimeDecoder {
         cacheKey: String?,
         scaleWidth: Int,
         scaleHeight: Int,
-    ): VipsImage?
+    ): VipsImageData?
 
     enum class OnnxRuntimeExecutionProvider {
         CUDA,

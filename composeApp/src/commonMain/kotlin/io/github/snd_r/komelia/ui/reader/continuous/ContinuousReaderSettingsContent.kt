@@ -113,7 +113,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
                 Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
                 if (page.size != null) {
-                    val scaledSize = state.getContentSizePx(page)
+                    val scaledSize = state.getPageDisplaySize(page)
                     val width = (scaledSize.width * scaleFactor).roundToInt()
                     val height = (scaledSize.height * scaleFactor).roundToInt()
                     Text("${readerStrings.pageScaledSize} $width x $height")
