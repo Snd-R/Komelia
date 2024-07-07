@@ -1,15 +1,6 @@
-#include "vips_jni.h"
+#include "vips_common_jni.h"
 #include <stdint.h>
-
-void komelia_vips_init() {
-    VIPS_INIT("komelia");
-    vips_concurrency_set(1);
-    vips_cache_set_max(0);
-}
-
-void komelia_vips_shutdown() {
-    vips_shutdown();
-}
+#include <stdbool.h>
 
 void throw_jvm_vips_exception(JNIEnv *env, const char *message) {
     (*env)->ThrowNew(env, (*env)->FindClass(env, "io/github/snd_r/VipsException"), message);
@@ -35,7 +26,6 @@ jobject get_jvm_enum_type(JNIEnv *env, VipsImage *image) {
     return (*env)->GetStaticObjectField(env, enum_class, enum_field);
 }
 
-
 jbyteArray get_jvm_byte_array(JNIEnv *env, VipsImage *transformed) {
     unsigned char *data = (unsigned char *) vips_image_get_data(transformed);
 
@@ -47,37 +37,24 @@ jbyteArray get_jvm_byte_array(JNIEnv *env, VipsImage *transformed) {
     return java_bytes;
 }
 
-int shouldTransformToSRGB(VipsImage *image) {
-    VipsInterpretation interpretation = vips_image_get_interpretation(image);
-    int bands = vips_image_get_bands(image);
-    return ((interpretation == VIPS_INTERPRETATION_B_W || interpretation == VIPS_INTERPRETATION_MULTIBAND) &&
-            bands != 1) ||
-           interpretation != VIPS_INTERPRETATION_sRGB &&
-           interpretation != VIPS_INTERPRETATION_B_W &&
-           interpretation != VIPS_INTERPRETATION_MULTIBAND;
-}
-
-int shouldPadWithAlpha(VipsImage *image) {
-    VipsInterpretation interpretation = vips_image_get_interpretation(image);
-    int bands = vips_image_get_bands(image);
-    return interpretation == VIPS_INTERPRETATION_sRGB && bands == 3;
-}
-
-void transform_to_supported_format(VipsImage *in, VipsImage **transformed) {
+int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transformed) {
     // convert to sRGB if not grayscale or if grayscale with alpha
-    if (transformed == NULL) return;
+    VipsInterpretation interpretation = vips_image_get_interpretation(in);
+    int bands = vips_image_get_bands(in);
+    bool is_grayscale_with_alpha = interpretation == VIPS_INTERPRETATION_B_W && bands != 1;
+    bool is_not_srgb_or_grayscale =
+            interpretation != VIPS_INTERPRETATION_sRGB && interpretation != VIPS_INTERPRETATION_B_W;
 
-    if (shouldTransformToSRGB(in)) {
+    if (is_grayscale_with_alpha || is_not_srgb_or_grayscale) {
         if (vips_colourspace(in, transformed, VIPS_INTERPRETATION_sRGB, NULL) == 0) {
-        } else {
-            fprintf(stderr, "failed to change to srgb\n");
-        }
+        } else { return -1; }
     }
 
-    // pad with alpha to use 32 bits per pixel
-    if (shouldPadWithAlpha(in)) {
+    // add alpha channel to use 32 bits per pixel
+    if (interpretation == VIPS_INTERPRETATION_sRGB && bands == 3) {
         VipsImage *with_alpha = NULL;
         int vips_error;
+
         if (*transformed != NULL) {
             vips_error = vips_addalpha(*transformed, &with_alpha, NULL);
             g_object_unref(*transformed);
@@ -85,14 +62,23 @@ void transform_to_supported_format(VipsImage *in, VipsImage **transformed) {
             vips_error = vips_addalpha(in, &with_alpha, NULL);
         }
 
+        if (vips_error) {
+            throw_jvm_vips_exception(env, vips_error_buffer());
+            vips_error_clear();
+            return -1;
+        }
+
         *transformed = with_alpha;
     }
 
+    return 0;
 }
 
-jobject komelia_image_to_jvm_image_data(JNIEnv *env, VipsImage *decoded) {
+jobject to_jvm_image_data(JNIEnv *env, VipsImage *decoded) {
     VipsImage *transformed = NULL;
-    transform_to_supported_format(decoded, &transformed);
+    int transform_error = transform_to_supported_format(env, decoded, &transformed);
+    if (transform_error) { return NULL; }
+
     if (transformed == NULL) {
         transformed = decoded;
         g_object_ref(transformed);
@@ -131,14 +117,13 @@ VipsImage *from_jvm_handle(JNIEnv *env, jobject jvm_image) {
 }
 
 jobject to_jvm_handle_from_file(JNIEnv *env, VipsImage *image) {
-    return to_jvm_image_handle(env, image, NULL);
+    return to_jvm_handle(env, image, NULL);
 }
 
-jobject to_jvm_image_handle(JNIEnv *env, VipsImage *image, unsigned char *jvm_bytes) {
-    const char *jvm_vips_class_name = "io/github/snd_r/VipsImage";
-
+jobject to_jvm_handle(JNIEnv *env, VipsImage *image, const unsigned char *external_source_buffer) {
     VipsImage *transformed = NULL;
-    transform_to_supported_format(image, &transformed);
+    int transform_error = transform_to_supported_format(env, image, &transformed);
+    if (transform_error) { return NULL; }
 
     if (transformed == NULL) {
         transformed = image;
@@ -146,7 +131,7 @@ jobject to_jvm_image_handle(JNIEnv *env, VipsImage *image, unsigned char *jvm_by
         g_object_unref(image);
     }
 
-    jclass jvm_vips_class = (*env)->FindClass(env, jvm_vips_class_name);
+    jclass jvm_vips_class = (*env)->FindClass(env, "io/github/snd_r/VipsImage");
     jmethodID constructor = (*env)->GetMethodID(env, jvm_vips_class,
                                                 "<init>", "(IIILio/github/snd_r/ImageFormat;JJ)V");
 
@@ -157,5 +142,5 @@ jobject to_jvm_image_handle(JNIEnv *env, VipsImage *image, unsigned char *jvm_by
     int bands = vips_image_get_bands(transformed);
     return (*env)->NewObject(env, jvm_vips_class, constructor,
                              width, height, bands, jvm_type_enum,
-                             (int64_t) jvm_bytes, (int64_t) transformed);
+                             (int64_t) external_source_buffer, (int64_t) transformed);
 }

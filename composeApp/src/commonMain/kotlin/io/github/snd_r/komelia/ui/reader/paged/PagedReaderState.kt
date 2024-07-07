@@ -188,9 +188,9 @@ class PagedReaderState(
                         .coerceAtMost(imageDisplaySize.width),
                 )
 
-                image.updateState(
-                    viewportSize = imageDisplaySize,
-                    visibleViewportArea = visibleArea,
+                image.requestUpdate(
+                    displaySize = imageDisplaySize,
+                    visibleDisplaySize = visibleArea,
                     zoomFactor = zoomFactor,
                 )
                 xOffset += maxPageSize.width

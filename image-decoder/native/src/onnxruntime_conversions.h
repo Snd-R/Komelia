@@ -6,8 +6,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-double millis();
-
 void hwc_to_chw(const uint8_t *input,
                 size_t height, size_t width, size_t bands,
                 float *output

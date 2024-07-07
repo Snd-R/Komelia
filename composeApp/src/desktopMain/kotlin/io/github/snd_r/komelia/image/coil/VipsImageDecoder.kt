@@ -33,7 +33,6 @@ private const val vipsMaxSize = 10000000
 class VipsImageDecoder(
     private val source: ImageSource,
     private val options: Options,
-    private val onnxModelPath: String?,
 ) : Decoder {
 
     override suspend fun decode(): DecodeResult {

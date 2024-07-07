@@ -7,10 +7,12 @@ import io.github.snd_r.DesktopPlatform.Windows
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-object VipsDecoder {
-    private val logger = LoggerFactory.getLogger(VipsDecoder::class.java)
+object VipsSharedLIbraries {
+    private val logger = LoggerFactory.getLogger(VipsSharedLIbraries::class.java)
     private val loaded = AtomicBoolean(false)
     var isAvailable = false
+        private set
+    var loadError: Throwable? = null
         private set
 
 
@@ -86,15 +88,20 @@ object VipsDecoder {
         "libkomelia_vips",
     )
 
-    @Synchronized
     fun load() {
         if (!loaded.compareAndSet(false, true)) return
-        when (DesktopPlatform.Current) {
-            Linux -> loadLinuxLibs()
-            Windows -> loadLibs(windowsLibs)
-            MacOS, Unknown -> error("Unsupported OS")
+        try {
+
+            when (DesktopPlatform.Current) {
+                Linux -> loadLinuxLibs()
+                Windows -> loadLibs(windowsLibs)
+                MacOS, Unknown -> error("Unsupported OS")
+            }
+        } catch (e: Throwable) {
+            loadError = e
+            throw e
         }
-        init()
+        VipsImage.vipsInit()
         isAvailable = true
     }
 
@@ -114,6 +121,4 @@ object VipsDecoder {
             SharedLibrariesLoader.loadLibrary(libName)
         }
     }
-
-    private external fun init()
 }

@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.image.coil
 
+import androidx.compose.ui.graphics.toPainter
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asCoilImage
@@ -114,6 +115,7 @@ class ImageIODecoder(
     }
 
     private fun rgbImageToBitmap(image: BufferedImage): Bitmap {
+        image.toPainter()
         val bytesPerPixel = 4
         val pixels = ByteArray(image.width * image.height * bytesPerPixel)
 

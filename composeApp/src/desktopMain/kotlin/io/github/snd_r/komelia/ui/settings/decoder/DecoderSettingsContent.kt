@@ -29,8 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
-import io.github.snd_r.VipsOnnxRuntimeDecoder
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider
+import io.github.snd_r.OnnxRuntimeSharedLibraries
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.Windows
@@ -72,40 +72,25 @@ fun DecoderSettingsContent(
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (availableDecoders.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = LabeledEntry(decoder, decoder.getDisplayName()),
-                options = remember {
-                    availableDecoders.map { LabeledEntry(it.platformType, it.platformType.getDisplayName()) }
-                },
-                onOptionChange = { onDecoderChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text("Decoder") }
-            )
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Decoder: ${decoder.getDisplayName()}", style = MaterialTheme.typography.titleMedium)
+//        if (availableDecoders.size > 1) {
+//            DropdownChoiceMenu(
+//                selectedOption = LabeledEntry(decoder, decoder.getDisplayName()),
+//                options = remember(availableDecoders) {
+//                    availableDecoders.map { LabeledEntry(it.platformType, it.platformType.getDisplayName()) }
+//                },
+//                onOptionChange = { onDecoderChange(it.value) },
+//                inputFieldModifier = Modifier.fillMaxWidth(),
+//                label = { Text("Decoder") }
+//            )
+//        } else {
 
-                if (decoder == PlatformDecoderType.VIPS_ONNX) {
-                    val ortExecutionProvider = remember {
-                        if (VipsOnnxRuntimeDecoder.isCudaAvailable) "Cuda"
-                        else if (VipsOnnxRuntimeDecoder.isRocmAvailable) "ROCm"
-                        else if (DesktopPlatform.Current == Windows) "DirectML"
-                        else "CPU"
-                    }
-                    Text(
-                        "  (ONNX Runtime $ortExecutionProvider execution provider)",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-            }
 
-        }
+//        }
 
         if (decoderDescriptor.downscaleOptions.size > 1) {
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(downscaleOption, downscaleOption.value),
-                options = remember {
+                options = remember(decoderDescriptor) {
                     decoderDescriptor.downscaleOptions.map { LabeledEntry(it, it.value) }
                 },
                 onOptionChange = { onDownscaleOptionChange(it.value) },
@@ -119,7 +104,7 @@ fun DecoderSettingsContent(
         if (decoderDescriptor.upscaleOptions.size > 1) {
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(upscaleOption, upscaleOption.value),
-                options = remember {
+                options = remember(decoderDescriptor) {
                     decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) }
                 },
                 onOptionChange = { onUpscaleOptionChange(it.value) },
@@ -214,8 +199,14 @@ private fun OnnxRuntimeContent(
         }
     }
 
-
     if (decoder == PlatformDecoderType.VIPS_ONNX) {
+        val ortExecutionProvider = remember {
+            if (OnnxRuntimeSharedLibraries.isCudaAvailable) "Cuda"
+            else if (OnnxRuntimeSharedLibraries.isRocmAvailable) "ROCm"
+            else if (DesktopPlatform.Current == Windows) "DirectML"
+            else "CPU"
+        }
+        Text("  ONNX Runtime $ortExecutionProvider execution provider")
         FilledTonalButton(
             onClick = { showOrtInstallDialog = true },
             shape = RoundedCornerShape(5.dp)
@@ -226,9 +217,9 @@ private fun OnnxRuntimeContent(
             shape = RoundedCornerShape(5.dp)
         ) { Text("Download ONNX Runtime") }
 
-        if (VipsOnnxRuntimeDecoder.loadErrorMessage != null)
+        if (OnnxRuntimeSharedLibraries.loadErrorMessage != null)
             Text(
-                "Failed to load ONNX Runtime:\n${VipsOnnxRuntimeDecoder.loadErrorMessage}",
+                "Failed to load ONNX Runtime:\n${OnnxRuntimeSharedLibraries.loadErrorMessage}",
                 style = MaterialTheme.typography.bodySmall
             )
     }

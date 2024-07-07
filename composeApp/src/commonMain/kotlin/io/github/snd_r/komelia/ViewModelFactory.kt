@@ -82,7 +82,7 @@ interface DependencyContainer {
     val imageLoader: ImageLoader
     val imageLoaderContext: PlatformContext
     val appNotifications: AppNotifications
-    val readerDecoder: ReaderImageLoader
+    val readerImageLoader: ReaderImageLoader
 }
 
 class ViewModelFactory(private val dependencies: DependencyContainer) {
@@ -212,7 +212,7 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
             appNotifications = appNotifications,
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
-            imageLoader = dependencies.readerDecoder,
+            imageLoader = dependencies.readerImageLoader,
             availableDecoders = availableDecoders,
             markReadProgress = markReadProgress,
         )

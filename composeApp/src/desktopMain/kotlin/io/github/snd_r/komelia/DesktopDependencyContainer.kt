@@ -7,8 +7,8 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.VipsDecoder
-import io.github.snd_r.VipsOnnxRuntimeDecoder
+import io.github.snd_r.OnnxRuntimeSharedLibraries
+import io.github.snd_r.VipsSharedLIbraries
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.DesktopImageDecoder
 import io.github.snd_r.komelia.image.ReaderImageLoader
@@ -23,18 +23,16 @@ import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.PlatformDecoderType
-import io.github.snd_r.komelia.platform.PlatformDecoderType.IMAGE_IO
 import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.platform.imageIoDownscale
-import io.github.snd_r.komelia.platform.imageIoUpscale
+import io.github.snd_r.komelia.platform.upsamplingFilters
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
-import io.github.snd_r.komelia.platform.vipsUpscaleBicubic
 import io.github.snd_r.komelia.secrets.AppKeyring
 import io.github.snd_r.komelia.settings.ActorMessage
 import io.github.snd_r.komelia.settings.FileSystemSettingsActor
 import io.github.snd_r.komelia.settings.FilesystemReaderSettingsRepository
 import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
+import io.github.snd_r.komelia.ui.error.NonRestartableException
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
@@ -63,7 +61,6 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
-import org.jetbrains.skia.SamplingMode
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -83,7 +80,7 @@ class DesktopDependencyContainer private constructor(
     override val secretsRepository: KeyringSecretsRepository,
     override val imageLoader: ImageLoader,
     override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
-    override val readerDecoder: ReaderImageLoader,
+    override val readerImageLoader: ReaderImageLoader,
     val onnxRuntimeInstaller: OnnxRuntimeInstaller
 ) : DependencyContainer {
     override val imageLoaderContext: PlatformContext = PlatformContext.INSTANCE
@@ -91,9 +88,15 @@ class DesktopDependencyContainer private constructor(
 
     companion object {
         suspend fun createInstance(scope: CoroutineScope): DesktopDependencyContainer {
+            VipsSharedLIbraries.loadError?.let {
+                throw NonRestartableException("Failed to load libvips shared libraries. ${it.message}", it)
+            }
+            if (!VipsSharedLIbraries.isAvailable)
+                throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
+
             measureTime {
                 try {
-                    VipsOnnxRuntimeDecoder.load()
+                    OnnxRuntimeSharedLibraries.load()
                 } catch (e: UnsatisfiedLinkError) {
                     logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
                 }
@@ -115,10 +118,15 @@ class DesktopDependencyContainer private constructor(
             measureTime { cookiesStorage.loadRememberMeCookie() }
                 .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
 
-            val tempDir = Path(System.getProperty("java.io.tmpdir"))
+            val cacheDir = Path(System.getProperty("java.io.tmpdir")).resolve("komelia").createDirectories()
 
             val ktorClient = createKtorClient(okHttpClient)
-            val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient, cookiesStorage, tempDir)
+            val komgaClientFactory = createKomgaClientFactory(
+                baseUrl = baseUrl,
+                ktorClient = ktorClient,
+                cookiesStorage = cookiesStorage,
+                tempDir = cacheDir.resolve("ktor").createDirectories()
+            )
 
             val updateClient = UpdateClient(
                 ktorClient.config {
@@ -128,16 +136,25 @@ class DesktopDependencyContainer private constructor(
             val appUpdater = DesktopAppUpdater(updateClient)
             val onnxRuntimeInstaller = OnnxRuntimeInstaller(updateClient)
 
-            val coil = createCoil(ktorClient, baseUrl, cookiesStorage, decoderType, onnxModelsPath, tempDir)
+            val coil = createCoil(
+                ktorClient = ktorClient,
+                url = baseUrl,
+                cookiesStorage = cookiesStorage,
+                decoderState = decoderType,
+                tempDir = cacheDir.resolve("coil").createDirectories()
+            )
             SingletonImageLoader.setSafe { coil }
-            val readerDir = tempDir.resolve("komelia_reader").createDirectories()
-            val decoder =
-                DesktopImageDecoder(decoderType, onnxModelsPath, MutableStateFlow(SamplingMode.DEFAULT), readerDir)
+
+            val decoder = DesktopImageDecoder(
+                decoderSettings = decoderType,
+                onnxModelsPath = onnxModelsPath,
+                onnxRuntimeCacheDir = cacheDir.resolve("reader_onnxruntime").createDirectories()
+            )
             val readerImageLoader = ReaderImageLoader(
                 komgaClientFactory.bookClient(),
                 decoder,
                 DiskCache.Builder()
-                    .directory(readerDir.toOkioPath())
+                    .directory(cacheDir.resolve("reader").createDirectories().toOkioPath())
                     .build()
             )
 
@@ -151,7 +168,7 @@ class DesktopDependencyContainer private constructor(
                 secretsRepository = secretsRepository,
                 imageLoader = coil,
                 availableDecoders = availableDecoders,
-                readerDecoder = readerImageLoader,
+                readerImageLoader = readerImageLoader,
                 onnxRuntimeInstaller = onnxRuntimeInstaller
             )
         }
@@ -213,7 +230,6 @@ class DesktopDependencyContainer private constructor(
             url: StateFlow<String>,
             cookiesStorage: RememberMePersistingCookieStore,
             decoderState: StateFlow<PlatformDecoderSettings>,
-            onnxModelsPath: StateFlow<String>,
             tempDir: Path,
         ): ImageLoader {
             val coilKtorClient = ktorClient.config {
@@ -231,7 +247,7 @@ class DesktopDependencyContainer private constructor(
                         add(KomgaReadListMapper(url))
                         add(KomgaSeriesThumbnailMapper(url))
                         add(FileMapper())
-                        add(DesktopDecoder.Factory(decoderState, onnxModelsPath))
+                        add(DesktopDecoder.Factory(decoderState))
                         add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
                     }
                     .memoryCache(
@@ -241,7 +257,7 @@ class DesktopDependencyContainer private constructor(
                     )
                     .diskCache {
                         DiskCache.Builder()
-                            .directory(tempDir.resolve("komelia_coil").toOkioPath())
+                            .directory(tempDir.toOkioPath())
                             .build()
                     }
                     .build()
@@ -272,28 +288,18 @@ class DesktopDependencyContainer private constructor(
             scope: CoroutineScope
         ): Flow<List<PlatformDecoderDescriptor>> {
             val decoderFlow =
-                if (VipsDecoder.isAvailable && VipsOnnxRuntimeDecoder.isAvailable) {
+                if (VipsSharedLIbraries.isAvailable && OnnxRuntimeSharedLibraries.isAvailable) {
                     settingsRepository.getOnnxModelsPath()
                         .map { listOf(getOnnxDecoderDescriptor(Path.of(it))) }
                         .stateIn(scope)
 
-                } else if (VipsDecoder.isAvailable) {
-                    MutableStateFlow(
-                        listOf(
-                            PlatformDecoderDescriptor(
-                                platformType = PlatformDecoderType.VIPS,
-                                upscaleOptions = listOf(vipsUpscaleBicubic),
-                                downscaleOptions = listOf(vipsDownscaleLanczos),
-                            )
-                        )
-                    )
                 } else {
                     MutableStateFlow(
                         listOf(
                             PlatformDecoderDescriptor(
-                                platformType = IMAGE_IO,
-                                upscaleOptions = listOf(imageIoUpscale),
-                                downscaleOptions = listOf(imageIoDownscale),
+                                platformType = PlatformDecoderType.VIPS,
+                                upscaleOptions = upsamplingFilters,
+                                downscaleOptions = listOf(vipsDownscaleLanczos),
                             )
                         )
                     )
@@ -331,13 +337,13 @@ class DesktopDependencyContainer private constructor(
                     .toList()
                 return PlatformDecoderDescriptor(
                     platformType = PlatformDecoderType.VIPS_ONNX,
-                    upscaleOptions = listOf(vipsUpscaleBicubic) + models.map { UpscaleOption(it) },
+                    upscaleOptions = upsamplingFilters + models.map { UpscaleOption(it) },
                     downscaleOptions = listOf(vipsDownscaleLanczos),
                 )
             } catch (e: java.nio.file.NoSuchFileException) {
                 return PlatformDecoderDescriptor(
                     platformType = PlatformDecoderType.VIPS_ONNX,
-                    upscaleOptions = listOf(vipsUpscaleBicubic),
+                    upscaleOptions = upsamplingFilters,
                     downscaleOptions = listOf(vipsDownscaleLanczos),
                 )
             }

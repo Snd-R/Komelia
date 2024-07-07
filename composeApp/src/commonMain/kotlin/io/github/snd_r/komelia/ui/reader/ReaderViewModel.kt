@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
-import org.jetbrains.skia.Graphics
 
 private val logger = KotlinLogging.logger {}
 
@@ -86,6 +85,5 @@ class ReaderViewModel(
     override fun onDispose() {
         continuousReaderState.stop()
         pagedReaderState.stop()
-        Graphics.purgeAllCaches()
     }
 }

@@ -1,8 +1,7 @@
 package io.github.snd_r
 
-import java.lang.ref.Cleaner
-
 typealias NativePointer = Long
+
 
 class VipsImage private constructor(
     val width: Int,
@@ -23,6 +22,7 @@ class VipsImage private constructor(
         @JvmStatic
         external fun decodeFromFile(path: String): VipsImage
 
+
         @JvmStatic
         external fun decodeAndGet(encoded: ByteArray): VipsImageData
 
@@ -33,11 +33,15 @@ class VipsImage private constructor(
             scaleHeight: Int,
             crop: Boolean
         ): VipsImageData
+
+        @JvmStatic
+        external fun vipsInit()
     }
 
-    external fun getRegion(rect: ImageRect, scaleWidth: Int, scaleHeight: Int): VipsImageData
-    external fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImageData
+    external fun getRegion(rect: ImageRect): VipsImage
+    external fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImage
     external fun getBytes(): ByteArray
+    external fun encodeToFile(path: String)
 }
 
 data class VipsImageDimensions(
@@ -62,7 +66,7 @@ data class ImageRect(
 
 enum class ImageFormat {
     GRAYSCALE_8,
-    RGBA_8888
+    RGBA_8888,
 }
 
 abstract class VipsPointer(
@@ -72,22 +76,26 @@ abstract class VipsPointer(
     private var _ptr = vipsPtr
     private var _bytes = bytesPtr
 
+    @Synchronized
     override fun close() {
-        cleanable.clean()
+//        cleanable.clean()
+
+        if (_ptr != 0L) gObjectUnref(_ptr)
+        if (_bytes != 0L) free(_bytes)
         _ptr = 0
         _bytes = 0
     }
 
-    companion object {
-        private val cleaner: Cleaner = Cleaner.create()
-    }
+//    companion object {
+//        private val cleaner: Cleaner = Cleaner.create()
+//    }
 
-    @Suppress("LeakingThis")
-    private val cleanable: Cleaner.Cleanable = cleaner.register(this) {
-        if (vipsPtr != 0L) gObjectUnref(vipsPtr)
-        if (bytesPtr != 0L) free(bytesPtr)
-
-    }
+//    @Suppress("LeakingThis")
+//    private val cleanable: Cleaner.Cleanable = cleaner.register(this) {
+//        if (vipsPtr != 0L) gObjectUnref(vipsPtr)
+//        if (bytesPtr != 0L) free(bytesPtr)
+//
+//    }
 
     private external fun gObjectUnref(pointer: NativePointer)
     private external fun free(pointer: NativePointer)

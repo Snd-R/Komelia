@@ -8,7 +8,7 @@ ExternalProject_Add(ep_vips
         GIT_REPOSITORY https://github.com/libvips/libvips.git
         #GIT_TAG v8.15.2
         GIT_TAG 79629a6572da95481b65c7a206cbff73c66390a4
-        DEPENDS ep_expat ep_fftw ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff
+        DEPENDS ep_expat ep_fftw ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_mozjpeg
         CONFIGURE_COMMAND
             ${Meson_EXECUTABLE} setup ${MESON_CROSS_FILE_ARG} --default-library shared --prefix=<INSTALL_DIR> --libdir=lib --buildtype=release
             -Ddeprecated=false

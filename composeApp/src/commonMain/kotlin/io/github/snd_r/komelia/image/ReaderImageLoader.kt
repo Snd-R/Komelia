@@ -10,8 +10,6 @@ import io.ktor.client.statement.*
 import io.ktor.utils.io.core.*
 import okio.FileSystem
 import okio.Path
-import kotlin.random.Random
-import kotlin.random.nextULong
 
 private val logger = KotlinLogging.logger {}
 
@@ -100,21 +98,4 @@ class ReaderImageLoader(
 interface ImageDecoder {
     fun decode(bytes: ByteArray): ReaderImage
     fun decode(cacheFile: Path): ReaderImage
-}
-
-internal fun FileSystem.createFile(file: Path, mustCreate: Boolean = false) {
-    if (mustCreate) {
-        sink(file, mustCreate = true).close()
-    } else if (!exists(file)) {
-        sink(file).close()
-    }
-}
-
-internal fun FileSystem.createTempFile(): Path {
-    var tempFile: Path
-    do {
-        tempFile = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "tmp_${Random.nextULong()}"
-    } while (exists(tempFile))
-    createFile(tempFile, mustCreate = true)
-    return tempFile
 }

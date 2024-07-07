@@ -10,17 +10,20 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 
 object SharedLibrariesLoader {
-    private val logger = LoggerFactory.getLogger(VipsDecoder::class.java)
+    private val logger = LoggerFactory.getLogger(VipsSharedLIbraries::class.java)
     private val javaLibPath: List<Path> = System.getProperty("java.library.path").ifBlank { null }
         ?.let { path -> path.split(":").map { Path.of(it) } }
         ?: emptyList()
-    internal val tempDir: Path = Path(System.getProperty("java.io.tmpdir")).resolve("komelia_libs").createDirectories()
+    internal val tempDir: Path = Path(System.getProperty("java.io.tmpdir"))
+        .resolve("komelia")
+        .resolve("libs")
+        .createDirectories()
 
     @Suppress("UnsafeDynamicallyLoadedCode")
     fun loadLibrary(libName: String) {
         try {
             val filename = System.mapLibraryName(libName)
-            val classPathFileBytes = VipsDecoder::class.java.getResource("/${filename}")?.readBytes()
+            val classPathFileBytes = VipsSharedLIbraries::class.java.getResource("/${filename}")?.readBytes()
 
             val javaPathFile =
                 if (classPathFileBytes == null)
@@ -52,4 +55,5 @@ object SharedLibrariesLoader {
             throw e
         }
     }
+
 }

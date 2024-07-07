@@ -1,3 +1,7 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -23,10 +27,10 @@ val ktorVersion = "3.0.0-beta-2-eap-942"
 kotlin {
     jvmToolchain(17)
     androidTarget {
-        compilations.all { kotlinOptions { jvmTarget = "17" } }
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
     jvm {
-        compilations.all { kotlinOptions { jvmTarget = "17" } }
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {

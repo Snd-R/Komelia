@@ -6,9 +6,13 @@ import androidx.datastore.dataStoreFile
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.AndroidSharedLibrariesLoader
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
+import io.github.snd_r.komelia.image.AndroidImageDecoder
+import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -44,7 +48,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.FileSystem
 import java.util.concurrent.TimeUnit
+import kotlin.time.measureTime
+
+private val logger = KotlinLogging.logger {}
 
 class AndroidDependencyContainer(
     override val settingsRepository: SettingsRepository,
@@ -53,6 +61,7 @@ class AndroidDependencyContainer(
     override val appUpdater: AppUpdater,
     override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     override val komgaClientFactory: KomgaClientFactory,
+    override val readerImageLoader: ReaderImageLoader,
     override val imageLoader: ImageLoader,
     override val imageLoaderContext: PlatformContext
 ) : DependencyContainer {
@@ -60,6 +69,14 @@ class AndroidDependencyContainer(
 
     companion object {
         suspend fun createInstance(scope: CoroutineScope, context: Context): AndroidDependencyContainer {
+            measureTime {
+                try {
+                    AndroidSharedLibrariesLoader.load()
+                } catch (e: UnsatisfiedLinkError) {
+                    logger.error(e) { "Couldn't load vips shared libraries. reader image loading will not work" }
+                }
+            }.also { logger.info { "completed vips libraries load in $it" } }
+
             val datastore = DataStoreFactory.create(
                 serializer = AppSettingsSerializer,
                 produceFile = { context.dataStoreFile("settings.pb") },
@@ -84,6 +101,13 @@ class AndroidDependencyContainer(
                 context = context
             )
             val appUpdater = createAppUpdater(ktorClient, context)
+            val readerImageLoader = ReaderImageLoader(
+                komgaClientFactory.bookClient(),
+                AndroidImageDecoder(),
+                DiskCache.Builder()
+                    .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
+                    .build()
+            )
 
             val coil = createCoil(ktorClient, baseUrl, cookiesStorage, context)
             SingletonImageLoader.setSafe { coil }
@@ -96,7 +120,8 @@ class AndroidDependencyContainer(
                 availableDecoders = emptyFlow(),
                 komgaClientFactory = komgaClientFactory,
                 imageLoader = coil,
-                imageLoaderContext = context
+                imageLoaderContext = context,
+                readerImageLoader = readerImageLoader
             )
         }
 

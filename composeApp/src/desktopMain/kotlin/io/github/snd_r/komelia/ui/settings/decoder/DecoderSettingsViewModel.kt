@@ -3,7 +3,7 @@ package io.github.snd_r.komelia.ui.settings.decoder
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import coil3.ImageLoader
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.DownscaleOption
@@ -57,10 +57,6 @@ class DecoderSettingsViewModel(
             val newDescriptor = decoders.firstOrNull { it.platformType == decoderType.value }
             currentDecoderDescriptor.value = newDescriptor
         }.launchIn(screenModelScope)
-    }
-
-    private suspend fun initDecoderSettings() {
-
     }
 
     fun onDecoderChange(type: PlatformDecoderType) {

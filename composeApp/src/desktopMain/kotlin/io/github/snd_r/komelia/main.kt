@@ -47,7 +47,7 @@ import ch.qos.logback.core.FileAppender
 import com.jetbrains.JBR
 import dev.dirs.ProjectDirectories
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.VipsDecoder
+import io.github.snd_r.VipsSharedLIbraries
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
@@ -92,7 +92,7 @@ fun main() {
     configureLogging()
     measureTime {
         try {
-            VipsDecoder.load()
+            VipsSharedLIbraries.load()
         } catch (e: UnsatisfiedLinkError) {
             logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
         }
@@ -106,7 +106,7 @@ fun main() {
             dependencies.value = DesktopDependencyContainer.createInstance(initScope)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             initError.value = e
         }
     }

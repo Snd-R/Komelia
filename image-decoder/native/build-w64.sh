@@ -21,8 +21,8 @@ export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/fakeroot/lib/pkgconfig"
 
 cmake -G Ninja \
        	-DCMAKE_BUILD_TYPE=Release \
-       	-DCMAKE_TOOLCHAIN_FILE=toolchain-mingw-w64-x86_64.cmake .. \
-       	-DMESON_CROSS_FILE=$(readlink -f ../cmake/w64.cross-file.txt)
+       	-DCMAKE_TOOLCHAIN_FILE=w64-toolchain-mingw-x86_64.cmake .. \
+       	-DMESON_CROSS_FILE=$(readlink -f ../w64-mingw-x86_64-cross_file.txt)
 
 cmake --build . -j $(nproc)
 

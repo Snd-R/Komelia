@@ -356,7 +356,7 @@ class ContinuousReaderState(
                 imageLoadScope.launch {
                     val result = launchImageJob(nextPage).await()
                     result.image?.let {
-                        it.updateState(
+                        it.requestUpdate(
                             getImageDisplaySize(it),
                             screenScaleState.areaSize.value.toIntRect(),
                             screenScaleState.transformation.value.scale
@@ -421,13 +421,13 @@ class ContinuousReaderState(
                         bottom = firstImageSize.height
                     )
                 }
-                image.updateState(
+                image.requestUpdate(
                     firstImageSize,
                     visibleArea,
                     scale
                 )
             } else {
-                image.updateState(
+                image.requestUpdate(
                     firstImageSize,
                     firstImageSize.toIntRect(),
                     scale
@@ -440,7 +440,7 @@ class ContinuousReaderState(
             visibleImages.values.drop(1).dropLast(1).filterNotNull()
                 .forEach { image ->
                     val size = getImageDisplaySize(image)
-                    image.updateState(size, size.toIntRect(), scale)
+                    image.requestUpdate(size, size.toIntRect(), scale)
                 }
         }
 
@@ -470,7 +470,7 @@ class ContinuousReaderState(
                 bottom = containerSize.height
             )
         }
-        lastImage.updateState(
+        lastImage.requestUpdate(
             lastImageSize,
             lastImageVisibleArea,
             scale

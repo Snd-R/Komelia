@@ -3,8 +3,8 @@ package io.github.snd_r.komelia.settings
 import com.akuleshov7.ktoml.annotations.TomlLiteral
 import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.PlatformDecoderType.VIPS
+import io.github.snd_r.komelia.platform.skiaSamplerMitchell
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
-import io.github.snd_r.komelia.platform.vipsUpscaleBicubic
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
@@ -78,7 +78,7 @@ data class ContinuousReaderSettings(
 @Serializable
 data class DecoderSettings(
     val decoder: PlatformDecoderType = VIPS,
-    val upscaleOption: String = vipsUpscaleBicubic.value,
+    val upscaleOption: String = skiaSamplerMitchell.value,
     val downscaleOption: String = vipsDownscaleLanczos.value,
     @TomlLiteral
     val onnxModelsPath: String = System.getProperty("user.home") ?: "/",

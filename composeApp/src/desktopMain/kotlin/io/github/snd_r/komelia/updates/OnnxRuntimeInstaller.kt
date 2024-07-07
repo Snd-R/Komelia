@@ -1,11 +1,11 @@
 package io.github.snd_r.komelia.updates
 
 import dev.dirs.ProjectDirectories
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider.CPU
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider.CUDA
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider.DirectML
-import io.github.snd_r.VipsOnnxRuntimeDecoder.OnnxRuntimeExecutionProvider.ROCm
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.MacOS

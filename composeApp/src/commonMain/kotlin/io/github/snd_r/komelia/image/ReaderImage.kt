@@ -11,10 +11,11 @@ interface ReaderImage : AutoCloseable {
     val height: Int
 
     val painter: StateFlow<Painter>
+    val error: StateFlow<Exception?>
 
-    fun updateState(
-        viewportSize: IntSize,
-        visibleViewportArea: IntRect,
+    fun requestUpdate(
+        displaySize: IntSize,
+        visibleDisplaySize: IntRect,
         zoomFactor: Float,
     )
 
@@ -29,24 +30,3 @@ interface ReaderImage : AutoCloseable {
     }
 }
 
-data class ReaderImageData(
-    val width: Int,
-    val height: Int,
-    val bitmap: Bitmap,
-)
-
-sealed interface ReaderImageResult {
-    val image: ReaderImageData?
-
-    data class Success(
-        override val image: ReaderImageData
-    ) : ReaderImageResult
-
-    data class Error(
-        val throwable: Throwable,
-    ) : ReaderImageResult {
-
-        override val image: ReaderImageData? = null
-    }
-
-}

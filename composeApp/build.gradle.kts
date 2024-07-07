@@ -136,6 +136,7 @@ kotlin {
             implementation("com.google.protobuf:protobuf-javalite:3.21.11")
             implementation("com.google.protobuf:protobuf-kotlin-lite:3.21.11")
 
+            implementation(project(":image-decoder"))
         }
 
         desktopMain.dependencies {

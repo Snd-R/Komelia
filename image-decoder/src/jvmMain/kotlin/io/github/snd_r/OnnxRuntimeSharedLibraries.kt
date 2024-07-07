@@ -16,8 +16,8 @@ import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.listDirectoryEntries
 
-object VipsOnnxRuntimeDecoder {
-    private val logger = LoggerFactory.getLogger(VipsOnnxRuntimeDecoder::class.java)
+object OnnxRuntimeSharedLibraries {
+    private val logger = LoggerFactory.getLogger(OnnxRuntimeSharedLibraries::class.java)
     private val ortSearchPath = System.getProperty("ort.search.path")
         ?: Path(ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia").dataDir)
             .resolve("onnxruntime").createDirectories()
@@ -91,13 +91,12 @@ object VipsOnnxRuntimeDecoder {
         }
 
         if (!initialized.compareAndSet(false, true)) return
-        val tempDir = Path(System.getProperty("java.io.tmpdir")).resolve("komelia_ort").createDirectories()
-        init(
+
+        OnnxRuntimeUpscaler.init(
             if (cudaProviderPath != null) "CUDA"
             else if (rocmProviderPath != null) "ROCM"
             else if (DesktopPlatform.Current == Windows) "DML"
             else "CPU",
-            tempDir.toString()
         )
 
         isAvailable = true
@@ -125,21 +124,6 @@ object VipsOnnxRuntimeDecoder {
 
         return destinationPath
     }
-
-    @Throws(OrtException::class)
-    private external fun init(
-        provider: String,
-        tempDir: String,
-    )
-
-    @Throws(VipsException::class, OrtException::class)
-    external fun decodeAndResize(
-        encoded: ByteArray,
-        modelPath: String,
-        cacheKey: String?,
-        scaleWidth: Int,
-        scaleHeight: Int,
-    ): VipsImageData?
 
     enum class OnnxRuntimeExecutionProvider {
         CUDA,

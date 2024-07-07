@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toRect
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,110 +18,143 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlin.concurrent.Volatile
 import kotlin.math.roundToInt
+import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
-private const val tileThreshold = 2048 * 2048
-private const val tileSize = 1024
+private const val tileThreshold1 = 2048 * 2048
+private const val tileThreshold2 = 4096 * 4096
+private const val tileThreshold3 = 5120 * 5120
 
-@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect class Bitmap
+expect class PlatformImage
+
+private val logger = KotlinLogging.logger {}
 
 abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
     private val dimensions by lazy { getDimensions(encoded) }
     final override val width by lazy { dimensions.width }
     final override val height by lazy { dimensions.height }
     final override val painter by lazy { MutableStateFlow(createPlaceholderPainter(IntSize(width, height))) }
+    final override val error = MutableStateFlow<Exception?>(null)
 
-    private val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
-    private var currentScaleFactor: Double? = null
+    @Volatile
+    protected var lastUpdateRequest: UpdateRequest? = null
+
+    @Volatile
+    protected var lastUsedScaleFactor: Double? = null
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    protected val tileScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
-    private val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
+    protected val imageScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
+    protected val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
+    protected val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
 
     init {
         jobFlow.conflate()
-            .onEach {
-                doUpdate(
-                    it.displayArea,
-                    it.visibleDisplayArea,
-                    it.zoomFactor
-                )
+            .onEach { request ->
+                this.error.value = null
+                try {
+                    doUpdate(request)
+                } catch (e: Exception) {
+                    logger.catching(e)
+                    this.error.value = e
+                }
+
                 delay(100)
-            }.launchIn(tileScope)
+            }.launchIn(imageScope)
     }
 
     data class UpdateRequest(
-        val displayArea: IntSize,
-        val visibleDisplayArea: IntRect,
+        val displaySize: IntSize,
+        val visibleDisplaySize: IntRect,
         val zoomFactor: Float,
     )
 
-    override fun updateState(
-        viewportSize: IntSize,
-        visibleViewportArea: IntRect,
-        zoomFactor: Float,
-    ) {
-        tileScope.launch { jobFlow.emit(UpdateRequest(viewportSize, visibleViewportArea, zoomFactor)) }
-    }
-
-    private fun doUpdate(
+    override fun requestUpdate(
         displaySize: IntSize,
         visibleDisplaySize: IntRect,
         zoomFactor: Float,
     ) {
+        imageScope.launch { jobFlow.emit(UpdateRequest(displaySize, visibleDisplaySize, zoomFactor)) }
+    }
+
+    private suspend fun doUpdate(request: UpdateRequest) {
+        lastUpdateRequest = request
+
+        val displaySize = request.displaySize
+        val zoomFactor = request.zoomFactor
+        val visibleDisplaySize = request.visibleDisplaySize
+
         val widthRatio = displaySize.width.toDouble() / width
         val heightRatio = displaySize.height.toDouble() / height
         val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
         val newScaleFactor = displayScaleFactor * zoomFactor
 
-        val displayPixCount = (width * height * newScaleFactor).roundToInt()
-        if (displayPixCount > tileThreshold) {
+        val displayPixCount = (displaySize.width * zoomFactor * displaySize.height * zoomFactor).roundToInt()
+        val tileSize = when (displayPixCount) {
+            in 0..tileThreshold1 -> null
+            in tileThreshold1..tileThreshold2 -> 1024
+            in tileThreshold2..tileThreshold3 -> 512
+            else -> 256
+        }
+
+        if (tileSize == null) {
+            doFullResize(newScaleFactor, displayScaleFactor, displaySize)
+        } else {
             doTile(
                 visibleDisplaySize.toRect(),
                 displayScaleFactor,
                 newScaleFactor,
-                displaySize
+                displaySize,
+                tileSize
             )
-        } else {
-            doFullResize(newScaleFactor, displayScaleFactor, displaySize)
         }
     }
 
-    private fun doFullResize(scaleFactor: Double, displayScaleFactor: Double, displayArea: IntSize) {
-        if (currentScaleFactor == scaleFactor) return
-        currentScaleFactor = scaleFactor
+    private suspend fun doFullResize(scaleFactor: Double, displayScaleFactor: Double, displayArea: IntSize) {
+        if (lastUsedScaleFactor == scaleFactor) return
+        lastUsedScaleFactor = scaleFactor
+        val dstWidth = (width * scaleFactor).roundToInt()
+        val dstHeight = (height * scaleFactor).roundToInt()
 
-        val image = decode(encoded)
-        val resizedImage = image.resize(
-            (width * scaleFactor).roundToInt(),
-            (height * scaleFactor).roundToInt(),
-        )
-        val previousTiles = tiles.value
-        tiles.value = listOf(
-            ReaderImageTile(
-                originalSize = IntSize(resizedImage.width, resizedImage.height),
-                displayRegion = Rect(
-                    0f,
-                    0f,
-                    (width * displayScaleFactor).toFloat(),
-                    (height * displayScaleFactor).toFloat()
-                ),
-                isVisible = true,
-                bitmap = resizedImage.bitmap
+        measureTime {
+            val image = decode(encoded)
+            val resizedImage = resizeImage(
+                image,
+                dstWidth,
+                dstHeight,
             )
-        )
-        closeTileBitmaps(previousTiles)
-        painter.value = createTilePainter(tiles.value, displayArea)
-        image.close()
+            val previousTiles = tiles.value
+            tiles.value = listOf(
+                ReaderImageTile(
+                    size = IntSize(resizedImage.width, resizedImage.height),
+                    displayRegion = Rect(
+                        0f,
+                        0f,
+                        (width * displayScaleFactor).toFloat(),
+                        (height * displayScaleFactor).toFloat()
+                    ),
+                    isVisible = true,
+                    bitmap = resizedImage.bitmap
+                )
+            )
+            closeTileBitmaps(previousTiles)
+            painter.value = createTilePainter(tiles.value, displayArea)
+            closeImage(image)
+        }.also { logger.info { "image $width x $height completed full resize to $dstWidth x $dstHeight in $it" } }
     }
 
-    private fun doTile(
+    private suspend fun doTile(
         displayRegion: Rect,
         displayScaleFactor: Double,
         scaleFactor: Double,
-        displayArea: IntSize
+        displayArea: IntSize,
+        tileSize: Int,
     ) {
+        val timeSource = TimeSource.Monotonic
+        val start = timeSource.markNow()
+
         val visibilityWindow = Rect(
             left = displayRegion.left / 1.5f,
             top = displayRegion.top / 1.5f,
@@ -159,7 +193,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                 }
 
                 if (existingTile != null) {
-                    if (scaleFactor == currentScaleFactor && existingTile.bitmap != null) {
+                    if (scaleFactor == lastUsedScaleFactor && existingTile.bitmap != null) {
                         newTiles.add(existingTile)
                         xTaken = (xTaken + tileSize).coerceAtMost(width)
                         continue
@@ -174,14 +208,15 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
 
                 val tileWidth = tileRegion.right - tileRegion.left
                 val tileHeight = tileRegion.bottom - tileRegion.top
-                val scaledTileData = image.getRegion(
+                val scaledTileData = getImageRegion(
+                    image,
                     tileRegion,
                     ((tileWidth) * scaleFactor).roundToInt(),
                     ((tileHeight) * scaleFactor).roundToInt()
                 )
 
                 val tile = ReaderImageTile(
-                    originalSize = IntSize(scaledTileData.width, scaledTileData.height),
+                    size = IntSize(scaledTileData.width, scaledTileData.height),
                     displayRegion = tileDisplayRegion,
                     isVisible = true,
                     bitmap = scaledTileData.bitmap
@@ -194,13 +229,18 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
             yTaken = (yTaken + tileSize).coerceAtMost(height)
         }
 
+        val end = timeSource.markNow()
         if (addedNewTiles) {
             tiles.value = newTiles
             painter.value = createTilePainter(tiles.value, displayArea)
             closeTileBitmaps(unusedTiles)
+
+            val dstWidth = (width * scaleFactor).roundToInt()
+            val dstHeight = (height * scaleFactor).roundToInt()
+            logger.info { "image $width x $height; tile size:$tileSize; tiles count: ${tiles.value.size}; resize to $dstWidth x $dstHeight completed in ${end - start}" }
         }
-        currentScaleFactor = scaleFactor
-        image?.close()
+        lastUsedScaleFactor = scaleFactor
+        image?.let { closeImage(it) }
     }
 
     override fun close() {
@@ -214,15 +254,31 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
     protected abstract fun createTilePainter(tiles: List<ReaderImageTile>, displaySize: IntSize): Painter
     protected abstract fun createPlaceholderPainter(displaySize: IntSize): Painter
 
-    interface PlatformImage : AutoCloseable {
-        fun resize(scaleWidth: Int, scaleHeight: Int): ReaderImageData
-        fun getRegion(rect: IntRect, scaleWidth: Int, scaleHeight: Int): ReaderImageData
-    }
+    protected abstract suspend fun resizeImage(
+        image: PlatformImage,
+        scaleWidth: Int,
+        scaleHeight: Int
+    ): ReaderImageData
+
+    protected abstract suspend fun getImageRegion(
+        image: PlatformImage,
+        imageRegion: IntRect,
+        scaleWidth: Int,
+        scaleHeight: Int
+    ): ReaderImageData
+
+    protected abstract fun closeImage(image: PlatformImage)
 
     data class ReaderImageTile(
-        val originalSize: IntSize,
+        val size: IntSize,
         val displayRegion: Rect,
         val isVisible: Boolean,
         val bitmap: Bitmap?,
+    )
+
+    data class ReaderImageData(
+        val width: Int,
+        val height: Int,
+        val bitmap: Bitmap,
     )
 }

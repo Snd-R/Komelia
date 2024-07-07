@@ -1,30 +1,62 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm")
+    kotlin("multiplatform")
+    id("com.android.library")
     id("de.undercouch.download") version "5.6.0"
 }
 
 group = "io.github.snd_r"
 version = "unspecified"
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.13")
-    implementation("dev.dirs:directories:26")
-}
-
 kotlin {
     jvmToolchain(17)
+
+    androidTarget {
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+    }
+    jvm {
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+        }
+
+        val jvmMain by getting
+        jvmMain.dependencies {
+            implementation("org.slf4j:slf4j-api:2.0.13")
+            implementation("dev.dirs:directories:26")
+        }
+
+        androidMain.dependencies {
+        }
+    }
+}
+android {
+    namespace = "io.github.snd_r.image_decoder"
+    compileSdk = 34
+
+    defaultConfig {
+        minSdk = 26
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 val linuxBuildDir = "$projectDir/native/build"
 val windowsBuildDir = "$projectDir/native/build-w64"
-val classpathResourcesDir = "$projectDir/src/main/resources/"
+val classpathResourcesDir = "$projectDir/src/jvmMain/resources/"
+val androidArm64BuildDir = "$projectDir/native/build-android-arm64"
+val androidX8484BuildDir = "$projectDir/native/build-android-x86_64"
+val androidJniLibsDir = "$projectDir/src/androidMain/jniLibs"
 
 tasks.register<Exec>("linuxPrepareBuild") {
     group = "vips"
@@ -44,46 +76,63 @@ tasks.register<Exec>("linuxBuild") {
     environment("PKG_CONFIG_PATH_CUSTOM", "$linuxBuildDir/fakeroot/lib/pkgconfig")
     commandLine("cmake", "--build", ".", "-j", "${Runtime.getRuntime().availableProcessors()}")
 }
+val linuxLibs = setOf(
+    "libintl.so",
+    "libbrotlicommon.so",
+    "libbrotlidec.so",
+    "libbrotlienc.so",
+    "libde265.so",
+    "libdav1d.so",
+    "libexpat.so",
+    "libffi.so",
+    "libfftw3.so",
+    "libgio-2.0.so",
+    "libglib-2.0.so",
+    "libgmodule-2.0.so",
+    "libgobject-2.0.so",
+    "libheif.so",
+    "libhwy.so",
+    "libjpeg.so",
+    "libjxl.so",
+    "libjxl_cms.so",
+    "libjxl_threads.so",
+    "libsharpyuv.so",
+    "libspng.so",
+    "libtiff.so",
+    "libturbojpeg.so",
+    "libvips.so",
+    "libwebp.so",
+    "libwebpdecoder.so",
+    "libwebpdemux.so",
+    "libwebpmux.so",
+    "libz.so",
+    "libkomelia_vips.so",
+    "libkomelia_vips_ort.so",
+)
+val androidLibs = linuxLibs + setOf( "libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
 
-tasks.register<Sync>("linuxCopyVipsLibsToClasspath") {
+tasks.register<Sync>("linux_copyVipsLibsToClasspath") {
     group = "vips"
-    val libs = setOf(
-        "libbrotlicommon.so",
-        "libbrotlidec.so",
-        "libbrotlienc.so",
-        "libde265.so",
-        "libdav1d.so",
-        "libexpat.so",
-        "libffi.so",
-        "libfftw3.so",
-        "libgio-2.0.so",
-        "libglib-2.0.so",
-        "libgmodule-2.0.so",
-        "libgobject-2.0.so",
-        "libheif.so",
-        "libhwy.so",
-        "libjpeg.so",
-        "libjxl.so",
-        "libjxl_cms.so",
-        "libjxl_threads.so",
-        "libsharpyuv.so",
-        "libspng.so",
-        "libtiff.so",
-        "libturbojpeg.so",
-        "libvips.so",
-        "libwebp.so",
-        "libwebpdecoder.so",
-        "libwebpdemux.so",
-        "libwebpmux.so",
-        "libz.so",
-        "libkomelia_vips.so",
-        "libkomelia_vips_ort.so",
-    )
-
     from("$linuxBuildDir/fakeroot/lib/")
     into(classpathResourcesDir)
-    include { it.name in libs }
+    include { it.name in linuxLibs }
 }
+
+tasks.register<Sync>("android_arm64_copyVipsLibsToClasspath") {
+    group = "vips"
+
+    from("$androidArm64BuildDir/fakeroot/lib/")
+    into("$androidJniLibsDir/arm64-v8a/")
+    include { it.name in androidLibs }
+}
+
+tasks.register<Sync>("android_x86_64_copyVipsLibsToClasspath") {
+    group = "vips"
+    from("$androidX8484BuildDir/fakeroot/lib/")
+    into("$androidJniLibsDir/x86_64/")
+    include { it.name in androidLibs }
+}
+
 
 tasks.register("linuxStripDebugSymbols") {
     group = "vips"
@@ -137,7 +186,7 @@ tasks.register<Exec>("windowsPrepareBuild") {
     commandLine(
         "cmake",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_TOOLCHAIN_FILE=toolchain-mingw-w64-x86_64.cmake",
+        "-DCMAKE_TOOLCHAIN_FILE=w64-toolchain-mingw-x86_64.cmake",
         ".."
     )
 }

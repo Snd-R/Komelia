@@ -3,14 +3,13 @@ package io.github.snd_r.komelia.ui.error
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -55,27 +54,35 @@ fun ErrorView(
                 val stacktrace = exception.stackTraceToString().replace("\t", "    ")
                 val scope = rememberCoroutineScope()
                 val tooltipState = remember { TooltipState() }
-                Text("Encountered Unrecoverable Error: \"${exception.message}\"")
+                Text("Encountered Unrecoverable Error: \"${exception::class.simpleName} ${exception.message}\"")
                 StackTrace(stacktrace)
-                Row {
+                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = { Text("Copied to clipboard") },
-                        state = tooltipState
+                        state = tooltipState,
+                        enableUserInput = false
                     ) {
-                        Button(onClick = {
-                            clipboardManager.setText(AnnotatedString(stacktrace))
-                            scope.launch { tooltipState.show() }
-                        }) {
+                        Button(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString(stacktrace))
+                                scope.launch { tooltipState.show() }
+                            },
+                        ) {
                             Text("Copy stacktrace to clipboard")
                         }
                     }
-                    Spacer(Modifier.size(50.dp))
-                    Button(onClick = onRestart) {
-                        Text("Restart")
+                    if (exception !is NonRestartableException) {
+                        Button(
+                            onClick = onRestart,
+                        ) {
+                            Text("Restart")
+                        }
+
                     }
-                    Spacer(Modifier.size(50.dp))
-                    Button(onClick = onExit) {
+                    Button(
+                        onClick = onExit,
+                    ) {
                         Text("Exit")
                     }
                 }
