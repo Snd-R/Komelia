@@ -39,7 +39,7 @@ class FilesystemSettingsRepository(
         actor.transform { settings -> settings.copy(user = settings.user.copy(username = username)) }
     }
 
-    override fun getDecoderType(): Flow<PlatformDecoderSettings> {
+    override fun getDecoderSettings(): Flow<PlatformDecoderSettings> {
         return actor.getState().map {
             val decoderSettings = it.decoder
             PlatformDecoderSettings(
@@ -50,7 +50,7 @@ class FilesystemSettingsRepository(
         }
     }
 
-    override suspend fun putDecoderType(decoder: PlatformDecoderSettings) {
+    override suspend fun putDecoderSettings(decoder: PlatformDecoderSettings) {
         actor.transform { settings ->
             settings.copy(
                 decoder = settings.decoder.copy(
@@ -125,5 +125,21 @@ class FilesystemSettingsRepository(
 
     suspend fun putOnnxModelsPath(path: String) {
         actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(onnxModelsPath = path)) }
+    }
+
+    fun getOnnxRuntimeDeviceId(): Flow<Int> {
+        return actor.getState().map { it.decoder.onnxRutnimeDeviceId }
+    }
+
+    suspend fun putOnnxRuntimeDeviceId(deviceId: Int) {
+        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(onnxRutnimeDeviceId = deviceId)) }
+    }
+
+    fun getOnnxRuntimeTileSize(): Flow<Int> {
+        return actor.getState().map { it.decoder.onnxRuntimeTileSize }
+    }
+
+    suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
+        actor.transform { settings -> settings.copy(decoder = settings.decoder.copy(onnxRuntimeTileSize = tileSize)) }
     }
 }

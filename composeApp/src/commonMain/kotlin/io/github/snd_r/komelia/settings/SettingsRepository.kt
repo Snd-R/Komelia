@@ -28,8 +28,8 @@ interface SettingsRepository {
     fun getBookListLayout(): Flow<BooksLayout>
     suspend fun putBookListLayout(layout: BooksLayout)
 
-    fun getDecoderType(): Flow<PlatformDecoderSettings>
-    suspend fun putDecoderType(decoder: PlatformDecoderSettings)
+    fun getDecoderSettings(): Flow<PlatformDecoderSettings>
+    suspend fun putDecoderSettings(decoder: PlatformDecoderSettings)
 
     fun getCheckForUpdatesOnStartup(): Flow<Boolean>
     suspend fun putCheckForUpdatesOnStartup(check: Boolean)

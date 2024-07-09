@@ -18,7 +18,6 @@ import io.github.snd_r.ImageFormat.RGBA_8888
 import io.github.snd_r.ImageRect
 import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsImage
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ColorInfo
@@ -55,7 +53,8 @@ class DesktopTilingReaderImage(
     private val onnxRuntimeCacheDir: Path,
 ) : TilingReaderImage(encoded) {
 
-    private var onnxRuntimeFullImage: Path? = null
+    private var onnxRuntimeFullImagePath: Path? = null
+    private var onnxRuntimeFullImage: VipsImage? = null
     private val onnxRuntimeMutex = Mutex()
 
     init {
@@ -64,8 +63,9 @@ class DesktopTilingReaderImage(
             .onEach {
                 try {
                     onnxRuntimeMutex.withLock {
-                        onnxRuntimeFullImage?.deleteIfExists()
-                        onnxRuntimeFullImage = null
+                        onnxRuntimeFullImagePath?.deleteIfExists()
+                        onnxRuntimeFullImagePath = null
+                        onnxRuntimeFullImage?.close()
                     }
 
                     this.painter.value = PlaceholderPainter(lastUpdateRequest?.displaySize ?: IntSize(width, height))
@@ -75,7 +75,6 @@ class DesktopTilingReaderImage(
                     closeTileBitmaps(oldTiles)
 
                     lastUsedScaleFactor = null
-
                     lastUpdateRequest?.let { jobFlow.emit(it) }
                 } catch (e: Exception) {
                     logger.catching(e)
@@ -145,11 +144,9 @@ class DesktopTilingReaderImage(
                 val resized = upscaled.resize(scaleWidth, scaleHeight, false)
                 val imageData = resized.toReaderImageData()
                 resized.close()
-                upscaled.close()
                 return imageData
             } else {
                 val imageData = upscaled.toReaderImageData()
-                upscaled.close()
                 return imageData
             }
         } else {
@@ -188,29 +185,32 @@ class DesktopTilingReaderImage(
         if (upscaled != null) {
             // assume upscaling is done by integer fraction (2x, 4x etc.)
             val scaleRatio = upscaled.width / image.width
-
-            val region = upscaled.getRegion(
-                ImageRect(
-                    left = imageRegion.left * scaleRatio,
-                    right = imageRegion.right * scaleRatio,
-                    top = imageRegion.top * scaleRatio,
-                    bottom = imageRegion.bottom * scaleRatio
-                )
+            val targetRegion = ImageRect(
+                left = imageRegion.left * scaleRatio,
+                right = imageRegion.right * scaleRatio,
+                top = imageRegion.top * scaleRatio,
+                bottom = imageRegion.bottom * scaleRatio
             )
+            val regionMeasured = measureTimedValue { upscaled.getRegion(targetRegion) }
+            val region = regionMeasured.value
 
             // downscale if region is bigger than requested scale
             if (region.width > scaleWidth || region.height > scaleHeight) {
-                val resized = upscaled.resize(scaleWidth, scaleHeight, false)
-                val imageData = resized.toReaderImageData()
-                resized.close()
-                upscaled.close()
+                val resized = measureTimedValue {
+                    region.resize(scaleWidth, scaleHeight, false)
+                }
+                val imageData = measureTimedValue { resized.value.toReaderImageData() }
+                resized.value.close()
                 region.close()
-                return imageData
+                return imageData.value
                 // otherwise do not upsample and return original region size
             } else {
-                val imageData = region.toReaderImageData()
-                region.close()
-                return imageData
+                val imageData = measureTimedValue {
+                    val imageData = region.toReaderImageData()
+                    region.close()
+                    imageData
+                }
+                return imageData.value
             }
 
             // if onnxruntime upscaling wasn't performed return original region size
@@ -223,28 +223,29 @@ class DesktopTilingReaderImage(
     }
 
     private suspend fun onnxRuntimeUpscale(image: VipsImage): VipsImage? {
-        val onnxModelPath = this.onnxModelPath.value ?: return null
+        this.onnxModelPath.value ?: return null
 
-        return withContext(Dispatchers.IO) {
-            onnxRuntimeMutex.withLock {
-                val savedPath = onnxRuntimeFullImage
+        onnxRuntimeMutex.withLock {
+            val savedPath = onnxRuntimeFullImagePath
+            val memoryImage = onnxRuntimeFullImage
+            val upscaledImage =
+                if (memoryImage != null && !memoryImage.isClosed) {
+                    memoryImage
+                } else if (savedPath != null) {
+                    VipsImage.decodeFromFile(savedPath.toString()).also { onnxRuntimeFullImage = it }
+                } else {
+                    logger.info { "launching onnx runtime upscaling for image size: ${image.width} x ${image.height}" }
+                    val onnxRuntimeImage = measureTimedValue {
+                        OnnxRuntimeUpscaler.upscale(image)
+                    }.also { logger.info { "finished onnxruntime upscaling in ${it.duration}" } }
 
-                val upscaledImage =
-                    if (savedPath != null) {
-                        VipsImage.decodeFromFile(savedPath.toString())
-                    } else {
-                        logger.info { "launching onnx runtime upscaling for image size: ${image.width} x ${image.height}" }
-                        val onnxRuntimeImage = measureTimedValue {
-                            OnnxRuntimeUpscaler.upscale(image, onnxModelPath.absolutePathString())
-                        }.also { logger.info { "finished onnxruntime upscaling in ${it.duration}" } }
-
-                        val writePath = kotlin.io.path.createTempFile(onnxRuntimeCacheDir, suffix = "_onnxruntime.png")
-                        onnxRuntimeImage.value.encodeToFile(writePath.absolutePathString())
-                        onnxRuntimeFullImage = writePath
-                        onnxRuntimeImage.value
-                    }
-                upscaledImage
-            }
+                    val writePath = kotlin.io.path.createTempFile(onnxRuntimeCacheDir, suffix = "_onnxruntime.png")
+                    onnxRuntimeImage.value.encodeToFile(writePath.absolutePathString())
+                    onnxRuntimeFullImagePath = writePath
+                    onnxRuntimeFullImage = onnxRuntimeImage.value
+                    onnxRuntimeImage.value
+                }
+            return upscaledImage
         }
     }
 
@@ -254,7 +255,12 @@ class DesktopTilingReaderImage(
 
     override fun close() {
         super.close()
-        imageScope.launch { onnxRuntimeMutex.withLock { onnxRuntimeFullImage?.deleteIfExists() } }
+        imageScope.launch {
+            onnxRuntimeMutex.withLock {
+                onnxRuntimeFullImagePath?.deleteIfExists()
+                onnxRuntimeFullImage?.close()
+            }
+        }
     }
 
     private fun VipsImage.toReaderImageData(): ReaderImageData {
@@ -344,6 +350,3 @@ class DesktopTilingReaderImage(
         }
     }
 }
-
-
-

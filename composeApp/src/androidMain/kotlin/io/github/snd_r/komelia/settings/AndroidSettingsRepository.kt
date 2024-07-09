@@ -60,7 +60,7 @@ class AndroidSettingsRepository(
         }
     }
 
-    override fun getDecoderType(): Flow<PlatformDecoderSettings> {
+    override fun getDecoderSettings(): Flow<PlatformDecoderSettings> {
         return flowOf(
             PlatformDecoderSettings(
                 PlatformDecoderType.DEFAULT,
@@ -70,7 +70,7 @@ class AndroidSettingsRepository(
         )
     }
 
-    override suspend fun putDecoderType(decoder: PlatformDecoderSettings) {
+    override suspend fun putDecoderSettings(decoder: PlatformDecoderSettings) {
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {

@@ -8,6 +8,7 @@ import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.OnnxRuntimeSharedLibraries
+import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsSharedLIbraries
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.DesktopImageDecoder
@@ -87,30 +88,57 @@ class DesktopDependencyContainer private constructor(
     override val appNotifications: AppNotifications = AppNotifications()
 
     companion object {
-        suspend fun createInstance(scope: CoroutineScope): DesktopDependencyContainer {
+        suspend fun createInstance(systemScope: CoroutineScope): DesktopDependencyContainer {
             VipsSharedLIbraries.loadError?.let {
                 throw NonRestartableException("Failed to load libvips shared libraries. ${it.message}", it)
             }
             if (!VipsSharedLIbraries.isAvailable)
                 throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
 
+            val settingsActor = createSettingsActor()
+            val settingsRepository = FilesystemSettingsRepository(settingsActor)
+            val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
+
             measureTime {
                 try {
                     OnnxRuntimeSharedLibraries.load()
+
+                    if (OnnxRuntimeSharedLibraries.isAvailable) {
+                        OnnxRuntimeUpscaler.setDeviceId(settingsRepository.getOnnxRuntimeDeviceId().first())
+                        OnnxRuntimeUpscaler.setTileSize(settingsRepository.getOnnxRuntimeTileSize().first())
+
+                        settingsRepository.getOnnxRuntimeDeviceId()
+                            .onEach { newDeviceId ->
+                                OnnxRuntimeUpscaler.setDeviceId(newDeviceId)
+                            }.launchIn(systemScope)
+
+                        settingsRepository.getOnnxRuntimeTileSize()
+                            .onEach { newTileSize ->
+                                OnnxRuntimeUpscaler.setTileSize(newTileSize)
+                            }.launchIn(systemScope)
+
+
+                        settingsRepository.getDecoderSettings()
+                            .onEach { decoderSettings ->
+                                if (decoderSettings.upscaleOption !in upsamplingFilters) {
+                                    val modelPath = Path.of(settingsRepository.getOnnxModelsPath().first())
+                                        .resolve(decoderSettings.upscaleOption.value)
+                                        .toString()
+                                    OnnxRuntimeUpscaler.setModelPath(modelPath)
+                                }
+                            }.launchIn(systemScope)
+                    }
+
                 } catch (e: UnsatisfiedLinkError) {
                     logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
                 }
             }.also { logger.info { "completed ONNX Runtime load in $it" } }
 
-            val settingsActor = createSettingsActor()
-            val settingsRepository = FilesystemSettingsRepository(settingsActor)
-            val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
-
             val secretsRepository = createSecretsRepository()
 
-            val baseUrl = settingsRepository.getServerUrl().stateIn(scope)
-            val decoderType = settingsRepository.getDecoderType().stateIn(scope)
-            val onnxModelsPath = settingsRepository.getOnnxModelsPath().stateIn(scope)
+            val baseUrl = settingsRepository.getServerUrl().stateIn(systemScope)
+            val decoderType = settingsRepository.getDecoderSettings().stateIn(systemScope)
+            val onnxModelsPath = settingsRepository.getOnnxModelsPath().stateIn(systemScope)
 
             val okHttpClient = createOkHttpClient()
             val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
@@ -158,7 +186,7 @@ class DesktopDependencyContainer private constructor(
                     .build()
             )
 
-            val availableDecoders = createAvailableDecodersFlow(settingsRepository, scope)
+            val availableDecoders = createAvailableDecodersFlow(settingsRepository, systemScope)
 
             return DesktopDependencyContainer(
                 komgaClientFactory = komgaClientFactory,
@@ -306,11 +334,11 @@ class DesktopDependencyContainer private constructor(
                 }
 
             decoderFlow.onEach { decoders ->
-                val current = settingsRepository.getDecoderType().first()
+                val current = settingsRepository.getDecoderSettings().first()
                 val currentDescriptor = decoders.firstOrNull { it.platformType == current.platformType }
                 if (currentDescriptor == null) {
                     val newDecoder = decoders.first()
-                    settingsRepository.putDecoderType(
+                    settingsRepository.putDecoderSettings(
                         PlatformDecoderSettings(
                             platformType = newDecoder.platformType,
                             upscaleOption = newDecoder.upscaleOptions.first(),
@@ -318,7 +346,7 @@ class DesktopDependencyContainer private constructor(
                         )
                     )
                 } else if (!currentDescriptor.upscaleOptions.contains(current.upscaleOption)) {
-                    settingsRepository.putDecoderType(
+                    settingsRepository.putDecoderSettings(
                         current.copy(upscaleOption = currentDescriptor.upscaleOptions.first())
                     )
                 }

@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
@@ -125,14 +126,14 @@ fun ReaderPages(
                     modifier = Modifier.weight(1f, false)
                 ) {
                     when (val result = page.imageResult) {
-                        is PagedReaderState.ImageResult.Success -> Image(
-                            modifier = Modifier.background(Color.White),
-                            painter = result.image.painter.collectAsState().value,
-                            contentDescription = null,
-                        )
+                        is PagedReaderState.ImageResult.Success -> {
+                            val painter = result.image.painter.collectAsState().value
+                            val error = result.image.error.collectAsState().value
+                            ImageDisplay(painter, error)
+                        }
 
                         is PagedReaderState.ImageResult.Error -> Text(
-                            "Error :${result.throwable.message}",
+                            "${result.throwable::class.simpleName}: ${result.throwable.message}",
                             color = MaterialTheme.colorScheme.error
                         )
 
@@ -148,6 +149,23 @@ fun ReaderPages(
             }
         }
     }
+}
+
+@Composable
+private fun ImageDisplay(painter: Painter, error: Exception?) {
+    if (error != null) {
+        Text(
+            "${error::class.simpleName}: ${error.message}",
+            color = MaterialTheme.colorScheme.error
+        )
+    } else {
+        Image(
+            modifier = Modifier.background(Color.White),
+            painter = painter,
+            contentDescription = null,
+        )
+    }
+
 }
 
 private suspend fun registerPagedReaderKeyboardEvents(

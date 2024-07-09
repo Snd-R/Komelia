@@ -16,8 +16,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     libglib2.0-dev \
     unzip \
     wget \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    git
 
 RUN update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 

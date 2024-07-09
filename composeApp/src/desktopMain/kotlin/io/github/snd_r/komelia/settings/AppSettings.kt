@@ -82,6 +82,8 @@ data class DecoderSettings(
     val downscaleOption: String = vipsDownscaleLanczos.value,
     @TomlLiteral
     val onnxModelsPath: String = System.getProperty("user.home") ?: "/",
+    val onnxRutnimeDeviceId: Int = 0,
+    val onnxRuntimeTileSize: Int = 512,
 )
 
 @Serializable

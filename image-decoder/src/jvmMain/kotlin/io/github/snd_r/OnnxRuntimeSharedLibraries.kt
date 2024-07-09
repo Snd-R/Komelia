@@ -5,6 +5,10 @@ import io.github.snd_r.DesktopPlatform.Linux
 import io.github.snd_r.DesktopPlatform.MacOS
 import io.github.snd_r.DesktopPlatform.Unknown
 import io.github.snd_r.DesktopPlatform.Windows
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -12,9 +16,9 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.notExists
 
 object OnnxRuntimeSharedLibraries {
     private val logger = LoggerFactory.getLogger(OnnxRuntimeSharedLibraries::class.java)
@@ -31,9 +35,7 @@ object OnnxRuntimeSharedLibraries {
 
     var isAvailable = false
         private set
-    var isCudaAvailable = false
-        private set
-    var isRocmAvailable = false
+    var executionProvider = CPU
         private set
 
     @Synchronized
@@ -72,36 +74,62 @@ object OnnxRuntimeSharedLibraries {
                 rocmProviderPath?.let { copyToTempDir(it) }
             }
 
+            val executionProvider =
+                if (cudaProviderPath != null) CUDA
+                else if (rocmProviderPath != null) ROCm
+                else if (DesktopPlatform.Current == Windows) DirectML
+                else CPU
+            this.executionProvider = executionProvider
+
             when (DesktopPlatform.Current) {
-                Linux -> SharedLibrariesLoader.loadLibrary("komelia_vips_ort")
+                Linux -> {
+                    SharedLibrariesLoader.loadLibrary("komelia_vips_ort")
+                    when (executionProvider) {
+                        CUDA -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_cuda")
+                        else -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_vulkan")
+                    }
+                }
+
                 Windows -> {
-                    if (cudaProviderPath == null && rocmProviderPath == null) {
-                        SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort_dml")
-                    } else {
-                        SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort")
+                    when (executionProvider) {
+                        DirectML -> {
+                            SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort_dml")
+                            SharedLibrariesLoader.loadLibrary("libkomelia_enumerate_devices_dxgi")
+                        }
+
+                        CUDA -> {
+                            SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort")
+                            SharedLibrariesLoader.loadLibrary("libkomelia_enumerate_devices_cuda")
+                        }
+
+                        else -> {
+                            SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort")
+                        }
                     }
                 }
 
                 MacOS, Unknown -> error("Unsupported OS")
             }
 
+
+            if (!initialized.compareAndSet(false, true)) return
+
+
+            OnnxRuntimeUpscaler.init(
+                when (executionProvider) {
+                    CUDA -> "CUDA"
+                    ROCm -> "ROCM"
+                    DirectML -> "DML"
+                    CPU -> "CPU"
+                }
+            )
+
+            isAvailable = true
+            this.executionProvider = executionProvider
         } catch (e: UnsatisfiedLinkError) {
             loadErrorMessage = e.message
             throw e
         }
-
-        if (!initialized.compareAndSet(false, true)) return
-
-        OnnxRuntimeUpscaler.init(
-            if (cudaProviderPath != null) "CUDA"
-            else if (rocmProviderPath != null) "ROCM"
-            else if (DesktopPlatform.Current == Windows) "DML"
-            else "CPU",
-        )
-
-        isAvailable = true
-        if (cudaProviderPath != null) isCudaAvailable = true
-        if (rocmProviderPath != null) isRocmAvailable = true
     }
 
     @Suppress("UnsafeDynamicallyLoadedCode")
@@ -118,7 +146,7 @@ object OnnxRuntimeSharedLibraries {
 
     private fun copyToTempDir(path: Path): Path {
         val destinationPath = SharedLibrariesLoader.tempDir.resolve(path.fileName)
-        if (destinationPath.exists() && path.fileSize() != destinationPath.fileSize()) {
+        if (destinationPath.notExists() || path.fileSize() != destinationPath.fileSize()) {
             Files.copy(path, destinationPath, REPLACE_EXISTING)
         }
 
@@ -128,7 +156,7 @@ object OnnxRuntimeSharedLibraries {
     enum class OnnxRuntimeExecutionProvider {
         CUDA,
         ROCm,
+        DirectML,
         CPU,
-        DirectML
     }
 }

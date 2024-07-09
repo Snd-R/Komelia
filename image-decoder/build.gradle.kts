@@ -76,7 +76,7 @@ tasks.register<Exec>("linuxBuild") {
     environment("PKG_CONFIG_PATH_CUSTOM", "$linuxBuildDir/fakeroot/lib/pkgconfig")
     commandLine("cmake", "--build", ".", "-j", "${Runtime.getRuntime().availableProcessors()}")
 }
-val linuxLibs = setOf(
+val linuxCommonLibs = setOf(
     "libintl.so",
     "libbrotlicommon.so",
     "libbrotlidec.so",
@@ -108,14 +108,15 @@ val linuxLibs = setOf(
     "libz.so",
     "libkomelia_vips.so",
     "libkomelia_vips_ort.so",
+    "libkomelia_enumerate_devices_vulkan.so"
 )
-val androidLibs = linuxLibs + setOf( "libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
+val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
 
 tasks.register<Sync>("linux_copyVipsLibsToClasspath") {
     group = "vips"
     from("$linuxBuildDir/fakeroot/lib/")
     into(classpathResourcesDir)
-    include { it.name in linuxLibs }
+    include { it.name in linuxCommonLibs }
 }
 
 tasks.register<Sync>("android_arm64_copyVipsLibsToClasspath") {
@@ -245,6 +246,7 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
         "libkomelia_vips.dll",
         "libkomelia_vips_ort.dll",
         "libkomelia_vips_ort_dml.dll",
+        "libkomelia_enumerate_devices_dxgi.dll",
     )
     duplicatesStrategy = EXCLUDE
 

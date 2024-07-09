@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void throw_jvm_vips_exception(JNIEnv *env, const char *message) {
+void komelia_throw_jvm_vips_exception(JNIEnv *env, const char *message) {
     (*env)->ThrowNew(env, (*env)->FindClass(env, "io/github/snd_r/VipsException"), message);
 }
 
@@ -17,7 +17,7 @@ jobject get_jvm_enum_type(JNIEnv *env, VipsImage *image) {
             enum_field_name = "RGBA_8888";
             break;
         default:
-            throw_jvm_vips_exception(env, "unsupported vips interpretation");
+            komelia_throw_jvm_vips_exception(env, "unsupported vips interpretation");
             return NULL;
     }
 
@@ -63,7 +63,7 @@ int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transf
         }
 
         if (vips_error) {
-            throw_jvm_vips_exception(env, vips_error_buffer());
+            komelia_throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
             return -1;
         }
@@ -74,7 +74,7 @@ int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transf
     return 0;
 }
 
-jobject to_jvm_image_data(JNIEnv *env, VipsImage *decoded) {
+jobject komelia_to_jvm_image_data(JNIEnv *env, VipsImage *decoded) {
     VipsImage *transformed = NULL;
     int transform_error = transform_to_supported_format(env, decoded, &transformed);
     if (transform_error) { return NULL; }
@@ -103,24 +103,20 @@ jobject to_jvm_image_data(JNIEnv *env, VipsImage *decoded) {
                              jvm_bytes, width, height, jvm_enum_interpretation);
 }
 
-VipsImage *from_jvm_handle(JNIEnv *env, jobject jvm_image) {
+VipsImage *komelia_from_jvm_handle(JNIEnv *env, jobject jvm_image) {
     jclass class = (*env)->GetObjectClass(env, jvm_image);
     jfieldID ptr_field = (*env)->GetFieldID(env, class, "_ptr", "J");
     VipsImage *image = (VipsImage *) (*env)->GetLongField(env, jvm_image, ptr_field);
 
     if (image == NULL) {
-        throw_jvm_vips_exception(env, "image was already closed\n");
+        komelia_throw_jvm_vips_exception(env, "image was already closed\n");
         return NULL;
     }
 
     return image;
 }
 
-jobject to_jvm_handle_from_file(JNIEnv *env, VipsImage *image) {
-    return to_jvm_handle(env, image, NULL);
-}
-
-jobject to_jvm_handle(JNIEnv *env, VipsImage *image, const unsigned char *external_source_buffer) {
+jobject komelia_to_jvm_handle(JNIEnv *env, VipsImage *image, const unsigned char *external_source_buffer) {
     VipsImage *transformed = NULL;
     int transform_error = transform_to_supported_format(env, image, &transformed);
     if (transform_error) { return NULL; }

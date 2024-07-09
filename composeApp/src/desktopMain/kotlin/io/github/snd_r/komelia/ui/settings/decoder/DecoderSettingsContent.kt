@@ -1,5 +1,8 @@
 package io.github.snd_r.komelia.ui.settings.decoder
 
+import androidx.compose.foundation.BasicTooltipBox
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,15 +12,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberBasicTooltipState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +41,11 @@ import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
+import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.Windows
@@ -43,6 +58,7 @@ import io.github.snd_r.komelia.platform.formatDecimal
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.coroutines.launch
@@ -57,6 +73,11 @@ fun DecoderSettingsContent(
     onUpscaleOptionChange: (UpscaleOption) -> Unit,
     downscaleOption: DownscaleOption,
     onDownscaleOptionChange: (DownscaleOption) -> Unit,
+    gpuInfo: List<OnnxRuntimeUpscaler.DeviceInfo>,
+    tileSize: Int,
+    onTileSizeChange: (Int) -> Unit,
+    deviceId: Int,
+    onDeviceIdChange: (Int) -> Unit,
 
     onnxPath: String,
     onOnnxPathChange: (String) -> Unit,
@@ -72,21 +93,6 @@ fun DecoderSettingsContent(
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-//        if (availableDecoders.size > 1) {
-//            DropdownChoiceMenu(
-//                selectedOption = LabeledEntry(decoder, decoder.getDisplayName()),
-//                options = remember(availableDecoders) {
-//                    availableDecoders.map { LabeledEntry(it.platformType, it.platformType.getDisplayName()) }
-//                },
-//                onOptionChange = { onDecoderChange(it.value) },
-//                inputFieldModifier = Modifier.fillMaxWidth(),
-//                label = { Text("Decoder") }
-//            )
-//        } else {
-
-
-//        }
-
         if (decoderDescriptor.downscaleOptions.size > 1) {
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(downscaleOption, downscaleOption.value),
@@ -121,6 +127,12 @@ fun DecoderSettingsContent(
                 decoder = decoder,
                 onnxPath = onnxPath,
                 onOnnxPathChange = onOnnxPathChange,
+                gpuInfo = gpuInfo,
+                tileSize = tileSize,
+                onTileSizeChange = onTileSizeChange,
+                deviceId = deviceId,
+                onDeviceIdChange = onDeviceIdChange,
+
                 onOrtProviderInstall = onOrtProviderInstall,
                 onOrtProviderInstallCancel = onOrtProviderInstallCancel,
                 ortInstallProgress = ortInstallProgress,
@@ -139,11 +151,18 @@ fun DecoderSettingsContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun OnnxRuntimeContent(
     decoder: PlatformDecoderType,
     onnxPath: String,
     onOnnxPathChange: (String) -> Unit,
+    gpuInfo: List<OnnxRuntimeUpscaler.DeviceInfo>,
+    tileSize: Int,
+    onTileSizeChange: (Int) -> Unit,
+    deviceId: Int,
+    onDeviceIdChange: (Int) -> Unit,
+
     onOrtProviderInstall: suspend (OnnxRuntimeExecutionProvider) -> Unit,
     onOrtProviderInstallCancel: () -> Unit,
     ortInstallProgress: UpdateProgress?,
@@ -172,46 +191,8 @@ private fun OnnxRuntimeContent(
         })
     }
 
-    Text("ONNX runtime settings")
-    if (decoder == PlatformDecoderType.VIPS_ONNX) {
-        var showFilePicker by remember { mutableStateOf(false) }
-        DirectoryPicker(show = showFilePicker) { path ->
-            if (path != null) {
-                onOnnxPathChange(path)
-            }
-            showFilePicker = false
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextField(
-                value = onnxPath,
-                onValueChange = onOnnxPathChange,
-                label = { Text("ONNX models path") },
-                modifier = Modifier.weight(7f)
-            )
-
-            ElevatedButton(
-                onClick = { showFilePicker = true },
-                modifier = Modifier.padding(horizontal = 10.dp),
-                shape = RoundedCornerShape(5.dp)
-            ) {
-                Text("Browse")
-            }
-        }
-    }
-
-    if (decoder == PlatformDecoderType.VIPS_ONNX) {
-        val ortExecutionProvider = remember {
-            if (OnnxRuntimeSharedLibraries.isCudaAvailable) "Cuda"
-            else if (OnnxRuntimeSharedLibraries.isRocmAvailable) "ROCm"
-            else if (DesktopPlatform.Current == Windows) "DirectML"
-            else "CPU"
-        }
-        Text("  ONNX Runtime $ortExecutionProvider execution provider")
-        FilledTonalButton(
-            onClick = { showOrtInstallDialog = true },
-            shape = RoundedCornerShape(5.dp)
-        ) { Text("Update ONNX Runtime") }
-    } else {
+    if (decoder != PlatformDecoderType.VIPS_ONNX) {
+        Text("ONNX runtime settings")
         FilledTonalButton(
             onClick = { showOrtInstallDialog = true },
             shape = RoundedCornerShape(5.dp)
@@ -222,7 +203,104 @@ private fun OnnxRuntimeContent(
                 "Failed to load ONNX Runtime:\n${OnnxRuntimeSharedLibraries.loadErrorMessage}",
                 style = MaterialTheme.typography.bodySmall
             )
+        return
     }
+
+    val ortExecutionProvider = remember {
+        when (OnnxRuntimeSharedLibraries.executionProvider) {
+            CUDA -> "Cuda"
+            ROCm -> "ROCm"
+            DirectML -> "DirectML"
+            CPU -> "CPU"
+        }
+    }
+    Text("ONNX Runtime $ortExecutionProvider execution provider")
+
+    if (gpuInfo.isNotEmpty() && OnnxRuntimeSharedLibraries.executionProvider != CPU) {
+        val selectedDevice = remember(deviceId) { gpuInfo.find { it.id == deviceId } ?: gpuInfo.first() }
+        DropdownChoiceMenu(
+            selectedOption = LabeledEntry(selectedDevice, "${selectedDevice.name} ${selectedDevice.memoryGb()}GiB"),
+            options = remember { gpuInfo.map { LabeledEntry(it, "${it.name} ${it.memoryGb()}GiB") } },
+            onOptionChange = { onDeviceIdChange(it.value.id) },
+            label = { Text("GPU") },
+            inputFieldModifier = Modifier.fillMaxSize()
+        )
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        DropdownChoiceMenu(
+            selectedOption = remember(tileSize) { if (tileSize == 0) LabeledEntry(0, "None") else intEntry(tileSize) },
+            options = remember {
+                listOf(
+                    LabeledEntry(0, "None"),
+                    intEntry(4096),
+                    intEntry(2048),
+                    intEntry(1024),
+                    intEntry(512),
+                    intEntry(256),
+                    intEntry(128)
+                )
+            },
+            onOptionChange = { onTileSizeChange(it.value) },
+            label = { Text("Tile size") },
+            modifier = Modifier.weight(1f),
+            inputFieldModifier = Modifier.fillMaxSize()
+        )
+
+        BasicTooltipBox(
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            tooltip = {
+                Card(
+                    modifier = Modifier.widthIn(max = 450.dp),
+                    border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surface)
+                ) {
+                    Text(
+                        text = """
+                            Splits image into small regions of specified size and upscales them individually
+                            Upscaled regions are then recombined back into single upscaled image
+                            
+                            This helps upscaling without running out of VRAM for big images
+                            """.trimIndent(),
+                        modifier = Modifier.padding(10.dp)
+                    )
+                }
+            },
+            state = rememberBasicTooltipState(),
+        ) {
+            Icon(Icons.Default.Info, null)
+        }
+
+    }
+
+    var showFilePicker by remember { mutableStateOf(false) }
+    DirectoryPicker(show = showFilePicker) { path ->
+        if (path != null) {
+            onOnnxPathChange(path)
+        }
+        showFilePicker = false
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        TextField(
+            value = onnxPath,
+            onValueChange = onOnnxPathChange,
+            label = { Text("ONNX models path") },
+            modifier = Modifier.weight(7f)
+        )
+
+        ElevatedButton(
+            onClick = { showFilePicker = true },
+            modifier = Modifier.padding(horizontal = 10.dp),
+            shape = RoundedCornerShape(5.dp)
+        ) {
+            Text("Browse")
+        }
+    }
+    FilledTonalButton(
+        onClick = { showOrtInstallDialog = true },
+        shape = RoundedCornerShape(5.dp)
+    ) { Text("Update ONNX Runtime") }
 }
 
 @Composable
@@ -305,29 +383,29 @@ private fun OrtDownloadDialogContent(
             )
         }
         CheckboxWithLabel(
-            checked = chosenProvider == OnnxRuntimeExecutionProvider.CUDA,
-            onCheckedChange = { onProviderChoice(OnnxRuntimeExecutionProvider.CUDA) },
+            checked = chosenProvider == CUDA,
+            onCheckedChange = { onProviderChoice(CUDA) },
             label = { Text("Cuda (Nvida GPUs, requires Cuda12 system install)") }
         )
 
         if (DesktopPlatform.Current == Linux)
             CheckboxWithLabel(
-                checked = chosenProvider == OnnxRuntimeExecutionProvider.ROCm,
-                onCheckedChange = { onProviderChoice(OnnxRuntimeExecutionProvider.ROCm) },
+                checked = chosenProvider == ROCm,
+                onCheckedChange = { onProviderChoice(ROCm) },
                 label = { Text("ROCm (AMD GPUs, requires ROCm5 system install)") }
             )
 
         if (DesktopPlatform.Current == Windows)
             CheckboxWithLabel(
-                checked = chosenProvider == OnnxRuntimeExecutionProvider.DirectML,
-                onCheckedChange = { onProviderChoice(OnnxRuntimeExecutionProvider.DirectML) },
+                checked = chosenProvider == DirectML,
+                onCheckedChange = { onProviderChoice(DirectML) },
                 label = { Text("DirectML (all GPUs)") }
             )
 
         if (DesktopPlatform.Current == Linux)
             CheckboxWithLabel(
-                checked = chosenProvider == OnnxRuntimeExecutionProvider.CPU,
-                onCheckedChange = { onProviderChoice(OnnxRuntimeExecutionProvider.CPU) },
+                checked = chosenProvider == CPU,
+                onCheckedChange = { onProviderChoice(CPU) },
                 label = { Text("CPU") }
             )
     }
@@ -390,4 +468,9 @@ private fun RestartDialog(
         },
         onDismissRequest = { }
     )
+}
+
+
+private fun OnnxRuntimeUpscaler.DeviceInfo.memoryGb(): String {
+    return (memory / 1024.0f / 1024.0f / 1024.0f).formatDecimal(2)
 }

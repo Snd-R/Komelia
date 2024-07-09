@@ -58,6 +58,7 @@ import io.github.snd_r.komelia.window.UndecoratedWindowResizer
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -83,7 +84,7 @@ val windowBorder = mutableStateOf(Color.Unspecified)
 private var shouldRestart = true
 private var windowLastState: WindowState? = null
 
-private val initScope = CoroutineScope(Dispatchers.Default)
+private val systemScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 val projectDirectories: ProjectDirectories = ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia")
 
@@ -101,9 +102,9 @@ fun main() {
     val lastError = MutableStateFlow<Throwable?>(null)
     val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)
     val initError = MutableStateFlow<Throwable?>(null)
-    initScope.launch {
+    systemScope.launch {
         try {
-            dependencies.value = DesktopDependencyContainer.createInstance(initScope)
+            dependencies.value = DesktopDependencyContainer.createInstance(systemScope)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {

@@ -22,13 +22,13 @@ Java_io_github_snd_1r_VipsImage_decode(
     VipsImage *decoded = vips_image_new_from_buffer(internal_buffer, input_len, "", NULL);
 
     if (!decoded) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         vips_thread_shutdown();
         return NULL;
     }
 
-    jobject jvm_image = to_jvm_handle(env, decoded, internal_buffer);
+    jobject jvm_image = komelia_to_jvm_handle(env, decoded, internal_buffer);
     if (jvm_image == NULL) { g_object_unref(decoded); }
 
     vips_thread_shutdown();
@@ -46,14 +46,14 @@ Java_io_github_snd_1r_VipsImage_decodeFromFile(
     (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
     if (!decoded) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         vips_thread_shutdown();
         return NULL;
     }
 
     vips_thread_shutdown();
-    jobject jvm_handle = to_jvm_handle_from_file(env, decoded);
+    jobject jvm_handle = komelia_to_jvm_handle(env, decoded, NULL);
     if (jvm_handle == NULL) { g_object_unref(decoded); }
     return jvm_handle;
 }
@@ -64,7 +64,7 @@ Java_io_github_snd_1r_VipsImage_encodeToFile(
         jobject this,
         jstring path
 ) {
-    VipsImage *image = from_jvm_handle(env, this);
+    VipsImage *image = komelia_from_jvm_handle(env, this);
     if (image == NULL) return;
 
     const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
@@ -72,7 +72,7 @@ Java_io_github_snd_1r_VipsImage_encodeToFile(
     (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
     if (write_error) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         vips_thread_shutdown();
         return;
@@ -93,7 +93,7 @@ Java_io_github_snd_1r_VipsImage_getDimensions(
     VipsImage *decoded = vips_image_new_from_buffer(input_bytes, input_len, "", NULL);
 
     if (!decoded) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         vips_thread_shutdown();
         return NULL;
@@ -126,7 +126,7 @@ Java_io_github_snd_1r_VipsImage_decodeAndGet(
     VipsImage *decoded = vips_image_new_from_buffer((unsigned char *) inputBytes, inputLen, "", NULL);
 
     if (!decoded) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         vips_thread_shutdown();
@@ -134,7 +134,7 @@ Java_io_github_snd_1r_VipsImage_decodeAndGet(
     }
 
 
-    jobject javaImage = to_jvm_image_data(env, decoded);
+    jobject javaImage = komelia_to_jvm_image_data(env, decoded);
     g_object_unref(decoded);
     (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
     vips_thread_shutdown();
@@ -168,14 +168,14 @@ Java_io_github_snd_1r_VipsImage_decodeResizeAndGet(
         );
     }
     if (!decoded) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
         vips_thread_shutdown();
         return NULL;
     }
 
-    jobject javaImage = to_jvm_image_data(env, decoded);
+    jobject javaImage = komelia_to_jvm_image_data(env, decoded);
     g_object_unref(decoded);
     (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
     vips_thread_shutdown();
@@ -185,7 +185,7 @@ Java_io_github_snd_1r_VipsImage_decodeResizeAndGet(
 
 JNIEXPORT jbyteArray JNICALL
 Java_io_github_snd_1r_VipsImage_getBytes(JNIEnv *env, jobject this) {
-    VipsImage *image = from_jvm_handle(env, this);
+    VipsImage *image = komelia_from_jvm_handle(env, this);
     if (image == NULL) return NULL;
 
     unsigned char *data = (unsigned char *) vips_image_get_data(image);
@@ -221,27 +221,29 @@ VipsRect to_vips_rect(JNIEnv *env, jobject jvm_rect) {
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rect) {
-    VipsImage *input_image = from_jvm_handle(env, this);
+    VipsImage *input_image = komelia_from_jvm_handle(env, this);
     if (input_image == NULL) { return NULL; }
 
     VipsRegion *region = vips_region_new(input_image);
     VipsRect vips_rect = to_vips_rect(env, rect);
 
     int bands = vips_image_get_bands(input_image);
-    int region_size = vips_rect.width * vips_rect.height * bands;
 
     int prepare_error = vips_region_prepare(region, &vips_rect);
     if (prepare_error) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         g_object_unref(region);
         return NULL;
     }
 
+    size_t region_size = 0;
+    // using region directly sometimes causes image corruption or only loads part of the region
+    // copy entire region instead
     VipsPel *region_data = vips_region_fetch(region,
                                              vips_rect.left, vips_rect.top,
                                              vips_rect.width, vips_rect.height,
-                                             (size_t *) &region_size
+                                             &region_size
     );
     VipsImage *memory_image = vips_image_new_from_memory(
 //                VIPS_REGION_ADDR_TOPLEFT(region),
@@ -253,7 +255,7 @@ Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rec
             VIPS_FORMAT_UCHAR
     );
     if (!memory_image) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         g_object_unref(region);
         g_free(region_data);
@@ -269,7 +271,7 @@ Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rec
               NULL
     );
     if (!region_image) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         g_object_unref(memory_image);
         g_object_unref(region);
@@ -278,7 +280,7 @@ Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rec
         return NULL;
     }
 
-    jobject jvm_image = to_jvm_handle(env, region_image, region_data);
+    jobject jvm_image = komelia_to_jvm_handle(env, region_image, region_data);
     g_object_unref(memory_image);
     g_object_unref(region);
     vips_thread_shutdown();
@@ -293,7 +295,7 @@ Java_io_github_snd_1r_VipsImage_resize(
         jint scaleHeight,
         jboolean crop
 ) {
-    VipsImage *image = from_jvm_handle(env, this);
+    VipsImage *image = komelia_from_jvm_handle(env, this);
     if (image == NULL) return NULL;
 
     VipsImage *resized = NULL;
@@ -312,14 +314,14 @@ Java_io_github_snd_1r_VipsImage_resize(
     }
 
     if (resized == NULL) {
-        throw_jvm_vips_exception(env, vips_error_buffer());
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
         vips_thread_shutdown();
         return NULL;
     }
 
 
-    jobject jvm_image = to_jvm_handle(env, resized, NULL);
+    jobject jvm_image = komelia_to_jvm_handle(env, resized, NULL);
     if (jvm_image == NULL) { g_object_unref(resized); }
     vips_thread_shutdown();
     return jvm_image;

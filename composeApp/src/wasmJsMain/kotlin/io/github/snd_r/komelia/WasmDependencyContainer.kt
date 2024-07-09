@@ -69,7 +69,7 @@ class WasmDependencyContainer(
             val ktorClient = createKtorClient(baseUrl)
             val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient)
 
-            val decoderType = settingsRepository.getDecoderType().stateIn(stateFlowScope)
+            val decoderType = settingsRepository.getDecoderSettings().stateIn(stateFlowScope)
             val coil = createCoil(baseUrl, ktorClient, imageWorker)
             SingletonImageLoader.setSafe { coil }
 

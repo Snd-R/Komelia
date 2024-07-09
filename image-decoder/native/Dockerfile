@@ -9,10 +9,10 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     openjdk-17-jdk-headless \
     texinfo \
     gettext \
+    libvulkan-dev \
     python3-pip \
     python3-packaging \
-    -t bullseye-backports \
-    && rm -rf /var/lib/apt/lists/*
+    -t bullseye-backports
 
 RUN pip3 install meson
 

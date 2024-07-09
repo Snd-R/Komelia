@@ -4,6 +4,8 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import coil3.ImageLoader
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
+import io.github.snd_r.OnnxRuntimeUpscaler
+import io.github.snd_r.OnnxRuntimeUpscaler.DeviceInfo
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.DownscaleOption
@@ -41,13 +43,18 @@ class DecoderSettingsViewModel(
     val onnxModelsPath = MutableStateFlow<String?>(null)
     val ortUpdateProgress = MutableStateFlow<UpdateProgress?>(null)
     val ortInstallError = MutableStateFlow<String?>(null)
+    val gpuInfo = MutableStateFlow<List<DeviceInfo>>(emptyList())
+    val tileSize = MutableStateFlow(0)
+    val deviceId = MutableStateFlow(0)
 
     private val ortInstallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
         onnxModelsPath.value = settingsRepository.getOnnxModelsPath().first()
+        tileSize.value = settingsRepository.getOnnxRuntimeTileSize().first()
+        deviceId.value = settingsRepository.getOnnxRuntimeDeviceId().first()
 
-        settingsRepository.getDecoderType().onEach { decoder ->
+        settingsRepository.getDecoderSettings().onEach { decoder ->
             decoderType.value = decoder.platformType
             upscaleOption.value = decoder.upscaleOption
             downscaleOption.value = decoder.downscaleOption
@@ -57,6 +64,12 @@ class DecoderSettingsViewModel(
             val newDescriptor = decoders.firstOrNull { it.platformType == decoderType.value }
             currentDecoderDescriptor.value = newDescriptor
         }.launchIn(screenModelScope)
+
+        try {
+            gpuInfo.value = OnnxRuntimeUpscaler.enumerateDevices()
+        } catch (e: Exception) {
+            appNotifications.add(AppNotification.Error(e.message ?: "Failed to get device list"))
+        }
     }
 
     fun onDecoderChange(type: PlatformDecoderType) {
@@ -107,6 +120,17 @@ class DecoderSettingsViewModel(
         }
     }
 
+    fun onTileSizeChange(tileSize: Int) {
+        this.tileSize.value = tileSize
+        ortInstallScope.launch { settingsRepository.putOnnxRuntimeTileSize(tileSize) }
+    }
+
+    fun onDeviceIdChange(deviceId: Int) {
+        this.deviceId.value = deviceId
+        ortInstallScope.launch { settingsRepository.putOnnxRuntimeDeviceId(deviceId) }
+    }
+
+
     fun onOrtInstallCancel() {
         ortInstallScope.coroutineContext.cancelChildren()
     }
@@ -132,7 +156,7 @@ class DecoderSettingsViewModel(
         val upscaleOption = requireNotNull(upscaleOption.value)
         val downscaleOption = requireNotNull(downscaleOption.value)
         screenModelScope.launch {
-            settingsRepository.putDecoderType(
+            settingsRepository.putDecoderSettings(
                 PlatformDecoderSettings(
                     platformType = currentDecoder.platformType,
                     upscaleOption = upscaleOption,

@@ -1,7 +1,6 @@
-#include "vips_common_jni.h"
-#include "android/bitmap.h"
+#include "../vips/vips_common_jni.h"
+#include <android/bitmap.h>
 #include <android/hardware_buffer_jni.h>
-#include <android/hardware_buffer.h>
 #include <android/log.h>
 
 
@@ -13,7 +12,7 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
     if (interpretation != VIPS_INTERPRETATION_sRGB) {
         VipsImage *srgb = NULL;
         if (vips_colourspace(input, &srgb, VIPS_INTERPRETATION_sRGB, NULL)) {
-            throw_jvm_vips_exception(env, vips_error_buffer());
+           komelia_throw_jvm_vips_exception(env, vips_error_buffer());
             g_object_unref(transformed);
             vips_error_clear();
             return -1;
@@ -26,7 +25,7 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
     if (vips_image_get_bands(transformed) != 4) {
         VipsImage *with_alpha = NULL;
         if (vips_addalpha(transformed, &with_alpha, NULL)) {
-            throw_jvm_vips_exception(env, vips_error_buffer());
+            komelia_throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
             g_object_unref(transformed);
             return -1;
@@ -43,7 +42,7 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobject this, jobject jvm_image) {
-    VipsImage *image = from_jvm_handle(env, jvm_image);
+    VipsImage *image = komelia_from_jvm_handle(env, jvm_image);
     if (image == NULL) return NULL;
 
     VipsImage *processed_input = NULL;
@@ -68,7 +67,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
 
     int allocation_error = AHardwareBuffer_allocate(&desc, &hardware_buffer);
     if (allocation_error) {
-        throw_jvm_vips_exception(env, "Could not allocate bitmap hardware buffer");
+        komelia_throw_jvm_vips_exception(env, "Could not allocate bitmap hardware buffer");
         return NULL;
     }
 
@@ -83,7 +82,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
     AHardwareBuffer_Desc created_desc;
     AHardwareBuffer_describe(hardware_buffer, &created_desc);
     if (lock_error) {
-        throw_jvm_vips_exception(env, "Could not acquire created hardware hardware_buffer");
+        komelia_throw_jvm_vips_exception(env, "Could not acquire created hardware hardware_buffer");
         AHardwareBuffer_release(hardware_buffer);
         return NULL;
     }
@@ -94,8 +93,6 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
     if (created_desc.stride == image_width) {
         memcpy(write_buffer, image_data, image_width * image_height * 4);
     } else {
-        memset(write_buffer, 255, created_desc.stride * created_desc.height);
-//        memcpy(write_buffer, image_data, image_width * image_height * 4);
         for (int y = 0; y < image_height; ++y) {
             memcpy(write_buffer + (created_desc.stride * y * 4),
                    image_data + (image_width * y * 4),
@@ -108,7 +105,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
     g_object_unref(processed_input);
 
     if (unlock_error) {
-        throw_jvm_vips_exception(env, "Failed to unlock hardware buffer");
+        komelia_throw_jvm_vips_exception(env, "Failed to unlock hardware buffer");
         AHardwareBuffer_release(hardware_buffer);
         return NULL;
     }
@@ -127,7 +124,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsBitmapFactory_createSoftwareBitmap(JNIEnv *env, jobject this, jobject jvm_image) {
-    VipsImage *image = from_jvm_handle(env, jvm_image);
+    VipsImage *image = komelia_from_jvm_handle(env, jvm_image);
     VipsImage *processed_image = NULL;
     int conversion_error = convert_to_rgba(env, image, &processed_image);
     if (conversion_error) { return NULL; }
@@ -156,7 +153,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createSoftwareBitmap(JNIEnv *env, jobjec
     unsigned char *bitmap_data = NULL;
     int lock_error = AndroidBitmap_lockPixels(env, jvm_bitmap, (void *) &bitmap_data);
     if (lock_error) {
-        throw_jvm_vips_exception(env, "Failed to lock Bitmap");
+        komelia_throw_jvm_vips_exception(env, "Failed to lock Bitmap");
         g_object_unref(processed_image);
         return NULL;
     }
@@ -164,7 +161,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createSoftwareBitmap(JNIEnv *env, jobjec
 
     int unlock_error = AndroidBitmap_unlockPixels(env, jvm_bitmap);
     if (unlock_error) {
-        throw_jvm_vips_exception(env, "Failed to unlock Bitmap");
+        komelia_throw_jvm_vips_exception(env, "Failed to unlock Bitmap");
         return NULL;
     }
 

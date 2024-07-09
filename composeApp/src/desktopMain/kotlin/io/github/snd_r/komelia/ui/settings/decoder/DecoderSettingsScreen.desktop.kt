@@ -43,6 +43,12 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
                     onUpscaleOptionChange = vm::onUpscaleOptionChange,
                     downscaleOption = downscale,
                     onDownscaleOptionChange = vm::onDownscaleOptionChange,
+                    gpuInfo = vm.gpuInfo.value,
+                    tileSize = vm.tileSize.collectAsState().value,
+                    onTileSizeChange = vm::onTileSizeChange,
+                    deviceId = vm.deviceId.collectAsState().value,
+                    onDeviceIdChange = vm::onDeviceIdChange,
+
                     onnxPath = onnxPath,
                     onOnnxPathChange = vm::onOnnxPathChange,
                     onOrtProviderInstall = vm::onOrtInstallRequest,

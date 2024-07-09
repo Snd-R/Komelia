@@ -22,6 +22,7 @@ import kotlin.concurrent.Volatile
 import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 
 private const val tileThreshold1 = 2048 * 2048
 private const val tileThreshold2 = 4096 * 4096
@@ -208,18 +209,21 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
 
                 val tileWidth = tileRegion.right - tileRegion.left
                 val tileHeight = tileRegion.bottom - tileRegion.top
-                val scaledTileData = getImageRegion(
-                    image,
-                    tileRegion,
-                    ((tileWidth) * scaleFactor).roundToInt(),
-                    ((tileHeight) * scaleFactor).roundToInt()
-                )
+                val scaledTileData = measureTimedValue {
+                    getImageRegion(
+                        image,
+                        tileRegion,
+                        ((tileWidth) * scaleFactor).roundToInt(),
+                        ((tileHeight) * scaleFactor).roundToInt()
+                    )
+                }
+                logger.info { "retrived tile data in ${scaledTileData.duration}" }
 
                 val tile = ReaderImageTile(
-                    size = IntSize(scaledTileData.width, scaledTileData.height),
+                    size = IntSize(scaledTileData.value.width, scaledTileData.value.height),
                     displayRegion = tileDisplayRegion,
                     isVisible = true,
-                    bitmap = scaledTileData.bitmap
+                    bitmap = scaledTileData.value.bitmap
                 )
 
                 newTiles.add(tile)

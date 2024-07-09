@@ -2,7 +2,6 @@ package io.github.snd_r
 
 typealias NativePointer = Long
 
-
 class VipsImage private constructor(
     val width: Int,
     val height: Int,
@@ -75,6 +74,8 @@ abstract class VipsPointer(
 ) : AutoCloseable {
     private var _ptr = vipsPtr
     private var _bytes = bytesPtr
+    var isClosed = false
+        private set
 
     @Synchronized
     override fun close() {
@@ -84,6 +85,7 @@ abstract class VipsPointer(
         if (_bytes != 0L) free(_bytes)
         _ptr = 0
         _bytes = 0
+        isClosed = true
     }
 
 //    companion object {

@@ -1,6 +1,5 @@
 #include "onnxruntime_conversions.h"
 #include <time.h>
-#include <stdio.h>
 #include <math.h>
 
 double millis() {
@@ -75,7 +74,7 @@ void chw_to_hwc_f16(const _Float16 *input,
             if (f < 0.f16) { f = 0.f16; }
             else if (f > 1.f16) { f = 1.f16; }
 
-            output[i * bands + c] = (uint8_t) nearbyintf(f * 255);
+            output[i * bands + c] = (uint8_t) nearbyintf((float) f * 255);
         }
     }
 }

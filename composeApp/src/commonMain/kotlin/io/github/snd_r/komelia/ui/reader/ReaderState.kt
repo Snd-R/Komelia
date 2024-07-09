@@ -55,7 +55,7 @@ class ReaderState(
     val readProgressPage = MutableStateFlow(1)
 
     suspend fun initialize(bookId: KomgaBookId) {
-        decoderSettings.value = settingsRepository.getDecoderType().first()
+        decoderSettings.value = settingsRepository.getDecoderSettings().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
 
@@ -196,14 +196,14 @@ class ReaderState(
 
     fun onDecoderChange(type: PlatformDecoderSettings) {
         this.decoderSettings.value = type
-        stateScope.launch { settingsRepository.putDecoderType(type) }
+        stateScope.launch { settingsRepository.putDecoderSettings(type) }
     }
 
     fun onUpscaleMethodChange(upscaleOption: UpscaleOption) {
         val currentDecoder = requireNotNull(this.decoderSettings.value)
         val newDecoder = currentDecoder.copy(upscaleOption = upscaleOption)
         this.decoderSettings.value = newDecoder
-        stateScope.launch { settingsRepository.putDecoderType(newDecoder) }
+        stateScope.launch { settingsRepository.putDecoderSettings(newDecoder) }
     }
 
     fun onReaderTypeChange(type: ReaderType) {

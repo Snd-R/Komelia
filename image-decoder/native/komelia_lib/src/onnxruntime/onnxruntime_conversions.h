@@ -1,8 +1,6 @@
 #ifndef KOMELIA_ORT_CONVERSIONS_H
 #define KOMELIA_ORT_CONVERSIONS_H
 
-#endif //KOMELIA_ORT_CONVERSIONS_H
-
 #include <stddef.h>
 #include <stdint.h>
 
@@ -26,3 +24,4 @@ void chw_to_hwc_f16(const _Float16 *input,
                     uint8_t *output
 );
 
+#endif //KOMELIA_ORT_CONVERSIONS_H
