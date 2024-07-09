@@ -19,6 +19,7 @@ interface ReaderImage : AutoCloseable {
         zoomFactor: Float,
     )
 
+    // TODO move to reader helper function
     fun getDisplaySizeFor(maxDisplaySize: IntSize): IntSize {
         val widthRatio = maxDisplaySize.width.toDouble() / width
         val heightRatio = maxDisplaySize.height.toDouble() / height

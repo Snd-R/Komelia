@@ -135,6 +135,7 @@ class PagedReaderState(
         val zoomFactor = screenScaleState.transformation.value.scale
         val offset = screenScaleState.transformation.value.offset
         val areaSize = screenScaleState.areaSize.value.toSize()
+        val stretchToFit = readerState.imageStretchToFit.value
 
 
         val pages = spread.pages
@@ -142,7 +143,9 @@ class PagedReaderState(
         pages.forEachIndexed { index, result ->
             if (result.imageResult is Success) {
                 val image = result.imageResult.image
-                val imageDisplaySize = image.getDisplaySizeFor(maxPageSize)
+                val imageDisplaySize =
+                    if (stretchToFit) image.getDisplaySizeFor(maxPageSize)
+                    else image.getDisplaySizeFor(maxPageSize).coerceAtMost(IntSize(image.width, image.height))
 
                 val imageHorizontalVisibleWidth =
                     (imageDisplaySize.width * zoomFactor - areaSize.width) / 2
