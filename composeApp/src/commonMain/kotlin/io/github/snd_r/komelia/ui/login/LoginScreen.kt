@@ -48,7 +48,9 @@ class LoginScreen : Screen {
                         onUserChange = { vm.user = it },
                         password = vm.password,
                         onPasswordChange = { vm.password = it },
-                        errorMessage = vm.error,
+                        userLoginError = vm.userLoginError,
+                        autoLoginError = vm.autoLoginError,
+                        onAutoLoginRetry = vm::retryAutoLogin,
                         onLogin = vm::loginWithCredentials
                     )
 

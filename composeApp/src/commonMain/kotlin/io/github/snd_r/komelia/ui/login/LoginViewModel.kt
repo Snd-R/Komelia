@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import io.github.snd_r.komelia.AppNotification
+import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
@@ -26,12 +29,16 @@ class LoginViewModel(
     private val komgaLibraryClient: KomgaLibraryClient,
     private val authenticatedUserFlow: MutableStateFlow<KomgaUser?>,
     private val availableLibrariesFlow: MutableStateFlow<List<KomgaLibrary>>,
+    private val secretsRepository: SecretsRepository,
+    private val notifications: AppNotifications,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     var url by mutableStateOf("")
     var user by mutableStateOf("")
     var password by mutableStateOf("")
-    var error by mutableStateOf<String?>(null)
+    var userLoginError by mutableStateOf<String?>(null)
+
+    var autoLoginError by mutableStateOf<String?>(null)
 
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -39,22 +46,67 @@ class LoginViewModel(
         screenModelScope.launch {
             url = settingsRepository.getServerUrl().first()
             user = settingsRepository.getCurrentUser().first()
-            tryLogin()
+            val loginCookie = secretsRepository.getCookie(url)
+            if (!loginCookie.isNullOrBlank()) {
+                tryAutologin()
+        } else {
+                mutableState.value = LoadState.Error(RuntimeException())
+            }
+        }
+    }
+
+    fun retryAutoLogin() {
+        screenModelScope.launch {
+            mutableState.value = LoadState.Loading
+            tryAutologin()
         }
     }
 
     fun cancel() {
         screenModelScope.coroutineContext.cancelChildren()
         mutableState.value = LoadState.Error(RuntimeException("Cancelled login attempt"))
-        error = "Cancelled login attempt"
+        userLoginError = "Cancelled login attempt"
     }
 
     fun loginWithCredentials() {
         screenModelScope.launch {
-            error = null
+            userLoginError = null
             settingsRepository.putServerUrl(url)
             settingsRepository.putCurrentUser(user)
-            tryLogin(user, password)
+            tryUserLogin(user, password)
+        }
+    }
+
+    private suspend fun tryAutologin() {
+        try {
+            tryLogin()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            autoLoginError = if (e.response.status == Unauthorized) "Invalid credentials"
+            else "Login error: ${e::class.simpleName} ${e.message}"
+            notifications.add(AppNotification.Error(e.message))
+            mutableState.value = LoadState.Error(e)
+        } catch (e: Throwable) {
+            val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
+            autoLoginError = errorMessage
+            notifications.add(AppNotification.Error(errorMessage))
+            mutableState.value = LoadState.Error(e)
+        }
+    }
+
+    private suspend fun tryUserLogin(username: String, password: String) {
+        try {
+            tryLogin(username, password)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            userLoginError = if (e.response.status == Unauthorized) "Invalid credentials"
+            else "Login error ${e::class.simpleName}: ${e.message}"
+            mutableState.value = LoadState.Error(e)
+        } catch (e: Throwable) {
+            userLoginError = "${e::class.simpleName} ${e.message}"
+            mutableState.value = LoadState.Error(e)
         }
     }
 
@@ -62,25 +114,14 @@ class LoginViewModel(
         username: String? = null,
         password: String? = null
     ) {
-        try {
-            val user =
-                if (username != null && password != null) komgaUserClient.getMe(username, password, true)
-                else komgaUserClient.getMe()
+        val user =
+            if (username != null && password != null) komgaUserClient.getMe(username, password, true)
+            else komgaUserClient.getMe()
 
-            val libraries = komgaLibraryClient.getLibraries()
-            authenticatedUserFlow.value = user
-            availableLibrariesFlow.value = libraries
-            mutableState.value = LoadState.Success(Unit)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: ClientRequestException) {
-            error = if (e.response.status == Unauthorized) "Invalid credentials"
-            else "Failed to login ${e.message}"
-            mutableState.value = LoadState.Error(e)
-        } catch (e: Throwable) {
-            error = e.message ?: "Failed to login"
-            mutableState.value = LoadState.Error(e)
-        }
+        val libraries = komgaLibraryClient.getLibraries()
+        authenticatedUserFlow.value = user
+        availableLibrariesFlow.value = libraries
+        mutableState.value = LoadState.Success(Unit)
     }
 }
 

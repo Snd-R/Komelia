@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.login
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -32,9 +33,55 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LoginContent(
+    url: String,
+    onUrlChange: (String) -> Unit,
+    user: String,
+    onUserChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    userLoginError: String?,
+    autoLoginError: String?,
+    onAutoLoginRetry: () -> Unit,
+    onLogin: () -> Unit,
+) {
+
+    var showAutoLoginError by remember { mutableStateOf(true) }
+    if (autoLoginError != null && showAutoLoginError) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                autoLoginError,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(onClick = onAutoLoginRetry) { Text("Retry") }
+                Button(onClick = { showAutoLoginError = false }) { Text("Login with another credentials") }
+            }
+        }
+    } else {
+        LoginForm(
+            url = url,
+            onUrlChange = onUrlChange,
+            user = user,
+            onUserChange = onUserChange,
+            password = password,
+            onPasswordChange = onPasswordChange,
+            errorMessage = userLoginError,
+            onLogin = onLogin
+        )
+    }
+
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun LoginForm(
     url: String,
     onUrlChange: (String) -> Unit,
     user: String,
@@ -44,12 +91,13 @@ fun LoginContent(
     errorMessage: String?,
     onLogin: () -> Unit,
 ) {
+
     val coroutineScope = rememberCoroutineScope()
     Box(
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Login")
+            Text("Komga Login")
 
             val (first, second, third) = remember { FocusRequester.createRefs() }
 
@@ -94,8 +142,10 @@ fun LoginContent(
                 Text("Login")
             }
 
+
         }
     }
+
 }
 
 
@@ -115,7 +165,7 @@ fun LoginLoadingContent(onCancel: () -> Unit) {
         CircularProgressIndicator()
         if (showCancelButton) {
             Spacer(Modifier.height(100.dp))
-            Button(onClick = onCancel) { Text("Cancel") }
+            Button(onClick = onCancel) { Text("Cancel login attempt") }
         }
 
     }

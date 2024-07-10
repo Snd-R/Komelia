@@ -25,6 +25,7 @@ class KomgaUserClient(private val ktor: HttpClient) {
 
         return ktor.get("api/v2/users/me") {
             header("Authorization", "Basic $encoded")
+            header("Cache-Control", "no-cache, no-store, max-age=0")
             parameter("remember-me", rememberMe)
         }.body()
     }

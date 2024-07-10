@@ -220,11 +220,13 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
 
     fun getLoginViewModel(): LoginViewModel {
         return LoginViewModel(
-            settingsRepository,
-            komgaClientFactory.userClient(),
-            komgaClientFactory.libraryClient(),
-            authenticatedUser,
-            libraries
+            settingsRepository = settingsRepository,
+            komgaUserClient = komgaClientFactory.userClient(),
+            komgaLibraryClient = komgaClientFactory.libraryClient(),
+            authenticatedUserFlow = authenticatedUser,
+            availableLibrariesFlow = libraries,
+            secretsRepository = secretsRepository,
+            notifications = appNotifications,
         )
     }
 
