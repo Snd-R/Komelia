@@ -95,7 +95,7 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
 
         override fun DrawScope.onDraw() {
             tiles.forEach { tile ->
-                if (tile.bitmap != null && tile.isVisible) {
+                if (tile.bitmap != null && !tile.bitmap.isRecycled &&  tile.isVisible) {
                     val bitmap: Bitmap = tile.bitmap
                     drawContext.canvas.nativeCanvas.drawBitmap(
                         bitmap,

@@ -322,7 +322,7 @@ class DesktopTilingReaderImage(
 
         override fun DrawScope.onDraw() {
             tiles.forEach { tile ->
-                if (tile.bitmap != null && tile.isVisible) {
+                if (tile.bitmap != null && !tile.bitmap.isClosed && tile.isVisible) {
                     val bitmap = tile.bitmap
                     drawContext.canvas.nativeCanvas.drawImageRect(
                         image = org.jetbrains.skia.Image.makeFromBitmap(bitmap),
