@@ -2,7 +2,7 @@ package io.github.snd_r.komelia.image.coil
 
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
-import coil3.asCoilImage
+import coil3.asImage
 import coil3.decode.DecodeResult
 import coil3.decode.DecodeUtils
 import coil3.decode.Decoder
@@ -10,6 +10,7 @@ import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import coil3.size.Dimension
+import coil3.size.Precision.INEXACT
 import coil3.size.Scale
 import coil3.size.Size
 import coil3.size.isOriginal
@@ -51,7 +52,7 @@ class SkiaImageDecoder(
             }
 
             DecodeResult(
-                image = bitmap.asCoilImage(),
+                image = bitmap.asImage(),
                 isSampled = isSampled,
             )
         }
@@ -75,7 +76,7 @@ class SkiaImageDecoder(
         )
 
         // Only upscale the image if the options require an exact size.
-        if (options.allowInexactSize) {
+        if (options.precision == INEXACT) {
             multiplier = multiplier.coerceAtMost(1.0)
         }
 

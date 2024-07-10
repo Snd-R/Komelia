@@ -18,20 +18,10 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.parcelize")
     id("com.google.protobuf") version "0.9.4"
-
-    id("dev.hydraulic.conveyor") version "1.9"
 }
 
 group = "io.github.snd-r"
 version = "0.5.0"
-
-dependencies {
-    // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
-    linuxAmd64(compose.desktop.linux_x64)
-    macAmd64(compose.desktop.macos_x64)
-    macAarch64(compose.desktop.macos_arm64)
-    windowsAmd64(compose.desktop.windows_x64)
-}
 
 kotlin {
     jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
@@ -70,9 +60,9 @@ kotlin {
         binaries.executable()
     }
 
-    val coilVersion = "3.0.0-alpha06"
-    val ktorVersion = "3.0.0-beta-2-eap-942"
-    val voyagerVersion = "1.1.0-beta01"
+    val coilVersion = "3.0.0-alpha08"
+    val ktorVersion = "3.0.0-beta-2-eap-972"
+    val voyagerVersion = "1.1.0-beta02"
     sourceSets {
         all {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
@@ -87,10 +77,10 @@ kotlin {
             implementation(compose.material3)
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
-            implementation("io.github.oshai:kotlin-logging:6.0.9")
+            implementation("io.github.oshai:kotlin-logging:7.0.0")
 
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -106,8 +96,8 @@ kotlin {
             implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
             implementation("cafe.adriel.lyricist:lyricist:1.7.0")
 
-            implementation("io.github.dokar3:sonner:0.3.5")
-            implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha02")
+            implementation("io.github.dokar3:sonner:0.3.8")
+            implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha05")
 
             implementation("sh.calvin.reorderable:reorderable:2.1.1")
 
@@ -163,12 +153,12 @@ kotlin {
             implementation("de.swiesend:secret-service:2.0.1-alpha")
             implementation("org.apache.commons:commons-compress:1.26.2")
 
-            implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
-            implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
-            implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
+//            implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
+//            implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
+//            implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
             implementation(project(":image-decoder"))
 
-            implementation(files("jbr-api/jbr-api-3.1.0.jar"))
+            implementation(files("jbr-api/jbr-api-6.4.2.jar"))
         }
 
         val wasmJsMain by getting

@@ -22,7 +22,7 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
 }
 
-val ktorVersion = "3.0.0-beta-2-eap-942"
+val ktorVersion = "3.0.0-beta-2-eap-972"
 
 kotlin {
     jvmToolchain(17)
@@ -52,7 +52,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -60,7 +60,7 @@ kotlin {
             implementation("io.ktor:ktor-client-encoding:$ktorVersion")
             implementation("io.ktor:ktor-client-auth:$ktorVersion")
             implementation("io.ktor:ktor-sse:$ktorVersion")
-            implementation("io.github.oshai:kotlin-logging:6.0.9")
+            implementation("io.github.oshai:kotlin-logging:7.0.0")
         }
 
         val jvmMain by getting

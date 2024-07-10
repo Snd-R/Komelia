@@ -1,7 +1,7 @@
 package io.github.snd_r.komelia.image.coil
 
 import coil3.annotation.ExperimentalCoilApi
-import coil3.asCoilImage
+import coil3.asImage
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
 import coil3.decode.ImageSource
@@ -53,7 +53,7 @@ class VipsImageDecoder(
             bitmap.setImmutable()
 
             DecodeResult(
-                image = bitmap.asCoilImage(),
+                image = bitmap.asImage(),
                 isSampled = !options.size.isOriginal
             )
         }
