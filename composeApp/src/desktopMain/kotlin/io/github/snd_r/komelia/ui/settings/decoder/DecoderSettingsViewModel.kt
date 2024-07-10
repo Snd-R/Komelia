@@ -3,7 +3,9 @@ package io.github.snd_r.komelia.ui.settings.decoder
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import coil3.ImageLoader
+import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
 import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.OnnxRuntimeUpscaler.DeviceInfo
 import io.github.snd_r.komelia.AppNotification
@@ -66,8 +68,9 @@ class DecoderSettingsViewModel(
         }.launchIn(screenModelScope)
 
         try {
-            gpuInfo.value = OnnxRuntimeUpscaler.enumerateDevices()
-        } catch (e: Exception) {
+            if (OnnxRuntimeSharedLibraries.executionProvider != CPU)
+                gpuInfo.value = OnnxRuntimeUpscaler.enumerateDevices()
+        } catch (e: Throwable) {
             appNotifications.add(AppNotification.Error(e.message ?: "Failed to get device list"))
         }
     }
