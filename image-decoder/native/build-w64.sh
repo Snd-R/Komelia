@@ -24,9 +24,10 @@ cmake -G Ninja \
        	-DCMAKE_TOOLCHAIN_FILE=w64-toolchain-mingw-x86_64.cmake .. \
        	-DMESON_CROSS_FILE="$(readlink -f ../w64-mingw-x86_64-cross_file.txt)" \
         -DVULKAN_GPU_ENUMERATION=OFF \
-        -DCUDA_GPU_ENUMERATION=OFF \
+        -DCUDA_GPU_ENUMERATION=ON \
         -DROCM_GPU_ENUMERATION=OFF \
-        -DDXGI_GPU_ENUMERATION=ON
+        -DDXGI_GPU_ENUMERATION=ON \
+        -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH"
 
 cmake --build . -j $(nproc)
 

@@ -29,7 +29,7 @@ target_include_directories(komelia_vips PRIVATE ${VIPS_INCLUDE_DIRS} ${JNI_INCLU
 target_link_libraries(komelia_vips PkgConfig::VIPS)
 install(TARGETS komelia_vips LIBRARY)
 
-if (UNIX OR WIN32)
+if (NOT ANDROID)
     find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
 
     add_library(komelia_vips_ort SHARED
@@ -57,19 +57,31 @@ if (UNIX OR WIN32)
     install(TARGETS komelia_vips_ort LIBRARY)
 
     if (CUDA_GPU_ENUMERATION)
-        find_package(CUDAToolkit REQUIRED)
-
         add_library(komelia_enumerate_devices_cuda SHARED
                 src/onnxruntime/device/komelia_enumerate_devices.h
                 src/onnxruntime/device/komelia_enumerate_devices_cuda.c
                 src/onnxruntime/device/devices_common_jni.h
                 src/onnxruntime/device/devices_common_jni.c
         )
-        target_include_directories(komelia_enumerate_devices_cuda PRIVATE
-                ${JNI_INCLUDE_DIRS}
-                ${CUDAToolkit_INCLUDE_DIRS}
-        )
-        target_link_libraries(komelia_enumerate_devices_cuda CUDA::cudart)
+
+        find_package(CUDAToolkit)
+        message(STATUS, "${CUDA_CUSTOM_PATH}")
+        if (CUDAToolkit_FOUND)
+            target_include_directories(komelia_enumerate_devices_cuda PRIVATE
+                    ${JNI_INCLUDE_DIRS}
+                    ${CUDAToolkit_INCLUDE_DIRS}
+            )
+            target_link_libraries(komelia_enumerate_devices_cuda CUDA::cudart)
+        elseif (CUDA_CUSTOM_PATH)
+            target_include_directories(komelia_enumerate_devices_cuda PRIVATE
+                    ${JNI_INCLUDE_DIRS}
+                    "${CUDA_CUSTOM_PATH}/include"
+            )
+            find_library(CUDART_LIB NAMES cudart PATHS ${CUDA_CUSTOM_PATH}/lib PATH_SUFFIXES x64 REQUIRED NO_DEFAULT_PATH)
+            target_link_libraries(komelia_enumerate_devices_cuda ${CUDART_LIB})
+        else ()
+            message(FATAL_ERROR "Can't find cudart library")
+        endif ()
         install(TARGETS komelia_enumerate_devices_cuda LIBRARY)
     endif ()
 

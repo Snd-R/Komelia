@@ -11,6 +11,7 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_OnnxRuntimeUpscaler_enumerateDev
     cudaError_t status = cudaGetDeviceCount(&nDevices);
     if (status != cudaSuccess) {
         throw_jvm_exception(env, cudaGetErrorName(status));
+        return NULL;
     }
 
     jobject jvm_list = create_jvm_list(env);

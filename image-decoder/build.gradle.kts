@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -53,29 +52,11 @@ android {
 
 val linuxBuildDir = "$projectDir/native/build"
 val windowsBuildDir = "$projectDir/native/build-w64"
-val classpathResourcesDir = "$projectDir/src/jvmMain/resources/"
+val resourcesDir = "$projectDir/src/jvmMain/resources/"
 val androidArm64BuildDir = "$projectDir/native/build-android-arm64"
 val androidX8484BuildDir = "$projectDir/native/build-android-x86_64"
 val androidJniLibsDir = "$projectDir/src/androidMain/jniLibs"
 
-tasks.register<Exec>("linuxPrepareBuild") {
-    group = "vips"
-    project.mkdir(linuxBuildDir)
-    workingDir(linuxBuildDir)
-    environment("PKG_CONFIG_PATH", "$linuxBuildDir/fakeroot/lib/pkgconfig")
-    environment("PKG_CONFIG_PATH_CUSTOM", "$linuxBuildDir/fakeroot/lib/pkgconfig")
-    commandLine("cmake", "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", "..")
-}
-
-tasks.register<Exec>("linuxBuild") {
-    group = "vips"
-    dependsOn("linuxPrepareBuild")
-
-    workingDir(linuxBuildDir)
-    environment("PKG_CONFIG_PATH", "$linuxBuildDir/fakeroot/lib/pkgconfig")
-    environment("PKG_CONFIG_PATH_CUSTOM", "$linuxBuildDir/fakeroot/lib/pkgconfig")
-    commandLine("cmake", "--build", ".", "-j", "${Runtime.getRuntime().availableProcessors()}")
-}
 val linuxCommonLibs = setOf(
     "libintl.so",
     "libbrotlicommon.so",
@@ -112,103 +93,37 @@ val linuxCommonLibs = setOf(
 )
 val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
 
-tasks.register<Sync>("linux_copyVipsLibsToClasspath") {
-    group = "vips"
+tasks.register<Sync>("linux-x86_64_copyJniLibs") {
+    group = "jni"
     from("$linuxBuildDir/fakeroot/lib/")
-    into(classpathResourcesDir)
+    into(resourcesDir)
     include { it.name in linuxCommonLibs }
 }
 
-tasks.register<Sync>("android_arm64_copyVipsLibsToClasspath") {
-    group = "vips"
+tasks.register<Sync>("android-arm64_copyJniLibs") {
+    group = "jni"
 
     from("$androidArm64BuildDir/fakeroot/lib/")
     into("$androidJniLibsDir/arm64-v8a/")
     include { it.name in androidLibs }
 }
 
-tasks.register<Sync>("android_x86_64_copyVipsLibsToClasspath") {
-    group = "vips"
+tasks.register<Sync>("android-x86_64_copyJniLibs") {
+    group = "jni"
     from("$androidX8484BuildDir/fakeroot/lib/")
     into("$androidJniLibsDir/x86_64/")
     include { it.name in androidLibs }
 }
 
-
-tasks.register("linuxStripDebugSymbols") {
-    group = "vips"
-    dependsOn("linuxCopyVipsLibsToClasspath")
-    doLast {
-        fileTree(classpathResourcesDir)
-            .filter { it.isFile && it.extension == "so" }
-            .forEach { file ->
-                exec {
-                    workingDir(classpathResourcesDir)
-                    commandLine("strip", "-S", file.name)
-                }
-            }
-    }
-}
-
-tasks.register<Delete>("cleanVips") {
-    group = "vips"
+tasks.register<Delete>("cleanJni") {
+    group = "jni"
     delete(linuxBuildDir)
     delete(windowsBuildDir)
-    delete(fileTree(classpathResourcesDir))
+    delete(fileTree(resourcesDir))
 }
 
-tasks.register<Download>("windowsDownloadJdk") {
-    group = "vips"
-    onlyIfModified(true)
-    src("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13/OpenJDK21U-jdk_x64_windows_hotspot_21.0.2_13.zip")
-    dest(File("$windowsBuildDir/jdk", "jdk.zip"))
-}
-
-tasks.register<Copy>("windowsUnzipJdk") {
-    group = "vips"
-    dependsOn("windowsDownloadJdk")
-    from(zipTree("$windowsBuildDir/jdk/jdk.zip")) {
-        eachFile {
-            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-        }
-    }
-    into("$windowsBuildDir/jdk")
-}
-
-tasks.register<Exec>("windowsPrepareBuild") {
-    group = "vips"
-    dependsOn("windowsUnzipJdk")
-    project.mkdir(windowsBuildDir)
-    workingDir(windowsBuildDir)
-    environment("JAVA_HOME", "$windowsBuildDir/jdk")
-    environment("PKG_CONFIG_PATH", "$windowsBuildDir/fakeroot/lib/pkgconfig")
-    environment("PKG_CONFIG_PATH_CUSTOM", "$windowsBuildDir/fakeroot/lib/pkgconfig")
-
-    commandLine(
-        "cmake",
-        "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_TOOLCHAIN_FILE=w64-toolchain-mingw-x86_64.cmake",
-        ".."
-    )
-}
-
-tasks.register<Exec>("windowsBuild") {
-    group = "vips"
-    dependsOn("windowsPrepareBuild")
-
-    workingDir(windowsBuildDir)
-    commandLine(
-        "cmake",
-        "--build", ".",
-        "-j", "${Runtime.getRuntime().availableProcessors()}"
-    )
-    environment("JAVA_HOME", "$windowsBuildDir/jdk")
-    environment("PKG_CONFIG_PATH", "$linuxBuildDir/fakeroot/lib/pkgconfig")
-    environment("PKG_CONFIG_PATH_CUSTOM", "$windowsBuildDir/fakeroot/lib/pkgconfig")
-}
-
-tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
-    group = "vips"
+tasks.register<Sync>("windows-x86_64_copyJniLibs") {
+    group = "jni"
 
     val libs = setOf(
         "libbrotlicommon.dll",
@@ -251,7 +166,7 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
     duplicatesStrategy = EXCLUDE
 
     from("$windowsBuildDir/fakeroot/bin/")
-    into(classpathResourcesDir)
+    into(resourcesDir)
     include { it.name in libs }
 
     // include mingw dlls if compiled using system toolchain
@@ -260,20 +175,5 @@ tasks.register<Sync>("windowsCopyVipsLibsToClasspath") {
     include("libwinpthread-1.dll")
     include("libgcc_s_seh-1.dll")
     include("libgomp-1.dll")
-    into(classpathResourcesDir)
-}
-
-
-tasks.register("windowsStripDebugSymbols") {
-    group = "vips"
-    dependsOn("windowsCopyVipsLibsToClasspath")
-    doLast {
-        fileTree(classpathResourcesDir)
-            .forEach { file ->
-                exec {
-                    workingDir(classpathResourcesDir)
-                    commandLine("x86_64-w64-mingw32-strip", "-S", file.name)
-                }
-            }
-    }
+    into(resourcesDir)
 }

@@ -74,7 +74,7 @@ cmake -G Ninja \
     ..
 cmake --build . -j $(nproc)
 
-cp "${TOOLCHAIN_PATH}/lib/clang/18/lib/linux/x86_64/libomp.so" ./fakeroot/lib
+cp "${TOOLCHAIN_PATH}/lib/clang/17/lib/linux/x86_64/libomp.so" ./fakeroot/lib
 
 for lib in fakeroot/lib/*so; do
     [[ -f $lib && ! -h $lib ]] && "$TOOLCHAIN_PATH"/bin/llvm-strip "$lib"

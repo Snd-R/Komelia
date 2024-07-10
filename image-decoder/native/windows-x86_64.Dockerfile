@@ -15,6 +15,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     pkg-config \
     libglib2.0-dev \
     unzip \
+    p7zip \
     wget \
     git
 
@@ -27,9 +28,21 @@ RUN wget --retry-connrefused --waitretry=1 \
     && mv jdk-21.0.3+9 jdk \
     && rm -rf jdk.zip
 
+RUN mkdir /cuda_download && mkdir /cuda \
+    && cd /cuda_download \
+    && wget --retry-connrefused --waitretry=1 \
+    --read-timeout=20 --timeout=15 -t 0 -O cuda.exe \
+    https://developer.download.nvidia.com/compute/cuda/12.5.1/local_installers/cuda_12.5.1_555.85_windows.exe \
+    && 7z x cuda.exe \
+    && \cp -rf ./cuda_cudart/cudart/* /cuda \
+    && \cp -rf ./cuda_nvcc/nvcc/* /cuda \
+    && cd / \
+    && rm -rf /cuda_download
+
 USER 1000:1000
 WORKDIR build
 
+ENV CUDA_CUSTOM_PATH=/cuda/
 ENV JAVA_HOME=/jdk/
 
 ENTRYPOINT ["./build-w64.sh"]
