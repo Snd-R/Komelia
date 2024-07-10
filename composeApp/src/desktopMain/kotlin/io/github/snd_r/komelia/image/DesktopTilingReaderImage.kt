@@ -321,9 +321,10 @@ class DesktopTilingReaderImage(
         override val intrinsicSize: Size = displaySize.toSize()
 
         override fun DrawScope.onDraw() {
-            val isUpscale = tiles.firstOrNull()?.let { tile ->
-                tile.size.width < tile.displayRegion.width || tile.size.height < tile.displayRegion.height
-            } ?: false
+            val isUpscale = tiles.firstOrNull()
+                ?.let { tile -> tile.size.width < tile.displayRegion.width || tile.size.height < tile.displayRegion.height }
+                ?: false
+            val currentSamplingMode = if (isUpscale) samplingMode else SamplingMode.DEFAULT
             tiles.forEach { tile ->
                 if (tile.bitmap != null && !tile.bitmap.isClosed && tile.isVisible) {
                     val bitmap = tile.bitmap
@@ -334,7 +335,7 @@ class DesktopTilingReaderImage(
                             tile.size.height.toFloat()
                         ),
                         dst = tile.displayRegion.toSkiaRect(),
-                        samplingMode = if (isUpscale) samplingMode else SamplingMode.DEFAULT,
+                        samplingMode = currentSamplingMode,
                         paint = null,
                         strict = true
                     )
