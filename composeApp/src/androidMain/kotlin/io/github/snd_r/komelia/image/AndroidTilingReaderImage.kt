@@ -1,8 +1,9 @@
 package io.github.snd_r.komelia.image
 
 import android.graphics.Bitmap
+import android.graphics.Paint
+import android.graphics.Paint.FILTER_BITMAP_FLAG
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
@@ -95,7 +96,7 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
             val isUpscale = tiles.firstOrNull()
                 ?.let { tile -> tile.size.width < tile.displayRegion.width || tile.size.height < tile.displayRegion.height }
                 ?: false
-            val currentSamplingMode = if (isUpscale) FilterQuality.High else FilterQuality.None
+            val paintFlags = if (isUpscale) FILTER_BITMAP_FLAG else 0
             tiles.forEach { tile ->
                 if (tile.bitmap != null && !tile.bitmap.isRecycled && tile.isVisible) {
                     val bitmap: Bitmap = tile.bitmap
@@ -103,7 +104,9 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
                         bitmap,
                         null,
                         tile.displayRegion.toAndroidRectF(),
-                        null,
+                        Paint().apply {
+                            flags = paintFlags
+                        },
                     )
 
 //                    drawContext.canvas.drawRect(
@@ -111,7 +114,6 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
 //                        Paint().apply {
 //                            style = PaintingStyle.Stroke
 //                            color = Color.Green
-//                            filterQuality = currentSamplingMode
 //                        }
 //                    )
                 }
