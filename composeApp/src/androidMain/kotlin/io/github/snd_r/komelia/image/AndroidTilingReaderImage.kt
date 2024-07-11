@@ -2,10 +2,7 @@ package io.github.snd_r.komelia.image
 
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
@@ -109,14 +106,14 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
                         null,
                     )
 
-                    drawContext.canvas.drawRect(
-                        tile.displayRegion,
-                        Paint().apply {
-                            style = PaintingStyle.Stroke
-                            color = Color.Green
-                            filterQuality = currentSamplingMode
-                        }
-                    )
+//                    drawContext.canvas.drawRect(
+//                        tile.displayRegion,
+//                        Paint().apply {
+//                            style = PaintingStyle.Stroke
+//                            color = Color.Green
+//                            filterQuality = currentSamplingMode
+//                        }
+//                    )
                 }
 
             }
