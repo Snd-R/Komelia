@@ -2,8 +2,8 @@
 
 JNIEXPORT void JNICALL Java_io_github_snd_1r_VipsImage_vipsInit() {
     VIPS_INIT("komelia");
-    vips_concurrency_set(1);
-    vips_cache_set_max(0);
+    vips_concurrency_set(2);
+    vips_cache_set_max(10);
 }
 
 JNIEXPORT jobject JNICALL
@@ -179,7 +179,6 @@ Java_io_github_snd_1r_VipsImage_decodeResizeAndGet(
     g_object_unref(decoded);
     (*env)->ReleaseByteArrayElements(env, encoded, inputBytes, JNI_ABORT);
     vips_thread_shutdown();
-
     return javaImage;
 }
 

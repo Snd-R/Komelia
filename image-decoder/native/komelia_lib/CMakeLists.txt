@@ -32,7 +32,7 @@ install(TARGETS komelia_vips LIBRARY)
 if (NOT ANDROID)
     find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
 
-    add_library(komelia_vips_ort SHARED
+    add_library(komelia_onnxruntime SHARED
             src/vips/vips_common_jni.h
             src/vips/vips_common_jni.c
             src/onnxruntime/komelia_onnxruntime.c
@@ -41,20 +41,20 @@ if (NOT ANDROID)
             src/onnxruntime/win32_strings.h
             src/onnxruntime/win32_strings.c
     )
-    target_include_directories(komelia_vips_ort PRIVATE
+    target_include_directories(komelia_onnxruntime PRIVATE
             ${VIPS_INCLUDE_DIRS}
             ${JNI_INCLUDE_DIRS}
             ${ONNXRUNTIME_PATH}/include
             ${ONNXRUNTIME_PATH}/include/onnxruntime
     )
-    target_link_libraries(komelia_vips_ort
+    target_link_libraries(komelia_onnxruntime
             m
             PkgConfig::VIPS
             Threads::Threads
             OpenMP::OpenMP_C
             ${ONNXRUNTIME_LIB}
     )
-    install(TARGETS komelia_vips_ort LIBRARY)
+    install(TARGETS komelia_onnxruntime LIBRARY)
 
     if (CUDA_GPU_ENUMERATION)
         add_library(komelia_enumerate_devices_cuda SHARED
@@ -65,7 +65,6 @@ if (NOT ANDROID)
         )
 
         find_package(CUDAToolkit)
-        message(STATUS, "${CUDA_CUSTOM_PATH}")
         if (CUDAToolkit_FOUND)
             target_include_directories(komelia_enumerate_devices_cuda PRIVATE
                     ${JNI_INCLUDE_DIRS}
@@ -121,7 +120,7 @@ endif ()
 
 
 if (WIN32)
-    add_library(komelia_vips_ort_dml SHARED
+    add_library(komelia_onnxruntime_dml SHARED
             src/vips/vips_common_jni.h
             src/vips/vips_common_jni.c
             src/onnxruntime/komelia_onnxruntime.c
@@ -130,21 +129,21 @@ if (WIN32)
             src/onnxruntime/win32_strings.h
             src/onnxruntime/win32_strings.c
     )
-    target_compile_definitions(komelia_vips_ort_dml PUBLIC USE_DML)
-    target_include_directories(komelia_vips_ort_dml PRIVATE
+    target_compile_definitions(komelia_onnxruntime_dml PUBLIC USE_DML)
+    target_include_directories(komelia_onnxruntime_dml PRIVATE
             ${VIPS_INCLUDE_DIRS}
             ${JNI_INCLUDE_DIRS}
             ${ONNXRUNTIME_PATH}/include
             ${ONNXRUNTIME_PATH}/include/onnxruntime
     )
-    target_link_libraries(komelia_vips_ort_dml
+    target_link_libraries(komelia_onnxruntime_dml
             m
             PkgConfig::VIPS
             Threads::Threads
             OpenMP::OpenMP_C
             ${ONNXRUNTIME_LIB}
     )
-    install(TARGETS komelia_vips_ort_dml LIBRARY)
+    install(TARGETS komelia_onnxruntime_dml LIBRARY)
 endif ()
 
 if (ANDROID)

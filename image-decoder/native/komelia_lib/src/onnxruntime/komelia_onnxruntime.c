@@ -690,14 +690,13 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
     if (joined_width != dst_width || joined_height != dst_height) {
         VipsImage *cropped = NULL;
         vips_crop(joined, &cropped, 0, 0, dst_width, dst_height, NULL);
+        g_object_unref(joined);
 
         if (cropped == NULL) {
             komelia_throw_jvm_vips_exception(env, vips_error_buffer());
             vips_error_clear();
-            g_object_unref(joined);
             return NULL;
         }
-
         return cropped;
     }
 
@@ -736,5 +735,6 @@ JNIEXPORT jobject JNICALL Java_io_github_snd_1r_OnnxRuntimeUpscaler_upscale(
     if (!upscaled_image) { return NULL; }
     jobject jvm_image = komelia_to_jvm_handle(env, upscaled_image, NULL);
 
+    vips_thread_shutdown();
     return jvm_image;
 }

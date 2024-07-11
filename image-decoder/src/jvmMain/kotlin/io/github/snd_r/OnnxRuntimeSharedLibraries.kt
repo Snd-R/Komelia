@@ -83,27 +83,27 @@ object OnnxRuntimeSharedLibraries {
 
             when (DesktopPlatform.Current) {
                 Linux -> {
-                    SharedLibrariesLoader.loadLibrary("komelia_vips_ort")
+                    SharedLibrariesLoader.loadLibrary("komelia_onnxruntime")
                     when (executionProvider) {
                         CUDA -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_cuda")
-                        else -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_vulkan")
+                        else -> {}
                     }
                 }
 
                 Windows -> {
                     when (executionProvider) {
                         DirectML -> {
-                            SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort_dml")
+                            SharedLibrariesLoader.loadLibrary("libkomelia_onnxruntime_dml")
                             SharedLibrariesLoader.loadLibrary("libkomelia_enumerate_devices_dxgi")
                         }
 
                         CUDA -> {
-                            SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort")
+                            SharedLibrariesLoader.loadLibrary("libkomelia_onnxruntime")
                             SharedLibrariesLoader.loadLibrary("libkomelia_enumerate_devices_cuda")
                         }
 
                         else -> {
-                            SharedLibrariesLoader.loadLibrary("libkomelia_vips_ort")
+                            SharedLibrariesLoader.loadLibrary("libkomelia_onnxruntime")
                         }
                     }
                 }

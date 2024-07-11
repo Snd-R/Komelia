@@ -19,14 +19,14 @@ patch ./fakeroot/include/onnxruntime_c_api.h ../w64-mingw_onnxruntime_c_api.h.pa
 export PKG_CONFIG_PATH="$(readlink -f .)/fakeroot/lib/pkgconfig"
 export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/fakeroot/lib/pkgconfig"
 
-cmake -G Ninja \
+cmake .. -G Ninja \
        	-DCMAKE_BUILD_TYPE=Release \
-       	-DCMAKE_TOOLCHAIN_FILE=w64-toolchain-mingw-x86_64.cmake .. \
+       	-DCMAKE_TOOLCHAIN_FILE=w64-toolchain-mingw-x86_64.cmake \
        	-DMESON_CROSS_FILE="$(readlink -f ../w64-mingw-x86_64-cross_file.txt)" \
         -DVULKAN_GPU_ENUMERATION=OFF \
-        -DCUDA_GPU_ENUMERATION=ON \
         -DROCM_GPU_ENUMERATION=OFF \
         -DDXGI_GPU_ENUMERATION=ON \
+        -DCUDA_GPU_ENUMERATION=ON \
         -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH"
 
 cmake --build . -j $(nproc)

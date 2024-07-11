@@ -13,7 +13,14 @@ wget --retry-connrefused --waitretry=1 \
 export PKG_CONFIG_PATH="$(readlink -f .)/fakeroot/lib/pkgconfig"
 export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/fakeroot/lib/pkgconfig"
 
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+cmake .. -G Ninja  \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DVULKAN_GPU_ENUMERATION=OFF \
+        -DROCM_GPU_ENUMERATION=OFF \
+        -DDXGI_GPU_ENUMERATION=ON \
+        -DCUDA_GPU_ENUMERATION=ON \
+        -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH"
+
 cmake --build . -j $(nproc)
 
 for lib in fakeroot/lib/*so; do

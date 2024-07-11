@@ -54,7 +54,7 @@ val linuxBuildDir = "$projectDir/native/build"
 val windowsBuildDir = "$projectDir/native/build-w64"
 val resourcesDir = "$projectDir/src/jvmMain/resources/"
 val androidArm64BuildDir = "$projectDir/native/build-android-arm64"
-val androidX8484BuildDir = "$projectDir/native/build-android-x86_64"
+val androidx8664BuildDir = "$projectDir/native/build-android-x86_64"
 val androidJniLibsDir = "$projectDir/src/androidMain/jniLibs"
 
 val linuxCommonLibs = setOf(
@@ -88,16 +88,19 @@ val linuxCommonLibs = setOf(
     "libwebpmux.so",
     "libz.so",
     "libkomelia_vips.so",
-    "libkomelia_vips_ort.so",
-    "libkomelia_enumerate_devices_vulkan.so"
 )
 val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
+val desktopLinuxLibs = linuxCommonLibs + setOf(
+    "libkomelia_onnxruntime.so",
+    "libkomelia_enumerate_devices_cuda.so",
+    "libkomelia_enumerate_devices_vulkan.so",
+)
 
 tasks.register<Sync>("linux-x86_64_copyJniLibs") {
     group = "jni"
     from("$linuxBuildDir/fakeroot/lib/")
     into(resourcesDir)
-    include { it.name in linuxCommonLibs }
+    include { it.name in desktopLinuxLibs }
 }
 
 tasks.register<Sync>("android-arm64_copyJniLibs") {
@@ -110,7 +113,7 @@ tasks.register<Sync>("android-arm64_copyJniLibs") {
 
 tasks.register<Sync>("android-x86_64_copyJniLibs") {
     group = "jni"
-    from("$androidX8484BuildDir/fakeroot/lib/")
+    from("$androidx8664BuildDir/fakeroot/lib/")
     into("$androidJniLibsDir/x86_64/")
     include { it.name in androidLibs }
 }
@@ -159,8 +162,8 @@ tasks.register<Sync>("windows-x86_64_copyJniLibs") {
         "libgcc_s_seh-1.dll",
         "libgomp-1.dll",
         "libkomelia_vips.dll",
-        "libkomelia_vips_ort.dll",
-        "libkomelia_vips_ort_dml.dll",
+        "libkomelia_onnxruntime.dll",
+        "libkomelia_onnxruntime_dml.dll",
         "libkomelia_enumerate_devices_dxgi.dll",
     )
     duplicatesStrategy = EXCLUDE
