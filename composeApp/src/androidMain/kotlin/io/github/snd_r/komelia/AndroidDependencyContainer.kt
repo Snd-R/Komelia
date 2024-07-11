@@ -175,6 +175,10 @@ class AndroidDependencyContainer(
                 defaultRequest { url(url.value) }
                 install(HttpCookies) { storage = cookiesStorage }
             }
+            val diskCache = DiskCache.Builder()
+                .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "coil3_disk_cache")
+                .build()
+            diskCache.clear()
 
             return ImageLoader.Builder(context)
                 .components {
@@ -186,7 +190,7 @@ class AndroidDependencyContainer(
                     add(KomgaSeriesThumbnailMapper(url))
                     add(FileMapper())
                     add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
-                }
+                }.diskCache(diskCache)
                 .build()
         }
 

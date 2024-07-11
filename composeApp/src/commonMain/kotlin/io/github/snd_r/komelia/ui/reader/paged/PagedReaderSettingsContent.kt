@@ -79,32 +79,20 @@ fun ColumnScope.PagedReaderSettingsContent(
 
         val readerStrings = LocalStrings.current.reader
         val currentSpread = pageState.currentSpread.collectAsState()
-//        currentSpread.value.pages.forEach { page ->
-//            val sizeInMb = null
-////            val sizeInMb = remember(currentSpread.value) {
-////                page.imageResult?.image?.size?.let { (it.toFloat() / 1024 / 1024).formatDecimal(2) }
-////            }
-//            val pageText = buildString {
-//                append("${readerStrings.pageNumber} ${page.metadata.pageNumber}.")
-//                if (sizeInMb != null) append(" ${readerStrings.memoryUsage}: ${sizeInMb}Mb")
-//            }
-//
-//            Text(pageText, style = MaterialTheme.typography.bodyMedium)
-//
-////            Text("${readerStrings.pageScaledSize} ${page.imageResult?.image?.image?.width} x ${page.imageResult?.image?.image?.height}")
-//
-//            if (page.metadata.size == null) {
-//                Text(
-//                    readerStrings.noPageDimensionsWarning,
-//                    style = MaterialTheme.typography.bodyMedium.copy(
-//                        color = MaterialTheme.colorScheme.error
-//                    )
-//                )
-//            } else {
-//                Text("${readerStrings.pageOriginalSize}: ${page.metadata.size.width} x ${page.metadata.size.height}")
-//            }
-//
-//            HorizontalDivider(Modifier.padding(vertical = 5.dp))
-//        }
+        currentSpread.value.pages.forEach { page ->
+            val pageImage = page.imageResult?.image
+            if (pageImage != null) {
+                val currentSize = pageImage.currentSize.collectAsState().value
+                Text("${readerStrings.pageNumber} ${page.metadata.pageNumber}")
+
+                if (currentSize != null) {
+                    Text("${readerStrings.pageDisplaySize} ${currentSize.width} x ${currentSize.height}")
+                }
+
+                Text("${readerStrings.pageOriginalSize}: ${pageImage.width} x ${pageImage.height}")
+            }
+
+            HorizontalDivider(Modifier.padding(vertical = 5.dp))
+        }
     }
 }

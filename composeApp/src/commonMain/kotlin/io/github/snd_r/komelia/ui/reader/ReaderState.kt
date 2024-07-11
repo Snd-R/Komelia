@@ -5,6 +5,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.platform.CommonParcelable
 import io.github.snd_r.komelia.platform.CommonParcelize
 import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
@@ -217,6 +218,16 @@ class ReaderState(
     }
 }
 
+fun ReaderImage.getDisplaySizeFor(maxDisplaySize: IntSize): IntSize {
+    val widthRatio = maxDisplaySize.width.toDouble() / width
+    val heightRatio = maxDisplaySize.height.toDouble() / height
+    val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
+    return IntSize(
+        (width * displayScaleFactor).roundToInt(),
+        (height * displayScaleFactor).roundToInt()
+    )
+}
+
 @CommonParcelize
 data class PageMetadata(
 
@@ -259,7 +270,6 @@ data class BookState(
     val nextBook: KomgaBook?,
     val nextBookPages: List<PageMetadata>,
 )
-
 
 enum class ReaderType {
     PAGED,

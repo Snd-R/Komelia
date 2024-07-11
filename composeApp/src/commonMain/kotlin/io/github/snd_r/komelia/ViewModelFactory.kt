@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia
 
+import cafe.adriel.lyricist.Lyricist
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -8,6 +9,9 @@ import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
+import io.github.snd_r.komelia.strings.EnStrings
+import io.github.snd_r.komelia.strings.Locales
+import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
@@ -83,6 +87,8 @@ interface DependencyContainer {
     val imageLoaderContext: PlatformContext
     val appNotifications: AppNotifications
     val readerImageLoader: ReaderImageLoader
+    val lyricist: Lyricist<Strings>
+        get() = Lyricist(Locales.EN, mapOf(Locales.EN to EnStrings))
 }
 
 class ViewModelFactory(private val dependencies: DependencyContainer) {
@@ -98,12 +104,12 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
         get() = dependencies.secretsRepository
     private val imageLoader: ImageLoader
         get() = dependencies.imageLoader
-    private val imageLoaderContext: PlatformContext
-        get() = dependencies.imageLoaderContext
     private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
         get() = dependencies.availableDecoders
     val appNotifications
         get() = dependencies.appNotifications
+    private val appStrings
+        get() = dependencies.lyricist.state.map { it.strings }
 
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
@@ -214,6 +220,7 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
             readerSettingsRepository = readerSettingsRepository,
             imageLoader = dependencies.readerImageLoader,
             availableDecoders = availableDecoders,
+            appStrings = appStrings,
             markReadProgress = markReadProgress,
         )
     }

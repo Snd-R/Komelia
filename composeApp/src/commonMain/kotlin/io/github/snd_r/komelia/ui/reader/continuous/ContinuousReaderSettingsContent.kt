@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
@@ -109,14 +110,21 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
         Column {
             HorizontalDivider(Modifier.padding(vertical = 5.dp))
             val scaleFactor = state.screenScaleState.transformation.collectAsState().value.scale
+            val stretchToFit = state.imageStretchToFit.collectAsState().value
             visiblePages.forEach { page ->
                 Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
-                if (page.size != null) {
+                val displaySize = remember(scaleFactor, stretchToFit,padding) {
                     val scaledSize = state.getPageDisplaySize(page)
-                    val width = (scaledSize.width * scaleFactor).roundToInt()
-                    val height = (scaledSize.height * scaleFactor).roundToInt()
-                    Text("${readerStrings.pageScaledSize} $width x $height")
+                    IntSize(
+                        width = (scaledSize.width * scaleFactor).roundToInt(),
+                        height = (scaledSize.height * scaleFactor).roundToInt()
+                    )
+                }
+
+                Text("${readerStrings.pageDisplaySize} ${displaySize.width} x ${displaySize.height}")
+
+                if (page.size != null) {
                     Text("${readerStrings.pageOriginalSize}: ${page.size.width} x ${page.size.height}")
                 }
 

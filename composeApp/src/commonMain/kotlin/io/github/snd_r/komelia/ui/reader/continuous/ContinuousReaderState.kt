@@ -13,11 +13,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toIntRect
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.reactivecircus.cache4k.Cache
+import io.github.reactivecircus.cache4k.CacheEvent.Evicted
+import io.github.reactivecircus.cache4k.CacheEvent.Expired
+import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
@@ -25,6 +29,7 @@ import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
+import io.github.snd_r.komelia.ui.reader.getDisplaySizeFor
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.book.KomgaBookId
@@ -36,6 +41,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -55,10 +61,12 @@ import kotlin.math.roundToInt
 private val logger = KotlinLogging.logger("ContinuousReaderState")
 
 class ContinuousReaderState(
-    private val imageLoader: ReaderImageLoader,
+    private val cleanupScope: CoroutineScope,
     private val readerState: ReaderState,
+    private val imageLoader: ReaderImageLoader,
     private val settingsRepository: ReaderSettingsRepository,
     private val notifications: AppNotifications,
+    private val appStrings: Flow<Strings>,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -83,11 +91,25 @@ class ContinuousReaderState(
     private val nextBook = readerState.booksState.filterNotNull().map { it.nextBook }
     private val previousBook = readerState.booksState.filterNotNull().map { it.previousBook }
 
-    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<ImageResult>>().maximumCacheSize(10).build()
+    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<ImageResult>>()
+        .maximumCacheSize(10)
+        .eventListener {
+            val (key, value) = when (it) {
+                is Evicted -> it.key to it.value
+                is Expired -> it.key to it.value
+                is Removed -> it.key to it.value
+                else -> null
+            } ?: return@eventListener
+
+            cleanupScope.launch {
+                val image = value.await().image ?: return@launch
+                if (!imagesInUse.containsKey(key)) image.close()
+            }
+        }
+        .build()
     private val imagesInUse: MutableMap<ImageCacheKey, ReaderImage> = HashMap()
 
     suspend fun initialize() {
-        imagesInUse.clear()
 
         readingDirection.value = settingsRepository.getContinuousReaderReadingDirection().first()
         sidePaddingFraction.value = settingsRepository.getContinuousReaderPadding().first()
@@ -199,7 +221,8 @@ class ContinuousReaderState(
                 delay(100)
             }.launchIn(stateScope)
 
-        notifications.add(AppNotification.Normal("Continuous ${readingDirection.value}"))
+        val strings = appStrings.first().continuousReader
+        notifications.add(AppNotification.Normal("Continuous ${strings.forReadingDirection(readingDirection.value)}"))
     }
 
     fun stop() {
@@ -207,6 +230,9 @@ class ContinuousReaderState(
         imageLoadScope.coroutineContext.cancelChildren()
         pageIntervals.value = emptyList()
         currentIntervalIndex.value = 0
+
+        imagesInUse.values.forEach { it.close() }
+        imagesInUse.clear()
         imageCache.invalidateAll()
     }
 
@@ -642,7 +668,11 @@ class ContinuousReaderState(
     }
 
     fun onPageDispose(page: PageMetadata) {
-        imagesInUse.remove(page.toCacheKey())
+        val cacheKey = page.toCacheKey()
+        val image = imagesInUse.remove(cacheKey)
+        if (image != null && imageCache.get(cacheKey) == null) {
+            image.close()
+        }
     }
 
     private fun applyPadding() {

@@ -109,7 +109,7 @@ class DesktopTilingReaderImage(
     }
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
-        tiles.forEach { it.bitmap?.close() }
+        tiles.forEach { runCatching { it.bitmap?.close() } }
     }
 
     override fun createTilePainter(tiles: List<ReaderImageTile>, displaySize: IntSize): Painter {
@@ -254,12 +254,12 @@ class DesktopTilingReaderImage(
     }
 
     override fun close() {
-        super.close()
         imageScope.launch {
             onnxRuntimeMutex.withLock {
                 onnxRuntimeFullImagePath?.deleteIfExists()
                 onnxRuntimeFullImage?.close()
             }
+            super.close()
         }
     }
 

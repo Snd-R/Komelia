@@ -22,7 +22,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import cafe.adriel.lyricist.ProvideStrings
-import cafe.adriel.lyricist.rememberStrings
 import cafe.adriel.voyager.navigator.Navigator
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
@@ -38,7 +37,6 @@ import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.strings.EnStrings
-import io.github.snd_r.komelia.strings.Locales
 import io.github.snd_r.komelia.toToast
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
@@ -59,10 +57,6 @@ val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key event
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 val LocalStrings = staticCompositionLocalOf { EnStrings }
 val LocalPlatform = compositionLocalOf<PlatformType> { error("Platform type is not set") }
-
-val strings = mapOf(
-    Locales.EN to EnStrings
-)
 
 @Composable
 fun MainView(
@@ -87,10 +81,7 @@ fun MainView(
                 return@Surface
             }
 
-            val lyricist = rememberStrings(strings)
-            ProvideStrings(lyricist, LocalStrings) {
-
-
+            ProvideStrings(dependencies.lyricist, LocalStrings) {
                 val notificationToaster = rememberToasterState()
                 val viewModelFactory = remember(dependencies) { ViewModelFactory(dependencies) }
 

@@ -264,6 +264,10 @@ class DesktopDependencyContainer private constructor(
                 defaultRequest { url(url.value) }
                 install(HttpCookies) { storage = cookiesStorage }
             }
+            val diskCache = DiskCache.Builder()
+                .directory(tempDir.toOkioPath())
+                .build()
+            diskCache.clear()
 
             return measureTimedValue {
                 ImageLoader.Builder(PlatformContext.INSTANCE)
@@ -283,11 +287,7 @@ class DesktopDependencyContainer private constructor(
                             .maxSizeBytes(128 * 1024 * 1024) // 128 Mib
                             .build()
                     )
-                    .diskCache {
-                        DiskCache.Builder()
-                            .directory(tempDir.toOkioPath())
-                            .build()
-                    }
+                    .diskCache { diskCache }
                     .build()
             }.also { logger.info { "initialized Coil in ${it.duration}" } }.value
         }

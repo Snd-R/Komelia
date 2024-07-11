@@ -136,9 +136,8 @@ val EnStrings = Strings(
         pagesInfo = "Pages info",
         pageNumber = "page",
         memoryUsage = "Memory usage",
-        pageScaledSize = "scaled size",
+        pageDisplaySize = "display size",
         pageOriginalSize = "original size",
-        noPageDimensionsWarning = "Original page dimensions are not calculated. Scaling might not work as intended"
     ),
     pagedReader = PagedReaderStrings(
         scaleType = "Scale type",

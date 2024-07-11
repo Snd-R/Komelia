@@ -4,6 +4,7 @@ import androidx.compose.foundation.BasicTooltipBox
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextDecoration.Companion.Underline
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
@@ -312,7 +315,7 @@ private fun OrtInstallDialog(
     val coroutineScope = rememberCoroutineScope()
     var provider by remember { mutableStateOf<OnnxRuntimeExecutionProvider?>(null) }
     AppDialog(
-        modifier = Modifier.widthIn(max = 600.dp),
+        modifier = Modifier.widthIn(max = 620.dp),
         header = {
             Column(modifier = Modifier.padding(10.dp)) {
                 if (updateProgress == null)
@@ -382,31 +385,61 @@ private fun OrtDownloadDialogContent(
                 color = MaterialTheme.colorScheme.tertiary
             )
         }
+        val uriHandler = LocalUriHandler.current
         CheckboxWithLabel(
             checked = chosenProvider == CUDA,
             onCheckedChange = { onProviderChoice(CUDA) },
-            label = { Text("Cuda (Nvida GPUs, requires Cuda12 system install)") }
+            labelAlignment = Alignment.Top,
+            label = {
+                Column {
+                    Text("Cuda (Nvida GPUs, requires CUDA12 and cuDNN9 system install)")
+                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "download CUDA12",
+                            color = MaterialTheme.colorScheme.secondary,
+                            textDecoration = Underline,
+                            modifier = Modifier
+                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cuda-downloads") }
+                                .cursorForHand()
+                                .padding(horizontal = 5.dp),
+                        )
+                        Text(
+                            "download cuDNN9",
+                            color = MaterialTheme.colorScheme.secondary,
+                            textDecoration = Underline,
+                            modifier = Modifier
+                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
+                                .cursorForHand()
+                                .padding(horizontal = 5.dp),
+                        )
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
-        if (DesktopPlatform.Current == Linux)
-            CheckboxWithLabel(
-                checked = chosenProvider == ROCm,
-                onCheckedChange = { onProviderChoice(ROCm) },
-                label = { Text("ROCm (AMD GPUs, requires ROCm5 system install)") }
-            )
+//        if (DesktopPlatform.Current == Linux)
+//            CheckboxWithLabel(
+//                checked = chosenProvider == ROCm,
+//                onCheckedChange = { onProviderChoice(ROCm) },
+//                label = { Text("ROCm (AMD GPUs, requires ROCm5 system install)") },
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
         if (DesktopPlatform.Current == Windows)
             CheckboxWithLabel(
                 checked = chosenProvider == DirectML,
                 onCheckedChange = { onProviderChoice(DirectML) },
-                label = { Text("DirectML (all GPUs)") }
+                label = { Text("DirectML (all GPUs)") },
+                modifier = Modifier.fillMaxWidth()
             )
 
         if (DesktopPlatform.Current == Linux)
             CheckboxWithLabel(
                 checked = chosenProvider == CPU,
                 onCheckedChange = { onProviderChoice(CPU) },
-                label = { Text("CPU") }
+                label = { Text("CPU") },
+                modifier = Modifier.fillMaxWidth()
             )
     }
 }

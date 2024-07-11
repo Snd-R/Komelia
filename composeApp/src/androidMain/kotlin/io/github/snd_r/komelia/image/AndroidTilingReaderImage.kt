@@ -23,7 +23,7 @@ actual typealias PlatformImage = VipsImage
 class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) {
 
     override fun getDimensions(encoded: ByteArray): IntSize {
-        val vipsDimensions = io.github.snd_r.VipsImage.Companion.getDimensions(encoded)
+        val vipsDimensions = VipsImage.Companion.getDimensions(encoded)
         return IntSize(vipsDimensions.width, vipsDimensions.height)
     }
 

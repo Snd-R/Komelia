@@ -4,24 +4,27 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
+import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.ReaderType.PAGED
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 
-private val logger = KotlinLogging.logger {}
+private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 class ReaderViewModel(
     bookClient: KomgaBookClient,
@@ -31,6 +34,7 @@ class ReaderViewModel(
     readerSettingsRepository: ReaderSettingsRepository,
     imageLoader: ReaderImageLoader,
     availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
+    appStrings: Flow<Strings>,
     markReadProgress: Boolean,
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
@@ -47,17 +51,21 @@ class ReaderViewModel(
     )
 
     val pagedReaderState = PagedReaderState(
+        cleanupScope = cleanupScope,
         readerState = readerState,
         appNotifications = appNotifications,
         settingsRepository = readerSettingsRepository,
         imageLoader = imageLoader,
+        appStrings = appStrings,
         screenScaleState = screenScaleState,
     )
     val continuousReaderState = ContinuousReaderState(
-        imageLoader = imageLoader,
+        cleanupScope = cleanupScope,
         readerState = readerState,
+        imageLoader = imageLoader,
         settingsRepository = readerSettingsRepository,
         notifications = appNotifications,
+        appStrings = appStrings,
         screenScaleState = screenScaleState,
     )
 

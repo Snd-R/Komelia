@@ -192,9 +192,8 @@ data class ReaderStrings(
     val pagesInfo: String,
     val pageNumber: String,
     val memoryUsage: String,
-    val pageScaledSize: String,
+    val pageDisplaySize: String,
     val pageOriginalSize: String,
-    val noPageDimensionsWarning: String,
 ) {
     fun forReaderType(type: ReaderType): String {
         return when (type) {

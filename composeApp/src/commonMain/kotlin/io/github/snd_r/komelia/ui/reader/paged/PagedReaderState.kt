@@ -14,12 +14,14 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.BookState
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.SpreadIndex
+import io.github.snd_r.komelia.ui.reader.getDisplaySizeFor
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
@@ -36,6 +38,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
@@ -48,10 +51,12 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 class PagedReaderState(
+    private val cleanupScope: CoroutineScope,
     private val settingsRepository: ReaderSettingsRepository,
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
     private val imageLoader: ReaderImageLoader,
+    private val appStrings: Flow<Strings>,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -69,7 +74,7 @@ class PagedReaderState(
                 else -> null
             } ?: return@eventListener
 
-            stateScope.launch { value.await().imageResult?.image?.close() }
+            cleanupScope.launch { value.await().imageResult?.image?.close() }
         }
         .build()
 
@@ -118,7 +123,8 @@ class PagedReaderState(
             .onEach { newBook -> onNewBookLoaded(newBook) }
             .launchIn(stateScope)
 
-        appNotifications.add(AppNotification.Normal("Paged ${readingDirection.value}"))
+        val strings = appStrings.first().pagedReader
+        appNotifications.add(AppNotification.Normal("Paged ${strings.forReadingDirection(readingDirection.value)}"))
     }
 
     fun stop() {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow.SUSPEND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -39,6 +40,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
     final override val height by lazy { dimensions.height }
     final override val painter by lazy { MutableStateFlow(createPlaceholderPainter(IntSize(width, height))) }
     final override val error = MutableStateFlow<Exception?>(null)
+    final override val currentSize = MutableStateFlow<IntSize?>(null)
 
     @Volatile
     protected var lastUpdateRequest: UpdateRequest? = null
@@ -92,7 +94,9 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
         val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
         val newScaleFactor = displayScaleFactor * zoomFactor
 
-        val displayPixCount = (displaySize.width * zoomFactor * displaySize.height * zoomFactor).roundToInt()
+        val dstWidth = displaySize.width * zoomFactor
+        val dstHeight = displaySize.height * zoomFactor
+        val displayPixCount = (dstWidth * dstHeight).roundToInt()
         val tileSize = when (displayPixCount) {
             in 0..tileThreshold1 -> null
             in tileThreshold1..tileThreshold2 -> 1024
@@ -111,6 +115,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                 tileSize
             )
         }
+        currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
     }
 
     private suspend fun doFullResize(scaleFactor: Double, displayScaleFactor: Double, displayArea: IntSize) {
@@ -249,6 +254,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
 
     override fun close() {
         closeTileBitmaps(tiles.value)
+        imageScope.cancel()
     }
 
     protected abstract fun getDimensions(encoded: ByteArray): IntSize

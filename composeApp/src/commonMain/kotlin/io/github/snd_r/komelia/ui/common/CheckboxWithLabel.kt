@@ -26,6 +26,7 @@ fun CheckboxWithLabel(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     label: @Composable () -> Unit,
+    labelAlignment: Alignment.Vertical = Alignment.CenterVertically,
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -34,9 +35,9 @@ fun CheckboxWithLabel(
         checkmarkColor = MaterialTheme.colorScheme.onSecondary
     )
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = labelAlignment,
         modifier = modifier
-            .clickable { onCheckedChange(!checked) }
+            .clickable(enabled=enabled) { onCheckedChange(!checked) }
             .cursorForHand()
             .padding(10.dp)
     ) {
