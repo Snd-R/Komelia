@@ -165,6 +165,7 @@ tasks.register<Sync>("windows-x86_64_copyJniLibs") {
         "libkomelia_onnxruntime.dll",
         "libkomelia_onnxruntime_dml.dll",
         "libkomelia_enumerate_devices_dxgi.dll",
+        "libkomelia_enumerate_devices_cuda.dll",
     )
     duplicatesStrategy = EXCLUDE
 
