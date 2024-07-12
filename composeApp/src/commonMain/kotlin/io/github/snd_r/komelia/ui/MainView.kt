@@ -46,6 +46,7 @@ import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import io.github.snd_r.komga.sse.KomgaEvent
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -57,6 +58,8 @@ val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key event
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 val LocalStrings = staticCompositionLocalOf { EnStrings }
 val LocalPlatform = compositionLocalOf<PlatformType> { error("Platform type is not set") }
+
+private val vmFactory = MutableStateFlow<ViewModelFactory?>(null)
 
 @Composable
 fun MainView(
@@ -81,9 +84,17 @@ fun MainView(
                 return@Surface
             }
 
+            val viewModelFactory = vmFactory.collectAsState().value
+            LaunchedEffect(Unit) {
+                if (vmFactory.value == null) {
+                    vmFactory.value = ViewModelFactory(dependencies)
+                }
+            }
+
+            if (viewModelFactory == null) return@Surface
+
             ProvideStrings(dependencies.lyricist, LocalStrings) {
                 val notificationToaster = rememberToasterState()
-                val viewModelFactory = remember(dependencies) { ViewModelFactory(dependencies) }
 
                 CompositionLocalProvider(
                     LocalViewModelFactory provides viewModelFactory,
