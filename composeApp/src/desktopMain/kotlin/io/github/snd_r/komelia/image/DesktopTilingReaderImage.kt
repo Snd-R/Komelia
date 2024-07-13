@@ -328,8 +328,6 @@ class DesktopTilingReaderImage(
             tiles.forEach { tile ->
                 if (tile.bitmap != null && !tile.bitmap.isClosed && tile.isVisible) {
                     val bitmap = tile.bitmap
-                    val image = org.jetbrains.skia.Image.makeFromBitmap(bitmap)
-                    image.peekPixels()
                     drawContext.canvas.nativeCanvas.drawImageRect(
                         image = org.jetbrains.skia.Image.makeFromBitmap(bitmap),
                         src = org.jetbrains.skia.Rect.makeWH(
