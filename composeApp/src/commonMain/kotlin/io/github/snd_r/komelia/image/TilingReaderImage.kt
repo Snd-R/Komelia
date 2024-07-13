@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.concurrent.Volatile
+import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
@@ -92,7 +93,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
         val widthRatio = displaySize.width.toDouble() / width
         val heightRatio = displaySize.height.toDouble() / height
         val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
-        val newScaleFactor = displayScaleFactor * zoomFactor
+        val actualScaleFactor = displayScaleFactor * zoomFactor
 
         val dstWidth = displaySize.width * zoomFactor
         val dstHeight = displaySize.height * zoomFactor
@@ -105,20 +106,28 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
         }
 
         if (tileSize == null) {
-            doFullResize(newScaleFactor, displayScaleFactor, displaySize)
+            doFullResize(
+                scaleFactor = actualScaleFactor,
+                displayScaleFactor = displayScaleFactor,
+                displayArea = displaySize
+            )
         } else {
             doTile(
-                visibleDisplaySize.toRect(),
-                displayScaleFactor,
-                newScaleFactor,
-                displaySize,
-                tileSize
+                displayRegion = visibleDisplaySize.toRect(),
+                displayScaleFactor = displayScaleFactor,
+                scaleFactor = actualScaleFactor,
+                displayArea = displaySize,
+                tileSize = tileSize
             )
         }
         currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
     }
 
-    private suspend fun doFullResize(scaleFactor: Double, displayScaleFactor: Double, displayArea: IntSize) {
+    private suspend fun doFullResize(
+        scaleFactor: Double,
+        displayScaleFactor: Double,
+        displayArea: IntSize
+    ) {
         if (lastUsedScaleFactor == scaleFactor) return
         lastUsedScaleFactor = scaleFactor
         val dstWidth = (width * scaleFactor).roundToInt()
@@ -138,15 +147,15 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                     displayRegion = Rect(
                         0f,
                         0f,
-                        (width * displayScaleFactor).toFloat(),
-                        (height * displayScaleFactor).toFloat()
+                        round(width * displayScaleFactor).toFloat(),
+                        round(height * displayScaleFactor).toFloat()
                     ),
                     isVisible = true,
                     bitmap = resizedImage.bitmap
                 )
             )
             closeTileBitmaps(previousTiles)
-            painter.value = createTilePainter(tiles.value, displayArea)
+            painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
             closeImage(image)
         }.also { logger.info { "image $width x $height completed full resize to $dstWidth x $dstHeight in $it" } }
     }
@@ -241,7 +250,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
         val end = timeSource.markNow()
         if (addedNewTiles) {
             tiles.value = newTiles
-            painter.value = createTilePainter(tiles.value, displayArea)
+            painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
             closeTileBitmaps(unusedTiles)
 
             val dstWidth = (width * scaleFactor).roundToInt()
@@ -261,7 +270,12 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
     protected abstract fun decode(encoded: ByteArray): PlatformImage
 
     protected abstract fun closeTileBitmaps(tiles: List<ReaderImageTile>)
-    protected abstract fun createTilePainter(tiles: List<ReaderImageTile>, displaySize: IntSize): Painter
+    protected abstract fun createTilePainter(
+        tiles: List<ReaderImageTile>,
+        displaySize: IntSize,
+        scaleFactor: Double
+    ): Painter
+
     protected abstract fun createPlaceholderPainter(displaySize: IntSize): Painter
 
     protected abstract suspend fun resizeImage(

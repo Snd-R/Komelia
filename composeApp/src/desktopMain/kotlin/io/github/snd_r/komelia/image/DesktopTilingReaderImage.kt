@@ -86,6 +86,7 @@ class DesktopTilingReaderImage(
                     TiledImagePainter(
                         tiles.value,
                         samplingMode,
+                        lastUsedScaleFactor ?: 1.0,
                         lastUpdateRequest?.displaySize
                             ?: IntSize(
                                 current.intrinsicSize.width.roundToInt(),
@@ -109,8 +110,12 @@ class DesktopTilingReaderImage(
         tiles.forEach { runCatching { it.bitmap?.close() } }
     }
 
-    override fun createTilePainter(tiles: List<ReaderImageTile>, displaySize: IntSize): Painter {
-        return TiledImagePainter(tiles, upsamplingMode.value, displaySize)
+    override fun createTilePainter(
+        tiles: List<ReaderImageTile>,
+        displaySize: IntSize,
+        scaleFactor: Double
+    ): Painter {
+        return TiledImagePainter(tiles, upsamplingMode.value, scaleFactor, displaySize)
     }
 
     override fun createPlaceholderPainter(displaySize: IntSize): Painter {
@@ -312,19 +317,19 @@ class DesktopTilingReaderImage(
 
     private class TiledImagePainter(
         private val tiles: List<ReaderImageTile>,
-        private val samplingMode: SamplingMode,
+        samplingMode: SamplingMode,
+        scaleFactor: Double,
         displaySize: IntSize,
     ) : Painter() {
         override val intrinsicSize: Size = displaySize.toSize()
+        private val samplingMode = if (scaleFactor > 1.0) samplingMode else SamplingMode.DEFAULT
 
         override fun DrawScope.onDraw() {
-            val isUpscale = tiles.firstOrNull()
-                ?.let { tile -> tile.size.width < tile.displayRegion.width || tile.size.height < tile.displayRegion.height }
-                ?: false
-            val currentSamplingMode = if (isUpscale) samplingMode else SamplingMode.DEFAULT
             tiles.forEach { tile ->
                 if (tile.bitmap != null && !tile.bitmap.isClosed && tile.isVisible) {
                     val bitmap = tile.bitmap
+                    val image = org.jetbrains.skia.Image.makeFromBitmap(bitmap)
+                    image.peekPixels()
                     drawContext.canvas.nativeCanvas.drawImageRect(
                         image = org.jetbrains.skia.Image.makeFromBitmap(bitmap),
                         src = org.jetbrains.skia.Rect.makeWH(
@@ -332,7 +337,7 @@ class DesktopTilingReaderImage(
                             tile.size.height.toFloat()
                         ),
                         dst = tile.displayRegion.toSkiaRect(),
-                        samplingMode = currentSamplingMode,
+                        samplingMode = samplingMode,
                         paint = null,
                         strict = true
                     )

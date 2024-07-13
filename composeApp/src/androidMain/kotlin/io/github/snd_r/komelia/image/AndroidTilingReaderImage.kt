@@ -33,8 +33,12 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
         tiles.forEach { it.bitmap?.recycle() }
     }
 
-    override fun createTilePainter(tiles: List<ReaderImageTile>, displaySize: IntSize): Painter {
-        return TiledImagePainter(tiles, displaySize)
+    override fun createTilePainter(
+        tiles: List<ReaderImageTile>,
+        displaySize: IntSize,
+        scaleFactor: Double
+    ): Painter {
+        return TiledImagePainter(tiles, scaleFactor, displaySize)
     }
 
     override fun createPlaceholderPainter(displaySize: IntSize): Painter {
@@ -88,15 +92,13 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
 
     private class TiledImagePainter(
         private val tiles: List<ReaderImageTile>,
+        scaleFactor: Double,
         displaySize: IntSize,
     ) : Painter() {
         override val intrinsicSize: Size = displaySize.toSize()
+        private val paintFlags = if (scaleFactor > 1.0) FILTER_BITMAP_FLAG else 0
 
         override fun DrawScope.onDraw() {
-            val isUpscale = tiles.firstOrNull()
-                ?.let { tile -> tile.size.width < tile.displayRegion.width || tile.size.height < tile.displayRegion.height }
-                ?: false
-            val paintFlags = if (isUpscale) FILTER_BITMAP_FLAG else 0
             tiles.forEach { tile ->
                 if (tile.bitmap != null && !tile.bitmap.isRecycled && tile.isVisible) {
                     val bitmap: Bitmap = tile.bitmap
@@ -104,9 +106,7 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
                         bitmap,
                         null,
                         tile.displayRegion.toAndroidRectF(),
-                        Paint().apply {
-                            flags = paintFlags
-                        },
+                        Paint().apply { flags = paintFlags },
                     )
 
 //                    drawContext.canvas.drawRect(
