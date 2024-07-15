@@ -7,8 +7,7 @@ import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import io.github.snd_r.komelia.platform.getBytes
+import io.github.vinceglb.filekit.core.PlatformFile
 import okio.Buffer
 
 class BlobFetcher(
@@ -18,7 +17,7 @@ class BlobFetcher(
     override suspend fun fetch(): FetchResult {
         return SourceFetchResult(
             source = ImageSource(
-                source = Buffer().apply { write(file.getBytes()) },
+                source = Buffer().apply { write(file.readBytes()) },
                 fileSystem = options.fileSystem
             ),
             mimeType = null,

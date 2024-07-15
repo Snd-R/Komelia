@@ -101,11 +101,13 @@ kotlin {
 
             implementation("sh.calvin.reorderable:reorderable:2.1.1")
 
-            implementation("com.darkrockstudios:mpfilepicker")
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
 
             implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc05")
             implementation("org.jetbrains:markdown:0.7.3")
+
+            implementation("io.github.vinceglb:filekit-core")
+            implementation("io.github.vinceglb:filekit-compose")
 
             implementation(project(":komga_client"))
         }
@@ -151,8 +153,10 @@ kotlin {
             implementation("com.akuleshov7:ktoml-source-jvm:0.5.2")
 
             implementation("dev.dirs:directories:26")
+
             implementation("com.github.javakeyring:java-keyring:1.0.4")
             implementation("de.swiesend:secret-service:2.0.1-alpha")
+
             implementation("org.apache.commons:commons-compress:1.26.2")
 
 //            implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")

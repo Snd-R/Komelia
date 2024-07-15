@@ -13,14 +13,15 @@ import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.onExternalDrag
-import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
+import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.core.PlatformFiles
 import java.io.File
 import java.net.URI
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun ExternalDragAndDropArea(
-    onFileUpload: (List<PlatformFile>) -> Unit,
+    onFileUpload: (PlatformFiles) -> Unit,
     modifier: Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -39,7 +40,6 @@ actual fun ExternalDragAndDropArea(
                     val files = dragData.readFiles().map { PlatformFile(File(URI(it))) }
                     onFileUpload(files)
                 }
-//                    if (dragData is DragData.Image)
                 isDragging = false
             })
     ) {

@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.platform.getBytes
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
@@ -139,7 +138,7 @@ class SeriesEditDialogViewModel(
         posterState.userUploadedThumbnails.forEach { thumb ->
             seriesClient.uploadSeriesThumbnail(
                 seriesId = series.id,
-                file = thumb.file.getBytes(),
+                file = thumb.file.readBytes(),
                 selected = thumb.selected
             )
         }

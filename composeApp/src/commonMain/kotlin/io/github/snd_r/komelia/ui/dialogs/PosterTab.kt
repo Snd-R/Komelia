@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,8 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.darkrockstudios.libraries.mpfilepicker.MultipleFilePicker
-import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import io.github.snd_r.komelia.platform.ExternalDragAndDropArea
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.cards.ThumbnailEditCard
@@ -49,6 +46,10 @@ import io.github.snd_r.komga.collection.KomgaCollectionThumbnail
 import io.github.snd_r.komga.common.KomgaThumbnailId
 import io.github.snd_r.komga.readlist.KomgaReadListThumbnail
 import io.github.snd_r.komga.series.KomgaSeriesThumbnail
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -75,7 +76,7 @@ class PosterEditState(
     var thumbnails by mutableStateOf<List<KomgaThumbnail>>(emptyList())
     var userUploadedThumbnails by mutableStateOf<List<ThumbnailToBeUploaded>>(emptyList())
 
-    fun onThumbnailUpload(files: List<PlatformFile>) {
+    fun onThumbnailUpload(files: PlatformFiles) {
         val newFiles = files.map { ThumbnailToBeUploaded(true, it) }
 
         if (newFiles.isNotEmpty()) {
@@ -233,13 +234,12 @@ fun PosterEditContent(
     cardWidth: Dp,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var showFilePicker by remember { mutableStateOf(false) }
-
-    MultipleFilePicker(show = showFilePicker) { files ->
-        if (files != null) {
-            posterState.onThumbnailUpload(files)
-            showFilePicker = false
-        }
+    val launcher = rememberFilePickerLauncher(
+        mode = PickerMode.Single,
+        title = "Choose a file",
+        initialDirectory = "/home/den/tmp"
+    ) { files ->
+        files?.let { posterState.onThumbnailUpload(emptyList()) }
     }
 
     ExternalDragAndDropArea(
@@ -249,7 +249,7 @@ fun PosterEditContent(
         Box(
             modifier = Modifier
                 .padding(bottom = 10.dp)
-                .clickable { showFilePicker = true }
+                .clickable { launcher.launch() }
                 .cursorForHand(),
             contentAlignment = Alignment.Center,
         ) {

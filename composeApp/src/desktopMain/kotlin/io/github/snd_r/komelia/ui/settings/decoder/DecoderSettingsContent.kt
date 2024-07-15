@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration.Companion.Underline
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
@@ -64,6 +63,7 @@ import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.updates.UpdateProgress
+import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
 import kotlinx.coroutines.launch
 
 @Composable
@@ -277,12 +277,9 @@ private fun OnnxRuntimeContent(
 
     }
 
-    var showFilePicker by remember { mutableStateOf(false) }
-    DirectoryPicker(show = showFilePicker) { path ->
-        if (path != null) {
-            onOnnxPathChange(path)
-        }
-        showFilePicker = false
+
+    val launcher = rememberDirectoryPickerLauncher { directory ->
+        directory?.path?.let { onOnnxPathChange(it) }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         TextField(
@@ -293,7 +290,7 @@ private fun OnnxRuntimeContent(
         )
 
         ElevatedButton(
-            onClick = { showFilePicker = true },
+            onClick = { launcher.launch() },
             modifier = Modifier.padding(horizontal = 10.dp),
             shape = RoundedCornerShape(5.dp)
         ) {

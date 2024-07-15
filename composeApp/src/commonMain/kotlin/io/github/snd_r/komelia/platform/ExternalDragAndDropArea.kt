@@ -3,11 +3,11 @@ package io.github.snd_r.komelia.platform
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
+import io.github.vinceglb.filekit.core.PlatformFiles
 
 @Composable
 expect fun ExternalDragAndDropArea(
-    onFileUpload: (List<PlatformFile>) -> Unit,
+    onFileUpload: (PlatformFiles) -> Unit,
     modifier: Modifier,
     content: @Composable ColumnScope.() -> Unit
 )

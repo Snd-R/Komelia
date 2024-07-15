@@ -38,9 +38,9 @@ include(":composeApp", ":komga_client")
 include("image-decoder")
 include("wasmImageWorker")
 
-// TODO remove after wasm target is published
-includeBuild("compose-multiplatform-file-picker") {
+includeBuild("third_party/FileKit") {
     dependencySubstitution {
-        substitute(module("com.darkrockstudios:mpfilepicker")).using(project(":mpfilepicker"))
+        substitute(module("io.github.vinceglb:filekit-core")).using(project(":filekit-core"))
+        substitute(module("io.github.vinceglb:filekit-compose")).using(project(":filekit-compose"))
     }
 }
