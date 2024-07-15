@@ -103,7 +103,9 @@ kotlin {
 
             implementation("com.darkrockstudios:mpfilepicker")
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
+
             implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc05")
+            implementation("org.jetbrains:markdown:0.7.3")
 
             implementation(project(":komga_client"))
         }

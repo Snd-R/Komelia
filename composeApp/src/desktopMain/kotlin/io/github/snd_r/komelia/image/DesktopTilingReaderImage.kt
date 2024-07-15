@@ -29,6 +29,7 @@ import org.jetbrains.skia.ColorInfo
 import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.Font
+import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.TextLine
@@ -38,7 +39,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.math.roundToInt
 import kotlin.time.measureTimedValue
 
-actual typealias Bitmap = Bitmap
+actual typealias RenderImage = Image
 actual typealias PlatformImage = VipsImage
 
 private val logger = KotlinLogging.logger {}
@@ -107,7 +108,7 @@ class DesktopTilingReaderImage(
     }
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
-        tiles.forEach { runCatching { it.bitmap?.close() } }
+        tiles.forEach { runCatching { it.renderImage?.close() } }
     }
 
     override fun createTilePainter(
@@ -266,8 +267,11 @@ class DesktopTilingReaderImage(
     }
 
     private fun VipsImage.toReaderImageData(): ReaderImageData {
+//        val skiaBitmap = VipsBitmapFactory.createSkiaBitmap(this)
         val skiaBitmap = createSkiaBitmap(type, width, height, getBytes())
-        return ReaderImageData(width, height, skiaBitmap)
+        val image = Image.makeFromBitmap(skiaBitmap)
+        skiaBitmap.close()
+        return ReaderImageData(width, height, image)
     }
 
     private fun createSkiaBitmap(
@@ -326,10 +330,10 @@ class DesktopTilingReaderImage(
 
         override fun DrawScope.onDraw() {
             tiles.forEach { tile ->
-                if (tile.bitmap != null && !tile.bitmap.isClosed && tile.isVisible) {
-                    val bitmap = tile.bitmap
+                if (tile.renderImage != null && !tile.renderImage.isClosed && tile.isVisible) {
+                    val bitmap = tile.renderImage
                     drawContext.canvas.nativeCanvas.drawImageRect(
-                        image = org.jetbrains.skia.Image.makeFromBitmap(bitmap),
+                        image = bitmap,
                         src = org.jetbrains.skia.Rect.makeWH(
                             tile.size.width.toFloat(),
                             tile.size.height.toFloat()

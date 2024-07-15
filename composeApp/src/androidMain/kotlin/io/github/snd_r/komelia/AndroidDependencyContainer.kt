@@ -20,6 +20,7 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.coil.VipsImageDecoder
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.AndroidReaderSettingsRepository
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
@@ -189,6 +190,7 @@ class AndroidDependencyContainer(
                     add(KomgaReadListMapper(url))
                     add(KomgaSeriesThumbnailMapper(url))
                     add(FileMapper())
+                    add(VipsImageDecoder.Factory())
                     add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
                 }.diskCache(diskCache)
                 .build()

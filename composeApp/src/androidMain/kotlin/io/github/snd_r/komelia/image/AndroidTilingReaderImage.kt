@@ -15,7 +15,7 @@ import io.github.snd_r.ImageRect
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsImage
 
-actual typealias Bitmap = Bitmap
+actual typealias RenderImage = Bitmap
 actual typealias PlatformImage = VipsImage
 
 class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) {
@@ -30,7 +30,7 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
     }
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
-        tiles.forEach { it.bitmap?.recycle() }
+        tiles.forEach { it.renderImage?.recycle() }
     }
 
     override fun createTilePainter(
@@ -47,7 +47,7 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
 
     override suspend fun resizeImage(image: VipsImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
         val resized = image.resize(scaleWidth, scaleHeight, false)
-        val bitmap = VipsBitmapFactory.createSoftwareBitmap(resized)
+        val bitmap = VipsBitmapFactory.createHardwareBitmap(resized)
         val imageData = ReaderImageData(resized.width, resized.height, bitmap)
         resized.close()
         return imageData
@@ -100,8 +100,8 @@ class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) 
 
         override fun DrawScope.onDraw() {
             tiles.forEach { tile ->
-                if (tile.bitmap != null && !tile.bitmap.isRecycled && tile.isVisible) {
-                    val bitmap: Bitmap = tile.bitmap
+                if (tile.renderImage != null && !tile.renderImage.isRecycled && tile.isVisible) {
+                    val bitmap: Bitmap = tile.renderImage
                     drawContext.canvas.nativeCanvas.drawBitmap(
                         bitmap,
                         null,

@@ -173,17 +173,13 @@ class DesktopDependencyContainer private constructor(
             )
             SingletonImageLoader.setSafe { coil }
 
-            val decoder = DesktopImageDecoder(
+            val readerImageLoader = createReaderImageLoader(
+                baseUrl = baseUrl,
+                ktorClient = ktorClient,
+                cookiesStorage = cookiesStorage,
+                cacheDir = cacheDir,
                 decoderSettings = decoderType,
-                onnxModelsPath = onnxModelsPath,
-                onnxRuntimeCacheDir = cacheDir.resolve("reader_onnxruntime").createDirectories()
-            )
-            val readerImageLoader = ReaderImageLoader(
-                komgaClientFactory.bookClient(),
-                decoder,
-                DiskCache.Builder()
-                    .directory(cacheDir.resolve("reader").createDirectories().toOkioPath())
-                    .build()
+                onnxModelsPath = onnxModelsPath
             )
 
             val availableDecoders = createAvailableDecodersFlow(settingsRepository, systemScope)
@@ -235,22 +231,50 @@ class DesktopDependencyContainer private constructor(
             cookiesStorage: RememberMePersistingCookieStore,
             tempDir: Path,
         ): KomgaClientFactory {
-            return measureTimedValue {
 
-                val ktorKomgaClient = ktorClient.config {
-                    install(HttpCache) {
-                        privateStorage(FileStorage(tempDir.toFile()))
-                        publicStorage(FileStorage(tempDir.toFile()))
-                    }
+            val ktorKomgaClient = ktorClient.config {
+                install(HttpCache) {
+                    privateStorage(FileStorage(tempDir.toFile()))
+                    publicStorage(FileStorage(tempDir.toFile()))
                 }
+            }
 
-                KomgaClientFactory.Builder()
-                    .ktor(ktorKomgaClient)
-                    .baseUrl { baseUrl.value }
-                    .cookieStorage(cookiesStorage)
+            return KomgaClientFactory.Builder()
+                .ktor(ktorKomgaClient)
+                .baseUrl { baseUrl.value }
+                .cookieStorage(cookiesStorage)
+                .build()
+        }
+
+        private fun createReaderImageLoader(
+            baseUrl: StateFlow<String>,
+            ktorClient: HttpClient,
+            cookiesStorage: RememberMePersistingCookieStore,
+            cacheDir: Path,
+            decoderSettings: StateFlow<PlatformDecoderSettings>,
+            onnxModelsPath: StateFlow<String?>,
+        ): ReaderImageLoader {
+            val bookClient = KomgaClientFactory.Builder()
+                .ktor(ktorClient)
+                .baseUrl { baseUrl.value }
+                .cookieStorage(cookiesStorage)
+                .build()
+                .bookClient()
+
+            val decoder = DesktopImageDecoder(
+                decoderSettings = decoderSettings,
+                onnxModelsPath = onnxModelsPath,
+                onnxRuntimeCacheDir = cacheDir.resolve("reader_onnxruntime").createDirectories()
+            )
+
+
+            return ReaderImageLoader(
+                bookClient,
+                decoder,
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("reader").createDirectories().toOkioPath())
                     .build()
-            }.also { logger.info { "created Komga client factory in ${it.duration}" } }
-                .value
+            )
         }
 
         private fun createCoil(

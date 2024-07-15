@@ -30,7 +30,7 @@ private const val tileThreshold1 = 2048 * 2048
 private const val tileThreshold2 = 4096 * 4096
 private const val tileThreshold3 = 5120 * 5120
 
-expect class Bitmap
+expect class RenderImage
 expect class PlatformImage
 
 private val logger = KotlinLogging.logger {}
@@ -151,7 +151,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                         round(height * displayScaleFactor).toFloat()
                     ),
                     isVisible = true,
-                    bitmap = resizedImage.bitmap
+                    renderImage = resizedImage.renderImage
                 )
             )
             closeTileBitmaps(previousTiles)
@@ -208,7 +208,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                 }
 
                 if (existingTile != null) {
-                    if (scaleFactor == lastUsedScaleFactor && existingTile.bitmap != null) {
+                    if (scaleFactor == lastUsedScaleFactor && existingTile.renderImage != null) {
                         newTiles.add(existingTile)
                         xTaken = (xTaken + tileSize).coerceAtMost(width)
                         continue
@@ -237,7 +237,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                     size = IntSize(scaledTileData.value.width, scaledTileData.value.height),
                     displayRegion = tileDisplayRegion,
                     isVisible = true,
-                    bitmap = scaledTileData.value.bitmap
+                    renderImage = scaledTileData.value.renderImage
                 )
 
                 newTiles.add(tile)
@@ -297,12 +297,12 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
         val size: IntSize,
         val displayRegion: Rect,
         val isVisible: Boolean,
-        val bitmap: Bitmap?,
+        val renderImage: RenderImage?,
     )
 
     data class ReaderImageData(
         val width: Int,
         val height: Int,
-        val bitmap: Bitmap,
+        val renderImage: RenderImage,
     )
 }
