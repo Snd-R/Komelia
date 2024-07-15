@@ -38,7 +38,12 @@ RUN mkdir /cuda_download && cd /cuda_download \
     && ar x cuda-cudart-dev-12-5_12.5.82-1_amd64.deb \
     && tar xf data.tar.xz \
     && \cp -rf ./usr/local/cuda-12.5/targets/x86_64-linux/* /cuda \
-    && cd / && rm -rf /cuda_
+    && cd / && rm -rf /cuda_download
+
+RUN mkdir /skia && cd /skia \
+    && wget -q --show-progress https://github.com/JetBrains/skia-pack/releases/download/m116-b54492e-3/Skia-m116-b54492e-3-linux-Release-x64.zip \
+    && unzip Skia-m116-b54492e-3-linux-Release-x64.zip \
+    && mkdir ./lib && mv ./out/Release-linux-x64/* ./lib
 
 USER 1000:1000
 WORKDIR build
@@ -46,5 +51,6 @@ WORKDIR build
 ENV PATH=/i/bin:$PATH
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64/
 ENV CUDA_CUSTOM_PATH=/cuda/
+ENV SKIA_CUSTOM_PATH=/skia/
 
 ENTRYPOINT ["./build.sh"]

@@ -3,7 +3,7 @@
 JNIEXPORT void JNICALL Java_io_github_snd_1r_VipsImage_vipsInit() {
     VIPS_INIT("komelia");
     vips_concurrency_set(2);
-    vips_cache_set_max(10);
+    vips_cache_set_max(0);
 }
 
 JNIEXPORT jobject JNICALL
@@ -55,6 +55,41 @@ Java_io_github_snd_1r_VipsImage_decodeFromFile(
     vips_thread_shutdown();
     jobject jvm_handle = komelia_to_jvm_handle(env, decoded, NULL);
     if (jvm_handle == NULL) { g_object_unref(decoded); }
+    return jvm_handle;
+}
+
+JNIEXPORT jobject JNICALL
+Java_io_github_snd_1r_VipsImage_thumbnail(
+        JNIEnv *env,
+        jobject this,
+        jstring path,
+        jint scaleWidth,
+        jint scaleHeight,
+        jboolean crop
+) {
+    const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
+    VipsImage *thumbnail = NULL;
+    if (crop) {
+        vips_thumbnail(path_chars, &thumbnail, scaleWidth,
+                       "height", scaleHeight,
+                       "crop", VIPS_INTERESTING_ENTROPY,
+                       NULL
+        );
+    } else {
+        vips_thumbnail(path_chars, &thumbnail, scaleWidth, "height", scaleHeight, NULL);
+    }
+    (*env)->ReleaseStringUTFChars(env, path, path_chars);
+
+    if (!thumbnail) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        vips_thread_shutdown();
+        return NULL;
+    }
+
+    vips_thread_shutdown();
+    jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, NULL);
+    if (jvm_handle == NULL) { g_object_unref(thumbnail); }
     return jvm_handle;
 }
 

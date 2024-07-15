@@ -18,9 +18,17 @@ class VipsImage private constructor(
         @JvmStatic
         external fun decode(encoded: ByteArray): VipsImage
 
+
         @JvmStatic
         external fun decodeFromFile(path: String): VipsImage
 
+        @JvmStatic
+        external fun thumbnail(
+            path: String,
+            scaleWidth: Int,
+            scaleHeight: Int,
+            crop: Boolean
+        ): VipsImage
 
         @JvmStatic
         external fun decodeAndGet(encoded: ByteArray): VipsImageData

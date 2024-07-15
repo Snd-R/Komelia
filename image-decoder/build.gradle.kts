@@ -29,8 +29,24 @@ kotlin {
 
         val jvmMain by getting
         jvmMain.dependencies {
+            val osName = System.getProperty("os.name")
+            val hostOs = when {
+                osName.startsWith("Win") -> "windows"
+                osName.startsWith("Linux") -> "linux"
+                else -> error("Unsupported OS: $osName")
+            }
+
+            val hostArch = when (val osArch = System.getProperty("os.arch")) {
+                "x86_64", "amd64" -> "x64"
+                "aarch64" -> "arm64"
+                else -> error("Unsupported arch: $osArch")
+            }
+
+            val version = "0.8.10"
+
             implementation("org.slf4j:slf4j-api:2.0.13")
             implementation("dev.dirs:directories:26")
+            compileOnly("org.jetbrains.skiko:skiko-awt-runtime-$hostOs-$hostArch:$version")
         }
 
         androidMain.dependencies {
@@ -94,6 +110,7 @@ val desktopLinuxLibs = linuxCommonLibs + setOf(
     "libkomelia_onnxruntime.so",
     "libkomelia_enumerate_devices_cuda.so",
     "libkomelia_enumerate_devices_vulkan.so",
+    "libkomelia_skia.so",
 )
 
 tasks.register<Sync>("linux-x86_64_copyJniLibs") {

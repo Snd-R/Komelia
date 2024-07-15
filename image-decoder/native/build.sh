@@ -19,7 +19,8 @@ cmake .. -G Ninja  \
         -DROCM_GPU_ENUMERATION=OFF \
         -DDXGI_GPU_ENUMERATION=ON \
         -DCUDA_GPU_ENUMERATION=ON \
-        -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH"
+        -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH" \
+        -DSKIA_CUSTOM_PATH="$SKIA_CUSTOM_PATH"
 
 cmake --build . -j $(nproc)
 
