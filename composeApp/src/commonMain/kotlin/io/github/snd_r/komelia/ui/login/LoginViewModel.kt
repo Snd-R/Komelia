@@ -49,7 +49,7 @@ class LoginViewModel(
             val loginCookie = secretsRepository.getCookie(url)
             if (!loginCookie.isNullOrBlank()) {
                 tryAutologin()
-        } else {
+            } else {
                 mutableState.value = LoadState.Error(RuntimeException())
             }
         }
@@ -71,7 +71,8 @@ class LoginViewModel(
     fun loginWithCredentials() {
         screenModelScope.launch {
             userLoginError = null
-            settingsRepository.putServerUrl(url)
+            val withoutTrailingSlashes = url.replace("/+$".toRegex(), "")
+            settingsRepository.putServerUrl(withoutTrailingSlashes)
             settingsRepository.putCurrentUser(user)
             tryUserLogin(user, password)
         }
