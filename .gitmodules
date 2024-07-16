@@ -1,3 +1,6 @@
 [submodule "third_party/FileKit"]
 	path = third_party/FileKit
 	url = https://github.com/Snd-R/FileKit
+[submodule "third_party/secret-service"]
+	path = third_party/secret-service
+	url = https://github.com/Snd-R/secret-service

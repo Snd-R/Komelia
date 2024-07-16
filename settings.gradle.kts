@@ -44,3 +44,7 @@ includeBuild("third_party/FileKit") {
         substitute(module("io.github.vinceglb:filekit-compose")).using(project(":filekit-compose"))
     }
 }
+
+includeBuild("third_party/secret-service") {
+    dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
+}

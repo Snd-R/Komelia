@@ -155,7 +155,7 @@ kotlin {
             implementation("dev.dirs:directories:26")
 
             implementation("com.github.javakeyring:java-keyring:1.0.4")
-            implementation("de.swiesend:secret-service:2.0.1-alpha")
+            implementation("de.swiesend:secret-service")
 
             implementation("org.apache.commons:commons-compress:1.26.2")
 
