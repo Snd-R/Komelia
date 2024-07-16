@@ -21,7 +21,7 @@ plugins {
 }
 
 group = "io.github.snd-r"
-version = "0.6.0"
+version = "0.6.1"
 
 kotlin {
     jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
@@ -191,7 +191,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.6.1"
     }
     packaging {
         resources {
@@ -251,7 +251,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Komelia"
-            packageVersion = "0.6.0"
+            packageVersion = "0.6.1"
             description = "Komga media client"
             vendor = "Snd-R"
             modules("jdk.unsupported", "jdk.security.auth")
