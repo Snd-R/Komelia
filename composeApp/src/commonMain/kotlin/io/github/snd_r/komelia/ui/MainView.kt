@@ -114,7 +114,7 @@ fun MainView(
                         onBackPressed = null
                     )
 
-                    AppNotifications(viewModelFactory.appNotifications)
+                    AppNotifications(viewModelFactory.appNotifications, theme)
 
                     val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
 
@@ -133,6 +133,7 @@ fun MainView(
 @Composable
 fun AppNotifications(
     appNotifications: AppNotifications,
+    theme: AppTheme
 ) {
     val toaster = rememberToasterState(onToastDismissed = { appNotifications.remove(it.id as Long) })
 
@@ -145,7 +146,7 @@ fun AppNotifications(
     Toaster(
         state = toaster,
         richColors = true,
-        darkTheme = true,
+        darkTheme = theme == AppTheme.DARK,
         showCloseButton = true,
         widthPolicy = { ToastWidthPolicy(max = 500.dp) },
         actionSlot = { toast ->
