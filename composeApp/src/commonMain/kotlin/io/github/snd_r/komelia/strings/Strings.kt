@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.strings
 
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUDE
@@ -289,6 +290,9 @@ data class SettingsStrings(
     val serverSettingsDiscard: String,
     val serverSettingsSave: String,
 
+    val appTheme: String,
+    val appThemeDark: String,
+    val appThemeLight: String,
     val imageCardSize: String,
     val decoder: String
 ) {
@@ -298,6 +302,13 @@ data class SettingsStrings(
             MEDIUM -> thumbnailSizeMedium
             LARGE -> thumbnailSizeLarge
             XLARGE -> thumbnailSizeXLarge
+        }
+    }
+
+    fun forAppTheme(theme: AppTheme): String {
+        return when (theme) {
+            AppTheme.DARK -> appThemeDark
+            AppTheme.LIGHT -> appThemeLight
         }
     }
 }

@@ -28,10 +28,15 @@ message AppearanceSettings{
   int32 seriesPageLoadSize = 2;
   int32 bookPageLoadSize = 3;
   PBBooksLayout bookListLayout = 4;
+  PBAppTheme appTheme = 5;
 
   enum PBBooksLayout{
     LIST = 0;
     GRID = 1;
+  }
+  enum PBAppTheme{
+    DARK = 0;
+    LIGHT = 1;
   }
 }
 

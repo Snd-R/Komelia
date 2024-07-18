@@ -79,7 +79,7 @@ class LibraryEditDialogViewModel(
     fun tabs(): List<DialogTab> = listOf(generalTab, scannerTab, optionsTab, metadataTab)
 
     suspend fun onNextTabSwitch() {
-        if (currentTab == metadataTab) {
+        if (currentTab == metadataTab || library != null) {
             onConfirmEdit()
         } else {
             val tabs = tabs()

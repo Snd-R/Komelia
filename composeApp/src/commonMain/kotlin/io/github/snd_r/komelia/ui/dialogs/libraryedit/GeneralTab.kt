@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -70,9 +71,10 @@ private fun GeneralTabContent(
                 modifier = Modifier.weight(7f)
             )
 
-            ElevatedButton(
+            FilledTonalButton(
                 onClick = { showFileBrowserDialog = true },
-                modifier = Modifier.padding(horizontal = 10.dp)
+                modifier = Modifier.padding(horizontal = 10.dp),
+                shape = MaterialTheme.shapes.extraSmall
             ) {
                 Text("Browse")
             }

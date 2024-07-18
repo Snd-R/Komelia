@@ -90,7 +90,7 @@ fun LibraryActionsMenu(
         val deepScanInteractionSource = remember { MutableInteractionSource() }
         val deepScanIsHovered = deepScanInteractionSource.collectIsHoveredAsState()
         val deepScanColor =
-            if (deepScanIsHovered.value) Modifier.background(MaterialTheme.colorScheme.onTertiary)
+            if (deepScanIsHovered.value) Modifier.background(MaterialTheme.colorScheme.tertiaryContainer)
             else Modifier
 
         DropdownMenuItem(

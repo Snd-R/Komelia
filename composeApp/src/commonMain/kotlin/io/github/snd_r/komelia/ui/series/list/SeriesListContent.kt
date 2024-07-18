@@ -23,9 +23,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth.*
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
@@ -158,7 +162,8 @@ private fun ToolBar(
         if (isLoading) {
             LinearProgressIndicator(
                 color = MaterialTheme.colorScheme.tertiaryContainer,
-                modifier = Modifier.fillMaxWidth()
+                trackColor = Color.Transparent,
+                modifier = Modifier.fillMaxWidth(),
             )
         } else {
             Spacer(Modifier.size(4.dp))

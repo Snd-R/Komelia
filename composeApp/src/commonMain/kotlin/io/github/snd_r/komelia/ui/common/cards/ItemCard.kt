@@ -96,7 +96,7 @@ fun overlayBorderModifier() =
 
 @Composable
 fun cardTextStyle() = MaterialTheme.typography.bodyMedium.copy(
-    color = MaterialTheme.colorScheme.primary,
+    color = Color.White,
     shadow = Shadow(
         color = Color.Black,
         offset = Offset(-1f, -1f),

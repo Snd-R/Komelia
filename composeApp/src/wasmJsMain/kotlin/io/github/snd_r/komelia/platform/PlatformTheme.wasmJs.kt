@@ -1,8 +1,8 @@
 package io.github.snd_r.komelia.platform
 
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import io.github.snd_r.komelia.ui.common.AppTheme
 
 @Composable
-actual fun ConfigurePlatformTheme(colors: ColorScheme) {
+actual fun ConfigurePlatformTheme(theme: AppTheme) {
 }

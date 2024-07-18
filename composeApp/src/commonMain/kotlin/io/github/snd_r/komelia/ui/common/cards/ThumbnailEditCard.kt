@@ -76,7 +76,7 @@ fun ThumbnailEditCard(
         ThumbnailCardContent(
             onSelect = onSelect,
             isSelected = thumbnail.markedSelected,
-            onDelete = if (thumbnail.type == GENERATED) null else onDelete,
+            onDelete = if (thumbnail.type == GENERATED || thumbnail.type == SIDECAR) null else onDelete,
             isDeleted = thumbnail.markedDeleted,
             filesize = thumbnail.fileSize,
             size = IntSize(thumbnail.width, thumbnail.height),

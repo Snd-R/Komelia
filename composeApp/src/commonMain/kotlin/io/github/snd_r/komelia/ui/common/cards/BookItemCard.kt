@@ -163,6 +163,7 @@ private fun BookImageOverlay(
                     color = MaterialTheme.colorScheme.tertiary,
                     trackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
                     modifier = Modifier.height(6.dp).fillMaxWidth().background(Color.Black),
+                    drawStopIndicator = {}
                 )
             }
         }
@@ -384,7 +385,10 @@ private fun ReadButton(onClick: () -> Unit) {
     FilledTonalButton(
         modifier = Modifier.padding(horizontal = 5.dp),
         shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
         onClick = onClick,
         contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
 

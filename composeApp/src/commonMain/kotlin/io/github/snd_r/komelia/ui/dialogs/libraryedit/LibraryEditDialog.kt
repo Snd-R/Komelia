@@ -9,13 +9,6 @@ import io.github.snd_r.komga.library.KomgaLibrary
 import kotlinx.coroutines.launch
 
 @Composable
-fun LibraryAddDialog(
-    onDismissRequest: () -> Unit
-) {
-    LibraryEditDialogs(null, onDismissRequest)
-}
-
-@Composable
 fun LibraryEditDialogs(
     library: KomgaLibrary?,
     onDismissRequest: () -> Unit

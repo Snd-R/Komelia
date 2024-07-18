@@ -68,8 +68,12 @@ fun MainView(
     platformType: PlatformType,
     keyEvents: SharedFlow<KeyEvent>
 ) {
-    MaterialTheme(colorScheme = AppTheme.dark) {
-        ConfigurePlatformTheme(MaterialTheme.colorScheme)
+    val theme = dependencies?.settingsRepository?.getAppTheme()
+        ?.collectAsState(AppTheme.DARK)?.value
+        ?: AppTheme.DARK
+
+    MaterialTheme(colorScheme = theme.colorScheme) {
+        ConfigurePlatformTheme(theme)
         val focusManager = LocalFocusManager.current
         Surface(
             modifier = Modifier

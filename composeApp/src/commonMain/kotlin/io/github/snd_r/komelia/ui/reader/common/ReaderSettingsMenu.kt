@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
@@ -175,7 +176,8 @@ private fun ReturnLink(icon: ImageVector, text: String, onClick: () -> Unit) {
 
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.tertiary,
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth()
         )
     }

@@ -12,7 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -78,18 +77,17 @@ private fun AuthenticationInfoCard(
                 Text("Source: ${activity.source}")
             }
 
+            val email = activity.email
+            if (showEmail && email != null) {
+                Text(
+                    email,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+
+                Spacer(Modifier.width(20.dp))
+            }
+
             Row {
-
-                val email = activity.email
-                if (showEmail && email != null) {
-                    Text(
-                        email,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-
-                    Spacer(Modifier.width(20.dp))
-                }
-
                 Text(
                     buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -104,7 +102,7 @@ private fun AuthenticationInfoCard(
                     Icon(
                         Icons.Default.Done,
                         null,
-                        tint = Color.Green,
+                        tint = MaterialTheme.colorScheme.secondary,
                     )
                 } else {
                     Text(activity.error ?: "")
@@ -112,13 +110,13 @@ private fun AuthenticationInfoCard(
                     Icon(
                         Icons.Default.Error,
                         null,
-                        tint = Color.Red,
+                        tint = MaterialTheme.colorScheme.error,
                     )
 
                 }
             }
 
-            Divider(Modifier.padding(vertical = 5.dp))
+            HorizontalDivider(Modifier.padding(vertical = 5.dp))
             Text(
                 buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("User Agent: ") }

@@ -14,7 +14,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.PageMetadata
@@ -48,11 +48,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
             steps = 7,
             valueRange = 0f..0.4f,
             modifier = Modifier.cursorForHand(),
-            colors = SliderDefaults.colors(
-                activeTrackColor = MaterialTheme.colorScheme.tertiary,
-                inactiveTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTickColor = MaterialTheme.colorScheme.surface,
-            )
+            colors = AppSliderDefaults.colors()
         )
         val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
         TextField(
@@ -114,7 +110,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
             visiblePages.forEach { page ->
                 Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
-                val displaySize = remember(scaleFactor, stretchToFit,padding) {
+                val displaySize = remember(scaleFactor, stretchToFit, padding) {
                     val scaledSize = state.getPageDisplaySize(page)
                     IntSize(
                         width = (scaledSize.width * scaleFactor).roundToInt(),

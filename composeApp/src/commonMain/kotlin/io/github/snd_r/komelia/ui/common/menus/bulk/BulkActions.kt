@@ -117,7 +117,7 @@ fun BulkActionButton(
                 Box(
                     Modifier
                         .clip(RoundedCornerShape(5.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .5f))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(10.dp)
                 ) {
                     Text(description)

@@ -45,7 +45,23 @@ import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialog
 import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import io.github.snd_r.komga.user.KomgaUser
 import io.github.snd_r.komga.user.KomgaUserId
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
 
+private val dateTimeFormat = LocalDateTime.Format {
+    year()
+    char('-')
+    monthNumber()
+    char('-')
+    dayOfMonth()
+    char(' ')
+    hour()
+    char(':')
+    minute()
+}
 
 @Composable
 fun UsersContent(
@@ -149,7 +165,7 @@ private fun UserInfo(
             Icon(
                 Icons.Default.SupervisorAccount,
                 null,
-                tint = MaterialTheme.colorScheme.tertiary
+                tint = MaterialTheme.colorScheme.tertiaryContainer
             )
         else
             Icon(Icons.Default.Person, null)
@@ -159,7 +175,11 @@ private fun UserInfo(
         Column(Modifier.width(300.dp)) {
             Text(user.email)
 
-            val activityText = latestActivity?.let { "Latest activity: ${it.dateTime}" }
+            val activityText = latestActivity?.let {
+                "Latest activity: ${
+                    it.dateTime.toLocalDateTime(TimeZone.currentSystemDefault()).format(dateTimeFormat)
+                }"
+            }
                 ?: "No recent activity"
             Text(
                 activityText,

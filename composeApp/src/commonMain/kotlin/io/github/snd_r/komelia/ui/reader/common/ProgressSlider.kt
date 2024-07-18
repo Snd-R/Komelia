@@ -25,7 +25,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import kotlin.math.roundToInt
 
@@ -91,14 +91,7 @@ fun PageSpreadProgressSlider(
                 onValueChange = { onPageNumberChange(it.roundToInt()) },
                 label = label,
                 labelMinWidth = 40.dp,
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.tertiary,
-                    activeTrackColor = MaterialTheme.colorScheme.tertiary,
-                    activeTickColor = MaterialTheme.colorScheme.onTertiary,
-
-                    inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                    inactiveTickColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
+                colors = AppSliderDefaults.colors(),
                 modifier = Modifier.align(Alignment.BottomStart)
             )
         }
@@ -115,7 +108,7 @@ fun SliderWithLabel(
     modifier: Modifier = Modifier,
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     steps: Int = 0,
-    colors: SliderColors = SliderDefaults.colors(),
+    colors: SliderColors = AppSliderDefaults.colors(),
 
     labelMinWidth: Dp = 40.dp,
 ) {
@@ -147,7 +140,6 @@ fun SliderWithLabel(
                     SliderDefaults.Track(
                         sliderState = state,
                         colors = colors,
-                        modifier = Modifier.scale(scaleX = 1f, scaleY = 2f),
                     )
                 }
             )

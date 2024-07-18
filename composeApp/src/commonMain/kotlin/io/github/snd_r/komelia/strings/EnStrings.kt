@@ -186,7 +186,10 @@ val EnStrings = Strings(
         serverSettingsDiscard = "Discard",
         serverSettingsSave = "Save Changes",
 
-        imageCardSize = "Image card size",
+        appTheme = "App Theme",
+        appThemeDark = "Dark",
+        appThemeLight = "Light",
+        imageCardSize = "Image card size in grid view (minimum display size)",
         decoder = "Image Decoder/Sampler"
     ),
     errorCodes = ErrorCodes(

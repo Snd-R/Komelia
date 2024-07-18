@@ -40,7 +40,7 @@ private val timestampFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZon
 fun LogView(
     logsFlow: SharedFlow<ILoggingEvent>,
 ) {
-    MaterialTheme(colorScheme = AppTheme.dark) {
+    MaterialTheme(colorScheme = AppTheme.DARK.colorScheme) {
         Surface(Modifier.fillMaxSize()) {
             LogsContent(logsFlow)
         }

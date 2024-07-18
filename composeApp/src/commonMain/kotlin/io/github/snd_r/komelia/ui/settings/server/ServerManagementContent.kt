@@ -33,6 +33,10 @@ fun ServerManagementContent(
         FilledTonalButton(
             onClick = { onScanAllLibraries(false) },
             shape = RoundedCornerShape(5.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         ) {
             Text("SCAN ALL LIBRARIES")
         }
@@ -43,7 +47,8 @@ fun ServerManagementContent(
             shape = RoundedCornerShape(5.dp),
             colors = ButtonDefaults.filledTonalButtonColors(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            ),
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
         ) {
             Text("SCAN ALL LIBRARIES (DEEP)")
         }
@@ -51,6 +56,10 @@ fun ServerManagementContent(
         FilledTonalButton(
             onClick = { showEmptyTrashDialog = true },
             shape = RoundedCornerShape(5.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         ) {
             Text("EMPTY TRASH FOR ALL LIBRARIES")
         }
@@ -60,7 +69,8 @@ fun ServerManagementContent(
             shape = RoundedCornerShape(5.dp),
             colors = ButtonDefaults.filledTonalButtonColors(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            ),
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
         ) {
             Text("CANCEL ALL TASKS")
         }
@@ -70,7 +80,7 @@ fun ServerManagementContent(
             shape = RoundedCornerShape(5.dp),
             colors = ButtonDefaults.filledTonalButtonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
             ),
         ) {
             Text("SHUTDOWN")

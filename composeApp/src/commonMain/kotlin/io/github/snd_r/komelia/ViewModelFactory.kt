@@ -47,7 +47,7 @@ import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
-import io.github.snd_r.komelia.ui.settings.app.AppSettingsViewModel
+import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel

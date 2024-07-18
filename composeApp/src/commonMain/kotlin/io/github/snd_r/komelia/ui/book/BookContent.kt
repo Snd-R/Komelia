@@ -60,7 +60,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth.*
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.DescriptionChips
@@ -303,7 +306,7 @@ private fun BookInfoUpperPanel(
                     modifier = Modifier.cursorForHand(),
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.primary
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ),
                 ) {
                     Row {
@@ -318,7 +321,7 @@ private fun BookInfoUpperPanel(
                     modifier = Modifier.cursorForHand(),
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.primary
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
                     ),
                 ) {
                     Row {

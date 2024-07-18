@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.dialogs
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -253,11 +254,17 @@ fun PosterEditContent(
                 .cursorForHand(),
             contentAlignment = Alignment.Center,
         ) {
-            StripedBar(Modifier.height(100.dp).fillMaxWidth().clip(RectangleShape))
+            StripedBar(
+                Modifier
+                    .background(MaterialTheme.colorScheme.surfaceDim)
+                    .height(100.dp)
+                    .fillMaxWidth()
+                    .clip(RectangleShape)
+            )
             Text(
                 "Choose an image - drag and drop",
                 textDecoration = TextDecoration.Underline,
-                color = MaterialTheme.colorScheme.tertiary,
+                color = MaterialTheme.colorScheme.tertiaryContainer,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -180,7 +180,7 @@ private fun SeriesImageOverlay(
                 ) {
                     Text(
                         "${series.booksUnreadCount}",
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onTertiary,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }

@@ -7,7 +7,9 @@ import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.settings.AppearanceSettings.PBAppTheme
 import io.github.snd_r.komelia.settings.AppearanceSettings.PBBooksLayout
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
@@ -173,6 +175,28 @@ class AndroidSettingsRepository(
     override suspend fun putDismissedVersion(version: AppVersion) {
         dataStore.updateData { current ->
             current.copy { updates = updates.copy { dismissedVersion = version.toString() } }
+        }
+    }
+
+    override fun getAppTheme(): Flow<AppTheme> {
+        return dataStore.data.map {
+            when (it.appearance.appTheme) {
+                PBAppTheme.UNRECOGNIZED, PBAppTheme.DARK, null -> AppTheme.DARK
+                PBAppTheme.LIGHT -> AppTheme.LIGHT
+            }
+        }
+    }
+
+    override suspend fun putAppTheme(theme: AppTheme) {
+        dataStore.updateData { current ->
+            current.copy {
+                appearance = appearance.copy {
+                    appTheme = when (theme) {
+                        AppTheme.DARK -> PBAppTheme.DARK
+                        AppTheme.LIGHT -> PBAppTheme.LIGHT
+                    }
+                }
+            }
         }
     }
 }

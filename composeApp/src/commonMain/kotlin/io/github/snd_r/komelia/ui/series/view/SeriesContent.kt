@@ -47,7 +47,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth.*
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.DescriptionChips
@@ -65,7 +68,10 @@ import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komga.book.KomgaBook
 import io.github.snd_r.komga.collection.KomgaCollection
 import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesStatus.*
+import io.github.snd_r.komga.series.KomgaSeriesStatus.ABANDONED
+import io.github.snd_r.komga.series.KomgaSeriesStatus.ENDED
+import io.github.snd_r.komga.series.KomgaSeriesStatus.HIATUS
+import io.github.snd_r.komga.series.KomgaSeriesStatus.ONGOING
 
 @Composable
 fun SeriesContent(
@@ -227,7 +233,7 @@ fun SeriesInfo(
     val contentSize = when (LocalWindowWidth.current) {
         COMPACT, MEDIUM -> Modifier.padding(10.dp, 0.dp)
         EXPANDED -> Modifier.padding(10.dp, 0.dp)
-        FULL -> Modifier.padding(30.dp, 0.dp).fillMaxSize(0.8f)
+        FULL -> Modifier.padding(30.dp, 0.dp).widthIn(max = 1200.dp)
     }
 
     Column(
@@ -245,14 +251,28 @@ fun SeriesInfo(
                 onClick = { onFilterClick(SeriesScreenFilter(publicationStatus = listOf(series.metadata.status))) },
                 label = { Text(series.metadata.status.name) },
                 border = null,
-                colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = when (series.metadata.status) {
-                        ENDED -> MaterialTheme.colorScheme.secondary
-                        ONGOING -> MaterialTheme.colorScheme.surfaceVariant
-                        ABANDONED -> MaterialTheme.colorScheme.errorContainer
-                        HIATUS -> MaterialTheme.colorScheme.tertiaryContainer
-                    },
-                )
+                colors =
+                when (series.metadata.status) {
+                    ENDED -> SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        labelColor = MaterialTheme.colorScheme.onSecondary
+                    )
+
+                    ONGOING -> SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    ABANDONED -> SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        labelColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+
+                    HIATUS -> SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                },
             )
 
             series.metadata.ageRating?.let { age ->
@@ -310,8 +330,8 @@ fun SeriesInfo(
 
 
         ExpandableText(
-            series.metadata.summary,
-            style = MaterialTheme.typography.bodyMedium
+            text = series.metadata.summary,
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }

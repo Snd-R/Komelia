@@ -106,7 +106,8 @@ class ScreenScaleState {
     }
 
     suspend fun performFling(spec: DecayAnimationSpec<Offset>) {
-        val velocity = velocityTracker.calculateVelocity()
+        val scale = transformation.value.scale
+        val velocity = velocityTracker.calculateVelocity().div(scale)
         velocityTracker.resetTracking()
 
         var lastValue = Offset(0f, 0f)

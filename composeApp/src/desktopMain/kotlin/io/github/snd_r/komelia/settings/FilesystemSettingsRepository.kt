@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
@@ -116,6 +117,14 @@ class FilesystemSettingsRepository(
 
     override suspend fun putDismissedVersion(version: AppVersion) {
         actor.transform { settings -> settings.copy(updates = settings.updates.copy(dismissedVersion = version)) }
+    }
+
+    override fun getAppTheme(): Flow<AppTheme> {
+        return actor.getState().map { it.appearance.appTheme }
+    }
+
+    override suspend fun putAppTheme(theme: AppTheme) {
+        actor.transform { settings -> settings.copy(appearance = settings.appearance.copy(appTheme = theme)) }
     }
 
 

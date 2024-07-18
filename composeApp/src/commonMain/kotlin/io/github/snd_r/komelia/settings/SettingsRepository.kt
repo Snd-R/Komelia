@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.settings
 
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
@@ -42,4 +43,7 @@ interface SettingsRepository {
 
     fun getDismissedVersion(): Flow<AppVersion?>
     suspend fun putDismissedVersion(version: AppVersion)
+
+    fun getAppTheme(): Flow<AppTheme>
+    suspend fun putAppTheme(theme: AppTheme)
 }

@@ -5,6 +5,7 @@ import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.PlatformDecoderType.VIPS
 import io.github.snd_r.komelia.platform.skiaSamplerMitchell
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
@@ -47,7 +48,8 @@ data class AppearanceSettings(
     val cardWidth: Int = 200,
     val seriesPageLoadSize: Int = 20,
     val bookPageLoadSize: Int = 20,
-    val bookListLayout: BooksLayout = BooksLayout.GRID
+    val bookListLayout: BooksLayout = BooksLayout.GRID,
+    val appTheme: AppTheme = AppTheme.DARK
 )
 
 @Serializable

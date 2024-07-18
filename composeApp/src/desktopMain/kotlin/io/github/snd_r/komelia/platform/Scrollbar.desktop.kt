@@ -24,7 +24,7 @@ actual fun VerticalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
         hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
@@ -37,7 +37,7 @@ actual fun VerticalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
         hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
@@ -50,7 +50,7 @@ actual fun HorizontalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
         hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
@@ -64,7 +64,7 @@ actual fun HorizontalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
         hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
@@ -77,7 +77,7 @@ actual fun HorizontalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
         hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
@@ -92,7 +92,7 @@ actual fun VerticalScrollbar(
     adapter = remember(scrollState) { LazyGridScrollbarAdapter(scrollState) },
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
         hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )

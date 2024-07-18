@@ -51,7 +51,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth.*
+import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
+import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
+import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
@@ -72,6 +75,8 @@ import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
 import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
+import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
 import io.github.snd_r.komelia.ui.series.SeriesBooksState
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
@@ -209,7 +214,7 @@ private fun BooksContent(
                     horizontalAlignment = if (LocalWindowWidth.current == COMPACT) Alignment.CenterHorizontally else Alignment.Start
                 ) {
                     when (layout) {
-                        BooksLayout.GRID -> {
+                        GRID -> {
                             BooksGrid(
                                 books = books,
                                 onBookClick = if (selectionMode) onBookSelect else onBookClick,
@@ -222,7 +227,7 @@ private fun BooksContent(
                             )
                         }
 
-                        BooksLayout.LIST -> BooksList(
+                        LIST -> BooksList(
                             books = books,
                             onBookClick = if (selectionMode) onBookSelect else onBookClick,
                             onBookReadClick = if (selectionMode) null else onBookReadClick,
@@ -313,22 +318,34 @@ private fun BooksToolBar(
 
                 Box(
                     Modifier
-                        .background(if (booksLayout == BooksLayout.LIST) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
-                        .clickable { onBooksLayoutChange(BooksLayout.LIST) }
+                        .background(
+                            if (booksLayout == LIST) MaterialTheme.colorScheme.surfaceVariant
+                            else MaterialTheme.colorScheme.surface
+                        )
+                        .clickable { onBooksLayoutChange(LIST) }
                         .cursorForHand()
                         .padding(10.dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ViewList, null)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ViewList,
+                        null,
+                    )
                 }
 
                 Box(
                     Modifier
-                        .background(if (booksLayout == BooksLayout.GRID) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.surface)
-                        .clickable { onBooksLayoutChange(BooksLayout.GRID) }
+                        .background(
+                            if (booksLayout == GRID) MaterialTheme.colorScheme.surfaceVariant
+                            else MaterialTheme.colorScheme.surface
+                        )
+                        .clickable { onBooksLayoutChange(GRID) }
                         .cursorForHand()
                         .padding(10.dp)
                 ) {
-                    Icon(Icons.Default.GridView, null)
+                    Icon(
+                        Icons.Default.GridView,
+                        null,
+                    )
                 }
             }
         }
@@ -375,7 +392,7 @@ fun BooksBulkActionsToolbar(
 
                     BooksBulkActionsContent(
                         books = selectedBooks,
-                        actions= actions,
+                        actions = actions,
                         iconOnly = true
                     )
                 }
