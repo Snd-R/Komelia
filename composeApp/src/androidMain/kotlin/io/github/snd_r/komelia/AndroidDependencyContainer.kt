@@ -102,12 +102,10 @@ class AndroidDependencyContainer(
                 context = context
             )
             val appUpdater = createAppUpdater(ktorClient, context)
-            val readerImageLoader = ReaderImageLoader(
-                komgaClientFactory.bookClient(),
-                AndroidImageDecoder(),
-                DiskCache.Builder()
-                    .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
-                    .build()
+            val readerImageLoader = createReaderImageLoader(
+                baseUrl = baseUrl,
+                ktorClient = ktorClient,
+                cookiesStorage = cookiesStorage,
             )
 
             val coil = createCoil(ktorClient, baseUrl, cookiesStorage, context)
@@ -164,6 +162,26 @@ class AndroidDependencyContainer(
                 .baseUrl { baseUrl.value }
                 .cookieStorage(cookiesStorage)
                 .build()
+        }
+
+        private fun createReaderImageLoader(
+            baseUrl: StateFlow<String>,
+            ktorClient: HttpClient,
+            cookiesStorage: RememberMePersistingCookieStore,
+        ): ReaderImageLoader {
+            val bookClient = KomgaClientFactory.Builder()
+                .ktor(ktorClient)
+                .baseUrl { baseUrl.value }
+                .cookieStorage(cookiesStorage)
+                .build()
+                .bookClient()
+            return ReaderImageLoader(
+                bookClient,
+                AndroidImageDecoder(),
+                DiskCache.Builder()
+                    .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
+                    .build()
+            )
         }
 
         private fun createCoil(
