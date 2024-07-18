@@ -24,4 +24,4 @@ RUN wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -
 USER 1000:1000
 WORKDIR build
 ENV NDK_PATH=/ndk/
-ENTRYPOINT ["./build-android-x86-64.sh"]
+ENTRYPOINT ["./build-android-x86_64.sh"]
