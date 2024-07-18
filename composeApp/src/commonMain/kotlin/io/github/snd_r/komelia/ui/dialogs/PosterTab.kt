@@ -236,11 +236,10 @@ fun PosterEditContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val launcher = rememberFilePickerLauncher(
-        mode = PickerMode.Single,
+        mode = PickerMode.Multiple,
         title = "Choose a file",
-        initialDirectory = "/home/den/tmp"
     ) { files ->
-        files?.let { posterState.onThumbnailUpload(emptyList()) }
+        files?.let { posterState.onThumbnailUpload(it) }
     }
 
     ExternalDragAndDropArea(
