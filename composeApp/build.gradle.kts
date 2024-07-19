@@ -106,8 +106,8 @@ kotlin {
             implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc05")
             implementation("org.jetbrains:markdown:0.7.3")
 
-            implementation("io.github.vinceglb:filekit-core")
-            implementation("io.github.vinceglb:filekit-compose")
+            implementation("io.github.vinceglb:filekit-core:0.7.0")
+            implementation("io.github.vinceglb:filekit-compose:0.7.0")
 
             implementation(project(":komga_client"))
         }

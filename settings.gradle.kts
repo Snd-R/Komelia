@@ -38,13 +38,6 @@ include(":composeApp", ":komga_client")
 include("image-decoder")
 include("wasmImageWorker")
 
-includeBuild("third_party/FileKit") {
-    dependencySubstitution {
-        substitute(module("io.github.vinceglb:filekit-core")).using(project(":filekit-core"))
-        substitute(module("io.github.vinceglb:filekit-compose")).using(project(":filekit-compose"))
-    }
-}
-
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
 }
