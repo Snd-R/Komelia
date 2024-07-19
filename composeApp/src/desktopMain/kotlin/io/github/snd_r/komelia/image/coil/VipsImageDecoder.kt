@@ -11,15 +11,8 @@ import coil3.size.Scale
 import coil3.size.isOriginal
 import coil3.size.pxOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.ImageFormat.GRAYSCALE_8
-import io.github.snd_r.ImageFormat.RGBA_8888
+import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsImage
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.ColorAlphaType
-import org.jetbrains.skia.ColorInfo
-import org.jetbrains.skia.ColorSpace
-import org.jetbrains.skia.ColorType
-import org.jetbrains.skia.ImageInfo
 import kotlin.time.DurationUnit
 import kotlin.time.measureTimedValue
 
@@ -48,10 +41,8 @@ class VipsImageDecoder(
                 VipsImage.thumbnail(file.toString(), dstWidth, dstHeight, crop)
             }
 
-//            val bitmap = VipsBitmapFactory.createSkiaBitmap(decoded)
-            val bitmap = decoded.toBitmap()
+            val bitmap = VipsBitmapFactory.toSkiaBitmap(decoded)
             decoded.close()
-            bitmap.setImmutable()
 
             DecodeResult(
                 image = bitmap.asImage(),
@@ -67,27 +58,5 @@ class VipsImageDecoder(
         }
 
         return result.value
-    }
-
-    private fun VipsImage.toBitmap(): Bitmap {
-        val colorInfo = when (type) {
-            GRAYSCALE_8 -> ColorInfo(
-                ColorType.GRAY_8,
-                ColorAlphaType.UNPREMUL,
-                ColorSpace.sRGB
-            )
-
-            RGBA_8888 -> ColorInfo(
-                ColorType.RGBA_8888,
-                ColorAlphaType.UNPREMUL,
-                ColorSpace.sRGB
-            )
-        }
-
-        val imageInfo = ImageInfo(colorInfo, width, height)
-        val bitmap = Bitmap()
-        bitmap.allocPixels(imageInfo)
-        bitmap.installPixels(getBytes())
-        return bitmap
     }
 }

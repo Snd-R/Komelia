@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(komelia C)
+project(komelia C CXX)
 set(CMAKE_C_STANDARD 23)
 
 OPTION(VULKAN_GPU_ENUMERATION "build gpu enumeration shared lib for vulkan" ON)
@@ -30,22 +30,6 @@ target_link_libraries(komelia_vips PkgConfig::VIPS)
 install(TARGETS komelia_vips LIBRARY)
 
 if (NOT ANDROID)
-#    find_library(SKIA_LIB NAMES skia PATHS ${SKIA_CUSTOM_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
-#    add_library(komelia_skia SHARED
-#            src/skia/komelia_skia.cpp
-#            src/vips/vips_common_jni.h
-#    )
-#    target_include_directories(komelia_skia PRIVATE
-#            ${VIPS_INCLUDE_DIRS}
-#            ${JNI_INCLUDE_DIRS}
-#            ${SKIA_CUSTOM_PATH}
-#    )
-#    target_link_libraries(komelia_skia
-#            komelia_vips
-#            PkgConfig::VIPS
-#            ${SKIA_LIB}
-#    )
-#    install(TARGETS komelia_skia LIBRARY)
 
     find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
 
@@ -161,6 +145,25 @@ if (WIN32)
             ${ONNXRUNTIME_LIB}
     )
     install(TARGETS komelia_onnxruntime_dml LIBRARY)
+endif ()
+
+if(UNIX)
+    find_library(SKIA_LIB NAMES skia PATHS ${SKIA_CUSTOM_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
+    add_library(komelia_skia SHARED
+            src/skia/komelia_skia.cpp
+            src/vips/vips_common_jni.h
+    )
+    target_include_directories(komelia_skia PRIVATE
+            ${VIPS_INCLUDE_DIRS}
+            ${JNI_INCLUDE_DIRS}
+            ${SKIA_CUSTOM_PATH}
+    )
+    target_link_libraries(komelia_skia
+            komelia_vips
+            PkgConfig::VIPS
+            ${SKIA_LIB}
+    )
+    install(TARGETS komelia_skia LIBRARY)
 endif ()
 
 if (ANDROID)

@@ -43,7 +43,8 @@ RUN mkdir /cuda_download && cd /cuda_download \
 RUN mkdir /skia && cd /skia \
     && wget -q --show-progress https://github.com/JetBrains/skia-pack/releases/download/m116-b54492e-3/Skia-m116-b54492e-3-linux-Release-x64.zip \
     && unzip Skia-m116-b54492e-3-linux-Release-x64.zip \
-    && mkdir ./lib && mv ./out/Release-linux-x64/* ./lib
+    && mkdir ./lib && mv ./out/Release-linux-x64/* ./lib \
+    && rm -rf Skia-m116-b54492e-3-linux-Release-x64.zip
 
 USER 1000:1000
 WORKDIR build

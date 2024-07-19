@@ -9,6 +9,7 @@ import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.OnnxRuntimeUpscaler
+import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsSharedLIbraries
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.DesktopImageDecoder
@@ -94,6 +95,7 @@ class DesktopDependencyContainer private constructor(
             }
             if (!VipsSharedLIbraries.isAvailable)
                 throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
+            VipsBitmapFactory.load()
 
             val settingsActor = createSettingsActor()
             val settingsRepository = FilesystemSettingsRepository(settingsActor)

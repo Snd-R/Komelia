@@ -13,7 +13,7 @@ void freeData(void *data, void *) {
     free(data);
 }
 
-extern "C" JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsBitmapFactory_createSkiaBitmap(
+extern "C" JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsBitmapFactory_directCopyToSkiaBitmap(
         JNIEnv *env,
         jobject thisObject,
         jobject jvm_image
@@ -49,15 +49,17 @@ extern "C" JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsBitmapFactory_cre
     if (!success) {
         komelia_throw_jvm_vips_exception(env, "failed to allocate bitmap pixels");
         delete bitmap;
-        g_object_unref(image);
+//        g_object_unref(image);
+        free(dataCopy);
         return nullptr;
     }
 
-    success = bitmap->installPixels(imageInfo, imageData, rowBytes, freeData, nullptr);
+    success = bitmap->installPixels(imageInfo, dataCopy, rowBytes, freeData, nullptr);
     if (!success) {
         komelia_throw_jvm_vips_exception(env, "failed to install bitmap pixels");
         delete bitmap;
-        g_object_unref(image);
+//        g_object_unref(image);
+        free(dataCopy);
         return nullptr;
     }
     bitmap->setImmutable();

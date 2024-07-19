@@ -9,11 +9,9 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.ImageFormat
-import io.github.snd_r.ImageFormat.GRAYSCALE_8
-import io.github.snd_r.ImageFormat.RGBA_8888
 import io.github.snd_r.ImageRect
 import io.github.snd_r.OnnxRuntimeUpscaler
+import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsImage
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
@@ -23,14 +21,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.ColorAlphaType
-import org.jetbrains.skia.ColorInfo
-import org.jetbrains.skia.ColorSpace
-import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.ImageInfo
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.TextLine
 import java.nio.file.Path
@@ -267,39 +259,10 @@ class DesktopTilingReaderImage(
     }
 
     private fun VipsImage.toReaderImageData(): ReaderImageData {
-//        val skiaBitmap = VipsBitmapFactory.createSkiaBitmap(this)
-        val skiaBitmap = createSkiaBitmap(type, width, height, getBytes())
+        val skiaBitmap =  VipsBitmapFactory.toSkiaBitmap(this)
         val image = Image.makeFromBitmap(skiaBitmap)
         skiaBitmap.close()
         return ReaderImageData(width, height, image)
-    }
-
-    private fun createSkiaBitmap(
-        type: ImageFormat,
-        width: Int,
-        height: Int,
-        bytes: ByteArray
-    ): Bitmap {
-        val colorInfo = when (type) {
-            GRAYSCALE_8 -> ColorInfo(
-                ColorType.GRAY_8,
-                ColorAlphaType.UNPREMUL,
-                ColorSpace.sRGB
-            )
-
-            RGBA_8888 -> ColorInfo(
-                ColorType.RGBA_8888,
-                ColorAlphaType.UNPREMUL,
-                ColorSpace.sRGB
-            )
-        }
-
-        val imageInfo = ImageInfo(colorInfo, width, height)
-        val bitmap = Bitmap()
-        bitmap.allocPixels(imageInfo)
-        bitmap.installPixels(bytes)
-        bitmap.setImmutable()
-        return bitmap
     }
 
     private fun IntRect.toImageRect() = ImageRect(left = left, top = top, right = right, bottom = bottom)
