@@ -29,7 +29,7 @@ object AppDirectories {
     )
 
     private val cachePath: Path = Path(System.getProperty("java.io.tmpdir")).resolve("komelia")
-    val ktorCachePath: Path = cachePath.resolve("ktor")
+    val okHttpCachePath: Path = cachePath.resolve("okHttp")
     val coilCachePath: Path = cachePath.resolve("coil")
     val readerCachePath: Path = cachePath.resolve("reader")
     val readerUpscaleCachePath: Path = cachePath.resolve("reader_upscale")

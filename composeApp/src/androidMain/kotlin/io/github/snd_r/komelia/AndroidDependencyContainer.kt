@@ -36,8 +36,6 @@ import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.serialization.kotlinx.json.*
@@ -47,6 +45,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.FileSystem
@@ -91,24 +90,29 @@ class AndroidDependencyContainer(
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(scope)
 
-            val okHttpClient = createOkHttpClient()
-            val cookiesStorage =
-                RememberMePersistingCookieStore(baseUrl, secretsRepository).also { it.loadRememberMeCookie() }
-            val ktorClient = createKtorClient(okHttpClient)
+            val okHttpWithoutCache = createOkHttpClient()
+            val okHttpWithCache = okHttpWithoutCache.newBuilder()
+                .cache(Cache(directory = context.cacheDir.resolve("okhttp"), maxSize = 50L * 1024L * 1024L))
+                .build()
+            val ktorWithCache = createKtorClient(okHttpWithCache)
+            val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
+
+            val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
+                .also { it.loadRememberMeCookie() }
+
             val komgaClientFactory = createKomgaClientFactory(
                 baseUrl = baseUrl,
-                ktorClient = ktorClient,
+                ktorClient = ktorWithCache,
                 cookiesStorage = cookiesStorage,
-                context = context
             )
-            val appUpdater = createAppUpdater(ktorClient, context)
+            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
             val readerImageLoader = createReaderImageLoader(
                 baseUrl = baseUrl,
-                ktorClient = ktorClient,
+                ktorClient = ktorWithoutCache,
                 cookiesStorage = cookiesStorage,
             )
 
-            val coil = createCoil(ktorClient, baseUrl, cookiesStorage, context)
+            val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, context)
             SingletonImageLoader.setSafe { coil }
 
             return AndroidDependencyContainer(
@@ -148,17 +152,9 @@ class AndroidDependencyContainer(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
             cookiesStorage: RememberMePersistingCookieStore,
-            context: Context
         ): KomgaClientFactory {
-            val ktorKomgaClient = ktorClient.config {
-                install(HttpCache) {
-                    privateStorage(FileStorage(context.cacheDir))
-                    publicStorage(FileStorage(context.cacheDir))
-                }
-            }
-
             return KomgaClientFactory.Builder()
-                .ktor(ktorKomgaClient)
+                .ktor(ktorClient)
                 .baseUrl { baseUrl.value }
                 .cookieStorage(cookiesStorage)
                 .build()
@@ -214,12 +210,18 @@ class AndroidDependencyContainer(
                 .build()
         }
 
-        private fun createAppUpdater(ktor: HttpClient, context: Context): AndroidAppUpdater {
+        private fun createAppUpdater(
+            ktor: HttpClient,
+            ktorWithoutCache: HttpClient,
+            context: Context
+        ): AndroidAppUpdater {
             val githubClient = UpdateClient(
-                ktor.config {
-                    install(HttpCache)
+                ktor = ktor.config {
                     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-                }
+                },
+                ktorWithoutCache = ktorWithoutCache.config {
+                    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+                },
             )
             return AndroidAppUpdater(githubClient, context)
         }

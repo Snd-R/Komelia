@@ -11,7 +11,10 @@ import kotlinx.serialization.Serializable
 private const val komeliaBaseUrl = "https://api.github.com/repos/Snd-R/Komelia"
 private const val onnxRuntimeBaseUrl = "https://api.github.com/repos/microsoft/onnxruntime"
 
-class UpdateClient(private val ktor: HttpClient) {
+class UpdateClient(
+    private val ktor: HttpClient,
+    private val ktorWithoutCache: HttpClient
+) {
 
     suspend fun getKomeliaReleases(): List<GithubRelease> {
         return ktor.get("$komeliaBaseUrl/releases") {
@@ -25,11 +28,10 @@ class UpdateClient(private val ktor: HttpClient) {
 
     suspend fun getOnnxRuntimeRelease(tagName: String): GithubRelease {
         return ktor.get("$onnxRuntimeBaseUrl/releases/tags/$tagName").body()
-
     }
 
     suspend fun streamFile(url: String, block: suspend (response: HttpResponse) -> Unit) {
-        ktor.prepareGet(url).execute(block)
+        ktorWithoutCache.prepareGet(url).execute(block)
     }
 }
 

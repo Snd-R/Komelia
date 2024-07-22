@@ -16,6 +16,7 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
@@ -35,14 +36,17 @@ class MangaJaNaiDownloader(
                 mangaJaNaiInstallPath.createDirectories()
             }
 
+            emit(UpdateProgress(0, 0, "MangaJaNaiOnnxModels.zip"))
+            val archiveFile = createTempFile("MangaJaNaiOnnxModels.zip")
+            archiveFile.toFile().deleteOnExit()
+
             appNotifications.runCatchingToNotifications {
-                emit(UpdateProgress(0, 0, "MangaJaNaiOnnxModels.zip"))
-                val archiveFile = createTempFile("MangaJaNaiOnnxModels.zip")
                 downloadFile(archiveFile)
                 emit(UpdateProgress(0, 0))
                 extractZipArchive(archiveFile)
+                archiveFile.deleteIfExists()
                 downloadCompletionEventFlow.emit(Unit)
-            }
+            }.onFailure { archiveFile.deleteIfExists() }
         }
     }
 

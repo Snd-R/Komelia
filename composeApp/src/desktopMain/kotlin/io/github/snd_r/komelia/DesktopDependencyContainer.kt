@@ -11,7 +11,6 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsSharedLibraries
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
-import io.github.snd_r.komelia.AppDirectories.ktorCachePath
 import io.github.snd_r.komelia.AppDirectories.mangaJaNaiModelFiles
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
@@ -50,8 +49,6 @@ import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.serialization.kotlinx.json.*
@@ -67,6 +64,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
@@ -125,24 +123,34 @@ class DesktopDependencyContainer private constructor(
             val baseUrl = settingsRepository.getServerUrl().stateIn(systemScope)
             val decoderType = settingsRepository.getDecoderSettings().stateIn(systemScope)
 
-            val okHttpClient = createOkHttpClient()
+            val okHttpWithoutCache = createOkHttpClient()
+            val okHttpWithCache = okHttpWithoutCache.newBuilder()
+                .cache(
+                    Cache(
+                        directory = AppDirectories.okHttpCachePath.createDirectories().toFile(),
+                        maxSize = 50L * 1024L * 1024L // 50 MiB
+                    )
+                ).build()
             val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
 
             measureTime { cookiesStorage.loadRememberMeCookie() }
                 .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
 
+            val ktorWithCache = createKtorClient(okHttpWithCache)
+            val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
 
-            val ktorClient = createKtorClient(okHttpClient)
             val komgaClientFactory = createKomgaClientFactory(
                 baseUrl = baseUrl,
-                ktorClient = ktorClient,
+                ktorClient = ktorWithCache,
                 cookiesStorage = cookiesStorage,
-                tempDir = ktorCachePath.createDirectories()
             )
 
             val notifications = AppNotifications()
             val updateClient = UpdateClient(
-                ktorClient.config {
+                ktor = ktorWithCache.config {
+                    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+                },
+                ktorWithoutCache = ktorWithoutCache.config {
                     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
                 }
             )
@@ -151,7 +159,7 @@ class DesktopDependencyContainer private constructor(
             val mangaJaNaiDownloader = MangaJaNaiDownloader(updateClient, notifications)
 
             val coil = createCoil(
-                ktorClient = ktorClient,
+                ktorClient = ktorWithoutCache,
                 url = baseUrl,
                 cookiesStorage = cookiesStorage,
                 decoderState = decoderType,
@@ -161,12 +169,11 @@ class DesktopDependencyContainer private constructor(
 
             val readerImageLoader = createReaderImageLoader(
                 baseUrl = baseUrl,
-                ktorClient = ktorClient,
+                ktorClient = ktorWithoutCache,
                 cookiesStorage = cookiesStorage,
                 upscaleOption = decoderType.map { it.upscaleOption }.stateIn(systemScope),
                 upscaler = onnxUpscaler.value
             )
-
 
             val availableDecoders = createAvailableDecodersFlow(
                 settingsRepository,
@@ -221,18 +228,9 @@ class DesktopDependencyContainer private constructor(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
             cookiesStorage: RememberMePersistingCookieStore,
-            tempDir: Path,
         ): KomgaClientFactory {
-
-            val ktorKomgaClient = ktorClient.config {
-                install(HttpCache) {
-                    privateStorage(FileStorage(tempDir.toFile()))
-                    publicStorage(FileStorage(tempDir.toFile()))
-                }
-            }
-
             return KomgaClientFactory.Builder()
-                .ktor(ktorKomgaClient)
+                .ktor(ktorClient)
                 .baseUrl { baseUrl.value }
                 .cookieStorage(cookiesStorage)
                 .build()
