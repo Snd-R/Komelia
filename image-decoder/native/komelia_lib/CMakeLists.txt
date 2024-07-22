@@ -147,7 +147,7 @@ if (WIN32)
     install(TARGETS komelia_onnxruntime_dml LIBRARY)
 endif ()
 
-if(UNIX)
+if(UNIX AND NOT ANDROID)
     find_library(SKIA_LIB NAMES skia PATHS ${SKIA_CUSTOM_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
     add_library(komelia_skia SHARED
             src/skia/komelia_skia.cpp
