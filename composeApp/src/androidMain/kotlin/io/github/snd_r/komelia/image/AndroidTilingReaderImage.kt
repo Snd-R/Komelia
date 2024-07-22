@@ -14,11 +14,12 @@ import androidx.compose.ui.unit.toSize
 import io.github.snd_r.ImageRect
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsImage
+import io.github.snd_r.komelia.image.ReaderImage.PageId
 
 actual typealias RenderImage = Bitmap
 actual typealias PlatformImage = VipsImage
 
-class AndroidTilingReaderImage(encoded: ByteArray) : TilingReaderImage(encoded) {
+class AndroidTilingReaderImage(encoded: ByteArray, pageId: PageId) : TilingReaderImage(encoded, pageId) {
 
     override fun getDimensions(encoded: ByteArray): IntSize {
         val vipsDimensions = VipsImage.Companion.getDimensions(encoded)

@@ -10,7 +10,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 
 object SharedLibrariesLoader {
-    private val logger = LoggerFactory.getLogger(VipsSharedLIbraries::class.java)
+    private val logger = LoggerFactory.getLogger(SharedLibrariesLoader::class.java)
     private val javaLibPath: List<Path> = System.getProperty("java.library.path").ifBlank { null }
         ?.let { path -> path.split(":").map { Path.of(it) } }
         ?: emptyList()
@@ -23,7 +23,7 @@ object SharedLibrariesLoader {
     fun loadLibrary(libName: String) {
         try {
             val filename = System.mapLibraryName(libName)
-            val classPathFileBytes = VipsSharedLIbraries::class.java.getResource("/${filename}")?.readBytes()
+            val classPathFileBytes = VipsSharedLibraries::class.java.getResource("/${filename}")?.readBytes()
 
             val javaPathFile =
                 if (classPathFileBytes == null)

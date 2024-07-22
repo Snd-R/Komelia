@@ -21,7 +21,7 @@ class DesktopDecoder(
 
     override suspend fun decode(): DecodeResult? {
         val decoder = when (decoderOptions.platformType) {
-            PlatformDecoderType.VIPS, PlatformDecoderType.VIPS_ONNX -> VipsImageDecoder(source, options)
+            PlatformDecoderType.VIPS, PlatformDecoderType.VIPS_ONNX -> VipsCoilImageDecoder(source, options)
         }
         return try {
             decoder.decode()

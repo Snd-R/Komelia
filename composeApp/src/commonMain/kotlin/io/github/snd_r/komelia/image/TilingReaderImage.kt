@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toRect
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.image.ReaderImage.PageId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,7 +36,10 @@ expect class PlatformImage
 
 private val logger = KotlinLogging.logger {}
 
-abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
+abstract class TilingReaderImage(
+    private val encoded: ByteArray,
+    final override val pageId: PageId
+) : ReaderImage {
     private val dimensions by lazy { getDimensions(encoded) }
     final override val width by lazy { dimensions.width }
     final override val height by lazy { dimensions.height }
@@ -157,7 +161,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
             closeTileBitmaps(previousTiles)
             painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
             closeImage(image)
-        }.also { logger.info { "image $width x $height completed full resize to $dstWidth x $dstHeight in $it" } }
+        }.also { logger.info { "page ${pageId.pageNumber}: image $width x $height completed full resize to $dstWidth x $dstHeight in $it" } }
     }
 
     private suspend fun doTile(
@@ -231,7 +235,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
                         ((tileHeight) * scaleFactor).roundToInt()
                     )
                 }
-                logger.info { "retrived tile data in ${scaledTileData.duration}" }
+                logger.info { "page ${pageId.pageNumber}: retrieved tile data in ${scaledTileData.duration}" }
 
                 val tile = ReaderImageTile(
                     size = IntSize(scaledTileData.value.width, scaledTileData.value.height),
@@ -255,7 +259,7 @@ abstract class TilingReaderImage(private val encoded: ByteArray) : ReaderImage {
 
             val dstWidth = (width * scaleFactor).roundToInt()
             val dstHeight = (height * scaleFactor).roundToInt()
-            logger.info { "image $width x $height; tile size:$tileSize; tiles count: ${tiles.value.size}; resize to $dstWidth x $dstHeight completed in ${end - start}" }
+            logger.info { "page ${pageId.pageNumber}: image $width x $height; tile size:$tileSize; tiles count: ${tiles.value.size}; resize to $dstWidth x $dstHeight completed in ${end - start}" }
         }
         lastUsedScaleFactor = scaleFactor
         image?.let { closeImage(it) }

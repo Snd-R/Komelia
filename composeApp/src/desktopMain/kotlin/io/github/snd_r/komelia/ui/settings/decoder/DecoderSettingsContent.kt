@@ -30,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,14 +65,15 @@ import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.updates.UpdateProgress
 import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 
 @Composable
 fun DecoderSettingsContent(
-    availableDecoders: List<PlatformDecoderDescriptor>,
     decoderDescriptor: PlatformDecoderDescriptor,
     decoder: PlatformDecoderType,
-    onDecoderChange: (PlatformDecoderType) -> Unit,
     upscaleOption: UpscaleOption,
     onUpscaleOptionChange: (UpscaleOption) -> Unit,
     downscaleOption: DownscaleOption,
@@ -87,9 +89,11 @@ fun DecoderSettingsContent(
     onOrtProviderInstall: suspend (OnnxRuntimeExecutionProvider) -> Unit,
     onOrtProviderInstallCancel: () -> Unit,
     ortInstallProgress: UpdateProgress?,
-
     ortInstallError: String?,
     onOrtInstallErrorDismiss: () -> Unit,
+
+    mangaJaNaiIsDownloaded: Boolean,
+    onMangaJaNaiDownload: () -> Flow<UpdateProgress>,
 
     onCacheClear: () -> Unit,
 ) {
@@ -140,17 +144,21 @@ fun DecoderSettingsContent(
                 onOrtProviderInstallCancel = onOrtProviderInstallCancel,
                 ortInstallProgress = ortInstallProgress,
                 ortInstallError = ortInstallError,
-                onOrtInstallErrorDismiss = onOrtInstallErrorDismiss
+                onOrtInstallErrorDismiss = onOrtInstallErrorDismiss,
+
+                mangaJaNaiIsDownloaded = mangaJaNaiIsDownloaded,
+                onMangaJaNaiDownload = onMangaJaNaiDownload
             )
         }
 
-        HorizontalDivider(Modifier.padding(vertical = 10.dp))
-
-        Text("Image cache")
-        FilledTonalButton(
-            onClick = onCacheClear,
-            shape = RoundedCornerShape(5.dp)
-        ) { Text("Clear image cache") }
+        HorizontalDivider()
+        Column {
+            Text("Image cache", style = MaterialTheme.typography.titleLarge)
+            FilledTonalButton(
+                onClick = onCacheClear,
+                shape = RoundedCornerShape(5.dp)
+            ) { Text("Clear image cache") }
+        }
     }
 }
 
@@ -171,8 +179,12 @@ private fun OnnxRuntimeContent(
     ortInstallProgress: UpdateProgress?,
     ortInstallError: String?,
     onOrtInstallErrorDismiss: () -> Unit,
+
+    mangaJaNaiIsDownloaded: Boolean,
+    onMangaJaNaiDownload: () -> Flow<UpdateProgress>,
 ) {
     var showOrtInstallDialog by remember { mutableStateOf(false) }
+    var showMangaJaNaiDownloadDialog by remember { mutableStateOf(false) }
     var showPostInstallDialog by remember { mutableStateOf(false) }
     if (showOrtInstallDialog) {
         OrtInstallDialog(
@@ -192,6 +204,12 @@ private fun OnnxRuntimeContent(
             showPostInstallDialog = false
             onOrtInstallErrorDismiss()
         })
+    }
+    if (showMangaJaNaiDownloadDialog) {
+        MangaJaNaiDialog(
+            downloadFlow = onMangaJaNaiDownload(),
+            onDismiss = { showMangaJaNaiDownloadDialog = false }
+        )
     }
 
     if (decoder != PlatformDecoderType.VIPS_ONNX) {
@@ -217,7 +235,7 @@ private fun OnnxRuntimeContent(
             CPU -> "CPU"
         }
     }
-    Text("ONNX Runtime $ortExecutionProvider execution provider")
+    Text("ONNX Runtime $ortExecutionProvider execution provider", style = MaterialTheme.typography.titleLarge)
 
     if (gpuInfo.isNotEmpty() && OnnxRuntimeSharedLibraries.executionProvider != CPU) {
         val selectedDevice = remember(deviceId) { gpuInfo.find { it.id == deviceId } ?: gpuInfo.first() }
@@ -297,10 +315,59 @@ private fun OnnxRuntimeContent(
             Text("Browse")
         }
     }
-    FilledTonalButton(
-        onClick = { showOrtInstallDialog = true },
-        shape = RoundedCornerShape(5.dp)
-    ) { Text("Update ONNX Runtime") }
+
+    if (OnnxRuntimeSharedLibraries.loadErrorMessage != null)
+        Text(
+            "Failed to load ONNX Runtime:\n${OnnxRuntimeSharedLibraries.loadErrorMessage}",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        FilledTonalButton(
+            onClick = { showOrtInstallDialog = true },
+            shape = RoundedCornerShape(5.dp),
+            modifier = Modifier.cursorForHand()
+        ) { Text("Update ONNX Runtime", maxLines = 1) }
+
+        Text("Update or download another version of ONNX Runtime", style = MaterialTheme.typography.labelLarge)
+    }
+    HorizontalDivider()
+
+    val uriHandler = LocalUriHandler.current
+    Column {
+        Text("MangaJaNai ONNX models preset", style = MaterialTheme.typography.titleLarge)
+        Text(
+            """
+                MangaJaNai is a collection of upscaling models for manga.
+                The models are mainly optimized to upscale digital manga images of Japanese or English text with height ranging from around 1200px to 2048px.
+            """.trimIndent()
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilledTonalButton(
+                onClick = { showMangaJaNaiDownloadDialog = true },
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier.cursorForHand()
+            ) {
+                Text(if (mangaJaNaiIsDownloaded) "Re-download MangaJaNai preset" else "Download MangaJaNai preset")
+            }
+
+            ElevatedButton(
+                onClick = { uriHandler.openUri("https://github.com/the-database/mangajanai") },
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier.cursorForHand()
+            ) {
+                Text("Project on Github")
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -324,7 +391,7 @@ private fun OrtInstallDialog(
         },
         content = {
             if (updateProgress != null) {
-                OrtDownloadProgressDialogContent(updateProgress)
+                UpdateProgressContent(updateProgress)
             } else {
                 OrtDownloadDialogContent(
                     chosenProvider = provider,
@@ -379,7 +446,7 @@ private fun OrtDownloadDialogContent(
         ) {
             Text(
                 "ONNX Runtime support is experimental.\nMight cause crashes or use incompatible libraries",
-                color = MaterialTheme.colorScheme.tertiary
+                color = MaterialTheme.colorScheme.tertiaryContainer
             )
         }
         val uriHandler = LocalUriHandler.current
@@ -442,7 +509,7 @@ private fun OrtDownloadDialogContent(
 }
 
 @Composable
-private fun OrtDownloadProgressDialogContent(
+private fun UpdateProgressContent(
     progress: UpdateProgress
 ) {
     Column(
@@ -464,7 +531,7 @@ private fun OrtDownloadProgressDialogContent(
             val completedMb = remember(progress.completed) {
                 (progress.completed.toFloat() / 1024 / 1024).formatDecimal(2)
             }
-            Text("${completedMb}mb / ${totalMb}mb")
+            Text("${completedMb}mb / ${totalMb}MiB")
         }
 
     }
@@ -482,7 +549,7 @@ private fun RestartDialog(
                 if (error != null)
                     Text("Error occurred during installation:\n$error")
                 else
-                    Text("Restart is required for changes to take effect")
+                    Text("App restart is required for changes to take effect")
             }
         },
         controlButtons = {
@@ -500,6 +567,43 @@ private fun RestartDialog(
     )
 }
 
+@Composable
+private fun MangaJaNaiDialog(
+    downloadFlow: Flow<UpdateProgress>,
+    onDismiss: () -> Unit,
+) {
+    var progress by remember { mutableStateOf(UpdateProgress(0, 0)) }
+    LaunchedEffect(Unit) {
+        downloadFlow.conflate().collect {
+            progress = it
+            delay(100)
+        }
+        onDismiss()
+    }
+
+    AppDialog(
+        modifier = Modifier.widthIn(max = 600.dp),
+        header = {
+            Column(modifier = Modifier.padding(10.dp)) {
+                Text("Downloading MangaJaNai ONNX models", style = MaterialTheme.typography.titleLarge)
+                HorizontalDivider(Modifier.padding(top = 10.dp))
+            }
+        },
+        content = { UpdateProgressContent(progress) },
+        controlButtons = {
+            Box(modifier = Modifier.padding(bottom = 10.dp, end = 10.dp)) {
+
+                TextButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.cursorForHand(),
+                    content = { Text("Cancel") }
+                )
+            }
+        },
+        onDismissRequest = {}
+    )
+}
 
 private fun OnnxRuntimeUpscaler.DeviceInfo.memoryGb(): String {
     return (memory / 1024.0f / 1024.0f / 1024.0f).formatDecimal(2)

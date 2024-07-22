@@ -230,25 +230,10 @@ fun ReaderImage.getDisplaySizeFor(maxDisplaySize: IntSize): IntSize {
 
 @CommonParcelize
 data class PageMetadata(
-
     val bookId: @CommonParcelizeRawValue KomgaBookId,
     val pageNumber: Int,
     val size: @CommonParcelizeRawValue IntSize?,
 ) : CommonParcelable {
-    fun contentSizeForArea(maxPageSize: IntSize): IntSize {
-        val pageSize = size ?: return maxPageSize
-
-        val bestRatio = (maxPageSize.width.toDouble() / pageSize.width)
-            .coerceAtMost(maxPageSize.height.toDouble() / pageSize.height)
-
-        val scaledSize = IntSize(
-            width = (pageSize.width * bestRatio).roundToInt(),
-            height = (pageSize.height * bestRatio).roundToInt()
-        )
-
-        return scaledSize
-    }
-
     fun isLandscape(): Boolean {
         if (size == null) return false
         return size.width > size.height

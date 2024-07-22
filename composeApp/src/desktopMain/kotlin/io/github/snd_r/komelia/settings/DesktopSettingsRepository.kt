@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 
-class FilesystemSettingsRepository(
-    private val actor: FileSystemSettingsActor,
-) : SettingsRepository {
+class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : SettingsRepository {
 
     override fun getServerUrl(): Flow<String> {
         return actor.getState().map { it.server.url }

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface ReaderImage : AutoCloseable {
     val width: Int
     val height: Int
+    val pageId: PageId
 
     val currentSize: StateFlow<IntSize?>
     val painter: StateFlow<Painter>
@@ -18,5 +19,14 @@ interface ReaderImage : AutoCloseable {
         visibleDisplaySize: IntRect,
         zoomFactor: Float,
     )
+
+    data class PageId(
+        val bookId: String,
+        val pageNumber: Int
+    ) {
+        override fun toString(): String {
+            return "${bookId}_$pageNumber"
+        }
+    }
 }
 

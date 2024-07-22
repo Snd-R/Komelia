@@ -7,8 +7,8 @@ import io.github.snd_r.DesktopPlatform.Windows
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-object VipsSharedLIbraries {
-    private val logger = LoggerFactory.getLogger(VipsSharedLIbraries::class.java)
+object VipsSharedLibraries {
+    private val logger = LoggerFactory.getLogger(VipsSharedLibraries::class.java)
     private val loaded = AtomicBoolean(false)
     var isAvailable = false
         private set

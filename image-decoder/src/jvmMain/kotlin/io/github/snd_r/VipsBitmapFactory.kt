@@ -50,12 +50,12 @@ object VipsBitmapFactory {
             )
         }
 
-        // copy vips image bytes to jvm
-        val bytes = image.getBytes()
         val imageInfo = ImageInfo(colorInfo, image.width, image.height)
         val bitmap = Bitmap()
         bitmap.allocPixels(imageInfo)
 
+        // copy vips image bytes to jvm
+        val bytes = image.getBytes()
         // copy jvm bytes to skia bitmap
         bitmap.installPixels(bytes)
         bitmap.setImmutable()

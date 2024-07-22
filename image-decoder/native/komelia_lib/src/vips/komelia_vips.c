@@ -361,6 +361,29 @@ Java_io_github_snd_1r_VipsImage_resize(
     return jvm_image;
 }
 
+JNIEXPORT jobject JNICALL
+Java_io_github_snd_1r_VipsImage_shrink(
+        JNIEnv *env,
+        jobject this,
+        jdouble factor
+) {
+    VipsImage *image = komelia_from_jvm_handle(env, this);
+    if (image == NULL) return NULL;
+
+    VipsImage *resized = NULL;
+    if (vips_shrink(image, &resized, factor, factor, NULL) != 0) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        vips_thread_shutdown();
+        return NULL;
+    }
+
+    jobject jvm_image = komelia_to_jvm_handle(env, resized, NULL);
+    if (jvm_image == NULL) { g_object_unref(resized); }
+    vips_thread_shutdown();
+    return jvm_image;
+}
+
 JNIEXPORT void JNICALL
 Java_io_github_snd_1r_VipsPointer_gObjectUnref(JNIEnv *env, jobject this, jlong ptr) {
     g_object_unref((VipsImage *) ptr);

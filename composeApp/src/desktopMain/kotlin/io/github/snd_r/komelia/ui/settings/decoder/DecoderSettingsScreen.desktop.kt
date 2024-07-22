@@ -23,7 +23,6 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
 
         SettingsScreenContainer("Image Decoder") {
             val currentDecoderDescriptor = vm.currentDecoderDescriptor.collectAsState().value
-            val availableDecoders = vm.availableDecoders.collectAsState(emptyList()).value
             val decoder = vm.decoderType.collectAsState().value
             val upscale = vm.upscaleOption.collectAsState().value
             val downscale = vm.downscaleOption.collectAsState().value
@@ -35,10 +34,8 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
                 LoadingMaxSizeIndicator()
             } else
                 DecoderSettingsContent(
-                    availableDecoders = availableDecoders,
                     decoderDescriptor = currentDecoderDescriptor,
                     decoder = decoder,
-                    onDecoderChange = vm::onDecoderChange,
                     upscaleOption = upscale,
                     onUpscaleOptionChange = vm::onUpscaleOptionChange,
                     downscaleOption = downscale,
@@ -56,7 +53,11 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
                     ortInstallProgress = updateProgress,
                     ortInstallError = installError,
                     onOrtInstallErrorDismiss = vm::onOrtInstallErrorDismiss,
-                    onCacheClear = vm::onClearImageCache
+                    onCacheClear = vm::onClearImageCache,
+
+                    mangaJaNaiIsDownloaded = vm.mangaJaNaiIsAvailable.collectAsState().value,
+                    onMangaJaNaiDownload = vm::onMangaJaNaiDownloadRequest
+
                 )
         }
     }

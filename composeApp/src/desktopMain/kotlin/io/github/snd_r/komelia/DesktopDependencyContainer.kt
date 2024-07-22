@@ -8,11 +8,15 @@ import coil3.memory.MemoryCache
 import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.OnnxRuntimeSharedLibraries
-import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsBitmapFactory
-import io.github.snd_r.VipsSharedLIbraries
+import io.github.snd_r.VipsSharedLibraries
+import io.github.snd_r.komelia.AppDirectories.coilCachePath
+import io.github.snd_r.komelia.AppDirectories.ktorCachePath
+import io.github.snd_r.komelia.AppDirectories.mangaJaNaiModelFiles
+import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.image.DesktopImageDecoder
+import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.image.coil.DesktopDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
@@ -26,18 +30,20 @@ import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.platform.mangaJaNai
 import io.github.snd_r.komelia.platform.upsamplingFilters
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
 import io.github.snd_r.komelia.secrets.AppKeyring
 import io.github.snd_r.komelia.settings.ActorMessage
+import io.github.snd_r.komelia.settings.DesktopReaderSettingsRepository
+import io.github.snd_r.komelia.settings.DesktopSettingsRepository
 import io.github.snd_r.komelia.settings.FileSystemSettingsActor
-import io.github.snd_r.komelia.settings.FilesystemReaderSettingsRepository
-import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
 import io.github.snd_r.komelia.ui.error.NonRestartableException
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
+import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateClient
 import io.github.snd_r.komga.KomgaClientFactory
@@ -54,6 +60,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -66,9 +73,10 @@ import okio.Path.Companion.toOkioPath
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
@@ -77,70 +85,45 @@ private val logger = KotlinLogging.logger {}
 class DesktopDependencyContainer private constructor(
     override val komgaClientFactory: KomgaClientFactory,
     override val appUpdater: AppUpdater,
-    override val settingsRepository: FilesystemSettingsRepository,
-    override val readerSettingsRepository: FilesystemReaderSettingsRepository,
+    override val settingsRepository: DesktopSettingsRepository,
+    override val readerSettingsRepository: DesktopReaderSettingsRepository,
     override val secretsRepository: KeyringSecretsRepository,
     override val imageLoader: ImageLoader,
     override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     override val readerImageLoader: ReaderImageLoader,
-    val onnxRuntimeInstaller: OnnxRuntimeInstaller
+    override val appNotifications: AppNotifications,
+    val onnxRuntimeInstaller: OnnxRuntimeInstaller,
+    val mangaJaNaiDownloader: MangaJaNaiDownloader
 ) : DependencyContainer {
     override val imageLoaderContext: PlatformContext = PlatformContext.INSTANCE
-    override val appNotifications: AppNotifications = AppNotifications()
 
     companion object {
         suspend fun createInstance(systemScope: CoroutineScope): DesktopDependencyContainer {
-            VipsSharedLIbraries.loadError?.let {
+            VipsSharedLibraries.loadError?.let {
                 throw NonRestartableException("Failed to load libvips shared libraries. ${it.message}", it)
             }
-            if (!VipsSharedLIbraries.isAvailable)
+            if (!VipsSharedLibraries.isAvailable)
                 throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
             VipsBitmapFactory.load()
 
             val settingsActor = createSettingsActor()
-            val settingsRepository = FilesystemSettingsRepository(settingsActor)
-            val readerSettingsRepository = FilesystemReaderSettingsRepository(settingsActor)
+            val settingsRepository = DesktopSettingsRepository(settingsActor)
+            val readerSettingsRepository = DesktopReaderSettingsRepository(settingsActor)
 
-            measureTime {
+            val onnxUpscaler = measureTimedValue {
                 try {
                     OnnxRuntimeSharedLibraries.load()
-
-                    if (OnnxRuntimeSharedLibraries.isAvailable) {
-                        OnnxRuntimeUpscaler.setDeviceId(settingsRepository.getOnnxRuntimeDeviceId().first())
-                        OnnxRuntimeUpscaler.setTileSize(settingsRepository.getOnnxRuntimeTileSize().first())
-
-                        settingsRepository.getOnnxRuntimeDeviceId()
-                            .onEach { newDeviceId ->
-                                OnnxRuntimeUpscaler.setDeviceId(newDeviceId)
-                            }.launchIn(systemScope)
-
-                        settingsRepository.getOnnxRuntimeTileSize()
-                            .onEach { newTileSize ->
-                                OnnxRuntimeUpscaler.setTileSize(newTileSize)
-                            }.launchIn(systemScope)
-
-
-                        settingsRepository.getDecoderSettings()
-                            .onEach { decoderSettings ->
-                                if (decoderSettings.upscaleOption !in upsamplingFilters) {
-                                    val modelPath = Path.of(settingsRepository.getOnnxModelsPath().first())
-                                        .resolve(decoderSettings.upscaleOption.value)
-                                        .toString()
-                                    OnnxRuntimeUpscaler.setModelPath(modelPath)
-                                }
-                            }.launchIn(systemScope)
-                    }
-
+                    ManagedOnnxUpscaler(settingsRepository).also { it.initialize() }
                 } catch (e: UnsatisfiedLinkError) {
                     logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+                    null
                 }
-            }.also { logger.info { "completed ONNX Runtime load in $it" } }
+            }.also { logger.info { "completed ONNX Runtime load in ${it.duration}" } }
 
             val secretsRepository = createSecretsRepository()
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(systemScope)
             val decoderType = settingsRepository.getDecoderSettings().stateIn(systemScope)
-            val onnxModelsPath = settingsRepository.getOnnxModelsPath().stateIn(systemScope)
 
             val okHttpClient = createOkHttpClient()
             val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
@@ -148,16 +131,16 @@ class DesktopDependencyContainer private constructor(
             measureTime { cookiesStorage.loadRememberMeCookie() }
                 .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
 
-            val cacheDir = Path(System.getProperty("java.io.tmpdir")).resolve("komelia").createDirectories()
 
             val ktorClient = createKtorClient(okHttpClient)
             val komgaClientFactory = createKomgaClientFactory(
                 baseUrl = baseUrl,
                 ktorClient = ktorClient,
                 cookiesStorage = cookiesStorage,
-                tempDir = cacheDir.resolve("ktor").createDirectories()
+                tempDir = ktorCachePath.createDirectories()
             )
 
+            val notifications = AppNotifications()
             val updateClient = UpdateClient(
                 ktorClient.config {
                     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
@@ -165,13 +148,14 @@ class DesktopDependencyContainer private constructor(
             )
             val appUpdater = DesktopAppUpdater(updateClient)
             val onnxRuntimeInstaller = OnnxRuntimeInstaller(updateClient)
+            val mangaJaNaiDownloader = MangaJaNaiDownloader(updateClient, notifications)
 
             val coil = createCoil(
                 ktorClient = ktorClient,
                 url = baseUrl,
                 cookiesStorage = cookiesStorage,
                 decoderState = decoderType,
-                tempDir = cacheDir.resolve("coil").createDirectories()
+                tempDir = coilCachePath.createDirectories()
             )
             SingletonImageLoader.setSafe { coil }
 
@@ -179,12 +163,16 @@ class DesktopDependencyContainer private constructor(
                 baseUrl = baseUrl,
                 ktorClient = ktorClient,
                 cookiesStorage = cookiesStorage,
-                cacheDir = cacheDir,
-                decoderSettings = decoderType,
-                onnxModelsPath = onnxModelsPath
+                upscaleOption = decoderType.map { it.upscaleOption }.stateIn(systemScope),
+                upscaler = onnxUpscaler.value
             )
 
-            val availableDecoders = createAvailableDecodersFlow(settingsRepository, systemScope)
+
+            val availableDecoders = createAvailableDecodersFlow(
+                settingsRepository,
+                mangaJaNaiDownloader,
+                systemScope
+            )
 
             return DesktopDependencyContainer(
                 komgaClientFactory = komgaClientFactory,
@@ -195,7 +183,9 @@ class DesktopDependencyContainer private constructor(
                 imageLoader = coil,
                 availableDecoders = availableDecoders,
                 readerImageLoader = readerImageLoader,
-                onnxRuntimeInstaller = onnxRuntimeInstaller
+                appNotifications = notifications,
+                onnxRuntimeInstaller = onnxRuntimeInstaller,
+                mangaJaNaiDownloader = mangaJaNaiDownloader
             )
         }
 
@@ -252,9 +242,8 @@ class DesktopDependencyContainer private constructor(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
             cookiesStorage: RememberMePersistingCookieStore,
-            cacheDir: Path,
-            decoderSettings: StateFlow<PlatformDecoderSettings>,
-            onnxModelsPath: StateFlow<String?>,
+            upscaleOption: StateFlow<UpscaleOption>,
+            upscaler: ManagedOnnxUpscaler?
         ): ReaderImageLoader {
             val bookClient = KomgaClientFactory.Builder()
                 .ktor(ktorClient)
@@ -264,17 +253,15 @@ class DesktopDependencyContainer private constructor(
                 .bookClient()
 
             val decoder = DesktopImageDecoder(
-                decoderSettings = decoderSettings,
-                onnxModelsPath = onnxModelsPath,
-                onnxRuntimeCacheDir = cacheDir.resolve("reader_onnxruntime").createDirectories()
+                upscaleOptionFlow = upscaleOption,
+                onnxUpscaler = upscaler
             )
-
 
             return ReaderImageLoader(
                 bookClient,
                 decoder,
                 DiskCache.Builder()
-                    .directory(cacheDir.resolve("reader").createDirectories().toOkioPath())
+                    .directory(readerCachePath.createDirectories().toOkioPath())
                     .build()
             )
         }
@@ -338,15 +325,16 @@ class DesktopDependencyContainer private constructor(
         }
 
         private suspend fun createAvailableDecodersFlow(
-            settingsRepository: FilesystemSettingsRepository,
+            settingsRepository: DesktopSettingsRepository,
+            mangaJaNaiDownloader: MangaJaNaiDownloader,
             scope: CoroutineScope
         ): Flow<List<PlatformDecoderDescriptor>> {
-            val decoderFlow =
-                if (VipsSharedLIbraries.isAvailable && OnnxRuntimeSharedLibraries.isAvailable) {
+            val decoderFlow: StateFlow<List<PlatformDecoderDescriptor>> =
+                if (VipsSharedLibraries.isAvailable && OnnxRuntimeSharedLibraries.isAvailable) {
                     settingsRepository.getOnnxModelsPath()
-                        .map { listOf(getOnnxDecoderDescriptor(Path.of(it))) }
+                        .combine(mangaJaNaiDownloader.downloadCompletionEventFlow) { path, _ -> path }
+                        .map { listOf(createVipsOnnxDescriptor(Path.of(it))) }
                         .stateIn(scope)
-
                 } else {
                     MutableStateFlow(
                         listOf(
@@ -381,9 +369,15 @@ class DesktopDependencyContainer private constructor(
             return decoderFlow
         }
 
-        private fun getOnnxDecoderDescriptor(path: Path): PlatformDecoderDescriptor {
+        private fun createVipsOnnxDescriptor(modelsPath: Path): PlatformDecoderDescriptor {
+            val mangaJaNaiIsAvailable = AppDirectories.mangaJaNaiInstallPath.exists() &&
+                    AppDirectories.mangaJaNaiInstallPath.listDirectoryEntries()
+                        .map { it.fileName.toString() }
+                        .containsAll(mangaJaNaiModelFiles)
+            val defaultOptions = if (mangaJaNaiIsAvailable) upsamplingFilters + mangaJaNai else upsamplingFilters
+
             try {
-                val models = Files.list(path)
+                val models = Files.list(modelsPath)
                     .filter { !it.isDirectory() }
                     .map { it.fileName.toString() }
                     .filter { it.endsWith(".onnx") }
@@ -391,13 +385,13 @@ class DesktopDependencyContainer private constructor(
                     .toList()
                 return PlatformDecoderDescriptor(
                     platformType = PlatformDecoderType.VIPS_ONNX,
-                    upscaleOptions = upsamplingFilters + models.map { UpscaleOption(it) },
+                    upscaleOptions = defaultOptions + models.map { UpscaleOption(it) },
                     downscaleOptions = listOf(vipsDownscaleLanczos),
                 )
             } catch (e: java.nio.file.NoSuchFileException) {
                 return PlatformDecoderDescriptor(
                     platformType = PlatformDecoderType.VIPS_ONNX,
-                    upscaleOptions = upsamplingFilters,
+                    upscaleOptions = defaultOptions,
                     downscaleOptions = listOf(vipsDownscaleLanczos),
                 )
             }
@@ -411,6 +405,7 @@ class DesktopViewModelFactory(private val dependencies: DesktopDependencyContain
             settingsRepository = dependencies.settingsRepository,
             imageLoader = dependencies.imageLoader,
             onnxRuntimeInstaller = dependencies.onnxRuntimeInstaller,
+            mangaJaNaiDownloader = dependencies.mangaJaNaiDownloader,
             appNotifications = dependencies.appNotifications,
             availableDecoders = dependencies.availableDecoders,
         )

@@ -15,13 +15,16 @@ import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.settings.FilesystemSettingsRepository
+import io.github.snd_r.komelia.platform.mangaJaNai
+import io.github.snd_r.komelia.settings.DesktopSettingsRepository
+import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
@@ -32,9 +35,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class DecoderSettingsViewModel(
-    private val settingsRepository: FilesystemSettingsRepository,
+    private val settingsRepository: DesktopSettingsRepository,
     private val imageLoader: ImageLoader,
     private val onnxRuntimeInstaller: OnnxRuntimeInstaller,
+    private val mangaJaNaiDownloader: MangaJaNaiDownloader,
     private val appNotifications: AppNotifications,
     val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
 ) : ScreenModel {
@@ -48,6 +52,8 @@ class DecoderSettingsViewModel(
     val gpuInfo = MutableStateFlow<List<DeviceInfo>>(emptyList())
     val tileSize = MutableStateFlow(0)
     val deviceId = MutableStateFlow(0)
+
+    val mangaJaNaiIsAvailable = MutableStateFlow(false)
 
     private val ortInstallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -65,6 +71,7 @@ class DecoderSettingsViewModel(
         availableDecoders.onEach { decoders ->
             val newDescriptor = decoders.firstOrNull { it.platformType == decoderType.value }
             currentDecoderDescriptor.value = newDescriptor
+            mangaJaNaiIsAvailable.value = newDescriptor?.upscaleOptions?.contains(mangaJaNai) ?: false
         }.launchIn(screenModelScope)
 
         try {
@@ -116,11 +123,18 @@ class DecoderSettingsViewModel(
             onnxRuntimeInstaller.install(provider)
                 .conflate()
                 .onCompletion { ortUpdateProgress.value = null }
-                .collect { ortUpdateProgress.value = it }
+                .collect {
+                    ortUpdateProgress.value = it
+                    delay(100)
+                }
         }.onFailure {
-            ortInstallError.value = "${it.javaClass.simpleName} ${it.message}" ?: "Unknown error"
+            ortInstallError.value = "${it.javaClass.simpleName} ${it.message}"
             ortUpdateProgress.value = null
         }
+    }
+
+    fun onMangaJaNaiDownloadRequest(): Flow<UpdateProgress> {
+        return mangaJaNaiDownloader.download()
     }
 
     fun onTileSizeChange(tileSize: Int) {

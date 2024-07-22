@@ -12,6 +12,8 @@ class VipsImage private constructor(
 ) : VipsPointer(internalBuffer, vipsPointer) {
 
     companion object {
+        const val DIMENSION_MAX_SIZE = 10000000
+
         @JvmStatic
         external fun getDimensions(encoded: ByteArray): VipsImageDimensions
 
@@ -49,6 +51,8 @@ class VipsImage private constructor(
     external fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImage
     external fun getBytes(): ByteArray
     external fun encodeToFile(path: String)
+    external fun shrink(factor: Double): VipsImage
+
 }
 
 data class VipsImageDimensions(

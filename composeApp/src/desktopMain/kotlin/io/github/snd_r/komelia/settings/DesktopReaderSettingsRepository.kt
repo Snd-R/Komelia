@@ -8,7 +8,7 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class FilesystemReaderSettingsRepository(
+class DesktopReaderSettingsRepository(
     private val actor: FileSystemSettingsActor,
 ) : ReaderSettingsRepository {
     override fun getReaderType(): Flow<ReaderType> {

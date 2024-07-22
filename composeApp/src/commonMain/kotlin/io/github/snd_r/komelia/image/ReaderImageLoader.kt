@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.image
 
 import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookId
@@ -29,23 +30,28 @@ class ReaderImageLoader(
     }
 
     private suspend fun doLoad(bookId: KomgaBookId, page: Int): ReaderImage {
-        val cacheKey = "${bookId.value}_$page"
+        val pageId = PageId(bookId.value, page)
         if (diskCache != null) {
-            var snapshot = diskCache.openSnapshot(cacheKey)
+            var snapshot = diskCache.openSnapshot(pageId.toString())
             val fileSystem = diskCache.fileSystem
             try {
                 if (snapshot != null) {
-                    return decoder.decode(snapshot.data)
+                    return decoder.decode(snapshot.data, pageId)
                 }
 
                 val result = bookClient.streamBookPage(bookId, page) { response ->
-                    val newSnapshot = writeToDiskCache(fileSystem, snapshot, cacheKey, response)
+                    val newSnapshot = writeToDiskCache(
+                        fileSystem = fileSystem,
+                        snapshot = snapshot,
+                        cacheKey = pageId.toString(),
+                        response = response
+                    )
                     snapshot = newSnapshot
 
                     if (newSnapshot != null) {
-                        decoder.decode(newSnapshot.data)
+                        decoder.decode(newSnapshot.data, pageId)
                     } else {
-                        decoder.decode(response.body<ByteArray>())
+                        decoder.decode(response.body<ByteArray>(), pageId)
                     }
                 }
 
@@ -58,7 +64,7 @@ class ReaderImageLoader(
         }
 
         val bytes: ByteArray = bookClient.getBookPage(bookId, page)
-        return decoder.decode(bytes)
+        return decoder.decode(bytes, pageId)
     }
 
     private suspend fun writeToDiskCache(
@@ -96,6 +102,6 @@ class ReaderImageLoader(
 }
 
 interface ImageDecoder {
-    fun decode(bytes: ByteArray): ReaderImage
-    fun decode(cacheFile: Path): ReaderImage
+    fun decode(bytes: ByteArray, pageId: PageId): ReaderImage
+    fun decode(cacheFile: Path, pageId: PageId): ReaderImage
 }

@@ -1,11 +1,11 @@
 package io.github.snd_r.komelia.updates
 
-import dev.dirs.ProjectDirectories
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
+import io.github.snd_r.komelia.AppDirectories.onnxRuntimeInstallPath
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.MacOS
@@ -70,11 +70,9 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
     private val directMlLink = "https://globalcdn.nuget.org/packages/$directMlDownloadFilename"
     private val directMlDllPath = Path("bin/x64-win/DirectML.dll")
 
-    private val installDir = Path(ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia").dataDir)
-        .resolve("onnxruntime")
-        .createDirectories()
-
     suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
+        onnxRuntimeInstallPath.createDirectories()
+
         val release =
             if (provider == CUDA) updateClient.getOnnxRuntimeRelease(onnxRuntimeTagNameCuda)
             else updateClient.getOnnxRuntimeRelease(onnxRuntimeTagName)
@@ -89,7 +87,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
             val onnxruntimeFile = createTempFile(asset.filename)
 
             updateClient.streamFile(asset.downloadUrl) { downloadToFile(it, onnxruntimeFile, asset.filename) }
-            installDir.listDirectoryEntries().filter { !it.isDirectory() }.forEach { it.deleteExisting() }
+            onnxRuntimeInstallPath.listDirectoryEntries().filter { !it.isDirectory() }.forEach { it.deleteExisting() }
 
             emit(UpdateProgress(0, 0, "Extracting Archive"))
 
@@ -139,7 +137,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 val filename = Path(entry.name).fileName.toString()
 
                 if (Path(entry.name) in entryNames) {
-                    installDir.resolve(filename).outputStream().use { output ->
+                    onnxRuntimeInstallPath.resolve(filename).outputStream().use { output ->
                         IOUtils.copy(archiveStream, output)
                     }
                 }
@@ -148,13 +146,13 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         }
 
         if (DesktopPlatform.Current == Linux) {
-            val symlinkPath = installDir.resolve("libonnxruntime.so")
+            val symlinkPath = onnxRuntimeInstallPath.resolve("libonnxruntime.so")
             symlinkPath.deleteIfExists()
             val linuxLibName =
                 if (provider == CUDA) getLinuxOnnxruntimeLib(onnxRuntimeVersionCuda)
                 else getLinuxOnnxruntimeLib(onnxRuntimeVersion)
 
-            Files.createSymbolicLink(symlinkPath, installDir.resolve(linuxLibName))
+            Files.createSymbolicLink(symlinkPath, onnxRuntimeInstallPath.resolve(linuxLibName))
         }
     }
 
@@ -165,7 +163,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 val filename = Path(entry.name).fileName.toString()
 
                 if (Path(entry.name) in entryNames) {
-                    installDir.resolve(filename).outputStream().use { output ->
+                    onnxRuntimeInstallPath.resolve(filename).outputStream().use { output ->
                         IOUtils.copy(archiveStream, output)
                     }
                 }

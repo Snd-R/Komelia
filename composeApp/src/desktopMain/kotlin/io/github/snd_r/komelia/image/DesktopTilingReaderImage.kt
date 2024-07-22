@@ -8,86 +8,67 @@ import androidx.compose.ui.graphics.toSkiaRect
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.ImageRect
-import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsImage
+import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
+import io.github.snd_r.komelia.platform.skiaSamplerMitchell
+import io.github.snd_r.komelia.platform.skiaSamplerNearest
+import io.github.snd_r.komelia.platform.upsamplingFilters
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.TextLine
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.deleteIfExists
-import kotlin.math.roundToInt
 import kotlin.time.measureTimedValue
 
 actual typealias RenderImage = Image
 actual typealias PlatformImage = VipsImage
 
-private val logger = KotlinLogging.logger {}
-
 class DesktopTilingReaderImage(
     encoded: ByteArray,
-    private val upsamplingMode: StateFlow<SamplingMode>,
-    private val onnxModelPath: StateFlow<Path?>,
-    private val onnxRuntimeCacheDir: Path,
-) : TilingReaderImage(encoded) {
+    pageId: PageId,
+    upscaleOption: StateFlow<UpscaleOption>,
+    private val upscaler: ManagedOnnxUpscaler?,
+) : TilingReaderImage(encoded, pageId) {
 
-    private var onnxRuntimeFullImagePath: Path? = null
-    private var onnxRuntimeFullImage: VipsImage? = null
-    private val onnxRuntimeMutex = Mutex()
+    @Volatile
+    private var upsamplingMode: SamplingMode = when (upscaleOption.value) {
+        skiaSamplerMitchell -> SamplingMode.MITCHELL
+        skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
+        skiaSamplerNearest -> SamplingMode.DEFAULT
+        else -> SamplingMode.MITCHELL
+    }
 
     init {
-        onnxModelPath
-            .drop(1)
-            .onEach {
-                try {
-                    onnxRuntimeMutex.withLock {
-                        onnxRuntimeFullImagePath?.deleteIfExists()
-                        onnxRuntimeFullImagePath = null
-                        onnxRuntimeFullImage?.close()
-                    }
+        upscaleOption.onEach { option ->
+            val samplingMode = when (option) {
+                skiaSamplerMitchell -> SamplingMode.MITCHELL
+                skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
+                skiaSamplerNearest -> SamplingMode.DEFAULT
+                else -> SamplingMode.MITCHELL
+            }
+            this.upsamplingMode = samplingMode
 
-                    this.painter.value = PlaceholderPainter(lastUpdateRequest?.displaySize ?: IntSize(width, height))
-
-                    val oldTiles = tiles.value
-                    this.tiles.value = emptyList()
-                    closeTileBitmaps(oldTiles)
-
+            if (option in upsamplingFilters) {
+                lastUpdateRequest?.let { lastRequest ->
                     lastUsedScaleFactor = null
-                    lastUpdateRequest?.let { jobFlow.emit(it) }
-                } catch (e: Exception) {
-                    logger.catching(e)
-                    this.error.value = e
+                    jobFlow.emit(lastRequest)
                 }
-            }.launchIn(imageScope)
+            }
+        }.launchIn(imageScope)
 
-        upsamplingMode
-            .drop(1)
-            .onEach { samplingMode ->
-                painter.update { current ->
-                    TiledImagePainter(
-                        tiles.value,
-                        samplingMode,
-                        lastUsedScaleFactor ?: 1.0,
-                        lastUpdateRequest?.displaySize
-                            ?: IntSize(
-                                current.intrinsicSize.width.roundToInt(),
-                                current.intrinsicSize.height.roundToInt()
-                            )
-                    )
-                }
-            }.launchIn(imageScope)
+        upscaler?.upscaleMode?.onEach {
+            lastUpdateRequest?.let { lastRequest ->
+                this.painter.value = PlaceholderPainter(lastRequest.displaySize)
+                lastUsedScaleFactor = null
+                jobFlow.emit(lastRequest)
+            }
+        }?.launchIn(imageScope)
     }
 
     override fun getDimensions(encoded: ByteArray): IntSize {
@@ -108,7 +89,7 @@ class DesktopTilingReaderImage(
         displaySize: IntSize,
         scaleFactor: Double
     ): Painter {
-        return TiledImagePainter(tiles, upsamplingMode.value, scaleFactor, displaySize)
+        return TiledImagePainter(tiles, upsamplingMode, scaleFactor, displaySize)
     }
 
     override fun createPlaceholderPainter(displaySize: IntSize): Painter {
@@ -132,7 +113,7 @@ class DesktopTilingReaderImage(
         scaleWidth: Int,
         scaleHeight: Int,
     ): ReaderImageData {
-        val upscaled = onnxRuntimeUpscale(image)
+        val upscaled = upscaler?.upscale(pageId, image)
 
         if (upscaled != null) {
             if (upscaled.width > scaleWidth && upscaled.height > scaleHeight) {
@@ -175,7 +156,7 @@ class DesktopTilingReaderImage(
         scaleHeight: Int
     ): ReaderImageData {
         // try to reuse full resized image instead of upscaling individual regions
-        val upscaled = onnxRuntimeUpscale(image)
+        val upscaled = upscaler?.upscale(pageId, image)
 
         if (upscaled != null) {
             // assume upscaling is done by integer fraction (2x, 4x etc.)
@@ -217,49 +198,12 @@ class DesktopTilingReaderImage(
         }
     }
 
-    private suspend fun onnxRuntimeUpscale(image: VipsImage): VipsImage? {
-        this.onnxModelPath.value ?: return null
-
-        onnxRuntimeMutex.withLock {
-            val savedPath = onnxRuntimeFullImagePath
-            val memoryImage = onnxRuntimeFullImage
-            val upscaledImage =
-                if (memoryImage != null && !memoryImage.isClosed) {
-                    memoryImage
-                } else if (savedPath != null) {
-                    VipsImage.decodeFromFile(savedPath.toString()).also { onnxRuntimeFullImage = it }
-                } else {
-                    logger.info { "launching onnx runtime upscaling for image size: ${image.width} x ${image.height}" }
-                    val onnxRuntimeImage = measureTimedValue {
-                        OnnxRuntimeUpscaler.upscale(image)
-                    }.also { logger.info { "finished onnxruntime upscaling in ${it.duration}" } }
-
-                    val writePath = kotlin.io.path.createTempFile(onnxRuntimeCacheDir, suffix = "_onnxruntime.png")
-                    onnxRuntimeImage.value.encodeToFile(writePath.absolutePathString())
-                    onnxRuntimeFullImagePath = writePath
-                    onnxRuntimeFullImage = onnxRuntimeImage.value
-                    onnxRuntimeImage.value
-                }
-            return upscaledImage
-        }
-    }
-
     override fun closeImage(image: VipsImage) {
         image.close()
     }
 
-    override fun close() {
-        imageScope.launch {
-            onnxRuntimeMutex.withLock {
-                onnxRuntimeFullImagePath?.deleteIfExists()
-                onnxRuntimeFullImage?.close()
-            }
-            super.close()
-        }
-    }
-
     private fun VipsImage.toReaderImageData(): ReaderImageData {
-        val skiaBitmap =  VipsBitmapFactory.toSkiaBitmap(this)
+        val skiaBitmap = VipsBitmapFactory.toSkiaBitmap(this)
         val image = Image.makeFromBitmap(skiaBitmap)
         skiaBitmap.close()
         return ReaderImageData(width, height, image)
