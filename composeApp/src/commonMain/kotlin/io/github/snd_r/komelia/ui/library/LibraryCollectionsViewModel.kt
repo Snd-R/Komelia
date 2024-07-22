@@ -51,7 +51,7 @@ class LibraryCollectionsViewModel(
     var pageSize by mutableStateOf(50)
         private set
 
-    private val collectionsReloadJobsFlow = MutableSharedFlow<Unit>(0, 1, BufferOverflow.DROP_OLDEST)
+    private val collectionsReloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
     fun initialize() {
         if (state.value !is Uninitialized) return

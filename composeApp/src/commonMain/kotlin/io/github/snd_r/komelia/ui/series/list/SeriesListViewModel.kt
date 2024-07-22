@@ -11,7 +11,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.*
+import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
@@ -27,7 +29,13 @@ import io.github.snd_r.komga.series.KomgaSeriesClient
 import io.github.snd_r.komga.series.KomgaSeriesQuery
 import io.github.snd_r.komga.series.KomgaSeriesSort
 import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.*
+import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesChanged
+import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesDeleted
+import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesEvent
+import io.github.snd_r.komga.sse.KomgaEvent.SeriesAdded
+import io.github.snd_r.komga.sse.KomgaEvent.SeriesChanged
+import io.github.snd_r.komga.sse.KomgaEvent.SeriesDeleted
+import io.github.snd_r.komga.sse.KomgaEvent.SeriesEvent
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
@@ -80,7 +88,7 @@ class SeriesListViewModel(
         onChange = { screenModelScope.launch { loadSeriesPage(1) } },
     )
 
-    private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
     fun initialize(filter: SeriesScreenFilter? = null) {
         if (state.value !is LoadState.Uninitialized) return
 

@@ -68,7 +68,7 @@ class SeriesBooksState(
         appNotifications = notifications,
         onChange = { screenModelScope.launch { loadBooksPage(1) } },
     )
-    private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
     private val reloadMutex = Mutex()
 
     suspend fun initialize() {

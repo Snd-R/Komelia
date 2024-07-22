@@ -71,7 +71,7 @@ class ReadListViewModel(
 
     private var isAnyItemDragging = MutableStateFlow(false)
 
-    private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, BufferOverflow.DROP_OLDEST)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
 

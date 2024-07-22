@@ -7,16 +7,24 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.*
+import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
+import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
-import io.github.snd_r.komelia.ui.library.LibraryTab.*
+import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
+import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
+import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
 import io.github.snd_r.komga.collection.KomgaCollectionClient
 import io.github.snd_r.komga.common.KomgaPageRequest
 import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.library.KomgaLibraryClient
 import io.github.snd_r.komga.readlist.KomgaReadListClient
 import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.*
+import io.github.snd_r.komga.sse.KomgaEvent.CollectionAdded
+import io.github.snd_r.komga.sse.KomgaEvent.CollectionDeleted
+import io.github.snd_r.komga.sse.KomgaEvent.ReadListAdded
+import io.github.snd_r.komga.sse.KomgaEvent.ReadListDeleted
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +53,7 @@ class LibraryViewModel(
     var readListsCount by mutableStateOf(0)
         private set
 
-    private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
 
     fun initialize(seriesFilter: SeriesScreenFilter? = null) {
         if (state.value !is Uninitialized) return

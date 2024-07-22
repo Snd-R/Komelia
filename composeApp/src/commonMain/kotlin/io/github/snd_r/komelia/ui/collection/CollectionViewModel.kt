@@ -71,7 +71,7 @@ class CollectionViewModel(
 
     private var isAnyItemDragging = MutableStateFlow(false)
 
-    private val reloadJobsFlow = MutableSharedFlow<Unit>(0, 1, DROP_OLDEST)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
 
