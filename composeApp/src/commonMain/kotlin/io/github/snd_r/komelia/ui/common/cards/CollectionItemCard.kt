@@ -115,7 +115,7 @@ private fun CollectionImageOverlay(
             Text(collection.name, style = cardTextStyle())
             Text(
                 "${collection.seriesIds.size} series",
-                style = cardTextStyle().copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                style = cardTextStyle()
             )
         }
     }

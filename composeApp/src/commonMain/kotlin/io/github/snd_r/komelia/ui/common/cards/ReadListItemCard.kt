@@ -113,8 +113,8 @@ private fun ReadListImageOverlay(
         Column(Modifier.padding(10.dp)) {
             Text(readlist.name, style = cardTextStyle())
             Text(
-                "${readlist.bookIds.size} books",
-                style = cardTextStyle().copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (readlist.bookIds.size == 1) "1 book" else "${readlist.bookIds.size} books",
+                style = cardTextStyle()
             )
         }
     }
