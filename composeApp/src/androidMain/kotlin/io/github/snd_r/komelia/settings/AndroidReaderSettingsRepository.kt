@@ -11,6 +11,7 @@ import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class AndroidReaderSettingsRepository(
@@ -22,7 +23,7 @@ class AndroidReaderSettingsRepository(
                 PBReaderType.PAGED, PBReaderType.UNRECOGNIZED, null -> ReaderType.PAGED
                 PBReaderType.CONTINUOUS -> ReaderType.CONTINUOUS
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putReaderType(type: ReaderType) {
@@ -42,7 +43,7 @@ class AndroidReaderSettingsRepository(
         return dataStore.data.map {
             if (!it.reader.hasStretchToFit()) true
             else it.reader.stretchToFit
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putStretchToFit(stretch: Boolean) {
@@ -59,7 +60,7 @@ class AndroidReaderSettingsRepository(
                 PBLayoutScaleType.FIT_HEIGHT -> LayoutScaleType.FIT_HEIGHT
                 PBLayoutScaleType.ORIGINAL -> LayoutScaleType.ORIGINAL
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putPagedReaderScaleType(type: LayoutScaleType) {
@@ -85,7 +86,7 @@ class AndroidReaderSettingsRepository(
                 PBReadingDirection.LEFT_TO_RIGHT, PBReadingDirection.UNRECOGNIZED, null -> PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
                 PBReadingDirection.RIGHT_TO_LEFT -> PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putPagedReaderReadingDirection(direction: PagedReaderState.ReadingDirection) {
@@ -109,7 +110,7 @@ class AndroidReaderSettingsRepository(
                 PBPageDisplayLayout.SINGLE_PAGE, PBPageDisplayLayout.UNRECOGNIZED, null -> PageDisplayLayout.SINGLE_PAGE
                 PBPageDisplayLayout.DOUBLE_PAGES -> PageDisplayLayout.DOUBLE_PAGES
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putPagedReaderDisplayLayout(layout: PageDisplayLayout) {
@@ -134,7 +135,7 @@ class AndroidReaderSettingsRepository(
                 ContinuousReaderSettings.PBReadingDirection.LEFT_TO_RIGHT -> ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
                 ContinuousReaderSettings.PBReadingDirection.RIGHT_TO_LEFT -> ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putContinuousReaderReadingDirection(direction: ContinuousReaderState.ReadingDirection) {
@@ -154,7 +155,7 @@ class AndroidReaderSettingsRepository(
     }
 
     override fun getContinuousReaderPadding(): Flow<Float> {
-        return dataStore.data.map { it.reader.continuousReaderSettings.padding }
+        return dataStore.data.map { it.reader.continuousReaderSettings.padding }.distinctUntilChanged()
     }
 
     override suspend fun putContinuousReaderPadding(padding: Float) {
@@ -170,7 +171,7 @@ class AndroidReaderSettingsRepository(
     }
 
     override fun getContinuousReaderPageSpacing(): Flow<Int> {
-        return dataStore.data.map { it.reader.continuousReaderSettings.pageSpacing }
+        return dataStore.data.map { it.reader.continuousReaderSettings.pageSpacing }.distinctUntilChanged()
     }
 
     override suspend fun putContinuousReaderPageSpacing(spacing: Int) {

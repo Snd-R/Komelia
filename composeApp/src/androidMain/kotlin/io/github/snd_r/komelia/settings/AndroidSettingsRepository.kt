@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
@@ -22,7 +23,7 @@ class AndroidSettingsRepository(
     private val dataStore: DataStore<AppSettings>
 ) : SettingsRepository {
     override fun getServerUrl(): Flow<String> {
-        return dataStore.data.map { it.server.url }
+        return dataStore.data.map { it.server.url }.distinctUntilChanged()
     }
 
     override suspend fun putServerUrl(url: String) {
@@ -39,7 +40,7 @@ class AndroidSettingsRepository(
                 val width = it.appearance.cardWidth
                 if (width <= 0) 150.dp
                 else width.dp
-            }
+            }.distinctUntilChanged()
     }
 
     override suspend fun putCardWidth(cardWidth: Dp) {
@@ -51,7 +52,7 @@ class AndroidSettingsRepository(
     }
 
     override fun getCurrentUser(): Flow<String> {
-        return dataStore.data.map { it.user.username }
+        return dataStore.data.map { it.user.username }.distinctUntilChanged()
     }
 
     override suspend fun putCurrentUser(username: String) {
@@ -80,7 +81,7 @@ class AndroidSettingsRepository(
             val pageSize = it.appearance.seriesPageLoadSize
             if (pageSize <= 0) 20
             else pageSize
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putSeriesPageLoadSize(size: Int) {
@@ -96,7 +97,7 @@ class AndroidSettingsRepository(
             val pageSize = it.appearance.bookPageLoadSize
             if (pageSize <= 0) 20
             else pageSize
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putBookPageLoadSize(size: Int) {
@@ -113,7 +114,7 @@ class AndroidSettingsRepository(
                 PBBooksLayout.LIST, PBBooksLayout.UNRECOGNIZED, null -> BooksLayout.LIST
                 PBBooksLayout.GRID -> BooksLayout.GRID
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putBookListLayout(layout: BooksLayout) {
@@ -133,7 +134,7 @@ class AndroidSettingsRepository(
         return dataStore.data.map {
             if (!it.updates.hasCheckForUpdatesOnStartup()) true
             else it.updates.checkForUpdatesOnStartup
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putCheckForUpdatesOnStartup(check: Boolean) {
@@ -144,6 +145,7 @@ class AndroidSettingsRepository(
 
     override fun getLastUpdateCheckTimestamp(): Flow<Instant?> {
         return dataStore.data.map { Instant.fromEpochMilliseconds(it.updates.lastUpdateCheckTimestamp) }
+            .distinctUntilChanged()
     }
 
     override suspend fun putLastUpdateCheckTimestamp(timestamp: Instant) {
@@ -156,7 +158,7 @@ class AndroidSettingsRepository(
         return dataStore.data.map {
             if (!it.updates.hasLastCheckedReleaseVersion()) null
             else AppVersion.fromString(it.updates.lastCheckedReleaseVersion)
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putLastCheckedReleaseVersion(version: AppVersion) {
@@ -169,7 +171,7 @@ class AndroidSettingsRepository(
         return dataStore.data.map {
             if (!it.updates.hasDismissedVersion()) null
             else AppVersion.fromString(it.updates.dismissedVersion)
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putDismissedVersion(version: AppVersion) {
@@ -184,7 +186,7 @@ class AndroidSettingsRepository(
                 PBAppTheme.UNRECOGNIZED, PBAppTheme.DARK, null -> AppTheme.DARK
                 PBAppTheme.LIGHT -> AppTheme.LIGHT
             }
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putAppTheme(theme: AppTheme) {

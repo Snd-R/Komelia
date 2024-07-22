@@ -6,13 +6,14 @@ import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class DesktopReaderSettingsRepository(
     private val actor: FileSystemSettingsActor,
 ) : ReaderSettingsRepository {
     override fun getReaderType(): Flow<ReaderType> {
-        return actor.getState().map { it.reader.readerType }
+        return actor.getState().map { it.reader.readerType }.distinctUntilChanged()
     }
 
     override suspend fun putReaderType(type: ReaderType) {
@@ -20,7 +21,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getStretchToFit(): Flow<Boolean> {
-        return actor.getState().map { it.reader.stretchToFit }
+        return actor.getState().map { it.reader.stretchToFit }.distinctUntilChanged()
     }
 
     override suspend fun putStretchToFit(stretch: Boolean) {
@@ -30,7 +31,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getPagedReaderScaleType(): Flow<LayoutScaleType> {
-        return actor.getState().map { it.reader.pagedReaderSettings.scaleType }
+        return actor.getState().map { it.reader.pagedReaderSettings.scaleType }.distinctUntilChanged()
     }
 
     override suspend fun putPagedReaderScaleType(type: LayoutScaleType) {
@@ -46,7 +47,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getPagedReaderReadingDirection(): Flow<PagedReaderState.ReadingDirection> {
-        return actor.getState().map { it.reader.pagedReaderSettings.readingDirection }
+        return actor.getState().map { it.reader.pagedReaderSettings.readingDirection }.distinctUntilChanged()
     }
 
     override suspend fun putPagedReaderReadingDirection(direction: PagedReaderState.ReadingDirection) {
@@ -62,7 +63,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getPagedReaderDisplayLayout(): Flow<PageDisplayLayout> {
-        return actor.getState().map { it.reader.pagedReaderSettings.pageLayout }
+        return actor.getState().map { it.reader.pagedReaderSettings.pageLayout }.distinctUntilChanged()
     }
 
     override suspend fun putPagedReaderDisplayLayout(layout: PageDisplayLayout) {
@@ -78,7 +79,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {
-        return actor.getState().map { it.reader.continuousReaderSettings.readingDirection }
+        return actor.getState().map { it.reader.continuousReaderSettings.readingDirection }.distinctUntilChanged()
     }
 
     override suspend fun putContinuousReaderReadingDirection(direction: ContinuousReaderState.ReadingDirection) {
@@ -94,7 +95,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getContinuousReaderPadding(): Flow<Float> {
-        return actor.getState().map { it.reader.continuousReaderSettings.padding }
+        return actor.getState().map { it.reader.continuousReaderSettings.padding }.distinctUntilChanged()
     }
 
     override suspend fun putContinuousReaderPadding(padding: Float) {
@@ -110,7 +111,7 @@ class DesktopReaderSettingsRepository(
     }
 
     override fun getContinuousReaderPageSpacing(): Flow<Int> {
-        return actor.getState().map { it.reader.continuousReaderSettings.pageSpacing }
+        return actor.getState().map { it.reader.continuousReaderSettings.pageSpacing }.distinctUntilChanged()
     }
 
     override suspend fun putContinuousReaderPageSpacing(spacing: Int) {

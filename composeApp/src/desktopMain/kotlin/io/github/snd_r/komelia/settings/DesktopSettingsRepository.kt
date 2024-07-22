@@ -9,13 +9,14 @@ import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 
 class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : SettingsRepository {
 
     override fun getServerUrl(): Flow<String> {
-        return actor.getState().map { it.server.url }
+        return actor.getState().map { it.server.url }.distinctUntilChanged()
     }
 
     override suspend fun putServerUrl(url: String) {
@@ -23,7 +24,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getCardWidth(): Flow<Dp> {
-        return actor.getState().map { it.appearance.cardWidth.dp }
+        return actor.getState().map { it.appearance.cardWidth.dp }.distinctUntilChanged()
     }
 
     override suspend fun putCardWidth(cardWidth: Dp) {
@@ -31,7 +32,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getCurrentUser(): Flow<String> {
-        return actor.getState().map { it.user.username }
+        return actor.getState().map { it.user.username }.distinctUntilChanged()
     }
 
     override suspend fun putCurrentUser(username: String) {
@@ -46,7 +47,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
                 upscaleOption = UpscaleOption(decoderSettings.upscaleOption),
                 downscaleOption = DownscaleOption(decoderSettings.downscaleOption)
             )
-        }
+        }.distinctUntilChanged()
     }
 
     override suspend fun putDecoderSettings(decoder: PlatformDecoderSettings) {
@@ -62,7 +63,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {
-        return actor.getState().map { it.appearance.seriesPageLoadSize }
+        return actor.getState().map { it.appearance.seriesPageLoadSize }.distinctUntilChanged()
     }
 
     override suspend fun putSeriesPageLoadSize(size: Int) {
@@ -70,7 +71,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getBookPageLoadSize(): Flow<Int> {
-        return actor.getState().map { it.appearance.bookPageLoadSize }
+        return actor.getState().map { it.appearance.bookPageLoadSize }.distinctUntilChanged()
     }
 
     override suspend fun putBookPageLoadSize(size: Int) {
@@ -78,7 +79,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getBookListLayout(): Flow<BooksLayout> {
-        return actor.getState().map { it.appearance.bookListLayout }
+        return actor.getState().map { it.appearance.bookListLayout }.distinctUntilChanged()
     }
 
     override suspend fun putBookListLayout(layout: BooksLayout) {
@@ -86,7 +87,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getCheckForUpdatesOnStartup(): Flow<Boolean> {
-        return actor.getState().map { it.updates.checkForUpdatesOnStartup }
+        return actor.getState().map { it.updates.checkForUpdatesOnStartup }.distinctUntilChanged()
     }
 
     override suspend fun putCheckForUpdatesOnStartup(check: Boolean) {
@@ -94,7 +95,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getLastUpdateCheckTimestamp(): Flow<Instant?> {
-        return actor.getState().map { it.updates.lastUpdateCheckTimestamp }
+        return actor.getState().map { it.updates.lastUpdateCheckTimestamp }.distinctUntilChanged()
     }
 
     override suspend fun putLastUpdateCheckTimestamp(timestamp: Instant) {
@@ -102,7 +103,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getLastCheckedReleaseVersion(): Flow<AppVersion?> {
-        return actor.getState().map { it.updates.lastCheckedReleaseVersion }
+        return actor.getState().map { it.updates.lastCheckedReleaseVersion }.distinctUntilChanged()
     }
 
     override suspend fun putLastCheckedReleaseVersion(version: AppVersion) {
@@ -110,7 +111,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getDismissedVersion(): Flow<AppVersion?> {
-        return actor.getState().map { it.updates.dismissedVersion }
+        return actor.getState().map { it.updates.dismissedVersion }.distinctUntilChanged()
     }
 
     override suspend fun putDismissedVersion(version: AppVersion) {
@@ -118,7 +119,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     override fun getAppTheme(): Flow<AppTheme> {
-        return actor.getState().map { it.appearance.appTheme }
+        return actor.getState().map { it.appearance.appTheme }.distinctUntilChanged()
     }
 
     override suspend fun putAppTheme(theme: AppTheme) {
@@ -127,7 +128,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
 
 
     fun getOnnxModelsPath(): Flow<String> {
-        return actor.getState().map { it.decoder.onnxModelsPath }
+        return actor.getState().map { it.decoder.onnxModelsPath }.distinctUntilChanged()
     }
 
     suspend fun putOnnxModelsPath(path: String) {
@@ -135,7 +136,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     fun getOnnxRuntimeDeviceId(): Flow<Int> {
-        return actor.getState().map { it.decoder.onnxRutnimeDeviceId }
+        return actor.getState().map { it.decoder.onnxRutnimeDeviceId }.distinctUntilChanged()
     }
 
     suspend fun putOnnxRuntimeDeviceId(deviceId: Int) {
@@ -143,7 +144,7 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
     }
 
     fun getOnnxRuntimeTileSize(): Flow<Int> {
-        return actor.getState().map { it.decoder.onnxRuntimeTileSize }
+        return actor.getState().map { it.decoder.onnxRuntimeTileSize }.distinctUntilChanged()
     }
 
     suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
