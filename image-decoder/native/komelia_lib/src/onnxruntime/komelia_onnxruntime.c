@@ -521,10 +521,14 @@ Java_io_github_snd_1r_OnnxRuntimeUpscaler_setTileSize(JNIEnv *env, jclass this, 
 JNIEXPORT void JNICALL
 Java_io_github_snd_1r_OnnxRuntimeUpscaler_setModelPath(JNIEnv *env, jclass this, jstring model_path) {
     pthread_mutex_lock(&session_mutex);
-    release_session(&current_session);
-
     const char *model_path_chars = (*env)->GetStringUTFChars(env, model_path, 0);
     jsize model_path_char_length = (*env)->GetStringLength(env, model_path);
+    if (current_model_path != NULL && strcmp(current_model_path, model_path_chars) == 0) {
+        pthread_mutex_unlock(&session_mutex);
+        return;
+    }
+
+    release_session(&current_session);
     if (current_model_path != NULL) {
         free(current_model_path);
     }

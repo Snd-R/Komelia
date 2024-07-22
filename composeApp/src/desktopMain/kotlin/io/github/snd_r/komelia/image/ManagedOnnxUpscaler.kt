@@ -114,10 +114,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: DesktopSettingsReposit
                     NONE -> null
                 }
 
-                upscaled?.also {
-                    addToCache(pageId, it)
-                    logger.info { "page ${pageId.pageNumber}: upscaled to size ${it.width} x ${it.height}" }
-                }
+                upscaled?.also { addToCache(pageId, it) }
             }
         }
     }
