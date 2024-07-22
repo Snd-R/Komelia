@@ -11,6 +11,8 @@ import com.jetbrains.JBR
 import com.jetbrains.WindowDecorations.CustomTitleBar
 import io.github.snd_r.komelia.platform.TitleBarLayout
 import io.github.snd_r.komelia.platform.TitleBarScope
+import io.github.snd_r.komelia.ui.LocalTheme
+import io.github.snd_r.komelia.ui.common.AppTheme
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
@@ -20,6 +22,7 @@ internal fun TitleBarOnWindows(
     window: ComposeWindow,
     content: @Composable TitleBarScope.() -> Unit,
 ) {
+    val theme = LocalTheme.current
     val titleBar = remember { JBR.getWindowDecorations().createCustomTitleBar() }
     val titleBarClientHitAdapter = remember { ClientAreaHitAdapter(titleBar) }
 
@@ -27,7 +30,7 @@ internal fun TitleBarOnWindows(
         modifier = modifier,
         applyTitleBar = { height ->
             titleBar.height = height.value
-            titleBar.putProperty("controls.dark", true)
+            titleBar.putProperty("controls.dark", theme == AppTheme.DARK)
             titleBar.putProperty("controls.visible", true)
 
             JBR.getWindowDecorations().setCustomTitleBar(window, titleBar)

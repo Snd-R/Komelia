@@ -58,6 +58,7 @@ val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key event
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 val LocalStrings = staticCompositionLocalOf { EnStrings }
 val LocalPlatform = compositionLocalOf<PlatformType> { error("Platform type is not set") }
+val LocalTheme = compositionLocalOf { AppTheme.DARK }
 
 private val vmFactory = MutableStateFlow<ViewModelFactory?>(null)
 
@@ -106,7 +107,8 @@ fun MainView(
                     LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
                     LocalKeyEvents provides keyEvents,
                     LocalWindowWidth provides windowWidth,
-                    LocalPlatform provides platformType
+                    LocalPlatform provides platformType,
+                    LocalTheme provides theme
                 ) {
 
                     Navigator(
