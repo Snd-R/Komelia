@@ -120,6 +120,7 @@ class ReaderScreen(
             ) {
                 LinearProgressIndicator(
                     color = MaterialTheme.colorScheme.tertiaryContainer,
+                    trackColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .3f),
                     modifier = Modifier.scale(scaleX = 1f, scaleY = 3f).fillMaxWidth()
                 )
             }
