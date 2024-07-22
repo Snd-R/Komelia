@@ -7,8 +7,6 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookId
 import io.ktor.client.call.*
-import io.ktor.client.statement.*
-import io.ktor.utils.io.core.*
 import okio.FileSystem
 import okio.Path
 
@@ -40,23 +38,19 @@ class ReaderImageLoader(
                 }
 
                 val result = bookClient.streamBookPage(bookId, page) { response ->
+                    val bytes = response.body<ByteArray>()
                     val newSnapshot = writeToDiskCache(
                         fileSystem = fileSystem,
                         snapshot = snapshot,
                         cacheKey = pageId.toString(),
-                        response = response
+                        bytes = bytes
                     )
                     snapshot = newSnapshot
 
-                    if (newSnapshot != null) {
-                        decoder.decode(newSnapshot.data, pageId)
-                    } else {
-                        decoder.decode(response.body<ByteArray>(), pageId)
-                    }
+                    decoder.decode(bytes, pageId)
                 }
 
                 return result
-
             } catch (e: Exception) {
                 snapshot?.close()
                 throw e
@@ -67,11 +61,11 @@ class ReaderImageLoader(
         return decoder.decode(bytes, pageId)
     }
 
-    private suspend fun writeToDiskCache(
+    private fun writeToDiskCache(
         fileSystem: FileSystem,
         snapshot: DiskCache.Snapshot?,
         cacheKey: String,
-        response: HttpResponse,
+        bytes: ByteArray,
     ): DiskCache.Snapshot? {
         // Open a new editor.
         val editor = if (snapshot != null) {
@@ -82,17 +76,7 @@ class ReaderImageLoader(
         if (editor == null) return null
 
         try {
-            val channel = response.bodyAsChannel()
-            fileSystem.write(editor.data) {
-                while (!channel.isClosedForRead) {
-                    val packet = channel.readRemaining((8 * 1024).toLong())
-                    while (!packet.isEmpty) {
-                        val bytes = packet.readBytes()
-                        this.write(bytes)
-                    }
-                }
-            }
-
+            fileSystem.write(editor.data) { this.write(bytes) }
             return editor.commitAndOpenSnapshot()
         } catch (e: Exception) {
             editor.abort()
