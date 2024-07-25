@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.AppDirectories.coilCachePath
 import io.github.snd_r.komelia.AppDirectories.mangaJaNaiModelFiles
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
+import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.DesktopImageDecoder
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
 import io.github.snd_r.komelia.image.ReaderImageLoader
@@ -219,6 +220,11 @@ class DesktopDependencyContainer private constructor(
                 HttpClient(OkHttp) {
                     engine { preconfigured = okHttpClient }
                     expectSuccess = true
+
+                    install(UserAgent) {
+                        agent = komeliaUserAgent
+                    }
+
                 }
             }.also { logger.info { "initialized Ktor in ${it.duration}" } }
                 .value

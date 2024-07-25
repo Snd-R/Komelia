@@ -11,6 +11,7 @@ import coil3.network.ktor.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.AndroidSharedLibrariesLoader
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
+import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.AndroidImageDecoder
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.image.coil.FileMapper
@@ -145,6 +146,10 @@ class AndroidDependencyContainer(
             return HttpClient(OkHttp) {
                 engine { preconfigured = okHttpClient }
                 expectSuccess = true
+
+                install(UserAgent) {
+                    agent = komeliaUserAgent
+                }
             }
         }
 
