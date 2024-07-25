@@ -6,7 +6,6 @@ import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
 import io.github.snd_r.komga.book.KomgaBookClient
 import io.github.snd_r.komga.book.KomgaBookId
-import io.ktor.client.call.*
 import okio.FileSystem
 import okio.Path
 
@@ -37,20 +36,16 @@ class ReaderImageLoader(
                     return decoder.decode(snapshot.data, pageId)
                 }
 
-                val result = bookClient.streamBookPage(bookId, page) { response ->
-                    val bytes = response.body<ByteArray>()
-                    val newSnapshot = writeToDiskCache(
-                        fileSystem = fileSystem,
-                        snapshot = snapshot,
-                        cacheKey = pageId.toString(),
-                        bytes = bytes
-                    )
-                    snapshot = newSnapshot
+                val bytes = bookClient.getBookPage(bookId, page)
+                val newSnapshot = writeToDiskCache(
+                    fileSystem = fileSystem,
+                    snapshot = snapshot,
+                    cacheKey = pageId.toString(),
+                    bytes = bytes
+                )
+                snapshot = newSnapshot
 
-                    decoder.decode(bytes, pageId)
-                }
-
-                return result
+                return decoder.decode(bytes, pageId)
             } catch (e: Exception) {
                 snapshot?.close()
                 throw e
