@@ -64,6 +64,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         "onnxruntime.dll",
         "onnxruntime_providers_shared.dll",
         "onnxruntime_providers_cuda.dll",
+        "onnxruntime_providers_tensorrt.dll",
     )
 
     private val directMlDownloadFilename = "microsoft.ai.directml.1.15.0.nupkg"
@@ -257,6 +258,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
             getLinuxOnnxruntimeLib(version),
             "libonnxruntime_providers_shared.so",
             "libonnxruntime_providers_cuda.so",
+            "libonnxruntime_providers_tensorrt.so",
             "libonnxruntime_providers_rocm.so",
         )
     }

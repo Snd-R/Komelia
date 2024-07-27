@@ -138,6 +138,30 @@ int enable_cuda(JNIEnv *env, int device_id, OrtSessionOptions *options) {
     return 0;
 }
 
+int enable_tensorrt(JNIEnv *env, int device_id, OrtSessionOptions *options) {
+    int cuda_status = enable_cuda(env, device_id, options);
+    if (cuda_status) { return cuda_status; }
+//    OrtTensorRTProviderOptionsV2 *tensorrt_options = NULL;
+//    ORT_INT_STATUS_THROW(env, g_ort->CreateTensorRTProviderOptions(&tensorrt_options));
+//    char device_id_str[12];
+//    sprintf(device_id_str, "%d", device_id);
+//
+//    const char *option_keys[] = {"device_id",};
+//    const char *option_values[] = {device_id_str};
+//    ORT_INT_STATUS_THROW(env, g_ort->UpdateTensorRTProviderOptions(tensorrt_options, option_keys, option_values, 1));
+//    ORT_INT_STATUS_THROW(env, g_ort->SessionOptionsAppendExecutionProvider_TensorRT_V2(options, tensorrt_options));
+
+    OrtTensorRTProviderOptions tensorrt_options = {0};
+    tensorrt_options.device_id = device_id;
+    tensorrt_options.trt_fp16_enable = 1;
+    tensorrt_options.trt_int8_enable = 1;
+    tensorrt_options.trt_engine_cache_enable = 1;
+    tensorrt_options.trt_engine_cache_path = g_get_tmp_dir();
+    ORT_INT_STATUS_THROW(env, g_ort->SessionOptionsAppendExecutionProvider_TensorRT(options, &tensorrt_options));
+
+    return 0;
+}
+
 int enable_rocm(JNIEnv *env, int device_id, OrtSessionOptions *options) {
     OrtROCMProviderOptions rocm_opts;
     memset(&rocm_opts, 0, sizeof(rocm_opts));
@@ -193,7 +217,8 @@ int init_onnxruntime_session(JNIEnv *env) {
     int provider_init_error = 0;
     switch (execution_provider) {
         case CUDA:
-            provider_init_error = enable_cuda(env, current_device_id, current_session.session_options);
+            provider_init_error = enable_tensorrt(env, current_device_id, current_session.session_options);
+//            provider_init_error = enable_cuda(env, current_device_id, current_session.session_options);
             break;
         case ROCm:
             provider_init_error = enable_rocm(env, current_device_id, current_session.session_options);
