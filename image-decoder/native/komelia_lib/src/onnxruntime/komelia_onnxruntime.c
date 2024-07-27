@@ -139,18 +139,6 @@ int enable_cuda(JNIEnv *env, int device_id, OrtSessionOptions *options) {
 }
 
 int enable_tensorrt(JNIEnv *env, int device_id, OrtSessionOptions *options) {
-    int cuda_status = enable_cuda(env, device_id, options);
-    if (cuda_status) { return cuda_status; }
-//    OrtTensorRTProviderOptionsV2 *tensorrt_options = NULL;
-//    ORT_INT_STATUS_THROW(env, g_ort->CreateTensorRTProviderOptions(&tensorrt_options));
-//    char device_id_str[12];
-//    sprintf(device_id_str, "%d", device_id);
-//
-//    const char *option_keys[] = {"device_id",};
-//    const char *option_values[] = {device_id_str};
-//    ORT_INT_STATUS_THROW(env, g_ort->UpdateTensorRTProviderOptions(tensorrt_options, option_keys, option_values, 1));
-//    ORT_INT_STATUS_THROW(env, g_ort->SessionOptionsAppendExecutionProvider_TensorRT_V2(options, tensorrt_options));
-
     OrtTensorRTProviderOptions tensorrt_options = {0};
     tensorrt_options.device_id = device_id;
     tensorrt_options.trt_fp16_enable = 1;
@@ -159,6 +147,9 @@ int enable_tensorrt(JNIEnv *env, int device_id, OrtSessionOptions *options) {
     tensorrt_options.trt_engine_cache_path = g_get_tmp_dir();
     ORT_INT_STATUS_THROW(env, g_ort->SessionOptionsAppendExecutionProvider_TensorRT(options, &tensorrt_options));
 
+    int cuda_status = enable_cuda(env, device_id, options);
+    if (cuda_status) { return cuda_status; }
+    
     return 0;
 }
 
