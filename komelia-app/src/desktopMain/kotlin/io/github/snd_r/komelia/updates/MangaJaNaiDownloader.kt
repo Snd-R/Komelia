@@ -3,12 +3,14 @@ package io.github.snd_r.komelia.updates
 import io.github.snd_r.komelia.AppDirectories.mangaJaNaiInstallPath
 import io.github.snd_r.komelia.AppNotifications
 import io.ktor.client.statement.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.io.readByteArray
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.io.IOUtils
@@ -54,13 +56,13 @@ class MangaJaNaiDownloader(
         updateClient.streamFile(downloadLink) { response ->
             val length = response.headers["Content-Length"]?.toLong() ?: 0L
             emit(UpdateProgress(length, 0, "MangaJaNaiOnnxModels.zip"))
-            val channel = response.bodyAsChannel()
+            val channel = response.bodyAsChannel().counted()
 
             file.outputStream().buffered().use { outputStream ->
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                    while (!packet.isEmpty) {
-                        val bytes = packet.readBytes()
+                    while (!packet.exhausted()) {
+                        val bytes = packet.readByteArray()
                         outputStream.write(bytes)
                     }
                     outputStream.flush()

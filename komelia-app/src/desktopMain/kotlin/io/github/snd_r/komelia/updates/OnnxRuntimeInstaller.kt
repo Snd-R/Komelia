@@ -12,12 +12,13 @@ import io.github.snd_r.komelia.DesktopPlatform.MacOS
 import io.github.snd_r.komelia.DesktopPlatform.Unknown
 import io.github.snd_r.komelia.DesktopPlatform.Windows
 import io.ktor.client.statement.*
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.io.readByteArray
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
@@ -36,7 +37,6 @@ import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.outputStream
-import kotlin.io.use
 
 
 class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
@@ -115,13 +115,13 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
     ) {
         val length = response.headers["Content-Length"]?.toLong() ?: 0L
         emit(UpdateProgress(length, 0, filename))
-        val channel = response.bodyAsChannel()
+        val channel = response.bodyAsChannel().counted()
 
         outFile.outputStream().buffered().use { outputStream ->
             while (!channel.isClosedForRead) {
                 val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
+                while (!packet.exhausted()) {
+                    val bytes = packet.readByteArray()
                     outputStream.write(bytes)
                 }
                 outputStream.flush()

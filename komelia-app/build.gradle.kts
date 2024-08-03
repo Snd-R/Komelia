@@ -60,8 +60,8 @@ kotlin {
         binaries.executable()
     }
 
-    val coilVersion = "3.0.0-alpha08"
-    val ktorVersion = "3.0.0-beta-2-eap-972"
+    val coilVersion = "3.0.0-alpha09"
+    val ktorVersion = "3.0.0-beta-2-eap-992"
     val voyagerVersion = "1.1.0-beta02"
     sourceSets {
         all {
@@ -89,7 +89,7 @@ kotlin {
 
             implementation("io.coil-kt.coil3:coil:$coilVersion")
             implementation("io.coil-kt.coil3:coil-compose:$coilVersion")
-            implementation("io.coil-kt.coil3:coil-network-ktor:$coilVersion")
+            implementation("io.coil-kt.coil3:coil-network-ktor3:$coilVersion")
 
             implementation("cafe.adriel.voyager:voyager-screenmodel:$voyagerVersion")
             implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
@@ -113,7 +113,7 @@ kotlin {
         }
 
         androidMain.dependencies {
-            api("androidx.activity:activity-compose:1.9.0")
+            api("androidx.activity:activity-compose:1.9.1")
             api("androidx.appcompat:appcompat:1.7.0")
             api("androidx.core:core-ktx:1.13.1")
             implementation("androidx.window:window:1.3.0")
@@ -158,10 +158,6 @@ kotlin {
             implementation("de.swiesend:secret-service")
 
             implementation("org.apache.commons:commons-compress:1.26.2")
-
-//            implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
-//            implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.10.1")
-//            implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
             implementation(project(":image-decoder"))
 
             implementation(files("jbr-api/jbr-api-6.4.2.jar"))
@@ -206,12 +202,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     }
 
     protobuf {

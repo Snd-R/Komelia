@@ -9,12 +9,12 @@ import android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION
 import android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL
 import android.os.Build
 import io.ktor.client.statement.*
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import kotlinx.io.readByteArray
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.io.use
 
 class AndroidAppUpdater(
     private val githubClient: UpdateClient,
@@ -63,14 +63,14 @@ class AndroidAppUpdater(
     ) {
         val length = response.headers["Content-Length"]?.toLong() ?: 0L
         emit(UpdateProgress(length, 0))
-        val channel = response.bodyAsChannel()
+        val channel = response.bodyAsChannel().counted()
         val sessionStream = session.openWrite("komelia", 0, -1)
         sessionStream.buffered().use { bufferedSessionStream ->
             while (!channel.isClosedForRead) {
 
                 val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
+                while (!packet.exhausted()) {
+                    val bytes = packet.readByteArray()
                     bufferedSessionStream.write(bytes)
                 }
                 emit(UpdateProgress(length, channel.totalBytesRead))
