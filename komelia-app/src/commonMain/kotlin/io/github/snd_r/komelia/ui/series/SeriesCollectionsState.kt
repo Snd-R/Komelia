@@ -6,13 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.CollectionEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,6 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.CollectionEvent
 
 class SeriesCollectionsState(
     val series: StateFlow<KomgaSeries?>,

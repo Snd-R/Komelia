@@ -6,12 +6,12 @@ import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
-import io.github.snd_r.komga.book.KomgaReadStatus
-import io.github.snd_r.komga.common.KomgaAuthor
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.referential.KomgaReferentialClient
-import io.github.snd_r.komga.series.KomgaSeriesStatus
 import kotlinx.coroutines.flow.StateFlow
+import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.common.KomgaAuthor
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.series.KomgaSeriesStatus
 
 class SeriesFilterState(
     private val defaultSort: SeriesSort,

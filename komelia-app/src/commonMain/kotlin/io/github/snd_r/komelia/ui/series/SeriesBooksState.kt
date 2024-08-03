@@ -9,19 +9,6 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.BookBulkActions
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.book.KomgaBookReadProgressUpdateRequest
-import io.github.snd_r.komga.book.KomgaBooksSort
-import io.github.snd_r.komga.book.KomgaReadStatus
-import io.github.snd_r.komga.common.KomgaAuthor
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.referential.KomgaReferentialClient
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.series.KomgaSeriesId
-import io.github.snd_r.komga.sse.KomgaEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
@@ -37,6 +24,19 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.komga.client.book.KomgaBooksSort
+import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.common.KomgaAuthor
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesId
+import snd.komga.client.sse.KomgaEvent
 
 class SeriesBooksState(
     val series: StateFlow<KomgaSeries?>,

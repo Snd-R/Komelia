@@ -7,10 +7,10 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
-import io.github.snd_r.komga.announcements.KomgaAnnouncementsClient
-import io.github.snd_r.komga.announcements.KomgaJsonFeed
-import io.github.snd_r.komga.announcements.KomgaJsonFeed.KomgaAnnouncementId
 import kotlinx.coroutines.launch
+import snd.komga.client.announcements.KomgaAnnouncementsClient
+import snd.komga.client.announcements.KomgaJsonFeed
+import snd.komga.client.announcements.KomgaJsonFeed.KomgaAnnouncementId
 
 class AnnouncementsViewModel(
     private val appNotifications: AppNotifications,

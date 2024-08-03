@@ -15,7 +15,7 @@ import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komga.library.SeriesCover
+import snd.komga.client.library.SeriesCover
 
 internal class OptionsTab(
     private val vm: LibraryEditDialogViewModel,

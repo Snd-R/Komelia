@@ -6,7 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
-import io.github.snd_r.komga.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadList
 import kotlinx.coroutines.launch
 
 @Composable

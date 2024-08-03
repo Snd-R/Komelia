@@ -5,11 +5,11 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotification.Success
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komga.actuator.KomgaActuatorClient
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.task.KomgaTaskClient
 import kotlinx.coroutines.flow.StateFlow
+import snd.komga.client.actuator.KomgaActuatorClient
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.task.KomgaTaskClient
 
 class ServerManagementViewModel(
     private val appNotifications: AppNotifications,

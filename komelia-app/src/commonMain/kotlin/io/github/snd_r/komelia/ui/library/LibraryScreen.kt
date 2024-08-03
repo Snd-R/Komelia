@@ -58,10 +58,10 @@ import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.series.list.SeriesListContent
-import io.github.snd_r.komga.common.KomgaAuthor
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.series.KomgaSeriesStatus
+import snd.komga.client.common.KomgaAuthor
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.series.KomgaSeriesStatus
 import kotlin.jvm.Transient
 
 class LibraryScreen(

@@ -14,21 +14,6 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.collection.KomgaCollectionId
-import io.github.snd_r.komga.collection.KomgaCollectionUpdateRequest
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.common.PatchValue.Some
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.CollectionChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesEvent
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesChanged
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesEvent
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +27,21 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.collection.KomgaCollectionId
+import snd.komga.client.collection.KomgaCollectionUpdateRequest
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.PatchValue.Some
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.CollectionChanged
+import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesChanged
+import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesEvent
+import snd.komga.client.sse.KomgaEvent.SeriesChanged
+import snd.komga.client.sse.KomgaEvent.SeriesDeleted
+import snd.komga.client.sse.KomgaEvent.SeriesEvent
 
 class CollectionViewModel(
     private val collectionId: KomgaCollectionId,

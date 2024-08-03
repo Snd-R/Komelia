@@ -14,9 +14,9 @@ import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.series.KomgaSeriesId
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
 
 class BookScreen(

@@ -10,16 +10,16 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppVersion
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookQuery
-import io.github.snd_r.komga.book.KomgaMediaStatus
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.user.KomgaUser
-import io.github.snd_r.komga.user.KomgaUserClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookQuery
+import snd.komga.client.book.KomgaMediaStatus
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.user.KomgaUser
+import snd.komga.client.user.KomgaUserClient
 
 class SettingsNavigationViewModel(
     private val rootNavigator: Navigator,

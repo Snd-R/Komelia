@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.common.patchLists
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.series.KomgaSeriesMetadataUpdateRequest
+import snd.komga.client.common.patch
+import snd.komga.client.common.patchLists
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 
 class SeriesBulkEditDialogViewModel(
     val series: List<KomgaSeries>,

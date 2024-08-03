@@ -13,7 +13,7 @@ import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komga.library.KomgaLibraryId
+import snd.komga.client.library.KomgaLibraryId
 
 class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
 

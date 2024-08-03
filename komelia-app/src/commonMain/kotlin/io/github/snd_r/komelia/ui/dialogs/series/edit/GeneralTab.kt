@@ -20,8 +20,8 @@ import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komga.common.KomgaReadingDirection
-import io.github.snd_r.komga.series.KomgaSeriesStatus
+import snd.komga.client.common.KomgaReadingDirection
+import snd.komga.client.series.KomgaSeriesStatus
 
 internal class GeneralTab(
     private val vm: SeriesEditDialogViewModel,

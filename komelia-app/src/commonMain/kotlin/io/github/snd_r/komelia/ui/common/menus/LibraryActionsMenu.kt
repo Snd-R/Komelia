@@ -18,9 +18,9 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
 import kotlinx.coroutines.CoroutineScope
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
 
 @Composable
 fun LibraryActionsMenu(

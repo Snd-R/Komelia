@@ -9,9 +9,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import io.github.snd_r.komelia.ui.LocalKomgaEvents
-import io.github.snd_r.komga.series.KomgaSeriesId
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookEvent
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesEvent
+import snd.komga.client.series.KomgaSeriesId
+import snd.komga.client.sse.KomgaEvent.ThumbnailBookEvent
+import snd.komga.client.sse.KomgaEvent.ThumbnailSeriesEvent
 import kotlin.random.Random
 
 @Composable

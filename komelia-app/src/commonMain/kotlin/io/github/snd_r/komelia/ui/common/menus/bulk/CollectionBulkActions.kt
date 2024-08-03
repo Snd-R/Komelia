@@ -11,12 +11,12 @@ import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.collection.KomgaCollectionUpdateRequest
-import io.github.snd_r.komga.common.PatchValue
-import io.github.snd_r.komga.series.KomgaSeries
 import kotlinx.coroutines.launch
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.collection.KomgaCollectionUpdateRequest
+import snd.komga.client.common.PatchValue
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun CollectionBulkActionsContent(

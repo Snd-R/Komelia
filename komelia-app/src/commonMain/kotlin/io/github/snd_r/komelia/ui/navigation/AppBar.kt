@@ -15,11 +15,11 @@ import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.search.SearchBar
 import io.github.snd_r.komelia.ui.search.SearchResults
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.series.KomgaSeriesId
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.series.KomgaSeriesId
 
 @Composable
 fun AppBar(

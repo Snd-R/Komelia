@@ -38,8 +38,8 @@ import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
 import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.common.menus.bulk.CollectionBulkActionsContent
 import io.github.snd_r.komelia.ui.common.menus.bulk.SeriesBulkActionsContent
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.series.KomgaSeries
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun CollectionContent(

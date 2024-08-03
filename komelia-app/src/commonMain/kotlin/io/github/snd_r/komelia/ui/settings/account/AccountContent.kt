@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialog
-import io.github.snd_r.komga.user.KomgaUser
+import snd.komga.client.user.KomgaUser
 
 @Composable
 fun AccountSettingsContent(user: KomgaUser) {

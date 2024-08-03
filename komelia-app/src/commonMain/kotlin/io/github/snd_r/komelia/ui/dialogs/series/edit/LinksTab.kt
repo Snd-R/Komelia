@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import io.github.snd_r.komelia.ui.dialogs.LinksEditContent
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komga.common.KomgaWebLink
+import snd.komga.client.common.KomgaWebLink
 
 internal class LinksTab(
     private val vm: SeriesEditDialogViewModel,

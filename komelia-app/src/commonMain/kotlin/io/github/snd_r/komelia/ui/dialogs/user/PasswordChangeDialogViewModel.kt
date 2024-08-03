@@ -2,8 +2,8 @@ package io.github.snd_r.komelia.ui.dialogs.user
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komga.user.KomgaUser
-import io.github.snd_r.komga.user.KomgaUserClient
+import snd.komga.client.user.KomgaUser
+import snd.komga.client.user.KomgaUserClient
 
 class PasswordChangeDialogViewModel(
     private val appNotifications: AppNotifications,

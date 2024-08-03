@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.readlistedit.ReadListEditDialog
-import io.github.snd_r.komga.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadList
 
 @Composable
 fun ReadListActionsMenu(

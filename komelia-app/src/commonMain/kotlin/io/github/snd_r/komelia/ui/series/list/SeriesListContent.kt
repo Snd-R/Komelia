@@ -40,7 +40,7 @@ import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.common.menus.bulk.SeriesBulkActionsContent
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
 import io.github.snd_r.komelia.ui.series.view.SeriesFilterContent
-import io.github.snd_r.komga.series.KomgaSeries
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesListContent(

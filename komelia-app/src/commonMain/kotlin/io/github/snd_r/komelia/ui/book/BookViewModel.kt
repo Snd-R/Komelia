@@ -15,18 +15,6 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListClient
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.BookChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadListEvent
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressDeleted
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -37,6 +25,18 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.BookChanged
+import snd.komga.client.sse.KomgaEvent.ReadListEvent
+import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
+import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
 
 class BookViewModel(
     book: KomgaBook?,

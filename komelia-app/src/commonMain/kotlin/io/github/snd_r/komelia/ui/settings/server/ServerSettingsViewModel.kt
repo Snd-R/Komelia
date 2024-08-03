@@ -4,20 +4,20 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komga.actuator.KomgaActuatorClient
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.common.PatchValue
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.settings.KomgaSettings
-import io.github.snd_r.komga.settings.KomgaSettingsClient
-import io.github.snd_r.komga.settings.KomgaSettingsUpdateRequest
-import io.github.snd_r.komga.settings.KomgaThumbnailSize
-import io.github.snd_r.komga.task.KomgaTaskClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import snd.komga.client.actuator.KomgaActuatorClient
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.common.PatchValue
+import snd.komga.client.common.patch
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.settings.KomgaSettings
+import snd.komga.client.settings.KomgaSettingsClient
+import snd.komga.client.settings.KomgaSettingsUpdateRequest
+import snd.komga.client.settings.KomgaThumbnailSize
+import snd.komga.client.task.KomgaTaskClient
 
 class ServerSettingsViewModel(
     private val appNotifications: AppNotifications,

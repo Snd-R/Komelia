@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.common.itemlist.ItemCardsSlider
 import io.github.snd_r.komelia.ui.series.SeriesCollectionsState
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.series.KomgaSeries
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesCollectionsContent(

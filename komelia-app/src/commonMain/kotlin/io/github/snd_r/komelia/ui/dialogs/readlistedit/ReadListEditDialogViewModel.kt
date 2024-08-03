@@ -10,11 +10,11 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListClient
-import io.github.snd_r.komga.readlist.KomgaReadListUpdateRequest
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.patch
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.readlist.KomgaReadListUpdateRequest
 import kotlinx.coroutines.flow.Flow
 
 class ReadListEditDialogViewModel(

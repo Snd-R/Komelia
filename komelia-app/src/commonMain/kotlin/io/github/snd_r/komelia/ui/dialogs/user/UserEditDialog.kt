@@ -36,9 +36,9 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.user.KomgaUser
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.user.KomgaUser
 import kotlinx.coroutines.launch
 
 @Composable

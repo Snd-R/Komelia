@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.PasswordTextField
-import io.github.snd_r.komga.user.KomgaUser
+import snd.komga.client.user.KomgaUser
 import kotlinx.coroutines.launch
 
 @Composable

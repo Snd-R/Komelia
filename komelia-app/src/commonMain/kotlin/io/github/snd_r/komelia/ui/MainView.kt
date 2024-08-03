@@ -45,11 +45,11 @@ import io.github.snd_r.komelia.ui.dialogs.update.UpdateProgressDialog
 import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
-import io.github.snd_r.komga.sse.KomgaEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import snd.komga.client.sse.KomgaEvent
 
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
 val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }

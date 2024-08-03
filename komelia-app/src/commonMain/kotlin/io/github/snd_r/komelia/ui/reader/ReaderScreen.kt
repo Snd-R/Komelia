@@ -37,9 +37,9 @@ import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.reader.common.ReaderContent
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import snd.komga.client.book.KomgaBookId
 
 class ReaderScreen(
     private val bookId: KomgaBookId,

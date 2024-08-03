@@ -15,18 +15,18 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.referential.KomgaReferentialClient
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.series.KomgaSeriesId
-import io.github.snd_r.komga.sse.KomgaEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesId
+import snd.komga.client.sse.KomgaEvent
 
 class SeriesViewModel(
     series: KomgaSeries?,

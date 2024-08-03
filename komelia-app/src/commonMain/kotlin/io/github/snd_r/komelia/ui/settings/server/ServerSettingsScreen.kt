@@ -16,8 +16,8 @@ import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
-import io.github.snd_r.komga.settings.KomgaThumbnailSize
 import kotlinx.coroutines.Dispatchers
+import snd.komga.client.settings.KomgaThumbnailSize
 
 class ServerSettingsScreen : Screen {
 

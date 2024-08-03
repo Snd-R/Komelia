@@ -52,9 +52,9 @@ import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.COMPLETE
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.INCOMPLETE
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel
-import io.github.snd_r.komga.book.KomgaReadStatus
-import io.github.snd_r.komga.series.KomgaSeriesStatus
 import kotlinx.coroutines.delay
+import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.series.KomgaSeriesStatus
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

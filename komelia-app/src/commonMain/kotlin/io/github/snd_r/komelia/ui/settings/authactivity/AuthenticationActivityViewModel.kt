@@ -7,11 +7,11 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.user.KomgaAuthenticationActivity
-import io.github.snd_r.komga.user.KomgaUserClient
-import io.github.snd_r.komga.user.KomgaUserSort
 import kotlinx.coroutines.launch
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.user.KomgaAuthenticationActivity
+import snd.komga.client.user.KomgaUserClient
+import snd.komga.client.user.KomgaUserSort
 
 class AuthenticationActivityViewModel(
     private val forMe: Boolean,

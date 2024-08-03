@@ -20,9 +20,9 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
 import kotlinx.coroutines.CoroutineScope
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
 
 @Composable
 fun SeriesActionsMenu(

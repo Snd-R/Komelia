@@ -34,7 +34,7 @@ import io.github.snd_r.komelia.ui.common.OptionsStateHolder
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komga.settings.KomgaThumbnailSize
+import snd.komga.client.settings.KomgaThumbnailSize
 
 @Composable
 fun ServerSettingsContent(

@@ -27,9 +27,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.ui.common.Pagination
-import io.github.snd_r.komga.user.KomgaAuthenticationActivity
 import kotlinx.datetime.TimeZone.Companion.currentSystemDefault
 import kotlinx.datetime.toLocalDateTime
+import snd.komga.client.user.KomgaAuthenticationActivity
 
 @Composable
 fun AuthenticationActivityContent(

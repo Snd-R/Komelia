@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialog
-import io.github.snd_r.komga.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollection
 
 @Composable
 fun CollectionActionsMenu(

@@ -65,13 +65,13 @@ import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.series.SeriesBooksState
 import io.github.snd_r.komelia.ui.series.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesStatus.ABANDONED
-import io.github.snd_r.komga.series.KomgaSeriesStatus.ENDED
-import io.github.snd_r.komga.series.KomgaSeriesStatus.HIATUS
-import io.github.snd_r.komga.series.KomgaSeriesStatus.ONGOING
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesStatus.ABANDONED
+import snd.komga.client.series.KomgaSeriesStatus.ENDED
+import snd.komga.client.series.KomgaSeriesStatus.HIATUS
+import snd.komga.client.series.KomgaSeriesStatus.ONGOING
 
 @Composable
 fun SeriesContent(

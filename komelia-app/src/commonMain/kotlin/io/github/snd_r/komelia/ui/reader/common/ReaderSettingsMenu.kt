@@ -44,7 +44,7 @@ import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
-import io.github.snd_r.komga.book.KomgaBook
+import snd.komga.client.book.KomgaBook
 import kotlin.math.roundToInt
 
 @Composable

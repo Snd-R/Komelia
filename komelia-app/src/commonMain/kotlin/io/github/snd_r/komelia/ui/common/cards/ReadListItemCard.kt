@@ -28,7 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.images.ReadListThumbnail
 import io.github.snd_r.komelia.ui.common.menus.ReadListActionsMenu
-import io.github.snd_r.komga.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadList
 
 @Composable
 fun ReadListImageCard(

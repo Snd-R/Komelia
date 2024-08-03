@@ -11,10 +11,6 @@ import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.user.KomgaUser
-import io.github.snd_r.komga.user.KomgaUserClient
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.utils.io.*
@@ -22,6 +18,10 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.user.KomgaUser
+import snd.komga.client.user.KomgaUserClient
 
 class LoginViewModel(
     private val settingsRepository: SettingsRepository,

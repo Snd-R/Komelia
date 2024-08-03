@@ -31,9 +31,9 @@ import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.BookImageCard
 import io.github.snd_r.komelia.ui.common.cards.DraggableImageCard
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.rememberReorderableLazyGridState
+import snd.komga.client.book.KomgaBook
 
 @Composable
 fun BookLazyCardGrid(

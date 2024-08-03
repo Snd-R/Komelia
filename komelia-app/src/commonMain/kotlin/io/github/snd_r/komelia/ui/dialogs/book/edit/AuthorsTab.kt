@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LockableChipTextField
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komga.common.KomgaAuthor
+import snd.komga.client.common.KomgaAuthor
 
 class AuthorsTab(
     private val vm: BookEditDialogViewModel

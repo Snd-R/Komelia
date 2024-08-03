@@ -30,12 +30,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     }
 }
 
-include(":komelia-app", ":komga_client")
+include(":komelia-app")
 include("image-decoder")
 include("wasmImageWorker")
 

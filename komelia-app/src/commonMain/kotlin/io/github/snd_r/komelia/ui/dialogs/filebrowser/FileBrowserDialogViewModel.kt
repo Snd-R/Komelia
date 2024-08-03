@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komga.common.toErrorResponse
-import io.github.snd_r.komga.filesystem.DirectoryListing
-import io.github.snd_r.komga.filesystem.DirectoryRequest
-import io.github.snd_r.komga.filesystem.KomgaFileSystemClient
 import io.ktor.client.plugins.*
+import snd.komga.client.common.toErrorResponse
+import snd.komga.client.filesystem.DirectoryListing
+import snd.komga.client.filesystem.DirectoryRequest
+import snd.komga.client.filesystem.KomgaFileSystemClient
 
 class FileBrowserDialogViewModel(
     private val filesystemClient: KomgaFileSystemClient,

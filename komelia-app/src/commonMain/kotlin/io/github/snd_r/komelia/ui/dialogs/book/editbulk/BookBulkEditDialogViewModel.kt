@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookMetadataUpdateRequest
-import io.github.snd_r.komga.common.KomgaAuthor
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.common.patchLists
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookMetadataUpdateRequest
+import snd.komga.client.common.KomgaAuthor
+import snd.komga.client.common.patch
+import snd.komga.client.common.patchLists
 
 class BookBulkEditDialogViewModel(
     val books: List<KomgaBook>,

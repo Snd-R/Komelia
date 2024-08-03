@@ -65,11 +65,11 @@ import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.Readin
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
 
 @Composable
 fun BoxScope.ContinuousReaderContent(

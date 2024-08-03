@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.ReadListImageCard
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListId
 import kotlinx.coroutines.launch
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListId
 
 @Composable
 fun ReadListLazyCardGrid(

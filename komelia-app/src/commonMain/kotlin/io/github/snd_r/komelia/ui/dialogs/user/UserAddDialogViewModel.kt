@@ -8,11 +8,11 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
-import io.github.snd_r.komga.user.KomgaUserClient
-import io.github.snd_r.komga.user.KomgaUserCreateRequest
-import io.github.snd_r.komga.user.ROLE_ADMIN
-import io.github.snd_r.komga.user.ROLE_FILE_DOWNLOAD
-import io.github.snd_r.komga.user.ROLE_PAGE_STREAMING
+import snd.komga.client.user.KomgaUserClient
+import snd.komga.client.user.KomgaUserCreateRequest
+import snd.komga.client.user.ROLE_ADMIN
+import snd.komga.client.user.ROLE_FILE_DOWNLOAD
+import snd.komga.client.user.ROLE_PAGE_STREAMING
 
 class UserAddDialogViewModel(
     private val appNotifications: AppNotifications,

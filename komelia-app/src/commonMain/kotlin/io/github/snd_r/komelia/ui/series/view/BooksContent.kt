@@ -80,11 +80,11 @@ import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
 import io.github.snd_r.komelia.ui.series.SeriesBooksState
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaReadStatus
-import io.github.snd_r.komga.series.KomgaSeries
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.series.KomgaSeries
 import kotlin.math.roundToInt
 
 @Composable

@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.Pagination
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
 
 @Composable
 fun MediaAnalysisContent(

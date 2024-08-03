@@ -24,7 +24,7 @@ import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komga.series.KomgaAlternativeTitle
+import snd.komga.client.series.KomgaAlternativeTitle
 
 internal class AlternativeTitlesTab(
     private val vm: SeriesEditDialogViewModel,

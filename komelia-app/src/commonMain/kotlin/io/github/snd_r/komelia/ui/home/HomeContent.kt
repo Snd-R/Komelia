@@ -41,10 +41,10 @@ import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_A
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_READ_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_RELEASED_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_UPDATED_SERIES
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesId
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesId
 import kotlinx.coroutines.launch
 
 @Composable

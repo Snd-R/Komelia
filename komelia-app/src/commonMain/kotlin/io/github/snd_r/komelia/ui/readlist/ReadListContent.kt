@@ -31,8 +31,8 @@ import io.github.snd_r.komelia.ui.common.menus.bulk.BooksBulkActionsContent
 import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
 import io.github.snd_r.komelia.ui.common.menus.bulk.BulkActionsContainer
 import io.github.snd_r.komelia.ui.common.menus.bulk.ReadListBulkActionsContent
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.readlist.KomgaReadList
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.readlist.KomgaReadList
 
 @Composable
 fun ReadListContent(

@@ -16,7 +16,7 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komga.collection.KomgaCollectionId
+import snd.komga.client.collection.KomgaCollectionId
 
 class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
 

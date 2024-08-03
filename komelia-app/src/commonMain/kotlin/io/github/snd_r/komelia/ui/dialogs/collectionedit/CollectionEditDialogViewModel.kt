@@ -10,12 +10,12 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.collection.KomgaCollectionUpdateRequest
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.common.patch
 import kotlinx.coroutines.flow.Flow
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.collection.KomgaCollectionUpdateRequest
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.patch
 
 class CollectionEditDialogViewModel(
     val collection: KomgaCollection,

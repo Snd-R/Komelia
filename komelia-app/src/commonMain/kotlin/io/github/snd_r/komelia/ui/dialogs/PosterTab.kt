@@ -42,11 +42,11 @@ import io.github.snd_r.komelia.ui.common.cards.ThumbnailUploadCard
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.ThumbnailToBeUploaded
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komga.book.KomgaBookThumbnail
-import io.github.snd_r.komga.collection.KomgaCollectionThumbnail
-import io.github.snd_r.komga.common.KomgaThumbnailId
-import io.github.snd_r.komga.readlist.KomgaReadListThumbnail
-import io.github.snd_r.komga.series.KomgaSeriesThumbnail
+import snd.komga.client.book.KomgaBookThumbnail
+import snd.komga.client.collection.KomgaCollectionThumbnail
+import snd.komga.client.common.KomgaThumbnailId
+import snd.komga.client.readlist.KomgaReadListThumbnail
+import snd.komga.client.series.KomgaSeriesThumbnail
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PlatformFile

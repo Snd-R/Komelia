@@ -3,23 +3,6 @@ package io.github.snd_r.komelia
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.collection.KomgaCollectionId
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.readlist.KomgaReadListId
-import io.github.snd_r.komga.series.KomgaSeriesId
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.LibraryEvent
-import io.github.snd_r.komga.sse.KomgaEvent.TaskQueueStatus
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookAdded
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailBookDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailCollectionEvent
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailReadListEvent
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesAdded
-import io.github.snd_r.komga.sse.KomgaEvent.ThumbnailSeriesDeleted
-import io.github.snd_r.komga.sse.KomgaSSESession
-import io.github.snd_r.komga.user.KomgaUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,6 +16,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.collection.KomgaCollectionId
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.readlist.KomgaReadListId
+import snd.komga.client.series.KomgaSeriesId
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.LibraryEvent
+import snd.komga.client.sse.KomgaEvent.TaskQueueStatus
+import snd.komga.client.sse.KomgaEvent.ThumbnailBookAdded
+import snd.komga.client.sse.KomgaEvent.ThumbnailBookDeleted
+import snd.komga.client.sse.KomgaEvent.ThumbnailCollectionEvent
+import snd.komga.client.sse.KomgaEvent.ThumbnailReadListEvent
+import snd.komga.client.sse.KomgaEvent.ThumbnailSeriesAdded
+import snd.komga.client.sse.KomgaEvent.ThumbnailSeriesDeleted
+import snd.komga.client.sse.KomgaSSESession
+import snd.komga.client.user.KomgaUser
 import kotlin.concurrent.Volatile
 
 private val logger = KotlinLogging.logger {}

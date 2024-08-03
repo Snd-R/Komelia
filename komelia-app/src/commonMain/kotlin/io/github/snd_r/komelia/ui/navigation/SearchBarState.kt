@@ -8,20 +8,20 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.search.SearchResults
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookQuery
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.series.KomgaSeriesQuery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookQuery
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesQuery
 
 @OptIn(FlowPreview::class)
 class SearchBarState(

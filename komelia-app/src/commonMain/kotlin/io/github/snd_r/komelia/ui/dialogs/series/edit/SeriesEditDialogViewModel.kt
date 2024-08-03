@@ -10,13 +10,13 @@ import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.common.KomgaWebLink
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.common.patchLists
-import io.github.snd_r.komga.series.KomgaAlternativeTitle
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.series.KomgaSeriesMetadataUpdateRequest
+import snd.komga.client.common.KomgaWebLink
+import snd.komga.client.common.patch
+import snd.komga.client.common.patchLists
+import snd.komga.client.series.KomgaAlternativeTitle
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 import kotlinx.coroutines.flow.Flow
 
 class SeriesEditDialogViewModel(

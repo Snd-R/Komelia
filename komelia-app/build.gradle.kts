@@ -109,7 +109,10 @@ kotlin {
             implementation("io.github.vinceglb:filekit-core:0.7.0")
             implementation("io.github.vinceglb:filekit-compose:0.7.0")
 
-            implementation(project(":komga_client"))
+            implementation("io.github.snd-r:komf-core:1.0.0")
+            implementation("io.github.snd-r:komf-mediaserver:1.0.0")
+
+            implementation("io.github.snd-r:komga-client:0.1.0")
         }
 
         androidMain.dependencies {

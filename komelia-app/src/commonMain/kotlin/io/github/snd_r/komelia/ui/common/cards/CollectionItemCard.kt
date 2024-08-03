@@ -28,7 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.images.CollectionThumbnail
 import io.github.snd_r.komelia.ui.common.menus.CollectionActionsMenu
-import io.github.snd_r.komga.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollection
 
 @Composable
 fun CollectionImageCard(

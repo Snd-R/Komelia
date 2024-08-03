@@ -6,8 +6,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotification.Error
 import io.github.snd_r.komelia.AppNotification.Normal
 import io.github.snd_r.komelia.AppNotification.Success
-import io.github.snd_r.komga.common.toErrorResponse
-import io.github.snd_r.komga.common.toViolationResponse
 import io.ktor.client.plugins.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -19,6 +17,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import snd.komga.client.common.toErrorResponse
+import snd.komga.client.common.toViolationResponse
 import kotlin.time.Duration.Companion.milliseconds
 
 class AppNotifications {

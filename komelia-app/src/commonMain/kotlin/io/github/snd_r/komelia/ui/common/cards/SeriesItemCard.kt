@@ -41,7 +41,7 @@ import io.github.snd_r.komelia.ui.common.NoPaddingChip
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komga.series.KomgaSeries
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesImageCard(

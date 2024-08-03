@@ -20,10 +20,10 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialog
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookReadProgressUpdateRequest
 import kotlinx.coroutines.CoroutineScope
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 
 @Composable
 fun BookActionsMenu(

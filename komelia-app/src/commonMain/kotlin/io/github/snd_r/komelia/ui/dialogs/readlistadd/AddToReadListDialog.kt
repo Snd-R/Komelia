@@ -33,9 +33,9 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.readlist.KomgaReadList
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.readlist.KomgaReadList
 
 @Composable
 fun AddToReadListDialog(

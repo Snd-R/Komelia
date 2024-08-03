@@ -33,9 +33,9 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.series.KomgaSeries
 import kotlinx.coroutines.launch
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun AddToCollectionDialog(

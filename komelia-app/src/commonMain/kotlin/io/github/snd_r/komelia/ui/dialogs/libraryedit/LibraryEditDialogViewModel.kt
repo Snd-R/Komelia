@@ -5,14 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.common.PatchValue
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.library.KomgaLibraryCreateRequest
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.library.KomgaLibraryUpdateRequest
-import io.github.snd_r.komga.library.ScanInterval
-import io.github.snd_r.komga.library.SeriesCover
+import snd.komga.client.common.PatchValue
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.library.KomgaLibraryCreateRequest
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.library.KomgaLibraryUpdateRequest
+import snd.komga.client.library.ScanInterval
+import snd.komga.client.library.SeriesCover
 
 class LibraryEditDialogViewModel(
     val library: KomgaLibrary?,

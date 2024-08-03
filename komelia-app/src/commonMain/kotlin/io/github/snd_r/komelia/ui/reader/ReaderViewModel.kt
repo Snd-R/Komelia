@@ -14,8 +14,6 @@ import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.ReaderType.PAGED
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,6 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookId
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 

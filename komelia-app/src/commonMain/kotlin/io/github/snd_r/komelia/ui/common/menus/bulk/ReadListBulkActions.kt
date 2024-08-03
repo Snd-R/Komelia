@@ -11,12 +11,12 @@ import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.common.PatchValue
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListClient
-import io.github.snd_r.komga.readlist.KomgaReadListUpdateRequest
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.common.PatchValue
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.readlist.KomgaReadListUpdateRequest
 
 @Composable
 fun ReadListBulkActionsContent(

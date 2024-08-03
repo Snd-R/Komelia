@@ -9,19 +9,19 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUDE
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.NONE
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.user.AllowExclude
-import io.github.snd_r.komga.user.KomgaAgeRestriction
-import io.github.snd_r.komga.user.KomgaSharedLibrariesUpdate
-import io.github.snd_r.komga.user.KomgaUser
-import io.github.snd_r.komga.user.KomgaUserClient
-import io.github.snd_r.komga.user.KomgaUserUpdateRequest
-import io.github.snd_r.komga.user.ROLE_ADMIN
-import io.github.snd_r.komga.user.ROLE_FILE_DOWNLOAD
-import io.github.snd_r.komga.user.ROLE_PAGE_STREAMING
-import io.github.snd_r.komga.user.ROLE_USER
+import snd.komga.client.common.patch
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.user.AllowExclude
+import snd.komga.client.user.KomgaAgeRestriction
+import snd.komga.client.user.KomgaSharedLibrariesUpdate
+import snd.komga.client.user.KomgaUser
+import snd.komga.client.user.KomgaUserClient
+import snd.komga.client.user.KomgaUserUpdateRequest
+import snd.komga.client.user.ROLE_ADMIN
+import snd.komga.client.user.ROLE_FILE_DOWNLOAD
+import snd.komga.client.user.ROLE_PAGE_STREAMING
+import snd.komga.client.user.ROLE_USER
 
 class UserEditDialogViewModel(
     val appNotifications: AppNotifications,

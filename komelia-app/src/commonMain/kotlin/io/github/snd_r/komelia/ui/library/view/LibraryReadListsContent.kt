@@ -16,8 +16,8 @@ import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
 import io.github.snd_r.komelia.ui.common.itemlist.PlaceHolderLazyCardGrid
 import io.github.snd_r.komelia.ui.common.itemlist.ReadListLazyCardGrid
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListId
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListId
 
 @Composable
 fun LibraryReadListsContent(

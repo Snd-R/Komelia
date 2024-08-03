@@ -33,8 +33,8 @@ import io.github.snd_r.komelia.ui.reader.common.SettingsMenu
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.Page
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
-import io.github.snd_r.komga.book.KomgaBook
 import kotlinx.coroutines.flow.SharedFlow
+import snd.komga.client.book.KomgaBook
 
 @Composable
 fun BoxScope.PagedReaderContent(

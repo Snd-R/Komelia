@@ -10,16 +10,16 @@ import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.BookThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookMetadataUpdateRequest
-import io.github.snd_r.komga.book.KomgaBookThumbnail
-import io.github.snd_r.komga.common.KomgaAuthor
-import io.github.snd_r.komga.common.KomgaWebLink
-import io.github.snd_r.komga.common.patch
-import io.github.snd_r.komga.common.patchLists
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookMetadataUpdateRequest
+import snd.komga.client.book.KomgaBookThumbnail
+import snd.komga.client.common.KomgaAuthor
+import snd.komga.client.common.KomgaWebLink
+import snd.komga.client.common.patch
+import snd.komga.client.common.patchLists
 
 class BookEditDialogViewModel(
     val book: KomgaBook,

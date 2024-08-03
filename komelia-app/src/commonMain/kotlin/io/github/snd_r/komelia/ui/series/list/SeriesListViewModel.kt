@@ -20,22 +20,6 @@ import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.common.Page
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.referential.KomgaReferentialClient
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesClient
-import io.github.snd_r.komga.series.KomgaSeriesQuery
-import io.github.snd_r.komga.series.KomgaSeriesSort
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressSeriesEvent
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesAdded
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesChanged
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesEvent
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
@@ -50,6 +34,22 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.Page
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesQuery
+import snd.komga.client.series.KomgaSeriesSort
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesChanged
+import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesDeleted
+import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesEvent
+import snd.komga.client.sse.KomgaEvent.SeriesAdded
+import snd.komga.client.sse.KomgaEvent.SeriesChanged
+import snd.komga.client.sse.KomgaEvent.SeriesDeleted
+import snd.komga.client.sse.KomgaEvent.SeriesEvent
 
 private val logger = KotlinLogging.logger {}
 

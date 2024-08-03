@@ -25,7 +25,6 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.UpdateProgress
-import io.github.snd_r.komga.KomgaClientFactory
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.*
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.stateIn
+import snd.komga.client.KomgaClientFactory
 
 class WasmDependencyContainer(
     override val settingsRepository: SettingsRepository,

@@ -20,9 +20,9 @@ import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesId
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
 
 class SeriesScreen(

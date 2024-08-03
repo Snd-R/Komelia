@@ -15,16 +15,6 @@ import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
 import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
 import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
-import io.github.snd_r.komga.collection.KomgaCollectionClient
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.readlist.KomgaReadListClient
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.CollectionAdded
-import io.github.snd_r.komga.sse.KomgaEvent.CollectionDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.ReadListAdded
-import io.github.snd_r.komga.sse.KomgaEvent.ReadListDeleted
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +25,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.CollectionAdded
+import snd.komga.client.sse.KomgaEvent.CollectionDeleted
+import snd.komga.client.sse.KomgaEvent.ReadListAdded
+import snd.komga.client.sse.KomgaEvent.ReadListDeleted
 
 class LibraryViewModel(
     libraryFlow: Flow<KomgaLibrary?>?,

@@ -4,10 +4,10 @@ import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookId
 import okio.FileSystem
 import okio.Path
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookId
 
 private val logger = KotlinLogging.logger {}
 

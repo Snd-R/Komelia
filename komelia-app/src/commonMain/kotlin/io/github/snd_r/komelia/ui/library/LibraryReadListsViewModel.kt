@@ -12,12 +12,6 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListClient
-import io.github.snd_r.komga.readlist.KomgaReadListId
-import io.github.snd_r.komga.sse.KomgaEvent
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +22,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.readlist.KomgaReadListId
+import snd.komga.client.sse.KomgaEvent
 
 class LibraryReadListsViewModel(
     private val readListClient: KomgaReadListClient,

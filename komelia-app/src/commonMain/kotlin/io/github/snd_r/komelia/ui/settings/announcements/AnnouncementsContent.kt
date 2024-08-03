@@ -20,12 +20,12 @@ import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komga.announcements.KomgaJsonFeed.KomgaAnnouncement
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
+import snd.komga.client.announcements.KomgaJsonFeed.KomgaAnnouncement
 
 private val dateFormat = LocalDateTime.Format {
     year()

@@ -57,9 +57,9 @@ import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
 import io.github.snd_r.komelia.ui.home.HomeScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.sse.KomgaEvent.TaskQueueStatus
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.sse.KomgaEvent.TaskQueueStatus
 
 @Composable
 fun NavBarContent(

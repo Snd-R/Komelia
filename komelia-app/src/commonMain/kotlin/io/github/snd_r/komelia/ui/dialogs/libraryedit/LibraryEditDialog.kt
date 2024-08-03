@@ -5,8 +5,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
-import io.github.snd_r.komga.library.KomgaLibrary
 import kotlinx.coroutines.launch
+import snd.komga.client.library.KomgaLibrary
 
 @Composable
 fun LibraryEditDialogs(

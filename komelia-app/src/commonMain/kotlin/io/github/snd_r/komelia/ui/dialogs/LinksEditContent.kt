@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LockIcon
 import io.github.snd_r.komelia.ui.common.withTextFieldNavigation
-import io.github.snd_r.komga.common.KomgaWebLink
+import snd.komga.client.common.KomgaWebLink
 
 
 @Composable

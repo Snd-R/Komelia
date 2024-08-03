@@ -31,8 +31,6 @@ import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.Readin
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
 import io.github.snd_r.komelia.ui.reader.getDisplaySizeFor
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +54,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
 import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger("ContinuousReaderState")

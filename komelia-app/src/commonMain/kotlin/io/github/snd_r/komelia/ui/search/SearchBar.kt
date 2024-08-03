@@ -50,12 +50,12 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.NoPaddingTextField
 import io.github.snd_r.komelia.ui.common.cards.BookSimpleImageCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesSimpleImageCard
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesId
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesId
 
 val expandedSearchBarWidth = 600.dp
 

@@ -75,17 +75,17 @@ import io.github.snd_r.komelia.ui.common.itemlist.ItemCardsSlider
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.common.coloristRole
-import io.github.snd_r.komga.common.coverRole
-import io.github.snd_r.komga.common.editorRole
-import io.github.snd_r.komga.common.inkerRole
-import io.github.snd_r.komga.common.lettererRole
-import io.github.snd_r.komga.common.pencillerRole
-import io.github.snd_r.komga.common.translatorRole
-import io.github.snd_r.komga.common.writerRole
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.readlist.KomgaReadList
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.common.coloristRole
+import snd.komga.client.common.coverRole
+import snd.komga.client.common.editorRole
+import snd.komga.client.common.inkerRole
+import snd.komga.client.common.lettererRole
+import snd.komga.client.common.pencillerRole
+import snd.komga.client.common.translatorRole
+import snd.komga.client.common.writerRole
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.readlist.KomgaReadList
 
 
 private val authorsOrder = listOf(

@@ -11,13 +11,13 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
-import io.github.snd_r.komga.user.KomgaAuthenticationActivity
-import io.github.snd_r.komga.user.KomgaUser
-import io.github.snd_r.komga.user.KomgaUserClient
-import io.github.snd_r.komga.user.KomgaUserId
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.launch
+import snd.komga.client.user.KomgaAuthenticationActivity
+import snd.komga.client.user.KomgaUser
+import snd.komga.client.user.KomgaUserClient
+import snd.komga.client.user.KomgaUserId
 
 class UsersViewModel(
     private val appNotifications: AppNotifications,

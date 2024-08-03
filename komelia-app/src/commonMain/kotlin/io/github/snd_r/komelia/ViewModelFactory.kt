@@ -57,24 +57,24 @@ import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
-import io.github.snd_r.komga.KomgaClientFactory
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.collection.KomgaCollection
-import io.github.snd_r.komga.collection.KomgaCollectionId
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryId
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListId
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesId
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.user.KomgaUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import snd.komga.client.KomgaClientFactory
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.collection.KomgaCollectionId
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListId
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesId
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.user.KomgaUser
 
 interface DependencyContainer {
     val settingsRepository: SettingsRepository

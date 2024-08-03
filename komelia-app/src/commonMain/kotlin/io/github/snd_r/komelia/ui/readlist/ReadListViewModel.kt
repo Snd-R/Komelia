@@ -13,20 +13,6 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.common.KomgaPageRequest
-import io.github.snd_r.komga.common.PatchValue
-import io.github.snd_r.komga.readlist.KomgaReadList
-import io.github.snd_r.komga.readlist.KomgaReadListClient
-import io.github.snd_r.komga.readlist.KomgaReadListId
-import io.github.snd_r.komga.readlist.KomgaReadListUpdateRequest
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.BookChanged
-import io.github.snd_r.komga.sse.KomgaEvent.BookDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.ReadListChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressChanged
-import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressDeleted
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -40,6 +26,20 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.PatchValue
+import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.readlist.KomgaReadListId
+import snd.komga.client.readlist.KomgaReadListUpdateRequest
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.BookChanged
+import snd.komga.client.sse.KomgaEvent.BookDeleted
+import snd.komga.client.sse.KomgaEvent.ReadListChanged
+import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
+import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
 
 class ReadListViewModel(
     private val readListId: KomgaReadListId,

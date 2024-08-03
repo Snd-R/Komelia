@@ -7,12 +7,12 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookClient
-import io.github.snd_r.komga.book.KomgaBookQuery
-import io.github.snd_r.komga.book.KomgaMediaStatus
-import io.github.snd_r.komga.common.KomgaPageRequest
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookQuery
+import snd.komga.client.book.KomgaMediaStatus
+import snd.komga.client.common.KomgaPageRequest
 
 class MediaAnalysisViewModel(
     private val bookClient: KomgaBookClient,

@@ -14,19 +14,19 @@ import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.github.snd_r.komga.library.KomgaLibrary
-import io.github.snd_r.komga.library.KomgaLibraryClient
-import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.BookDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.CollectionDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.LibraryDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.ReadListDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.SeriesDeleted
-import io.github.snd_r.komga.sse.KomgaEvent.TaskQueueStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import snd.komga.client.library.KomgaLibrary
+import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.BookDeleted
+import snd.komga.client.sse.KomgaEvent.CollectionDeleted
+import snd.komga.client.sse.KomgaEvent.LibraryDeleted
+import snd.komga.client.sse.KomgaEvent.ReadListDeleted
+import snd.komga.client.sse.KomgaEvent.SeriesDeleted
+import snd.komga.client.sse.KomgaEvent.TaskQueueStatus
 
 class MainScreenViewModel(
     private val libraryClient: KomgaLibraryClient,

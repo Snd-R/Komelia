@@ -27,10 +27,10 @@ import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesDetailedListCard
 import io.github.snd_r.komelia.ui.search.SearchViewModel.SearchType
-import io.github.snd_r.komga.book.KomgaBook
-import io.github.snd_r.komga.book.KomgaBookId
-import io.github.snd_r.komga.series.KomgaSeries
-import io.github.snd_r.komga.series.KomgaSeriesId
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesId
 
 
 @Composable
