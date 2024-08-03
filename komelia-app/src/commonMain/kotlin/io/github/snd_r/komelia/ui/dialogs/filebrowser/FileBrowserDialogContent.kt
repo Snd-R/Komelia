@@ -35,9 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komga.filesystem.DirectoryListing
 import kotlinx.coroutines.launch
 

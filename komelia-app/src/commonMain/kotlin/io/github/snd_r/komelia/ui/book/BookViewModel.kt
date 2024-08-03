@@ -9,7 +9,10 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.*
+import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Success
+import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komga.book.KomgaBook
@@ -20,7 +23,10 @@ import io.github.snd_r.komga.library.KomgaLibrary
 import io.github.snd_r.komga.readlist.KomgaReadList
 import io.github.snd_r.komga.readlist.KomgaReadListClient
 import io.github.snd_r.komga.sse.KomgaEvent
-import io.github.snd_r.komga.sse.KomgaEvent.*
+import io.github.snd_r.komga.sse.KomgaEvent.BookChanged
+import io.github.snd_r.komga.sse.KomgaEvent.ReadListEvent
+import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressChanged
+import io.github.snd_r.komga.sse.KomgaEvent.ReadProgressDeleted
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

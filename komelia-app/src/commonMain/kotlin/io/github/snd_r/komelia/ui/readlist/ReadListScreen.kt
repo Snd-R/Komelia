@@ -11,7 +11,9 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.*
+import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LoadState.Loading
+import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator

@@ -34,7 +34,7 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp", ":komga_client")
+include(":komelia-app", ":komga_client")
 include("image-decoder")
 include("wasmImageWorker")
 
