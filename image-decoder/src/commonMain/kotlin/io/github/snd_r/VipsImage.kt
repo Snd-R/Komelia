@@ -12,7 +12,7 @@ class VipsImage private constructor(
 ) : VipsPointer(internalBuffer, vipsPointer) {
 
     companion object {
-        const val DIMENSION_MAX_SIZE = 10000000
+        const val DIMENSION_MAX_SIZE = 10_000_000
 
         @JvmStatic
         external fun getDimensions(encoded: ByteArray): VipsImageDimensions

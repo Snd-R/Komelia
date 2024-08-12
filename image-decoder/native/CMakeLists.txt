@@ -26,7 +26,6 @@ include("cmake/zlib.cmake")
 include("cmake/ffi.cmake")
 include("cmake/iconv.cmake")
 include("cmake/expat.cmake")
-include("cmake/fftw.cmake")
 include("cmake/glib.cmake")
 include("cmake/highway.cmake")
 
