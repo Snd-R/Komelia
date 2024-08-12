@@ -1,8 +1,8 @@
 package io.github.snd_r.komelia.ui.dialogs.tabs
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,7 +26,6 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,17 +43,20 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.dialogs.AppDialogLayout
 import io.github.snd_r.komelia.ui.dialogs.BasicAppDialog
+import io.github.snd_r.komelia.ui.dialogs.DialogConfirmCancelButtons
 
 @Composable
 fun TabDialog(
+    modifier: Modifier = Modifier,
     title: String,
     currentTab: DialogTab,
     tabs: List<DialogTab>,
     onTabChange: (DialogTab) -> Unit,
+    onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
     confirmationText: String,
-    onDismissRequest: () -> Unit,
-    canConfirm: Boolean = true,
+    confirmEnabled: Boolean = true,
+    showCancelButton: Boolean = true
 ) {
 
     val sizeModifier = when (LocalWindowWidth.current) {
@@ -62,13 +64,14 @@ fun TabDialog(
         MEDIUM, EXPANDED -> Modifier.width(840.dp)
         else -> Modifier.width(1000.dp)
     }
-    BasicAppDialog(sizeModifier, onDismissRequest) {
+    BasicAppDialog(modifier.then(sizeModifier), onDismissRequest) {
         when (LocalWindowWidth.current) {
             COMPACT, MEDIUM -> CompactTabDialog(
                 title = title,
                 currentTab = currentTab,
                 tabs = tabs,
-                canConfirm = canConfirm,
+                showCancelButton = showCancelButton,
+                canConfirm = confirmEnabled,
                 onConfirm = onConfirm,
                 confirmationText = confirmationText,
                 onTabChange = onTabChange,
@@ -79,7 +82,9 @@ fun TabDialog(
                 title = title,
                 currentTab = currentTab,
                 tabs = tabs,
-                canConfirm = canConfirm,
+
+                showCancelButton = showCancelButton,
+                canConfirm = confirmEnabled,
                 onConfirm = onConfirm,
                 confirmationText = confirmationText,
                 onTabChange = onTabChange,
@@ -95,6 +100,8 @@ private fun CompactTabDialog(
     title: String,
     currentTab: DialogTab,
     tabs: List<DialogTab>,
+
+    showCancelButton: Boolean,
     canConfirm: Boolean,
     onConfirm: () -> Unit,
     confirmationText: String,
@@ -106,11 +113,13 @@ private fun CompactTabDialog(
             modifier = Modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(
-                onClick = onDismissRequest,
-                modifier = Modifier.cursorForHand()
-            ) {
-                Icon(Icons.Default.Close, null)
+            if (showCancelButton) {
+                IconButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier.cursorForHand()
+                ) {
+                    Icon(Icons.Default.Close, null)
+                }
             }
             Text(
                 text = title,
@@ -120,10 +129,10 @@ private fun CompactTabDialog(
                 modifier = Modifier.widthIn(max = 350.dp).weight(1f)
             )
 
-            TextButton(
+            ElevatedButton(
                 enabled = canConfirm,
                 onClick = { onConfirm() },
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+                colors = ButtonDefaults.elevatedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
@@ -165,6 +174,8 @@ private fun TabColumnDialog(
     title: String,
     currentTab: DialogTab,
     tabs: List<DialogTab>,
+
+    showCancelButton: Boolean,
     canConfirm: Boolean,
     onConfirm: () -> Unit,
     confirmationText: String,
@@ -176,12 +187,13 @@ private fun TabColumnDialog(
         header = {
             Text(
                 text = title,
-                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(20.dp)
+
             )
         },
         body = {
-            Row {
+            Row(Modifier.padding(start = 2.dp)) {
                 ColumnNavigationItems(
                     currentTab = currentTab,
                     tabs = tabs,
@@ -200,26 +212,17 @@ private fun TabColumnDialog(
         },
         scrollbar = { VerticalScrollbar(scrollState) },
         controlButtons = {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                TextButton(
-                    onClick = onDismissRequest,
-                    shape = RoundedCornerShape(5.dp),
-                    modifier = Modifier.cursorForHand(),
-                    content = { Text("Cancel") }
-                )
-
-                FilledTonalButton(
-                    enabled = canConfirm,
-                    onClick = { onConfirm() },
-                    shape = RoundedCornerShape(5.dp),
-                    modifier = Modifier.cursorForHand(),
-                    content = { Text(confirmationText) }
-                )
-            }
+            DialogConfirmCancelButtons(
+                confirmText = confirmationText,
+                cancelText = "Cancel",
+                onConfirm = onConfirm,
+                confirmEnabled = canConfirm,
+                showCancelButton = showCancelButton,
+                onCancel = onDismissRequest,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+            )
         },
+        contentPadding = PaddingValues(0.dp)
     )
 }
 
@@ -258,7 +261,7 @@ private fun TabNavigationItems(
                     style = MaterialTheme.typography.labelLarge
                 )
             },
-            icon = { Icon(tab.options().icon, contentDescription = null, tint = color) },
+            icon = { tab.options().icon?.let { Icon(it, contentDescription = null, tint = color) } },
             selected = selected,
             enabled = enabled,
             onClick = { onTabChange(tab) }

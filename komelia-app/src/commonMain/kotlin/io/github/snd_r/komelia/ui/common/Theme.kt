@@ -15,7 +15,7 @@ enum class AppTheme(val colorScheme: ColorScheme) {
 
             secondary = Color(red = 87, green = 131, blue = 212),
             onSecondary = Color.White,
-            secondaryContainer = Color(red = 123, green = 147, blue = 190),
+            secondaryContainer = Color(red = 50, green = 70, blue = 120),
             onSecondaryContainer = Color(red = 230, green = 230, blue = 230),
 
             tertiary = Color(red = 249, green = 168, blue = 37),
@@ -51,7 +51,7 @@ enum class AppTheme(val colorScheme: ColorScheme) {
 
             secondary = Color(red = 87, green = 131, blue = 212),
             onSecondary = Color.White,
-            secondaryContainer = Color(red = 163, green = 177, blue = 217),
+            secondaryContainer = Color(red = 70, green = 100, blue = 160),
             onSecondaryContainer = Color.White,
 
             tertiary = Color(red = 249, green = 168, blue = 37),

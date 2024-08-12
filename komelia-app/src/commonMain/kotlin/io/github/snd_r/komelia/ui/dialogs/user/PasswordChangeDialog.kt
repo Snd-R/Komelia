@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -33,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.PasswordTextField
-import snd.komga.client.user.KomgaUser
 import kotlinx.coroutines.launch
+import snd.komga.client.user.KomgaUser
 
 @Composable
 fun PasswordChangeDialog(
@@ -50,7 +49,6 @@ fun PasswordChangeDialog(
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PasswordChangeDialog(
     onPasswordChange: suspend (String) -> Unit,
@@ -79,8 +77,9 @@ fun PasswordChangeDialog(
                 PasswordTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "New password",
-                    error = passwordError,
+                    label = { Text("New password") },
+                    isError = passwordError != null,
+                    supportingText = { passwordError?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
                         .focusRequester(first)
                         .focusProperties { next = second }
@@ -91,8 +90,9 @@ fun PasswordChangeDialog(
                 PasswordTextField(
                     value = repeatPassword,
                     onValueChange = { repeatPassword = it },
-                    label = "Repeat new password",
-                    error = repeatPasswordError,
+                    label = { Text("Repeat new password") },
+                    isError = repeatPasswordError != null,
+                    supportingText = { repeatPasswordError?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
                         .focusRequester(second)
                 )

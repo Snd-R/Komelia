@@ -18,6 +18,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.parcelize")
     id("com.google.protobuf") version "0.9.4"
+
 }
 
 group = "io.github.snd-r"
@@ -61,7 +62,7 @@ kotlin {
     }
 
     val coilVersion = "3.0.0-alpha09"
-    val ktorVersion = "3.0.0-beta-2-eap-992"
+    val ktorVersion = "3.0.0-rc-1-eap-997"
     val voyagerVersion = "1.1.0-beta02"
     sourceSets {
         all {
@@ -99,7 +100,7 @@ kotlin {
             implementation("io.github.dokar3:sonner:0.3.8")
             implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha05")
 
-            implementation("sh.calvin.reorderable:reorderable:2.1.1")
+            implementation("sh.calvin.reorderable:reorderable:2.3.0")
 
             implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
 
@@ -109,10 +110,8 @@ kotlin {
             implementation("io.github.vinceglb:filekit-core:0.7.0")
             implementation("io.github.vinceglb:filekit-compose:0.7.0")
 
-            implementation("io.github.snd-r:komf-core:1.0.0")
-            implementation("io.github.snd-r:komf-mediaserver:1.0.0")
-
-            implementation("io.github.snd-r:komga-client:0.1.0")
+            implementation("io.github.snd-r:komf-client:1.0.0-SNAPSHOT")
+            implementation("io.github.snd-r:komga-client:0.1.0-SNAPSHOT")
         }
 
         androidMain.dependencies {
@@ -165,12 +164,12 @@ kotlin {
 
             implementation(files("jbr-api/jbr-api-6.4.2.jar"))
         }
-
-        val wasmJsMain by getting
-        wasmJsMain.dependencies {
-            implementation("io.ktor:ktor-client-js:$ktorVersion")
-            implementation(project(":wasmImageWorker"))
-        }
+//
+//        val wasmJsMain by getting
+//        wasmJsMain.dependencies {
+//            implementation("io.ktor:ktor-client-js:$ktorVersion")
+//            implementation(project(":wasmImageWorker"))
+//        }
     }
 }
 

@@ -32,7 +32,7 @@ fun Modifier.scrollbar(
     direction: Orientation,
     indicatorThickness: Dp = 8.dp,
     indicatorColor: Color = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-    alpha: Float = if (state.isScrollInProgress) 0.8f else 0f,
+    alpha: Float = if (state.isScrollInProgress) 0.8f else 0.5f,
     alphaAnimationSpec: AnimationSpec<Float> = tween(
         delayMillis = if (state.isScrollInProgress) 0 else 1500,
         durationMillis = if (state.isScrollInProgress) 150 else 500

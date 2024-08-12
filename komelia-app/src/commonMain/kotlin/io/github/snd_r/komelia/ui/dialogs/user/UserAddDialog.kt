@@ -116,8 +116,9 @@ fun UserAddDialog(
                 PasswordTextField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    label = "password",
-                    error = passwordValidation,
+                    label = { Text("Password") },
+                    isError = passwordValidation != null,
+                    supportingText = { passwordValidation?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
                 )
 

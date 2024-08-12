@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
+import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateFormat
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
@@ -27,19 +28,9 @@ import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppVersion
 import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
-import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
-
-private val dateFormat = LocalDateTime.Format {
-    year()
-    char('-')
-    monthNumber()
-    char('-')
-    dayOfMonth()
-}
 
 @Composable
 fun AppUpdatesContent(
@@ -118,7 +109,7 @@ private fun ReleaseDetails(release: AppRelease) {
         ) {
             Text(release.version.toString(), style = MaterialTheme.typography.headlineMedium)
             val publishDate = remember {
-                release.publishDate.toLocalDateTime(TimeZone.currentSystemDefault()).format(dateFormat)
+                release.publishDate.toLocalDateTime(TimeZone.currentSystemDefault()).format(localDateFormat)
             }
             Text("release date: $publishDate", style = MaterialTheme.typography.labelLarge)
         }
@@ -164,7 +155,7 @@ private fun VersionDetails(
                 if (lastChecked != null) {
                     lastChecked.toString()
                     val localDate = remember(lastChecked) {
-                        lastChecked.toLocalDateTime(TimeZone.currentSystemDefault()).format(dateFormat)
+                        lastChecked.toLocalDateTime(TimeZone.currentSystemDefault()).format(localDateFormat)
                     }
                     Text(
                         "checked at $localDate",

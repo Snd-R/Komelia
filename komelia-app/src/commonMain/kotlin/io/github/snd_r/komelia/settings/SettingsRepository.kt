@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
@@ -46,4 +47,13 @@ interface SettingsRepository {
 
     fun getAppTheme(): Flow<AppTheme>
     suspend fun putAppTheme(theme: AppTheme)
+
+    fun getKomfEnabled(): Flow<Boolean>
+    suspend fun putKomfEnabled(enabled: Boolean)
+
+    fun getKomfMode(): Flow<KomfMode>
+    suspend fun putKomfMode(mode: KomfMode)
+
+    fun getKomfUrl(): Flow<String>
+    suspend fun putKomfUrl(url: String)
 }

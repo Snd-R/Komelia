@@ -37,31 +37,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateTimeFormat
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialog
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialog
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialog
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
-import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import snd.komga.client.user.KomgaAuthenticationActivity
 import snd.komga.client.user.KomgaUser
 import snd.komga.client.user.KomgaUserId
-
-private val dateTimeFormat = LocalDateTime.Format {
-    year()
-    char('-')
-    monthNumber()
-    char('-')
-    dayOfMonth()
-    char(' ')
-    hour()
-    char(':')
-    minute()
-}
 
 @Composable
 fun UsersContent(
@@ -177,7 +164,7 @@ private fun UserInfo(
 
             val activityText = latestActivity?.let {
                 "Latest activity: ${
-                    it.dateTime.toLocalDateTime(TimeZone.currentSystemDefault()).format(dateTimeFormat)
+                    it.dateTime.toLocalDateTime(TimeZone.currentSystemDefault()).format(localDateTimeFormat)
                 }"
             }
                 ?: "No recent activity"

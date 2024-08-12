@@ -47,6 +47,7 @@ import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import snd.komga.client.sse.KomgaEvent
@@ -54,6 +55,7 @@ import snd.komga.client.sse.KomgaEvent
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
 val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }
 val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
+val LocalKomfIntegration = compositionLocalOf { flowOf(false) }
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key events are not set") }
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
 val LocalStrings = staticCompositionLocalOf { EnStrings }
@@ -105,10 +107,11 @@ fun MainView(
                     LocalViewModelFactory provides viewModelFactory,
                     LocalToaster provides notificationToaster,
                     LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
+                    LocalKomfIntegration provides dependencies.settingsRepository.getKomfEnabled(),
                     LocalKeyEvents provides keyEvents,
                     LocalWindowWidth provides windowWidth,
                     LocalPlatform provides platformType,
-                    LocalTheme provides theme
+                    LocalTheme provides theme,
                 ) {
 
                     Navigator(

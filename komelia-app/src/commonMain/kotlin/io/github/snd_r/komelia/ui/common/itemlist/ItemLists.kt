@@ -47,7 +47,7 @@ fun PlaceHolderLazyCardGrid(
             modifier = Modifier.padding(horizontal = 10.dp)
         ) {
             for (i in 0 until elements) {
-                item { ItemCard(modifier = Modifier.padding(5.dp), onClick = {}) {} }
+                item { ItemCard(modifier = Modifier.padding(5.dp), onClick = {}, image = {}) }
             }
         }
         VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))

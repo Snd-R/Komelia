@@ -37,17 +37,21 @@ fun ReadListImageCard(
     onCollectionDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ItemCard(modifier, onCollectionClick) {
-        ReadListCardHoverOverlay(readLists, onCollectionDelete) {
-            ReadListImageOverlay(readLists) {
-                ReadListThumbnail(
-                    readListId = readLists.id,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+    ItemCard(
+        modifier = modifier,
+        onClick = onCollectionClick,
+        image = {
+            ReadListCardHoverOverlay(readLists, onCollectionDelete) {
+                ReadListImageOverlay(readLists) {
+                    ReadListThumbnail(
+                        readListId = readLists.id,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
         }
-    }
+    )
 }
 
 @Composable

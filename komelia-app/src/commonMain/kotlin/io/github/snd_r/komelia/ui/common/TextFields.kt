@@ -1,29 +1,38 @@
 package io.github.snd_r.komelia.ui.common
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
@@ -37,13 +46,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.cursorForHand
 
 @Composable
 fun PasswordTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
-    error: String?,
+    label: @Composable () -> Unit,
+    supportingText: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true,
+    isError: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -51,10 +63,11 @@ fun PasswordTextField(
     TextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        enabled = enabled,
+        label = label,
         singleLine = true,
-        supportingText = { if (error != null) Text(error) },
-        isError = error != null,
+        supportingText = supportingText,
+        isError = isError,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         trailingIcon = {
@@ -64,7 +77,10 @@ fun PasswordTextField(
 
             val description = if (passwordVisible) "Hide password" else "Show password"
 
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            IconButton(
+                onClick = { passwordVisible = !passwordVisible },
+                modifier = Modifier.cursorForHand()
+            ) {
                 Icon(imageVector = image, description)
             }
         },
@@ -153,5 +169,97 @@ fun NoPaddingTextField(
                 )
             }
         )
+    }
+}
+
+val httpRegex = "https?://".toRegex()
+
+@Composable
+fun HttpTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    supportingText: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = false,
+) {
+    val strippedValue by remember(value) { mutableStateOf(value.replace(httpRegex, "")) }
+    var isHttps by remember(value) { mutableStateOf(value.startsWith("https://")) }
+    val httpText = derivedStateOf { if (isHttps) "https://" else "http://" }
+    TextField(
+        value = strippedValue,
+        onValueChange = { onValueChange(httpText.value + it) },
+        modifier = modifier,
+        prefix = {
+            HttpPrefixButton(
+                httpText = httpText.value,
+                https = isHttps,
+                onHttpsChange = {
+                    isHttps = it
+                    onValueChange(httpText.value + strippedValue)
+                }
+            )
+        },
+        label = label,
+        placeholder = placeholder,
+        isError = isError,
+        supportingText = supportingText,
+        singleLine = singleLine,
+    )
+}
+
+@Composable
+fun OutlinedHttpTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    supportingText: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = false,
+) {
+    var isHttps by remember { mutableStateOf(false) }
+    val httpText = remember(isHttps) { if (isHttps) "https://" else "http://" }
+    val strippedValue by remember(value) { mutableStateOf(value.replace(httpRegex, "")) }
+
+    OutlinedTextField(
+        value = strippedValue,
+        onValueChange = { onValueChange(httpText + it) },
+        modifier = modifier,
+        prefix = {
+            HttpPrefixButton(
+                httpText = httpText,
+                https = isHttps,
+                onHttpsChange = { isHttps = it }
+            )
+        },
+        label = label,
+        placeholder = placeholder,
+        supportingText = supportingText,
+        singleLine = singleLine,
+    )
+}
+
+@Composable
+private fun HttpPrefixButton(
+    httpText: String,
+    https: Boolean,
+    onHttpsChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clickable { onHttpsChange(!https) }
+            .clip(MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .2f))
+            .cursorForHand()
+    ) {
+        Icon(
+            if (https) Icons.Default.Lock else Icons.Default.LockOpen,
+            contentDescription = null,
+            tint = if (https) MaterialTheme.colorScheme.tertiaryContainer else LocalContentColor.current
+        )
+        Text(httpText)
     }
 }

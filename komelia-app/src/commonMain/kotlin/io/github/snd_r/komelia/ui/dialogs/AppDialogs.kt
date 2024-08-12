@@ -3,12 +3,23 @@ package io.github.snd_r.komelia.ui.dialogs
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,16 +31,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.cursorForHand
 import kotlin.math.roundToInt
 
 @Composable
 fun AppDialog(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.surface,
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit,
     header: (@Composable () -> Unit)? = null,
     controlButtons: (@Composable () -> Unit)? = null,
+    color: Color = MaterialTheme.colorScheme.surface,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     BasicAppDialog(modifier, onDismissRequest, color) {
         val scrollState = rememberScrollState()
@@ -40,6 +53,7 @@ fun AppDialog(
             },
             controlButtons = controlButtons,
             scrollbar = { VerticalScrollbar(scrollState) },
+            contentPadding = contentPadding
         )
     }
 }
@@ -56,7 +70,7 @@ fun BasicAppDialog(
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
 
-        )
+            )
     ) {
         val focusManager = LocalFocusManager.current
         Surface(
@@ -77,26 +91,51 @@ fun AppDialogLayout(
     scrollbar: @Composable () -> Unit,
     header: (@Composable () -> Unit)? = null,
     controlButtons: (@Composable () -> Unit)? = null,
+    contentPadding: PaddingValues,
 ) {
     SubcomposeLayout { constraints ->
+        val topPadding = contentPadding.calculateTopPadding().roundToPx()
+        val bottomPadding = contentPadding.calculateBottomPadding().roundToPx()
+        val leftPadding = contentPadding.calculateLeftPadding(layoutDirection).roundToPx()
+        val rightPadding = contentPadding.calculateRightPadding(layoutDirection).roundToPx()
+        val verticalPadding = leftPadding + rightPadding
+        val horizontalPadding = topPadding + bottomPadding
+
         val headerPlaceable = header?.let {
             subcompose(DialogSlots.Header, header)
-                .map { it.measure(constraints.copy(minHeight = 0)) }.first()
-        }
-        val buttonsPlaceable = controlButtons?.let {
-            subcompose(DialogSlots.Buttons, controlButtons)
-                .map { it.measure(constraints.copy(minWidth = 0, minHeight = 0)) }.first()
+                .map {
+                    it.measure(
+                        constraints.copy(
+                            minHeight = topPadding,
+                            maxWidth = constraints.maxWidth - horizontalPadding,
+                        )
+                    )
+                }.first()
         }
 
+        val buttonsPlaceable = controlButtons?.let {
+            subcompose(DialogSlots.Buttons, controlButtons)
+                .map {
+                    it.measure(
+                        constraints.copy(
+                            minWidth = 0,
+                            minHeight = bottomPadding,
+                            maxWidth = constraints.maxWidth - horizontalPadding
+                        )
+                    )
+                }.first()
+        }
+
+        val headerHeight = headerPlaceable?.height ?: 0
+        val buttonsHeight = buttonsPlaceable?.height ?: 0
         val dialogMaxHeight = (constraints.maxHeight * 0.9).roundToInt()
 
         val resizedBodyPlaceable = subcompose(DialogSlots.Body, body).map {
-            val maxHeight = dialogMaxHeight - (headerPlaceable?.height ?: 0) - (buttonsPlaceable?.height ?: 0)
             it.measure(
                 Constraints(
                     minHeight = 0,
-                    maxHeight = maxHeight,
-                    maxWidth = constraints.maxWidth
+                    maxHeight = (dialogMaxHeight - verticalPadding - headerHeight - buttonsHeight).coerceAtLeast(0),
+                    maxWidth = constraints.maxWidth - horizontalPadding.coerceAtLeast(0)
                 )
             )
         }.first()
@@ -113,23 +152,74 @@ fun AppDialogLayout(
             }
             .firstOrNull()
 
+        var heightUsed = 0
         layout(
             width = constraints.maxWidth,
-            height = (headerPlaceable?.height ?: 0) + resizedBodyPlaceable.height + (buttonsPlaceable?.height ?: 0)
+            height = headerHeight + resizedBodyPlaceable.height + buttonsHeight + verticalPadding
         ) {
 
-            headerPlaceable?.placeRelative(0, 0)
+            headerPlaceable?.let {
+                it.placeRelative(x = leftPadding, y = topPadding)
+                heightUsed += it.height + topPadding
+            }
 
-            resizedBodyPlaceable.placeRelative(0, headerPlaceable?.height ?: 0)
+            resizedBodyPlaceable.placeRelative(x = leftPadding, y = heightUsed)
+            heightUsed += resizedBodyPlaceable.height
 
             buttonsPlaceable?.placeRelative(
-                constraints.maxWidth - buttonsPlaceable.width,
-                (headerPlaceable?.height ?: 0) + resizedBodyPlaceable.height
+                x = constraints.maxWidth - buttonsPlaceable.width - rightPadding,
+                y = heightUsed
             )
+
             scrollbarPlaceable?.placeRelative(
-                constraints.maxWidth - scrollbarPlaceable.width - 2, headerPlaceable?.height ?: 0
+                x = constraints.maxWidth - scrollbarPlaceable.width - 2,
+                y = (headerPlaceable?.height ?: 0) + topPadding
             )
         }
+    }
+}
+
+@Composable
+fun DialogConfirmCancelButtons(
+    confirmText: String = "Confirm",
+    cancelText: String = "Cancel",
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    confirmEnabled: Boolean = true,
+    showCancelButton: Boolean = true,
+    isLoading: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (showCancelButton)
+            ElevatedButton(
+                onClick = onCancel,
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier.cursorForHand()
+            ) {
+                Text(cancelText)
+            }
+
+        FilledTonalButton(
+            onClick = onConfirm,
+            enabled = confirmEnabled,
+            shape = RoundedCornerShape(5.dp),
+            modifier = Modifier.cursorForHand()
+        ) {
+            if (isLoading) CircularProgressIndicator(Modifier.size(25.dp))
+            else Text(confirmText)
+        }
+    }
+}
+
+@Composable
+fun DialogSimpleHeader(headerText: String) {
+    Column {
+        Text(headerText, style = MaterialTheme.typography.headlineMedium)
+        HorizontalDivider(Modifier.padding(vertical = 10.dp))
     }
 
 }

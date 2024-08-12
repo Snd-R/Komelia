@@ -8,21 +8,23 @@ import kotlinx.coroutines.flow.StateFlow
 private const val rememberMeCookie = "remember-me"
 
 class RememberMePersistingCookieStore(
-    private val serverUrl: StateFlow<String>,
+    private val komgaUrl: StateFlow<Url>,
     private val secretsRepository: SecretsRepository,
 ) : CookiesStorage {
     private val delegate = AcceptAllCookiesStorage()
 
     suspend fun loadRememberMeCookie() {
-        val url = URLBuilder(serverUrl.value).build()
-        secretsRepository.getCookie(serverUrl.value)
+        val url = komgaUrl.value
+        secretsRepository.getCookie(url.toString())
             ?.let { parseServerSetCookieHeader(it) }
             ?.let { delegate.addCookie(url, it) }
     }
 
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
-        if (cookie.name == rememberMeCookie && cookie.value.isNotBlank()) {
-            secretsRepository.setCookie(serverUrl.value, renderSetCookieHeader(cookie))
+        if (cookie.name == rememberMeCookie && cookie.value.isNotBlank()
+            && komgaUrl.value.host == requestUrl.host
+        ) {
+            secretsRepository.setCookie(komgaUrl.value.toString(), renderSetCookieHeader(cookie))
         }
 
         delegate.addCookie(requestUrl, cookie)

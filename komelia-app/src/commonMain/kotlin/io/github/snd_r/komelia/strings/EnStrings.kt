@@ -223,4 +223,19 @@ val EnStrings = Strings(
         err1032 = "EPUB file has wrong media type",
         err1033 = "Some entries are missing",
     ),
+    komf = KomfStrings(
+        providerSettings = KomfProviderSettingsStrings(
+            providerAniList = "AniList",
+            providerBangumi = "Bangumi",
+            providerBookWalker = "Bookwalker Global",
+            providerComicVine = "ComicVine",
+            providerKodansha = "Kodansha US",
+            providerMal = "MyAnimeList",
+            providerMangaUpdates = "MangaUpdates",
+            providerMangaDex = "MangaDex",
+            providerNautiljon = "Nautiljon",
+            providerYenPress = "YenPress",
+            providerViz = "Viz",
+        )
+    ),
 )

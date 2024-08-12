@@ -32,7 +32,7 @@ class SeriesScreen(
     @Transient
     private val startingTab: SeriesTab = SeriesTab.BOOKS
 ) : Screen {
-    constructor(series: KomgaSeries, startingTab: SeriesTab) : this(series.id, series, startingTab)
+    constructor(series: KomgaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(series.id, series, startingTab)
 
     override val key: ScreenKey = seriesId.toString()
 

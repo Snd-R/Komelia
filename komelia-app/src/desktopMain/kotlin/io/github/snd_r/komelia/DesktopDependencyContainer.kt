@@ -51,6 +51,7 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -68,6 +69,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
+import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -91,6 +93,7 @@ class DesktopDependencyContainer private constructor(
     override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     override val readerImageLoader: ReaderImageLoader,
     override val appNotifications: AppNotifications,
+    override val komfClientFactory: KomfClientFactory,
     val onnxRuntimeInstaller: OnnxRuntimeInstaller,
     val mangaJaNaiDownloader: MangaJaNaiDownloader
 ) : DependencyContainer {
@@ -122,6 +125,7 @@ class DesktopDependencyContainer private constructor(
             val secretsRepository = createSecretsRepository()
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(systemScope)
+            val komfUrl = settingsRepository.getKomfUrl().stateIn(systemScope)
             val decoderType = settingsRepository.getDecoderSettings().stateIn(systemScope)
 
             val okHttpWithoutCache = createOkHttpClient()
@@ -132,7 +136,10 @@ class DesktopDependencyContainer private constructor(
                         maxSize = 50L * 1024L * 1024L // 50 MiB
                     )
                 ).build()
-            val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
+            val cookiesStorage = RememberMePersistingCookieStore(
+                baseUrl.map { Url(it) }.stateIn(systemScope),
+                secretsRepository
+            )
 
             measureTime { cookiesStorage.loadRememberMeCookie() }
                 .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
@@ -181,6 +188,10 @@ class DesktopDependencyContainer private constructor(
                 mangaJaNaiDownloader,
                 systemScope
             )
+            val komfClientFactory = KomfClientFactory.Builder()
+                .baseUrl { komfUrl.value }
+                .ktor(ktorWithCache)
+                .build()
 
             return DesktopDependencyContainer(
                 komgaClientFactory = komgaClientFactory,
@@ -192,6 +203,7 @@ class DesktopDependencyContainer private constructor(
                 availableDecoders = availableDecoders,
                 readerImageLoader = readerImageLoader,
                 appNotifications = notifications,
+                komfClientFactory = komfClientFactory,
                 onnxRuntimeInstaller = onnxRuntimeInstaller,
                 mangaJaNaiDownloader = mangaJaNaiDownloader
             )

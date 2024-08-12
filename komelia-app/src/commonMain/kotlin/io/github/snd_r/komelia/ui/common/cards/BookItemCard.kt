@@ -76,20 +76,21 @@ fun BookImageCard(
     ItemCard(
         modifier = modifier,
         onClick = onBookClick,
-        onLongClick = onSelect
-    ) {
-        BookHoverOverlay(
-            book = book,
-            bookMenuActions = bookMenuActions,
-            onBookReadClick = onBookReadClick,
-            onSelect = onSelect,
-            isSelected = isSelected,
-        ) {
-            BookImageOverlay(book) {
-                BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        onLongClick = onSelect,
+        image = {
+            BookHoverOverlay(
+                book = book,
+                bookMenuActions = bookMenuActions,
+                onBookReadClick = onBookReadClick,
+                onSelect = onSelect,
+                isSelected = isSelected,
+            ) {
+                BookImageOverlay(book) {
+                    BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                }
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -98,13 +99,15 @@ fun BookSimpleImageCard(
     onBookClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    ItemCard(modifier, onBookClick) {
-        BookImageOverlay(book, false) {
-            BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+    ItemCard(
+        modifier = modifier,
+        onClick = onBookClick,
+        image = {
+            BookImageOverlay(book, false) {
+                BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            }
         }
-
-    }
-
+    )
 }
 
 @Composable

@@ -68,6 +68,7 @@ import org.slf4j.LoggerFactory
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import java.nio.file.Path
+import java.util.*
 import kotlin.system.exitProcess
 import kotlin.time.measureTime
 
@@ -90,6 +91,8 @@ val projectDirectories: ProjectDirectories = ProjectDirectories.from("io.github.
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    Locale.getISOLanguages()
+
     configureLogging()
     measureTime {
         try {

@@ -38,11 +38,13 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
@@ -98,7 +100,10 @@ class AndroidDependencyContainer(
             val ktorWithCache = createKtorClient(okHttpWithCache)
             val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
 
-            val cookiesStorage = RememberMePersistingCookieStore(baseUrl, secretsRepository)
+            val cookiesStorage = RememberMePersistingCookieStore(
+                baseUrl.map { Url(it) }.stateIn(scope),
+                secretsRepository
+            )
                 .also { it.loadRememberMeCookie() }
 
             val komgaClientFactory = createKomgaClientFactory(

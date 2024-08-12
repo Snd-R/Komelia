@@ -32,6 +32,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -75,7 +76,7 @@ fun <T> DropdownChoiceMenu(
         InputField(
             value = selectedOption.label,
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(PrimaryNotEditable)
                 .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
                 .then(inputFieldModifier),
             label = label,
@@ -108,11 +109,11 @@ fun <T> DropdownMultiChoiceMenu(
     selectedOptions: List<LabeledEntry<T>>,
     options: List<LabeledEntry<T>>,
     onOptionSelect: (LabeledEntry<T>) -> Unit,
-    textFieldModifier: Modifier = Modifier,
+    inputFieldModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
     placeholder: String? = null,
-    inputFieldColor: Color = MaterialTheme.colorScheme.surface,
+    inputFieldColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -124,8 +125,9 @@ fun <T> DropdownMultiChoiceMenu(
         InputField(
             value = selectedOptions.joinToString { it.label }.ifBlank { placeholder ?: "Any" },
             modifier = Modifier
-                .menuAnchor()
-                .then(textFieldModifier),
+                .menuAnchor(PrimaryNotEditable)
+                .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
+                .then(inputFieldModifier),
             label = label,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
             color = inputFieldColor,
@@ -138,7 +140,7 @@ fun <T> DropdownMultiChoiceMenu(
         ) {
 
             options.forEach { option ->
-                val isSelected = selectedOptions.contains(option)
+                val isSelected = selectedOptions.any { it.value == option.value }
                 DropdownMultiChoiceItem(
                     option = option,
                     onOptionSelect = onOptionSelect,
@@ -312,7 +314,7 @@ fun <T> FilterDropdownMultiChoice(
         placeholder = placeholder,
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier.clip(RoundedCornerShape(5.dp)),
-        textFieldModifier = Modifier.fillMaxWidth()
+        inputFieldModifier = Modifier.fillMaxWidth()
     )
 }
 

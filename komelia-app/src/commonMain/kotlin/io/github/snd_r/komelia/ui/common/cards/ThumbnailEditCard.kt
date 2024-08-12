@@ -55,8 +55,8 @@ fun ThumbnailEditCard(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ItemCardWithContent(
-        modifier,
+    ItemCard(
+        modifier = modifier,
         image = {
             ThumbnailImage(
                 data = thumbnail,
@@ -95,7 +95,7 @@ fun ThumbnailUploadCard(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ItemCardWithContent(
+    ItemCard(
         modifier,
         image = { AsyncImage(model = thumbnail.file, contentDescription = null, contentScale = ContentScale.Crop) }
     ) {

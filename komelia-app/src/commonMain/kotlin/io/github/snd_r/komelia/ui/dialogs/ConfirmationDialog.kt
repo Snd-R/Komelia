@@ -34,7 +34,7 @@ fun ConfirmationDialog(
     buttonCancel: String = "Cancel",
     buttonConfirm: String = "Confirm",
     buttonAlternate: String? = null,
-    buttonConfirmColor: Color = MaterialTheme.colorScheme.secondary,
+    buttonConfirmColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     onDialogConfirm: () -> Unit,
     onDialogConfirmAlternate: () -> Unit = {},
     onDialogDismiss: () -> Unit,

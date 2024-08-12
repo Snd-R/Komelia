@@ -17,9 +17,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import snd.komf.client.toKomfErrorResponse
 import snd.komga.client.common.toErrorResponse
 import snd.komga.client.common.toViolationResponse
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class AppNotifications {
     private val notifications: MutableStateFlow<Map<Long, AppNotification>> = MutableStateFlow(emptyMap())
@@ -40,11 +41,18 @@ class AppNotifications {
         }
     }
 
-    fun runCatchingToNotifications(
+    fun <R> runCatchingToNotifications(
         coroutineScope: CoroutineScope,
-        block: suspend () -> Unit
+        onFailure: (exception: Throwable) -> Unit = {},
+        onSuccess: (value: R) -> Unit = {},
+        block: suspend () -> R,
     ) {
-        coroutineScope.launch { runCatchingToNotifications { block() } }
+        coroutineScope.launch {
+            runCatchingToNotifications { block() }
+                .onFailure(onFailure)
+                .onSuccess(onSuccess)
+
+        }
     }
 
     suspend inline fun <R> runCatchingToNotifications(block: () -> R): Result<R> {
@@ -53,35 +61,34 @@ class AppNotifications {
         } catch (e: CancellationException) {
             KotlinLogging.logger {}.warn(e) {}
             throw e
-        } catch (e: Exception) {
-            KotlinLogging.logger {}.catching(e)
-            toErrorNotification(e)
-            return Result.failure(e)
+        } catch (responseException: ResponseException) {
+            KotlinLogging.logger {}.catching(responseException)
+            toErrorNotification(responseException)
+            return Result.failure(responseException)
+        } catch (exception: Exception) {
+            KotlinLogging.logger {}.catching(exception)
+            add(Error(exception.message ?: exception.cause?.message ?: "Unknown error"))
+            return Result.failure(exception)
         }
     }
 
-    suspend fun toErrorNotification(exception: Exception) {
-        when (exception) {
-            is ClientRequestException -> {
-                val contentType = exception.response.headers[HttpHeaders.ContentType]
-                val errorMessage = when (contentType) {
-                    "application/json" -> parseJsonErrorMessage(exception)
-                    else -> errorMessageFromStatusCode(exception.response.status)
-                }
-
-                add(Error(errorMessage))
+    suspend fun toErrorNotification(exception: ResponseException) {
+        val contentType = exception.response.contentType()
+        contentType?.toString()
+        val errorMessage =
+            if (contentType != null && contentType.contentType == "application" && contentType.contentSubtype == "json") {
+                parseJsonErrorMessage(exception)
+            } else {
+                errorMessageFromStatusCode(exception.response.status)
             }
 
-            else -> {
-                add(Error(exception.message ?: exception.cause?.message ?: "Unknown error"))
-            }
-        }
-
+        add(Error(errorMessage))
     }
 }
 
-private suspend fun parseJsonErrorMessage(exception: ClientRequestException): String {
+private suspend fun parseJsonErrorMessage(exception: ResponseException): String {
     return exception.toErrorResponse()?.message
+        ?: exception.toKomfErrorResponse()?.message
         ?: exception.toViolationResponse()
             ?.violations?.firstOrNull()?.let { "${it.fieldName}: ${it.message}" }
         ?: exception.response.bodyAsText()
@@ -106,8 +113,8 @@ sealed class AppNotification(val id: Long = Clock.System.now().epochSeconds) {
 
 fun AppNotification.toToast(): Toast {
     return when (this) {
-        is Error -> Toast(id = id, message = message, type = ToastType.Error)
-        is Success -> Toast(id = id, message = message, type = ToastType.Success)
-        is Normal -> Toast(id = id, message = message, type = ToastType.Normal, duration = 3000.milliseconds)
+        is Error -> Toast(id = id, message = message, type = ToastType.Error, duration = 5.seconds)
+        is Success -> Toast(id = id, message = message, type = ToastType.Success, duration = 4.seconds)
+        is Normal -> Toast(id = id, message = message, type = ToastType.Normal, duration = 3.seconds)
     }
 }

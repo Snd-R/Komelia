@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -42,25 +43,28 @@ const val defaultCardWidth = 240
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemCard(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
-    image: @Composable () -> Unit
+    image: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     Card(
         shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp),
         modifier = modifier
-            .aspectRatio(0.703f)
             .combinedClickable(onClick = onClick ?: {}, onLongClick = onLongClick)
-            .then(if (onClick != null || onLongClick != null) Modifier.cursorForHand() else Modifier)
+            .then(if (onClick != null || onLongClick != null) Modifier.cursorForHand() else Modifier),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
     ) {
-        image()
+        Box(modifier = Modifier.aspectRatio(0.703f)) { image() }
+        content()
     }
 }
 
 @Composable
 fun ItemCardWithContent(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     image: @Composable () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {

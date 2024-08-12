@@ -269,10 +269,8 @@ private fun NavButton(
                 Box(Modifier.padding(30.dp, 0.dp)) {}
             }
 
-            Text(label, fontSize = 14.sp)
-
+            Text(label, fontSize = 14.sp, modifier = Modifier.weight(1.0f))
             if (actionButton != null) {
-                Spacer(Modifier.weight(1.0f))
                 actionButton()
             }
 

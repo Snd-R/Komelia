@@ -25,7 +25,7 @@ fun CollectionEditDialog(
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
         confirmationText = "Save Changes",
-        canConfirm = vm.canSave(),
+        confirmEnabled = vm.canSave(),
         onConfirm = { coroutineScope.launch { vm.saveChanges() } },
         onTabChange = { vm.currentTab = it },
         onDismissRequest = { onDismissRequest() }

@@ -6,8 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
-import snd.komga.client.readlist.KomgaReadList
 import kotlinx.coroutines.launch
+import snd.komga.client.readlist.KomgaReadList
 
 @Composable
 fun ReadListEditDialog(
@@ -25,7 +25,7 @@ fun ReadListEditDialog(
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
         confirmationText = "Save Changes",
-        canConfirm = vm.canSave(),
+        confirmEnabled = vm.canSave(),
         onConfirm = { coroutineScope.launch { vm.saveChanges() } },
         onTabChange = { vm.currentTab = it },
         onDismissRequest = { onDismissRequest() }

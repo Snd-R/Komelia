@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.datetime.Instant
 import kotlinx.serialization.KSerializer
@@ -30,7 +31,8 @@ data class AppSettings(
     val appearance: AppearanceSettings = AppearanceSettings(),
     val reader: ReaderBaseSettings = ReaderBaseSettings(),
     val decoder: DecoderSettings = DecoderSettings(),
-    val updates: UpdateSettings = UpdateSettings()
+    val updates: UpdateSettings = UpdateSettings(),
+    val komf: KomfSettings = KomfSettings()
 )
 
 @Serializable
@@ -95,6 +97,13 @@ data class UpdateSettings(
     val lastUpdateCheckTimestamp: Instant? = null,
     val lastCheckedReleaseVersion: AppVersion? = null,
     val dismissedVersion: AppVersion? = null,
+)
+
+@Serializable
+data class KomfSettings(
+    val enabled: Boolean = false,
+    val mode: KomfMode = KomfMode.REMOTE,
+    val remoteUrl: String = "http://localhost:8085",
 )
 
 object InstantEpochMillisSerializer : KSerializer<Instant> {

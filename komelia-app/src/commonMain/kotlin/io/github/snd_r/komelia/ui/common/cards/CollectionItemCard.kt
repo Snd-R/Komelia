@@ -37,17 +37,21 @@ fun CollectionImageCard(
     onCollectionDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ItemCard(modifier, onCollectionClick) {
-        CollectionCardHoverOverlay(collection, onCollectionDelete) {
-            CollectionImageOverlay(collection) {
-                CollectionThumbnail(
-                    collectionId = collection.id,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+    ItemCard(
+        modifier = modifier,
+        onClick = onCollectionClick,
+        image = {
+            CollectionCardHoverOverlay(collection, onCollectionDelete) {
+                CollectionImageOverlay(collection) {
+                    CollectionThumbnail(
+                        collectionId = collection.id,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
         }
-    }
+    )
 }
 
 @Composable

@@ -55,23 +55,24 @@ fun SeriesImageCard(
     ItemCard(
         modifier = modifier,
         onClick = onSeriesClick,
-        onLongClick = onSeriesSelect
-    ) {
-        SeriesCardHoverOverlay(
-            series = series,
-            onSeriesSelect = onSeriesSelect,
-            isSelected = isSelected,
-            seriesActions = seriesMenuActions,
-        ) {
-            SeriesImageOverlay(series) {
-                SeriesThumbnail(
-                    series.id,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+        onLongClick = onSeriesSelect,
+        image = {
+            SeriesCardHoverOverlay(
+                series = series,
+                onSeriesSelect = onSeriesSelect,
+                isSelected = isSelected,
+                seriesActions = seriesMenuActions,
+            ) {
+                SeriesImageOverlay(series) {
+                    SeriesThumbnail(
+                        series.id,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -80,15 +81,19 @@ fun SeriesSimpleImageCard(
     onSeriesClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    ItemCard(modifier, onSeriesClick) {
-        SeriesImageOverlay(series, false) {
-            SeriesThumbnail(
-                series.id,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+    ItemCard(
+        modifier = modifier,
+        onClick = onSeriesClick,
+        image = {
+            SeriesImageOverlay(series, false) {
+                SeriesThumbnail(
+                    series.id,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
-    }
+    )
 }
 
 @Composable

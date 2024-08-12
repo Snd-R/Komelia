@@ -11,7 +11,7 @@ object AppSliderDefaults {
         thumbColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
         activeTrackColor: Color = MaterialTheme.colorScheme.tertiary,
         activeTickColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
-        inactiveTrackColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+        inactiveTrackColor: Color = MaterialTheme.colorScheme.surfaceBright,
         inactiveTickColor: Color = MaterialTheme.colorScheme.surfaceVariant,
         disabledThumbColor: Color = Color.Unspecified,
         disabledActiveTrackColor: Color = Color.Unspecified,

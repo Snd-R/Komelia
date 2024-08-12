@@ -43,6 +43,11 @@ import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.decoder.getDecoderSettingsScreen
+import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsScreen
+import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsScreen
+import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsScreen
+import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSettingsScreen
+import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsScreen
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
@@ -99,7 +104,7 @@ fun SettingsNavigationMenu(
             color = contentColor,
         )
         NavigationButton(
-            label = "Media Analysis",
+            label = "Media Management",
             onClick = { onNavigation(MediaAnalysisScreen()) },
             isSelected = currentScreen is MediaAnalysisScreen,
             error = hasMediaErrors,
@@ -133,6 +138,39 @@ fun SettingsNavigationMenu(
             onClick = { onNavigation(AppUpdatesScreen()) },
             isSelected = currentScreen is AppUpdatesScreen,
             error = newVersionIsAvailable,
+            color = contentColor,
+        )
+
+        HorizontalDivider(Modifier.padding(vertical = 10.dp))
+        Text("Komf Settings", style = MaterialTheme.typography.titleSmall)
+        NavigationButton(
+            label = "General",
+            onClick = { onNavigation(KomfSettingsScreen()) },
+            isSelected = currentScreen is KomfSettingsScreen,
+            color = contentColor,
+        )
+        NavigationButton(
+            label = "Processing",
+            onClick = { onNavigation(KomfProcessingSettingsScreen()) },
+            isSelected = currentScreen is KomfProcessingSettingsScreen,
+            color = contentColor,
+        )
+        NavigationButton(
+            label = "Providers",
+            onClick = { onNavigation(KomfProvidersSettingsScreen()) },
+            isSelected = currentScreen is KomfProvidersSettingsScreen,
+            color = contentColor,
+        )
+        NavigationButton(
+            label = "Notifications",
+            onClick = { onNavigation(KomfNotificationSettingsScreen()) },
+            isSelected = currentScreen is KomfNotificationSettingsScreen,
+            color = contentColor,
+        )
+        NavigationButton(
+            label = "Job History",
+            onClick = { onNavigation(KomfJobsScreen()) },
+            isSelected = currentScreen is KomfJobsScreen,
             color = contentColor,
         )
 

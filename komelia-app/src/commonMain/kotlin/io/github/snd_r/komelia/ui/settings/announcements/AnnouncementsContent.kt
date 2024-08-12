@@ -19,21 +19,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
+import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateFormat
 import io.github.snd_r.komelia.platform.cursorForHand
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
-import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import snd.komga.client.announcements.KomgaJsonFeed.KomgaAnnouncement
-
-private val dateFormat = LocalDateTime.Format {
-    year()
-    char('-')
-    monthNumber()
-    char('-')
-    dayOfMonth()
-}
 
 @Composable
 fun AnnouncementsContent(announcements: List<KomgaAnnouncement>) {
@@ -54,7 +45,7 @@ private fun Announcement(announcement: KomgaAnnouncement) {
 
         announcement.dateModified?.let {
             Text(
-                it.toLocalDateTime(TimeZone.currentSystemDefault()).format(dateFormat),
+                it.toLocalDateTime(TimeZone.currentSystemDefault()).format(localDateFormat),
                 modifier = Modifier.padding(vertical = 10.dp)
             )
         }

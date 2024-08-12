@@ -26,6 +26,7 @@ import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.TIT
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.TITLE_DESC
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.UPDATED_ASC
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.UPDATED_DESC
+import snd.komf.api.KomfProviders
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.book.KomgaReadStatus.IN_PROGRESS
 import snd.komga.client.book.KomgaReadStatus.READ
@@ -70,7 +71,43 @@ data class Strings(
     val continuousReader: ContinuousReaderStrings,
     val settings: SettingsStrings,
     val errorCodes: ErrorCodes,
+    val komf: KomfStrings
 )
+
+data class KomfStrings(
+    val providerSettings: KomfProviderSettingsStrings
+)
+
+data class KomfProviderSettingsStrings(
+    val providerAniList: String,
+    val providerBangumi: String,
+    val providerBookWalker: String,
+    val providerComicVine: String,
+    val providerKodansha: String,
+    val providerMal: String,
+    val providerMangaUpdates: String,
+    val providerMangaDex: String,
+    val providerNautiljon: String,
+    val providerYenPress: String,
+    val providerViz: String,
+
+    ) {
+
+    fun forProvider(provider: KomfProviders) =
+        when (provider) {
+            KomfProviders.ANILIST -> providerAniList
+            KomfProviders.BANGUMI -> providerBangumi
+            KomfProviders.BOOK_WALKER -> providerBookWalker
+            KomfProviders.COMIC_VINE -> providerComicVine
+            KomfProviders.KODANSHA -> providerKodansha
+            KomfProviders.MAL -> providerMal
+            KomfProviders.MANGA_UPDATES -> providerMangaUpdates
+            KomfProviders.MANGADEX -> providerMangaDex
+            KomfProviders.NAUTILJON -> providerNautiljon
+            KomfProviders.YEN_PRESS -> providerYenPress
+            KomfProviders.VIZ -> providerViz
+        }
+}
 
 data class SeriesEditStrings(
     val title: String,

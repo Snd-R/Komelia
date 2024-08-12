@@ -24,6 +24,8 @@ import io.github.snd_r.komelia.ui.dialogs.book.editbulk.BookBulkEditDialogViewMo
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.readlistedit.ReadListEditDialogViewModel
@@ -49,6 +51,12 @@ import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
+import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
+import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsViewModel
+import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsViewModel
+import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel
+import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSettingsViewModel
+import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
@@ -62,6 +70,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import snd.komf.api.MediaServer
+import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
@@ -87,6 +97,7 @@ interface DependencyContainer {
     val imageLoaderContext: PlatformContext
     val appNotifications: AppNotifications
     val readerImageLoader: ReaderImageLoader
+    val komfClientFactory: KomfClientFactory
     val lyricist: Lyricist<Strings>
         get() = Lyricist(Locales.EN, mapOf(Locales.EN to EnStrings))
 }
@@ -114,6 +125,11 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
     private val releases = MutableStateFlow<List<AppRelease>>(emptyList())
+
+    private val komfConfigState = KomfConfigState(
+        dependencies.komfClientFactory.configClient(),
+        appNotifications
+    )
 
     private val komgaEventSource = ManagedKomgaEvents(
         authenticatedUser = authenticatedUser,
@@ -460,6 +476,74 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
         )
     }
 
+    fun getKomfSettingsViewModel(): KomfSettingsViewModel {
+        return KomfSettingsViewModel(
+            komfConfigClient = dependencies.komfClientFactory.configClient(),
+            appNotifications = appNotifications,
+            settingsRepository = settingsRepository,
+            komfConfig = komfConfigState,
+            libraries = libraries,
+        )
+    }
+
+    fun getKomfNotificationViewModel(): KomfNotificationSettingsViewModel {
+        return KomfNotificationSettingsViewModel(
+            komfConfigClient = dependencies.komfClientFactory.configClient(),
+            libraries = libraries,
+            appNotifications = appNotifications,
+            komfConfig = komfConfigState
+        )
+    }
+
+    fun getKomfProcessingViewModel(): KomfProcessingSettingsViewModel {
+        return KomfProcessingSettingsViewModel(
+            komfConfigClient = dependencies.komfClientFactory.configClient(),
+            libraries = libraries,
+            appNotifications = appNotifications,
+            komfConfig = komfConfigState
+        )
+    }
+
+    fun getKomfProvidersViewModel(): KomfProvidersSettingsViewModel {
+        return KomfProvidersSettingsViewModel(
+            komfConfigClient = dependencies.komfClientFactory.configClient(),
+            libraries = libraries,
+            appNotifications = appNotifications,
+            komfConfig = komfConfigState
+        )
+    }
+
+    fun getKomfJobsViewModel(): KomfJobsViewModel {
+        return KomfJobsViewModel(
+            jobClient = dependencies.komfClientFactory.jobClient(),
+            seriesClient = dependencies.komgaClientFactory.seriesClient(),
+            appNotifications = appNotifications
+        )
+    }
+
+    fun getKomfIdentifyDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit): KomfIdentifyDialogViewModel {
+        return KomfIdentifyDialogViewModel(
+            series = series,
+            komfConfig = komfConfigState,
+            komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
+            komfJobClient = dependencies.komfClientFactory.jobClient(),
+            appNotifications = appNotifications,
+            onDismiss = onDismissRequest,
+        )
+    }
+
+    fun getKomfResetMetadataDialogViewModel(
+        series: KomgaSeries,
+        onDismissRequest: () -> Unit
+    ): KomfResetMetadataDialogViewModel {
+        return KomfResetMetadataDialogViewModel(
+            series = series,
+            komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
+            appNotifications = appNotifications,
+            onDismiss = onDismissRequest,
+        )
+    }
+
     fun getSeriesBulkActions() = SeriesBulkActions(komgaClientFactory.seriesClient(), appNotifications)
     fun getCollectionBulkActions() = CollectionBulkActions(komgaClientFactory.collectionClient(), appNotifications)
     fun getBookBulkActions() = BookBulkActions(komgaClientFactory.bookClient(), appNotifications)
@@ -474,5 +558,3 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
         return libraries.map { libraries -> libraries.firstOrNull { it.id == id } }
     }
 }
-
-//expect suspend fun createViewModelFactory(context: PlatformContext): ViewModelFactory

@@ -7,6 +7,7 @@ import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -126,6 +127,29 @@ class DesktopSettingsRepository(private val actor: FileSystemSettingsActor) : Se
         actor.transform { settings -> settings.copy(appearance = settings.appearance.copy(appTheme = theme)) }
     }
 
+    override fun getKomfEnabled(): Flow<Boolean> {
+        return actor.getState().map { it.komf.enabled }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomfEnabled(enabled: Boolean) {
+        actor.transform { settings -> settings.copy(komf = settings.komf.copy(enabled = enabled)) }
+    }
+
+    override fun getKomfMode(): Flow<KomfMode> {
+        return actor.getState().map { it.komf.mode }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomfMode(mode: KomfMode) {
+        actor.transform { settings -> settings.copy(komf = settings.komf.copy(mode = mode)) }
+    }
+
+    override fun getKomfUrl(): Flow<String> {
+        return actor.getState().map { it.komf.remoteUrl }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomfUrl(url: String) {
+        actor.transform { settings -> settings.copy(komf = settings.komf.copy(remoteUrl = url)) }
+    }
 
     fun getOnnxModelsPath(): Flow<String> {
         return actor.getState().map { it.decoder.onnxModelsPath }.distinctUntilChanged()
