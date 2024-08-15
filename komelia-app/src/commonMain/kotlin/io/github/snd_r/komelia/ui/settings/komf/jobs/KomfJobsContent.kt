@@ -68,7 +68,6 @@ import kotlin.time.DurationUnit
 @Composable
 fun KomfJobsContent(
     jobs: List<KomfMetadataJob>,
-    totalElements: Int,
     totalPages: Int,
     currentPage: Int,
     onPageChange: (Int) -> Unit,
@@ -79,11 +78,6 @@ fun KomfJobsContent(
     onDeleteAll: () -> Unit,
     isLoading: Boolean,
 ) {
-    if (totalElements == 0) {
-        Text("Nothing to show")
-        return
-    }
-
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Column {
             StatusFilters(
@@ -204,7 +198,7 @@ private fun JobCard(
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .9f),
                             border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surface),
-                            modifier = Modifier.widthIn(max = 300.dp),
+                            modifier = Modifier.widthIn(max = 400.dp),
                             shape = RoundedCornerShape(5.dp)
                         ) {
                             job.message?.let {

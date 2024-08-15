@@ -9,6 +9,7 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -61,7 +62,7 @@ class KomfProcessingSettingsViewModel(
     private fun updateConfig(request: KomfConfigUpdateRequest) {
         screenModelScope.launch {
             appNotifications.runCatchingToNotifications { komfConfigClient.updateConfig(request) }
-                .onFailure { mutableState.value = LoadState.Error(it) }
+                .onFailure { initFields(komfConfig.getConfig().first()) }
         }
     }
 

@@ -66,7 +66,7 @@ fun <T> LibraryTabs(
 
     Column {
         var selectedTabIndex by remember { mutableStateOf(0) }
-        var selectedState by remember { mutableStateOf(defaultProcessingState) }
+        var selectedState by remember(defaultProcessingState) { mutableStateOf(defaultProcessingState) }
         Row {
 
             var isExpanded by remember { mutableStateOf(false) }

@@ -25,7 +25,6 @@ class KomfJobsViewModel(
     var totalPages by mutableStateOf(1)
     var currentPage by mutableStateOf(1)
     var status by mutableStateOf<KomfMetadataJobStatus?>(null)
-    var totalElements by mutableStateOf(0)
 
     private val seriesCache = Cache.Builder<KomgaSeriesId, KomgaSeries>().build()
 

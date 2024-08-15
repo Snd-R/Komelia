@@ -12,6 +12,7 @@ import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsV
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.GenericProviderConfigState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.MangaDexConfigState
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -98,10 +99,10 @@ class KomfProvidersSettingsViewModel(
     }
 
     private fun updateConfig(request: MetadataProvidersConfigUpdateRequest) {
-        val komfConfig = KomfConfigUpdateRequest(metadataProviders = Some(request))
+        val configUpdate = KomfConfigUpdateRequest(metadataProviders = Some(request))
         screenModelScope.launch {
-            appNotifications.runCatchingToNotifications { komfConfigClient.updateConfig(komfConfig) }
-                .onFailure { mutableState.value = LoadState.Error(it) }
+            appNotifications.runCatchingToNotifications { komfConfigClient.updateConfig(configUpdate) }
+                .onFailure { initFields(komfConfig.getConfig().first()) }
         }
     }
 
