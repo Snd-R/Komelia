@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.common
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,6 +44,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -188,9 +191,12 @@ fun HttpTextField(
     val strippedValue by remember(value) { mutableStateOf(value.replace(httpRegex, "")) }
     var isHttps by remember(value) { mutableStateOf(value.startsWith("https://")) }
     val httpText = derivedStateOf { if (isHttps) "https://" else "http://" }
+    val interactionSource = remember { MutableInteractionSource() }
     TextField(
         value = strippedValue,
-        onValueChange = { onValueChange(httpText.value + it) },
+        onValueChange = {
+            onValueChange(httpText.value + it)
+        },
         modifier = modifier,
         prefix = {
             HttpPrefixButton(
@@ -199,7 +205,8 @@ fun HttpTextField(
                 onHttpsChange = {
                     isHttps = it
                     onValueChange(httpText.value + strippedValue)
-                }
+                },
+                interactionSource = interactionSource
             )
         },
         label = label,
@@ -207,6 +214,7 @@ fun HttpTextField(
         isError = isError,
         supportingText = supportingText,
         singleLine = singleLine,
+        interactionSource = interactionSource,
     )
 }
 
@@ -220,19 +228,26 @@ fun OutlinedHttpTextField(
     supportingText: @Composable (() -> Unit)? = null,
     singleLine: Boolean = false,
 ) {
-    var isHttps by remember { mutableStateOf(false) }
-    val httpText = remember(isHttps) { if (isHttps) "https://" else "http://" }
     val strippedValue by remember(value) { mutableStateOf(value.replace(httpRegex, "")) }
+    var isHttps by remember(value) { mutableStateOf(value.startsWith("https://")) }
+    val httpText = derivedStateOf { if (isHttps) "https://" else "http://" }
+    val interactionSource = remember { MutableInteractionSource() }
 
     OutlinedTextField(
         value = strippedValue,
-        onValueChange = { onValueChange(httpText + it) },
+        onValueChange = {
+            onValueChange(httpText.value + it)
+        },
         modifier = modifier,
         prefix = {
             HttpPrefixButton(
-                httpText = httpText,
+                httpText = httpText.value,
                 https = isHttps,
-                onHttpsChange = { isHttps = it }
+                onHttpsChange = {
+                    isHttps = it
+                    onValueChange(httpText.value + strippedValue)
+                },
+                interactionSource = interactionSource
             )
         },
         label = label,
@@ -247,10 +262,14 @@ private fun HttpPrefixButton(
     httpText: String,
     https: Boolean,
     onHttpsChange: (Boolean) -> Unit,
+    interactionSource: MutableInteractionSource?,
 ) {
     Row(
         modifier = Modifier
-            .clickable { onHttpsChange(!https) }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current
+            ) { onHttpsChange(!https) }
             .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .2f))
             .cursorForHand()
@@ -262,4 +281,61 @@ private fun HttpPrefixButton(
         )
         Text(httpText)
     }
+}
+
+
+@Composable
+fun NumberField(
+    value: Int?,
+    onValueChange: (Int?) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    readOnly: Boolean = false,
+    textStyle: TextStyle = LocalTextStyle.current,
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
+    suffix: @Composable (() -> Unit)? = null,
+    supportingText: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    singleLine: Boolean = false,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    minLines: Int = 1,
+    interactionSource: MutableInteractionSource? = null,
+    shape: Shape = TextFieldDefaults.shape,
+    colors: TextFieldColors = TextFieldDefaults.colors()
+) {
+    TextField(
+        value = value?.toString() ?: "",
+        onValueChange = { newValue ->
+            if (newValue.isBlank()) onValueChange(null)
+            else newValue.toIntOrNull()?.let { onValueChange(it) }
+        },
+        modifier = modifier,
+        enabled = enabled,
+        readOnly = readOnly,
+        textStyle = textStyle,
+        label = label,
+        placeholder = placeholder,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        prefix = prefix,
+        suffix = suffix,
+        supportingText = supportingText,
+        isError = isError,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        singleLine = singleLine,
+        maxLines = maxLines,
+        minLines = minLines,
+        interactionSource = interactionSource,
+        shape = shape,
+        colors = colors
+    )
 }

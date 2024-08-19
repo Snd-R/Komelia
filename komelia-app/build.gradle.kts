@@ -62,7 +62,7 @@ kotlin {
     }
 
     val coilVersion = "3.0.0-alpha09"
-    val ktorVersion = "3.0.0-rc-1-eap-997"
+    val ktorVersion = "3.0.0-rc-1-eap-1000"
     val voyagerVersion = "1.1.0-beta02"
     sourceSets {
         all {

@@ -36,7 +36,26 @@ class KomfNotificationSettingsScreen : Screen {
                     discordUploadSeriesCover = StateHolder(vm.discordUploadSeriesCover, vm::onSeriesCoverChange),
                     discordWebhooks = vm.discordWebhooks,
                     onDiscordWebhookAdd = vm::onDiscordWebhookAdd,
-                    onDiscordWebhookRemove = vm::onDiscordWebhookRemove
+                    onDiscordWebhookRemove = vm::onDiscordWebhookRemove,
+
+                    titleTemplate = StateHolder(vm.titleTemplate, vm::titleTemplate::set),
+                    titleUrlTemplate = StateHolder(vm.titleUrlTemplate, vm::onTitleUrlTemplateChange),
+                    descriptionTemplate = StateHolder(vm.descriptionTemplate, vm::descriptionTemplate::set),
+                    fieldTemplates = vm.fieldTemplates,
+                    onFieldAdd = vm::onFieldAdd,
+                    onFieldDelete = vm::onFieldDelete,
+                    footerTemplate = StateHolder(vm.footerTemplate, vm::footerTemplate::set),
+
+                    titlePreview = vm.titlePreview,
+                    titleUrlPreview = vm.titleUrlPreview,
+                    descriptionPreview = vm.descriptionPreview,
+                    fieldPreviews = vm.fieldPreviews,
+                    footerPreview = vm.footerPreview,
+
+                    notificationContextState = vm.notificationContext,
+                    onTemplateSave = vm::onTemplatesSave,
+                    onTemplateSend = vm::onTemplatesSend,
+                    onTemplateRender = vm::onTemplateRender,
                 )
             }
 

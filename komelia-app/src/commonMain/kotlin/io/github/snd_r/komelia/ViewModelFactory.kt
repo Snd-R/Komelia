@@ -489,6 +489,7 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
     fun getKomfNotificationViewModel(): KomfNotificationSettingsViewModel {
         return KomfNotificationSettingsViewModel(
             komfConfigClient = dependencies.komfClientFactory.configClient(),
+            komfNotificationClient = dependencies.komfClientFactory.notificationClient(),
             libraries = libraries,
             appNotifications = appNotifications,
             komfConfig = komfConfigState

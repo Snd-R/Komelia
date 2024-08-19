@@ -98,8 +98,8 @@ fun AppDialogLayout(
         val bottomPadding = contentPadding.calculateBottomPadding().roundToPx()
         val leftPadding = contentPadding.calculateLeftPadding(layoutDirection).roundToPx()
         val rightPadding = contentPadding.calculateRightPadding(layoutDirection).roundToPx()
-        val verticalPadding = leftPadding + rightPadding
-        val horizontalPadding = topPadding + bottomPadding
+        val verticalPadding = topPadding + bottomPadding
+        val horizontalPadding = leftPadding + rightPadding
 
         val headerPlaceable = header?.let {
             subcompose(DialogSlots.Header, header)

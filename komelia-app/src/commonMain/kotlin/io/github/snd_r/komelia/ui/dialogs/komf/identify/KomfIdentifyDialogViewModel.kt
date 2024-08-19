@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import snd.komf.api.KomfProviders
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
@@ -35,12 +36,12 @@ import snd.komf.client.KomfMetadataClient
 import snd.komga.client.series.KomgaSeries
 
 class KomfIdentifyDialogViewModel(
-    private val series: KomgaSeries,
+    series: KomgaSeries,
+    komfMetadataClient: KomfMetadataClient,
+    komfJobClient: KomfJobClient,
     private val komfConfig: KomfConfigState,
-    private val komfMetadataClient: KomfMetadataClient,
-    private val komfJobClient: KomfJobClient,
     private val appNotifications: AppNotifications,
-    private val onDismiss: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mutableState: MutableStateFlow<LoadState<Unit>> = MutableStateFlow(LoadState.Uninitialized)
@@ -86,11 +87,7 @@ class KomfIdentifyDialogViewModel(
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications { komfConfig.getConfig() }
             .onFailure { mutableState.value = LoadState.Error(it) }
-            .onSuccess { config ->
-                mutableState.value = LoadState.Success(Unit)
-
-//                config.onEach { initFields(it) }.launchIn(screenModelScope)
-            }
+            .onSuccess { mutableState.value = LoadState.Success(Unit) }
     }
 
     fun onDispose() {
@@ -118,77 +115,78 @@ class KomfIdentifyDialogViewModel(
         var postProcessing by mutableStateOf(false)
 
         fun launchEventCollection(jobId: KomfMetadataJobId) {
-            appNotifications.runCatchingToNotifications(coroutineScope) {
+            coroutineScope.launch {
+                appNotifications.runCatchingToNotifications {
 
-                state.value = LoadState.Loading
-                val events = komfJobClient.getJobEvents(jobId)
-                events.onEach { event ->
-                    println(event)
-                    when (event) {
-                        KomfMetadataJobEvent.NotFound -> {
-                            val job = komfJobClient.getJob(jobId)
-                            when (job.status) {
-                                KomfMetadataJobStatus.RUNNING -> error("Could not get job events")
-                                KomfMetadataJobStatus.FAILED -> error("Job failed")
-                                KomfMetadataJobStatus.COMPLETED -> {
-                                    onDismiss()
+                    state.value = LoadState.Loading
+                    val events = komfJobClient.getJobEvents(jobId)
+                    events.onEach { event ->
+                        when (event) {
+                            KomfMetadataJobEvent.NotFound -> {
+                                val job = komfJobClient.getJob(jobId)
+                                when (job.status) {
+                                    KomfMetadataJobStatus.RUNNING -> error("Could not get job events")
+                                    KomfMetadataJobStatus.FAILED -> error("Job failed")
+                                    KomfMetadataJobStatus.COMPLETED -> {
+                                        onDismiss()
+                                    }
                                 }
                             }
+
+                            is ProviderBookEvent -> providersProgress.addOrReplace(
+                                ProviderProgressStatus(
+                                    provider = event.provider,
+                                    message = "Retrieving book data: ${event.bookProgress}/${event.totalBooks}",
+                                    totalProgress = event.totalBooks,
+                                    currentProgress = event.bookProgress,
+                                    status = ProgressStatus.RUNNING,
+                                )
+                            )
+
+                            is ProviderSeriesEvent -> providersProgress.addOrReplace(
+                                ProviderProgressStatus(
+                                    provider = event.provider,
+                                    message = "Retrieving series data",
+                                    totalProgress = null,
+                                    currentProgress = null,
+                                    status = ProgressStatus.RUNNING
+                                )
+                            )
+
+                            is KomfMetadataJobEvent.ProviderCompletedEvent -> providersProgress.addOrReplace(
+                                ProviderProgressStatus(
+                                    provider = event.provider,
+                                    message = null,
+                                    totalProgress = null,
+                                    currentProgress = null,
+                                    status = ProgressStatus.COMPLETED
+                                )
+                            )
+
+                            is ProviderErrorEvent -> providersProgress.addOrReplace(
+                                ProviderProgressStatus(
+                                    provider = event.provider,
+                                    message = event.message,
+                                    totalProgress = null,
+                                    currentProgress = null,
+                                    status = ProgressStatus.ERROR
+                                )
+                            )
+
+                            is ProcessingErrorEvent -> {
+                                processingError = event.message
+                            }
+
+                            KomfMetadataJobEvent.PostProcessingStartEvent -> postProcessing = true
+                            UnknownEvent -> {}
                         }
-
-                        is ProviderBookEvent -> providersProgress.addOrReplace(
-                            ProviderProgressStatus(
-                                provider = event.provider,
-                                message = "Retrieving book data: ${event.bookProgress}/${event.totalBooks}",
-                                totalProgress = event.totalBooks,
-                                currentProgress = event.bookProgress,
-                                status = ProgressStatus.RUNNING,
-                            )
-                        )
-
-                        is ProviderSeriesEvent -> providersProgress.addOrReplace(
-                            ProviderProgressStatus(
-                                provider = event.provider,
-                                message = "Retrieving series data",
-                                totalProgress = null,
-                                currentProgress = null,
-                                status = ProgressStatus.RUNNING
-                            )
-                        )
-
-                        is KomfMetadataJobEvent.ProviderCompletedEvent -> providersProgress.addOrReplace(
-                            ProviderProgressStatus(
-                                provider = event.provider,
-                                message = null,
-                                totalProgress = null,
-                                currentProgress = null,
-                                status = ProgressStatus.COMPLETED
-                            )
-                        )
-
-                        is ProviderErrorEvent -> providersProgress.addOrReplace(
-                            ProviderProgressStatus(
-                                provider = event.provider,
-                                message = event.message,
-                                totalProgress = null,
-                                currentProgress = null,
-                                status = ProgressStatus.ERROR
-                            )
-                        )
-
-                        is ProcessingErrorEvent -> {
-                            processingError = event.message
+                    }
+                        .onCompletion {
+                            postProcessing = false
+                            state.value = LoadState.Success(Unit)
                         }
-
-                        KomfMetadataJobEvent.PostProcessingStartEvent -> postProcessing = true
-                        UnknownEvent -> {}
-                    }
-                }
-                    .onCompletion {
-                        postProcessing = false
-                        state.value = LoadState.Success(Unit)
-                    }
-                    .launchIn(coroutineScope)
+                        .launchIn(coroutineScope)
+                }.onFailure { onDismiss() }
             }
         }
 

@@ -8,6 +8,8 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.reactivecircus.cache4k.Cache
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
+import io.ktor.client.plugins.*
+import io.ktor.http.*
 import snd.komf.api.job.KomfMetadataJob
 import snd.komf.api.job.KomfMetadataJobStatus
 import snd.komf.client.KomfJobClient
@@ -35,7 +37,12 @@ class KomfJobsViewModel(
 
     suspend fun getSeries(seriesId: KomgaSeriesId): KomgaSeries? {
         return appNotifications.runCatchingToNotifications {
-            seriesCache.get(seriesId) { seriesClient.getOneSeries(seriesId) }
+            try {
+                seriesCache.get(seriesId) { seriesClient.getOneSeries(seriesId) }
+            } catch (e: ClientRequestException) {
+                if (e.response.status != HttpStatusCode.NotFound) throw e
+                else null
+            }
         }.getOrNull()
     }
 
