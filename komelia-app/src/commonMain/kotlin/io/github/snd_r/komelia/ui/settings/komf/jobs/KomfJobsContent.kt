@@ -295,7 +295,7 @@ private fun SeriesTooltip(
             Modifier
                 .width(150.dp)
                 .aspectRatio(0.703f)
-                .padding(5.dp)
+                .padding(15.dp)
                 .border(1.dp, MaterialTheme.colorScheme.primary)
         ) {
             if (loading) CircularProgressIndicator()

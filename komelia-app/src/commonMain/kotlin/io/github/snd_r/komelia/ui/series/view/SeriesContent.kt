@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.FilterChip
@@ -51,6 +52,7 @@ import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.DescriptionChips
@@ -349,29 +351,34 @@ fun SeriesInfoLower(
             DescriptionChips(
                 label = "PUBLISHER",
                 chipValue = stringEntry(series.metadata.publisher),
-                onClick = { onFilterClick(SeriesScreenFilter(publisher = listOf(it))) }
+                onClick = { onFilterClick(SeriesScreenFilter(publisher = listOf(it))) },
+                modifier = Modifier.cursorForHand()
             )
         }
         DescriptionChips(
             label = "GENRES",
             chipValues = series.metadata.genres.map { stringEntry(it) },
-            onChipClick = { onFilterClick(SeriesScreenFilter(genres = listOf(it))) }
+            onChipClick = { onFilterClick(SeriesScreenFilter(genres = listOf(it))) },
+            modifier = Modifier.cursorForHand()
         )
         DescriptionChips(
             label = "TAGS",
             chipValues = series.metadata.tags.map { stringEntry(it) },
             secondaryValues = series.booksMetadata.tags.map { stringEntry(it) },
-            onChipClick = { onFilterClick(SeriesScreenFilter(tags = listOf(it))) }
+            onChipClick = { onFilterClick(SeriesScreenFilter(tags = listOf(it))) },
+            modifier = Modifier.cursorForHand()
         )
 
         val uriHandler = LocalUriHandler.current
         DescriptionChips(
             label = "LINKS",
             chipValues = series.metadata.links.map { LabeledEntry(it, it.label) },
-            onChipClick = { entry -> uriHandler.openUri(entry.url) }
+            onChipClick = { entry -> uriHandler.openUri(entry.url) },
+            icon = Icons.Default.Link,
+            modifier = Modifier.cursorForHand()
         )
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(5.dp))
 
         series.booksMetadata.authors
             .filter { it.role == "writer" }
@@ -380,7 +387,8 @@ fun SeriesInfoLower(
                 DescriptionChips(
                     label = "WRITERS",
                     chipValues = author.map { LabeledEntry(it, it.name) },
-                    onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) }
+                    onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) },
+                    modifier = Modifier.cursorForHand()
                 )
             }
 
@@ -391,7 +399,8 @@ fun SeriesInfoLower(
                 DescriptionChips(
                     label = "PENCILLERS",
                     chipValues = author.map { LabeledEntry(it, it.name) },
-                    onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) }
+                    onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) },
+                    modifier = Modifier.cursorForHand()
                 )
             }
     }

@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.ui.settings.komf.notifications.view
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -175,7 +174,7 @@ fun NotificationContextDialogContent(
             state::seriesAlternativePublishers::set,
             "Alternative Publishers \$series.metadata.alternativePublishers[i]"
         )
-        Column(Modifier.background(MaterialTheme.colorScheme.surfaceDim).padding(start = 10.dp)) {
+        Column(Modifier.padding(start = 10.dp)) {
             ValueList(
                 values = state.seriesAlternativeTitles,
                 valueName = "Aluuternative Title",
@@ -296,7 +295,7 @@ private fun BookContext(state: BookContextState) {
         )
 
         StringValueList(state.tags, state::tags::set, "Tags \$book[i].metadata.tags[i]")
-        Column(Modifier.background(MaterialTheme.colorScheme.surfaceDim).padding(start = 10.dp)) {
+        Column(Modifier.padding(start = 10.dp)) {
             ValueList(
                 values = state.authors,
                 valueName = "Author",

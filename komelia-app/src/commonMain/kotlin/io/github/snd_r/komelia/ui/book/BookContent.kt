@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Book
@@ -368,14 +369,24 @@ private fun BookLowerPanelInfo(book: KomgaBook) {
             DescriptionChips(
                 label = role,
                 chipValues = authors,
+                modifier = Modifier.cursorForHand()
             )
         }
-        Spacer(Modifier.size(10.dp))
+        Spacer(Modifier.size(5.dp))
 
         val tagEntries = remember(book) { book.metadata.tags.map { stringEntry(it) } }
-        DescriptionChips("Tags".uppercase(), tagEntries)
+        DescriptionChips(
+            label = "Tags".uppercase(),
+            chipValues = tagEntries,
+            modifier = Modifier.cursorForHand()
+        )
         val linkEntries = remember(book) { book.metadata.links.map { stringEntry(it.label) } }
-        DescriptionChips("Links".uppercase(), linkEntries)
+        DescriptionChips(
+            label = "Links".uppercase(),
+            chipValues = linkEntries,
+            icon = Icons.Default.Link,
+            modifier = Modifier.cursorForHand()
+        )
 
 
         Row {
