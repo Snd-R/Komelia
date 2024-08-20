@@ -1,14 +1,16 @@
-package io.github.snd_r.komelia.ui.settings.komf.notifications
+package io.github.snd_r.komelia.ui.settings.komf.notifications.view
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -36,11 +38,36 @@ import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.NumberField
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.NotificationContextState
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.NotificationContextState.AlternativeTitleContext
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.NotificationContextState.AuthorContext
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.NotificationContextState.BookContextState
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.NotificationContextState.WebLinkContext
+import io.github.snd_r.komelia.ui.dialogs.AppDialog
+import io.github.snd_r.komelia.ui.dialogs.DialogSimpleHeader
+import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState
+import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState.AlternativeTitleContext
+import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState.AuthorContext
+import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState.BookContextState
+import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState.WebLinkContext
+
+
+@Composable
+fun NotificationContextDialog(
+    notificationContextState: NotificationContextState,
+    onDismissRequest: () -> Unit,
+) {
+    AppDialog(
+        modifier = Modifier.widthIn(max = 800.dp),
+        header = { DialogSimpleHeader("Preview Context") },
+        content = { NotificationContextDialogContent(notificationContextState) },
+        controlButtons = {
+            FilledTonalButton(
+                onClick = onDismissRequest,
+                shape = RoundedCornerShape(5.dp),
+            ) {
+                Text("Close")
+            }
+        },
+        onDismissRequest = onDismissRequest,
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
+    )
+}
 
 @Composable
 fun NotificationContextDialogContent(

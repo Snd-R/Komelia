@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.settings.komf
 import io.github.snd_r.komelia.AppNotifications
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +18,7 @@ class KomfConfigState(
 ) {
     private var config: MutableStateFlow<KomfConfig?> = MutableStateFlow(null)
     private val mutableErrorFlow = MutableStateFlow<Throwable?>(null)
-    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val errorFlow = mutableErrorFlow.asStateFlow()
 
     fun getConfig(): Flow<KomfConfig> {

@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.settings.komf.notifications
+package io.github.snd_r.komelia.ui.settings.komf.notifications.view
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -60,15 +59,14 @@ import io.github.snd_r.komelia.ui.common.HttpTextField
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
-import io.github.snd_r.komelia.ui.dialogs.DialogSimpleHeader
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.EmbedFieldState
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel.NotificationContextState
+import io.github.snd_r.komelia.ui.settings.komf.notifications.DiscordState.EmbedFieldState
+import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState
 import io.ktor.http.*
 import snd.komf.api.notifications.EmbedField
 import kotlin.math.max
 
 @Composable
-fun KomfSettingsContent(
+fun DiscordNotificationsContent(
     discordUploadSeriesCover: StateHolder<Boolean>,
     discordWebhooks: List<String>,
     onDiscordWebhookAdd: (String) -> Unit,
@@ -97,34 +95,37 @@ fun KomfSettingsContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
 
+        Text("Webhooks")
+        discordWebhooks.forEach { webhook ->
+            Row {
+                TextField(
+                    value = webhook,
+                    onValueChange = {},
+                    enabled = false,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(onClick = { onDiscordWebhookRemove(webhook) }, modifier = Modifier.cursorForHand()) {
+                    Icon(Icons.Default.Delete, null)
+                }
+            }
+        }
+
+        var showAddWebhookDialog by remember { mutableStateOf(false) }
+
+        FilledTonalButton(
+            onClick = { showAddWebhookDialog = true },
+            shape = RoundedCornerShape(5.dp),
+            modifier = Modifier.cursorForHand()
+        ) {
+            Text("Add Webhook")
+        }
+
         SwitchWithLabel(
             checked = discordUploadSeriesCover.value,
             onCheckedChange = { discordUploadSeriesCover.setValue(it) },
             label = { Text("Upload series cover") }
         )
-
-        Text("Webhooks")
-        discordWebhooks.forEach { webhook ->
-            DiscordWebhookField(
-                webhook = webhook,
-                enabled = false,
-                onWebhookChange = {},
-                onWebhookRemove = { onDiscordWebhookRemove(webhook) }
-            )
-        }
-
-        var showAddWebhookDialog by remember { mutableStateOf(false) }
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            Spacer(Modifier.weight(1f))
-
-            FilledTonalButton(
-                onClick = { showAddWebhookDialog = true },
-                shape = RoundedCornerShape(5.dp),
-                modifier = Modifier.cursorForHand()
-            ) {
-                Text("Add Webhook")
-            }
-        }
 
         if (showAddWebhookDialog) {
             AddDiscordWebhookDialog(
@@ -157,28 +158,6 @@ fun KomfSettingsContent(
         )
 
         Spacer(Modifier.height(30.dp))
-    }
-}
-
-@Composable
-private fun DiscordWebhookField(
-    webhook: String,
-    enabled: Boolean,
-    onWebhookChange: (String) -> Unit,
-    onWebhookRemove: () -> Unit
-) {
-
-    Row {
-        TextField(
-            value = webhook,
-            onValueChange = onWebhookChange,
-            enabled = enabled,
-            modifier = Modifier.weight(1f)
-        )
-
-        IconButton(onClick = onWebhookRemove, modifier = Modifier.cursorForHand()) {
-            Icon(Icons.Default.Delete, null)
-        }
     }
 }
 
@@ -388,28 +367,14 @@ private fun TemplatesContent(
         }
     }
     if (showNotificationContextDialog) {
-        AppDialog(
-            modifier = Modifier.widthIn(max = 800.dp),
-            header = { DialogSimpleHeader("Preview Context") },
-            content = { NotificationContextDialogContent(notificationContextState) },
-            controlButtons = {
-                FilledTonalButton(
-                    onClick = {
-                        showNotificationContextDialog = false
-                        onTemplateRender()
-                    },
-                    shape = RoundedCornerShape(5.dp),
-                ) {
-                    Text("Close")
-                }
-            },
+        NotificationContextDialog(
+            notificationContextState,
             onDismissRequest = {
                 showNotificationContextDialog = false
                 onTemplateRender()
-            },
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
-        )
+            })
     }
+
 
 }
 
@@ -454,7 +419,6 @@ private fun TemplatesEditor(
             modifier = Modifier.fillMaxWidth()
         )
     }
-
 }
 
 @Composable
