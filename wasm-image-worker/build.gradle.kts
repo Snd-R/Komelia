@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform")
@@ -29,7 +29,7 @@ kotlin {
         val wasmJsMain by getting
         wasmJsMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-            implementation(npm("wasm-vips", "0.0.8"))
+            implementation(npm("wasm-vips", "0.0.10"))
             implementation(npm("string-replace-loader", "3.1.0"))
         }
     }

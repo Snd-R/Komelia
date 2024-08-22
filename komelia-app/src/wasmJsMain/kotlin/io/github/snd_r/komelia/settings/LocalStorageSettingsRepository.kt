@@ -6,7 +6,9 @@ import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.Flow
@@ -133,5 +135,49 @@ class LocalStorageSettingsRepository(private val settings: MutableStateFlow<AppS
     }
 
     override suspend fun putDismissedVersion(version: AppVersion) {
+    }
+
+    override fun getAppTheme(): Flow<AppTheme> {
+        return settings.map { it.appearance.appTheme }
+    }
+
+    override suspend fun putAppTheme(theme: AppTheme) {
+        settings.update {
+            it.copy(appearance = it.appearance.copy(appTheme = theme))
+        }
+        localStorage[appThemeKey] = theme.name
+    }
+
+    override fun getKomfEnabled(): Flow<Boolean> {
+        return settings.map { it.komf.enabled }
+    }
+
+    override suspend fun putKomfEnabled(enabled: Boolean) {
+        settings.update {
+            it.copy(komf = it.komf.copy(enabled = enabled))
+        }
+        localStorage[komfEnabledKey] = enabled.toString()
+    }
+
+    override fun getKomfMode(): Flow<KomfMode> {
+        return settings.map { it.komf.mode }
+    }
+
+    override suspend fun putKomfMode(mode: KomfMode) {
+        settings.update {
+            it.copy(komf = it.komf.copy(mode = mode))
+        }
+        localStorage[komfEnabledKey] = mode.name
+    }
+
+    override fun getKomfUrl(): Flow<String> {
+        return settings.map { it.komf.remoteUrl }
+    }
+
+    override suspend fun putKomfUrl(url: String) {
+        settings.update {
+            it.copy(komf = it.komf.copy(remoteUrl = url))
+        }
+        localStorage[komfUrlKey] = url
     }
 }

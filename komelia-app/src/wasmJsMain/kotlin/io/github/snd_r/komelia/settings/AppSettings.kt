@@ -1,11 +1,13 @@
 package io.github.snd_r.komelia.settings
 
+import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import kotlinx.browser.localStorage
 import org.w3c.dom.get
 
@@ -16,6 +18,7 @@ const val cardWidthKey = "cardWidth"
 const val seriesPageLoadSizeKey = "seriesPageLoadSize"
 const val bookPageLoadSizeKey = "bookPageLoadSize"
 const val bookListLayoutKey = "bookListLayout"
+const val appThemeKey = "appTheme"
 
 const val readerTypeKey = "readerType"
 const val stretchToFitKey = "stretchToFit"
@@ -28,13 +31,16 @@ const val continuousReaderReadingDirectionKey = "continuousReaderReadingDirectio
 const val continuousReaderPaddingKey = "continuousReaderPadding"
 const val continuousReaderPageSpacingKey = "continuousReaderPageSpacing"
 
-const val decoderTypeKey = "decoderType"
+const val komfEnabledKey = "komfEnabled"
+const val komfModeKey = "komfMode"
+const val komfUrlKey = "KomfUrl"
 
 data class AppSettings(
     val server: ServerSettings,
     val user: UserSettings,
     val appearance: AppearanceSettings,
     val reader: ReaderSettings = ReaderSettings(),
+    val komf: KomfSettings = KomfSettings()
 ) {
     companion object {
         fun loadSettings(): AppSettings {
@@ -51,6 +57,8 @@ data class AppSettings(
                     bookPageLoadSize = localStorage[bookPageLoadSizeKey]?.toInt() ?: 20,
                     bookListLayout = localStorage[bookListLayoutKey]?.let { BooksLayout.valueOf(it) }
                         ?: BooksLayout.GRID,
+                    appTheme = localStorage[appThemeKey]?.let { AppTheme.valueOf(it) }
+                        ?: AppTheme.DARK,
                 ),
                 reader = ReaderSettings(
                     readerType = localStorage[readerTypeKey]?.let { ReaderType.valueOf(it) } ?: ReaderType.PAGED,
@@ -72,6 +80,11 @@ data class AppSettings(
                         pageSpacing = localStorage[continuousReaderPageSpacingKey]?.toInt() ?: 0,
                     )
                 ),
+                komf = KomfSettings(
+                    enabled = localStorage[komfEnabledKey]?.toBoolean() ?: false,
+                    mode = localStorage[komfModeKey]?.let { KomfMode.valueOf(it) } ?: KomfMode.REMOTE,
+                    remoteUrl = localStorage[komfUrlKey] ?: "http://localhost:8085"
+                )
             )
         }
     }
@@ -89,7 +102,8 @@ data class AppearanceSettings(
     val cardWidth: Int,
     val seriesPageLoadSize: Int = 20,
     val bookPageLoadSize: Int = 20,
-    val bookListLayout: BooksLayout = BooksLayout.GRID
+    val bookListLayout: BooksLayout = BooksLayout.GRID,
+    val appTheme: AppTheme = AppTheme.DARK
 )
 
 data class ReaderSettings(
@@ -111,4 +125,8 @@ data class ContinuousReaderSettings(
     val pageSpacing: Int = 0
 )
 
-
+data class KomfSettings(
+    val enabled: Boolean = false,
+    val mode: KomfMode = KomfMode.REMOTE,
+    val remoteUrl: String = "http://localhost:8085",
+)

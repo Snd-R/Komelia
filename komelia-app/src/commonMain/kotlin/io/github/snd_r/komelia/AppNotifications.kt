@@ -51,7 +51,6 @@ class AppNotifications {
             runCatchingToNotifications { block() }
                 .onFailure(onFailure)
                 .onSuccess(onSuccess)
-
         }
     }
 
@@ -65,7 +64,7 @@ class AppNotifications {
             KotlinLogging.logger {}.catching(responseException)
             toErrorNotification(responseException)
             return Result.failure(responseException)
-        } catch (exception: Exception) {
+        } catch (exception: Throwable) {
             KotlinLogging.logger {}.catching(exception)
             add(Error(exception.message ?: exception.cause?.message ?: "Unknown error"))
             return Result.failure(exception)

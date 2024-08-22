@@ -4,8 +4,8 @@ import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.proto
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
@@ -42,10 +42,10 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
+        moduleName = "komelia-app"
         browser {
             commonWebpackConfig {
-                outputFileName = "composeApp.js"
+                outputFileName = "komelia-app.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
@@ -53,7 +53,7 @@ kotlin {
                         add(project.projectDir.path + "/commonMain/")
                         add(project.projectDir.path + "/wasmJsMain/")
                         add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
-                        add(project.parent!!.projectDir.path + "/wasmImageWorker/build/dist/wasmJs/productionExecutable/")
+                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
                     }
                 }
             }
@@ -139,7 +139,7 @@ kotlin {
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
 
-            runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.1")
+            runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0-RC.2")
 
             implementation("org.slf4j:slf4j-api:2.0.13")
             implementation("ch.qos.logback:logback-core:1.5.6")
@@ -164,12 +164,12 @@ kotlin {
 
             implementation(files("jbr-api/jbr-api-6.4.2.jar"))
         }
-//
-//        val wasmJsMain by getting
-//        wasmJsMain.dependencies {
-//            implementation("io.ktor:ktor-client-js:$ktorVersion")
-//            implementation(project(":wasmImageWorker"))
-//        }
+
+        val wasmJsMain by getting
+        wasmJsMain.dependencies {
+            implementation("io.ktor:ktor-client-js:$ktorVersion")
+            implementation(project(":wasm-image-worker"))
+        }
     }
 }
 

@@ -1,8 +1,8 @@
-package io.github.snd_r.komelia.image
+package io.github.snd_r.komelia.image.coil
 
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
-import coil3.asCoilImage
+import coil3.asImage
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
 import coil3.decode.ImageSource
@@ -12,9 +12,8 @@ import coil3.size.Dimension
 import coil3.size.Scale
 import coil3.size.isOriginal
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.image.ImageWorker.Interpretation.BW
-import io.github.snd_r.komelia.image.ImageWorker.Interpretation.SRGB
-import io.github.snd_r.komelia.image.ImageWorker.WorkerDecodeResult
+import io.github.snd_r.komelia.worker.ImageWorker
+import io.github.snd_r.komelia.worker.ImageWorker.Interpretation
 import io.ktor.util.*
 import okio.use
 import org.jetbrains.skia.Bitmap
@@ -29,7 +28,7 @@ import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
-class VipsImageDecoder(
+class VipsCoilImageDecoder(
     private val source: ImageSource,
     private val options: Options,
     private val worker: ImageWorker
@@ -46,7 +45,7 @@ class VipsImageDecoder(
                 && options.size.width != Dimension.Undefined
                 && options.size.height != Dimension.Undefined
 
-        val decoded = worker.decode(
+        val decoded = worker.decodeAndGet(
             bytes = dataResult.value,
             dstWidth = options.size.width.pxOrNull(),
             dstHeight = options.size.height.pxOrNull(),
@@ -59,7 +58,7 @@ class VipsImageDecoder(
             bitmap.setImmutable()
 
             DecodeResult(
-                image = bitmap.asCoilImage(),
+                image = bitmap.asImage(),
                 isSampled = !options.size.isOriginal
             )
         }.also { logger.info { "installed pixels in ${it.duration}" } }
@@ -67,9 +66,9 @@ class VipsImageDecoder(
         return decodeResult.value
     }
 
-    private fun toBitmap(decoded: WorkerDecodeResult): Bitmap {
+    private fun toBitmap(decoded: ImageWorker.VipsImageData): Bitmap {
         val colorInfo = when (decoded.interpretation) {
-            BW -> {
+            Interpretation.BW -> {
                 require(decoded.bands == 1) { "Unexpected number of bands  for grayscale image \"${decoded.bands}\"" }
                 ColorInfo(
                     ColorType.GRAY_8,
@@ -78,7 +77,7 @@ class VipsImageDecoder(
                 )
             }
 
-            SRGB -> {
+            Interpretation.SRGB -> {
                 require(decoded.bands == 4) { "Unexpected number of bands  for sRGB image  \"${decoded.bands}\"" }
                 ColorInfo(
                     ColorType.RGBA_8888,
@@ -105,7 +104,7 @@ class VipsImageDecoder(
             options: Options,
             imageLoader: ImageLoader,
         ): Decoder {
-            return VipsImageDecoder(result.source, options, worker)
+            return VipsCoilImageDecoder(result.source, options, worker)
         }
     }
 }

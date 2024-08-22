@@ -30,7 +30,8 @@ class KomfConfigState(
             if (currentConfig == null) {
                 val newConfig = try {
                     komfConfigClient.getConfig()
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
+                    println(e)
                     mutableErrorFlow.value = e
                     throw e
                 }

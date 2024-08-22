@@ -1,5 +1,7 @@
-package io.github.snd_r.komelia.image
+package io.github.snd_r.komelia.worker
 
+import io.github.snd_r.komelia.worker.WorkerMessage.DECODE_AND_GET_DATA
+import io.github.snd_r.komelia.worker.WorkerMessage.INIT
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
@@ -8,17 +10,14 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-const val InitMessage = "Init"
-const val DecodeMessage = "Decode"
-
 class ImageWorker {
     private val worker = Worker("imageWorker.js")
     private var jobIdCounter = 0
-    private val jobs = mutableMapOf<Int, Continuation<WorkerDecodeResult>>()
+    private val jobs = mutableMapOf<Int, Continuation<VipsImageData>>()
     var initialized = false
         private set
 
-    data class WorkerDecodeResult(
+    data class VipsImageData(
         val width: Int,
         val height: Int,
         val bands: Int,
@@ -28,12 +27,38 @@ class ImageWorker {
 
     init {
         worker.onmessage = { event ->
-            val messageType = getMessageType(event.data)
+            println("response ${getMessageType(event.data)}")
+            val messageType = WorkerMessage.valueOf(getMessageType(event.data))
             when (messageType) {
-                InitMessage -> initialized = true
-                DecodeMessage -> handleDecodeResponse(requireNotNull(event.data))
-                else -> {}
+                INIT -> initialized = true
+                DECODE_AND_GET_DATA -> handleDecodeResponse(requireNotNull(event.data))
+//                DECODE -> TODO()
+//                GET_DIMENSIONS -> TODO()
+//                RESIZE -> TODO()
+//                DECODE_REGION -> TODO()
+//                CLOSE_IMAGE -> TODO()
             }
+        }
+    }
+
+    fun init() {
+        worker.postMessage(initMessage())
+    }
+
+    suspend fun decodeAndGet(
+        bytes: Int8Array,
+        dstWidth: Int?,
+        dstHeight: Int?,
+        crop: Boolean
+    ): VipsImageData {
+        return suspendCoroutine { continuation ->
+            val id = jobIdCounter++
+            jobs[id] = continuation
+
+            worker.postMessage(
+                decodeRequest(id, bytes, dstWidth, dstHeight, crop),
+                decodeRequestTransfer(bytes.buffer)
+            )
         }
     }
 
@@ -42,7 +67,7 @@ class ImageWorker {
         val id = getDecodeId(data)
         val continuation = requireNotNull(jobs.remove(id))
 
-        val response = WorkerDecodeResult(
+        val response = VipsImageData(
             width = getDecodeWidth(data),
             height = getDecodeHeight(data),
             bands = getDecodeBands(data),
@@ -54,25 +79,6 @@ class ImageWorker {
             buffer = getDecodeBuffer(data)
         )
         continuation.resume(response)
-    }
-
-    fun init() {
-        worker.postMessage(initMessage())
-    }
-
-    suspend fun decode(
-        bytes: Int8Array,
-        dstWidth: Int?,
-        dstHeight: Int?,
-        crop: Boolean
-    ) = suspendCoroutine { continuation ->
-        val id = jobIdCounter++
-        jobs[id] = continuation
-
-        worker.postMessage(
-            decodeRequest(id, bytes, dstWidth, dstHeight, crop),
-            decodeRequestTransfer(bytes.buffer)
-        )
     }
 
 
@@ -92,7 +98,7 @@ private fun decodeRequest(
     js(
         """
           return {
-            type: 'Decode',
+            type: 'DECODE_AND_GET_DATA',
             id: requestId,
             width: requestWidth,
             height: requestHeight,
@@ -103,7 +109,7 @@ private fun decodeRequest(
     )
 }
 
-private fun getMessageType(data: JsAny?): String? {
+private fun getMessageType(data: JsAny?): String {
     js("return data.type;")
 }
 
@@ -136,5 +142,5 @@ private fun getDecodeBuffer(data: JsAny): Uint8Array {
 }
 
 private fun initMessage(): JsAny {
-    js("return {type: 'Init'}")
+    js("return {type: 'INIT'}")
 }

@@ -11,9 +11,6 @@ import kotlin.js.Promise
 import kotlin.time.measureTime
 
 
-const val InitMessage = "Init"
-const val DecodeMessage = "Decode"
-
 external val self: DedicatedWorkerGlobalScope
 
 private const val vipsMaxSize = 10000000
@@ -26,14 +23,47 @@ fun main() {
         vips = getVipsModule().asDeferred<JsAny>().await()
 
         self.onmessage = { message ->
-            val type = getMessageType(message.data)
+            val type = WorkerMessage.valueOf(getMessageType(message.data))
+            println(type)
             when (type) {
-                InitMessage -> self.postMessage(initMessage())
-                DecodeMessage -> if (message.data != null) handleDecode(message.data!!)
-                else -> {}
+                WorkerMessage.INIT -> self.postMessage(initMessage())
+                WorkerMessage.DECODE_AND_GET_DATA -> if (message.data != null) handleDecode(message.data!!)
+//                WorkerMessage.DECODE -> TODO()
+//                WorkerMessage.GET_DIMENSIONS -> TODO()
+//                WorkerMessage.RESIZE -> TODO()
+//                WorkerMessage.DECODE_REGION -> TODO()
+//                WorkerMessage.CLOSE_IMAGE -> TODO()
             }
         }
     }
+}
+
+internal enum class WorkerMessage {
+    INIT,
+    DECODE_AND_GET_DATA,
+//    DECODE,
+//    GET_DIMENSIONS,
+//    RESIZE,
+//    DECODE_REGION,
+//    CLOSE_IMAGE,
+}
+
+external class DecodeRequest : JsAny {
+    val type: String
+    val id: Int
+    val width: Int?
+    val height: Int?
+    val crop: Boolean
+}
+
+external class ImageDataResponse : JsAny {
+    val type: String
+    val id: Int
+    val width: Int
+    val height: Int
+    val bands: Int
+    val interpretation: String
+    val buffer: Uint8Array
 }
 
 private fun handleDecode(data: JsAny) {
@@ -70,7 +100,7 @@ private fun handleDecode(data: JsAny) {
     println("Worker finished image decode in $duration")
 }
 
-private fun getMessageType(data: JsAny?): String? {
+private fun getMessageType(data: JsAny?): String {
     js("return data.type;")
 }
 
@@ -104,7 +134,7 @@ private fun decodeResponse(
 ): JsAny {
     js(
         """
-        return { type: 'Decode',
+        return { type: 'DECODE_AND_GET_DATA',
                  id: responseId,
                  width: responseWidth,
                  height: responseHeight,
@@ -223,7 +253,7 @@ private fun vipsImageDelete(image: JsAny): Int {
 }
 
 private fun initMessage(): JsAny {
-    js("return {type: 'Init'}")
+    js("return {type: 'INIT'}")
 }
 
 private fun getVipsModule(): Promise<JsAny> {

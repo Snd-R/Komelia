@@ -47,11 +47,12 @@ class LoginViewModel(
             url = settingsRepository.getServerUrl().first()
             user = settingsRepository.getCurrentUser().first()
             val loginCookie = secretsRepository.getCookie(url)
-            if (!loginCookie.isNullOrBlank()) {
-                tryAutologin()
-            } else {
-                mutableState.value = LoadState.Error(RuntimeException())
-            }
+            tryAutologin()
+//            if (!loginCookie.isNullOrBlank()) {
+//                tryAutologin()
+//            } else {
+//                mutableState.value = LoadState.Error(RuntimeException())
+//            }
         }
     }
 
@@ -86,13 +87,13 @@ class LoginViewModel(
         } catch (e: ClientRequestException) {
             autoLoginError = if (e.response.status == Unauthorized) "Invalid credentials"
             else "Login error: ${e::class.simpleName} ${e.message}"
-            notifications.add(AppNotification.Error(e.message))
             mutableState.value = LoadState.Error(e)
+            notifications.add(AppNotification.Error(e.message))
         } catch (e: Throwable) {
             val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
             autoLoginError = errorMessage
-            notifications.add(AppNotification.Error(errorMessage))
             mutableState.value = LoadState.Error(e)
+            notifications.add(AppNotification.Error(errorMessage))
         }
     }
 

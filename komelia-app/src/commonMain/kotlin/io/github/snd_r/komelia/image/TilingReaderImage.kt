@@ -1,6 +1,8 @@
 package io.github.snd_r.komelia.image
 
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -43,7 +45,7 @@ abstract class TilingReaderImage(
     private val dimensions by lazy { getDimensions(encoded) }
     final override val width by lazy { dimensions.width }
     final override val height by lazy { dimensions.height }
-    final override val painter by lazy { MutableStateFlow(createPlaceholderPainter(IntSize(width, height))) }
+    final override val painter by lazy { MutableStateFlow<Painter>(noopPainter) }
     final override val error = MutableStateFlow<Exception?>(null)
     final override val currentSize = MutableStateFlow<IntSize?>(null)
 
@@ -89,6 +91,9 @@ abstract class TilingReaderImage(
 
     private suspend fun doUpdate(request: UpdateRequest) {
         lastUpdateRequest = request
+        if (painter.value == noopPainter) {
+            painter.value = createPlaceholderPainter(request.displaySize)
+        }
 
         val displaySize = request.displaySize
         val zoomFactor = request.zoomFactor
@@ -309,4 +314,9 @@ abstract class TilingReaderImage(
         val height: Int,
         val renderImage: RenderImage,
     )
+
+    private val noopPainter = object : Painter() {
+        override val intrinsicSize: Size = Size.Zero
+        override fun DrawScope.onDraw() {}
+    }
 }

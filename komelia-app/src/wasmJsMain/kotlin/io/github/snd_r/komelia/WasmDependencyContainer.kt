@@ -4,9 +4,9 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
-import coil3.network.ktor.KtorNetworkFetcherFactory
-import io.github.snd_r.komelia.image.ImageWorker
-import io.github.snd_r.komelia.image.VipsImageDecoder
+import coil3.network.ktor3.KtorNetworkFetcherFactory
+import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.WasmImageDecoder
 import io.github.snd_r.komelia.image.coil.BlobFetcher
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.coil.VipsCoilImageDecoder
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.AppSettings
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
@@ -25,10 +26,10 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.UpdateProgress
+import io.github.snd_r.komelia.worker.ImageWorker
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cache.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.stateIn
+import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
 class WasmDependencyContainer(
@@ -46,6 +48,8 @@ class WasmDependencyContainer(
     override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     override val komgaClientFactory: KomgaClientFactory,
     override val imageLoader: ImageLoader,
+    override val readerImageLoader: ReaderImageLoader,
+    override val komfClientFactory: KomfClientFactory,
 ) : DependencyContainer {
     override val imageLoaderContext: PlatformContext = PlatformContext.INSTANCE
     override val appNotifications: AppNotifications = AppNotifications()
@@ -65,13 +69,23 @@ class WasmDependencyContainer(
             val readerSettingsRepository = LocalStorageReaderSettingsRepository(settings)
             val secretsRepository = CookieStoreSecretsRepository()
             val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
+            val komfUrl = settingsRepository.getKomfUrl().stateIn(stateFlowScope)
 
             val ktorClient = createKtorClient(baseUrl)
             val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient)
 
-            val decoderType = settingsRepository.getDecoderSettings().stateIn(stateFlowScope)
             val coil = createCoil(baseUrl, ktorClient, imageWorker)
             SingletonImageLoader.setSafe { coil }
+
+            val komfClientFactory = KomfClientFactory.Builder()
+                .baseUrl { komfUrl.value }
+                .ktor(ktorClient)
+                .build()
+
+            val readerImageLoader = createReaderImageLoader(
+                baseUrl = baseUrl,
+                ktorClient = ktorClient,
+            )
 
             return WasmDependencyContainer(
                 komgaClientFactory = komgaClientFactory,
@@ -80,7 +94,9 @@ class WasmDependencyContainer(
                 readerSettingsRepository = readerSettingsRepository,
                 secretsRepository = secretsRepository,
                 imageLoader = coil,
-                availableDecoders = emptyFlow()
+                availableDecoders = emptyFlow(),
+                komfClientFactory = komfClientFactory,
+                readerImageLoader = readerImageLoader,
             )
         }
 
@@ -90,7 +106,6 @@ class WasmDependencyContainer(
             overrideFetch()
             return HttpClient(Js) {
                 defaultRequest { url(baseUrl.value) }
-                install(HttpCache)
                 expectSuccess = true
                 followRedirects = false
             }
@@ -121,7 +136,7 @@ class WasmDependencyContainer(
                     add(KomgaReadListMapper(url))
                     add(KomgaSeriesThumbnailMapper(url))
                     add(BlobFetcher.Factory())
-                    add(VipsImageDecoder.Factory(imageWorker))
+                    add(VipsCoilImageDecoder.Factory(imageWorker))
                     add(KtorNetworkFetcherFactory(httpClient = ktorClient))
                 }
                 .memoryCache(
@@ -132,6 +147,24 @@ class WasmDependencyContainer(
                 .build()
         }
 
+        private fun createReaderImageLoader(
+            baseUrl: StateFlow<String>,
+            ktorClient: HttpClient,
+        ): ReaderImageLoader {
+            val bookClient = KomgaClientFactory.Builder()
+                .ktor(ktorClient)
+                .baseUrl { baseUrl.value }
+                .build()
+                .bookClient()
+
+            val decoder = WasmImageDecoder()
+
+            return ReaderImageLoader(
+                bookClient = bookClient,
+                decoder = decoder,
+                diskCache = null
+            )
+        }
 
     }
 }
@@ -143,7 +176,7 @@ private fun overrideFetch() {
     window.fetch = function (resource, init) {
         init = Object.assign({}, init);
         init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
-        init.credentials = init.credentials !== undefined ? init.credentials : 'include';
+        init.credentials = init.credentials !== undefined ? init.credentials : 'same-origin';
         return window.originalFetch(resource, init);
     };
 """
