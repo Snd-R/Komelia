@@ -1,42 +1,55 @@
 package io.github.snd_r.komelia
 
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
+import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import org.w3c.dom.events.KeyboardEvent
 
 private val initScope = CoroutineScope(Dispatchers.Default)
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     val dependencies = MutableStateFlow<WasmDependencyContainer?>(null)
+    val keyEvents = MutableSharedFlow<KeyEvent>()
+    val windowWidth = MutableStateFlow(WindowWidth.fromDp(window.innerWidth.dp))
     initScope.launch {
         dependencies.value = WasmDependencyContainer.createInstance(initScope)
     }
+    window.addEventListener("resize") {
+        windowWidth.value = WindowWidth.fromDp(window.innerWidth.dp)
+    }
+    document.addEventListener("keydown") { event ->
+        initScope.launch {
+            println("keydown $event")
+            keyEvents.emit((event as KeyboardEvent).toComposeEvent())
+        }
+    }
+    document.addEventListener("keyup") { event ->
+        initScope.launch {
+            println("keyup $event")
+            keyEvents.emit((event as KeyboardEvent).toComposeEvent())
+        }
+    }
 
     CanvasBasedWindow(canvasElementId = "ComposeTarget") {
-        var width by remember { mutableStateOf(WindowWidth.fromDp(window.innerWidth.dp)) }
-        window.addEventListener("resize") {
-            width = WindowWidth.fromDp(window.innerWidth.dp)
-        }
+
         MainView(
             dependencies = dependencies.collectAsState().value,
-            windowWidth = width,
+            windowWidth = windowWidth.collectAsState().value,
             platformType = PlatformType.WEB,
-            keyEvents = MutableSharedFlow()
+            keyEvents = keyEvents
         )
     }
 }

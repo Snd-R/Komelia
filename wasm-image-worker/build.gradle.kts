@@ -16,10 +16,10 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "imageWorker"
+        moduleName = "komeliaImageWorker"
         browser {
             commonWebpackConfig {
-                outputFileName = "imageWorker.js"
+                outputFileName = "komeliaImageWorker.js"
             }
         }
         binaries.executable()
@@ -28,7 +28,7 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting
         wasmJsMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC.2")
             implementation(npm("wasm-vips", "0.0.10"))
             implementation(npm("string-replace-loader", "3.1.0"))
         }

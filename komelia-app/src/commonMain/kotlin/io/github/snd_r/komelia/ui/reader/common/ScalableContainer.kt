@@ -21,11 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import io.github.snd_r.komelia.platform.PlatformType.WEB
 import io.github.snd_r.komelia.platform.onPointerEvent
 import io.github.snd_r.komelia.ui.LocalKeyEvents
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
@@ -38,9 +41,16 @@ fun ScalableContainer(
     scaleState: ScreenScaleState,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val platform = LocalPlatform.current
     var isCtrlPressed by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
-    LaunchedEffect(Unit) { keyEvents.collect { event -> isCtrlPressed = event.isCtrlPressed } }
+    LaunchedEffect(Unit) {
+        keyEvents.collect { event ->
+            isCtrlPressed =
+                if (platform == WEB) event.isAltPressed
+                else event.isCtrlPressed
+        }
+    }
 
     val areaSize = scaleState.areaSize.collectAsState().value
     val currentTransforms = scaleState.transformation.collectAsState().value
@@ -97,10 +107,12 @@ fun ScalableContainer(
                 val delta = it.changes[0].scrollDelta
                 if (isCtrlPressed) {
                     val centroid = it.changes[0].position
-                    scaleState.addZoom(.2f * -delta.y, centroid - areaCenter)
+                    val zoomMultiplier = if (platform == WEB) 0.002f else 0.2f
+                    scaleState.addZoom(zoomMultiplier * -delta.y, centroid - areaCenter)
                 } else {
                     val maxDelta = if (abs(delta.y) > abs(delta.x)) delta.y else delta.x
-                    val pan = if (scaleState.scrollReversed.value) maxDelta * 80 else -maxDelta * 80
+                    val panMultiplier = if (platform == WEB) 1 else 80
+                    val pan = (if (scaleState.scrollReversed.value) maxDelta else -maxDelta) * panMultiplier
                     when (scrollOrientation) {
                         Vertical, null -> scaleState.addPan(Offset(0f, pan))
                         Horizontal -> scaleState.addPan(Offset(pan, 0f))

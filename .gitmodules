@@ -1,3 +1,9 @@
 [submodule "third_party/secret-service"]
 	path = third_party/secret-service
 	url = https://github.com/Snd-R/secret-service
+[submodule "third_party/compose-sonner"]
+	path = third_party/compose-sonner
+	url = https://github.com/Snd-R/compose-sonner
+[submodule "third_party/ChipTextField"]
+	path = third_party/ChipTextField
+	url = https://github.com/Snd-R/ChipTextField

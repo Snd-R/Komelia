@@ -1,8 +1,6 @@
 package io.github.snd_r.komelia.image
 
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -11,11 +9,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow.SUSPEND
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
@@ -45,7 +44,7 @@ abstract class TilingReaderImage(
     private val dimensions by lazy { getDimensions(encoded) }
     final override val width by lazy { dimensions.width }
     final override val height by lazy { dimensions.height }
-    final override val painter by lazy { MutableStateFlow<Painter>(noopPainter) }
+    final override val painter by lazy { MutableStateFlow(noopPainter) }
     final override val error = MutableStateFlow<Exception?>(null)
     final override val currentSize = MutableStateFlow<IntSize?>(null)
 
@@ -55,7 +54,6 @@ abstract class TilingReaderImage(
     @Volatile
     protected var lastUsedScaleFactor: Double? = null
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     protected val imageScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
     protected val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
     protected val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
@@ -67,6 +65,7 @@ abstract class TilingReaderImage(
                 try {
                     doUpdate(request)
                 } catch (e: Exception) {
+                    currentCoroutineContext().ensureActive()
                     logger.catching(e)
                     this.error.value = e
                 }
@@ -315,8 +314,5 @@ abstract class TilingReaderImage(
         val renderImage: RenderImage,
     )
 
-    private val noopPainter = object : Painter() {
-        override val intrinsicSize: Size = Size.Zero
-        override fun DrawScope.onDraw() {}
-    }
+
 }

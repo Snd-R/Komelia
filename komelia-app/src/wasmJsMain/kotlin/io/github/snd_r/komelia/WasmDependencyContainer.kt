@@ -85,6 +85,7 @@ class WasmDependencyContainer(
             val readerImageLoader = createReaderImageLoader(
                 baseUrl = baseUrl,
                 ktorClient = ktorClient,
+                imageWorker = imageWorker
             )
 
             return WasmDependencyContainer(
@@ -141,7 +142,7 @@ class WasmDependencyContainer(
                 }
                 .memoryCache(
                     MemoryCache.Builder()
-                        .maxSizeBytes(128 * 1024 * 1024) // 128 Mib
+                        .maxSizeBytes(64 * 1024 * 1024) // 64 Mib
                         .build()
                 )
                 .build()
@@ -150,6 +151,7 @@ class WasmDependencyContainer(
         private fun createReaderImageLoader(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
+            imageWorker: ImageWorker,
         ): ReaderImageLoader {
             val bookClient = KomgaClientFactory.Builder()
                 .ktor(ktorClient)
@@ -157,11 +159,9 @@ class WasmDependencyContainer(
                 .build()
                 .bookClient()
 
-            val decoder = WasmImageDecoder()
-
             return ReaderImageLoader(
                 bookClient = bookClient,
-                decoder = decoder,
+                decoder = WasmImageDecoder(imageWorker),
                 diskCache = null
             )
         }
@@ -188,3 +188,4 @@ private object NoopAppUpdater : AppUpdater {
     override suspend fun updateToLatest(): Flow<UpdateProgress>? = null
     override fun updateTo(release: AppRelease): Flow<UpdateProgress>? = null
 }
+

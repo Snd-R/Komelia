@@ -4,6 +4,8 @@ import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import okio.FileSystem
 import okio.Path
 import snd.komga.client.book.KomgaBookClient
@@ -20,7 +22,8 @@ class ReaderImageLoader(
     suspend fun load(bookId: KomgaBookId, page: Int): ImageResult {
         return try {
             ImageResult.Success(doLoad(bookId, page))
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            currentCoroutineContext().ensureActive()
             logger.catching(e)
             ImageResult.Error(e)
         }
@@ -46,7 +49,7 @@ class ReaderImageLoader(
                 snapshot = newSnapshot
 
                 return decoder.decode(bytes, pageId)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 snapshot?.close()
                 throw e
             }
@@ -81,6 +84,6 @@ class ReaderImageLoader(
 }
 
 interface ImageDecoder {
-    fun decode(bytes: ByteArray, pageId: PageId): ReaderImage
-    fun decode(cacheFile: Path, pageId: PageId): ReaderImage
+    suspend fun decode(bytes: ByteArray, pageId: PageId): ReaderImage
+    suspend fun decode(cacheFile: Path, pageId: PageId): ReaderImage
 }

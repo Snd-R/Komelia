@@ -97,8 +97,8 @@ kotlin {
             implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
             implementation("cafe.adriel.lyricist:lyricist:1.7.0")
 
-            implementation("io.github.dokar3:sonner:0.3.8")
-            implementation("io.github.dokar3:chiptextfield-m3:0.7.0-alpha05")
+            implementation("io.github.dokar3:sonner")
+            implementation("io.github.dokar3:chiptextfield-m3")
 
             implementation("sh.calvin.reorderable:reorderable:2.3.0")
 

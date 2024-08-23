@@ -1,42 +1,53 @@
 package io.github.snd_r.komelia.worker
 
-import io.github.snd_r.komelia.worker.WorkerMessage.DECODE_AND_GET_DATA
-import io.github.snd_r.komelia.worker.WorkerMessage.INIT
-import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Int8Array
+import io.github.snd_r.komelia.worker.ImageWorker.Interpretation
+import io.github.snd_r.komelia.worker.messages.DecodeAndGetResponse
+import io.github.snd_r.komelia.worker.messages.DimensionsResponse
+import io.github.snd_r.komelia.worker.messages.WorkerMessage
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType.DECODE_AND_GET_DATA
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType.INIT
+import io.github.snd_r.komelia.worker.messages.decodeAndGetRequest
+import io.github.snd_r.komelia.worker.messages.dimensionsRequest
+import io.github.snd_r.komelia.worker.messages.initMessage
+import io.github.snd_r.komelia.worker.util.asJsArray
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.Worker
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+data class VipsImageData(
+    val width: Int,
+    val height: Int,
+    val bands: Int,
+    val interpretation: Interpretation,
+    val buffer: Uint8Array,
+)
+
+data class VipsImageDimensions(
+    val width: Int,
+    val height: Int,
+    val bands: Int,
+)
+
 class ImageWorker {
-    private val worker = Worker("imageWorker.js")
+    private val worker = Worker("komeliaImageWorker.js")
     private var jobIdCounter = 0
-    private val jobs = mutableMapOf<Int, Continuation<VipsImageData>>()
+    private val decodeJobs = mutableMapOf<Int, Continuation<VipsImageData>>()
+    private val dimensionJobs = mutableMapOf<Int, Continuation<VipsImageDimensions>>()
     var initialized = false
         private set
 
-    data class VipsImageData(
-        val width: Int,
-        val height: Int,
-        val bands: Int,
-        val interpretation: Interpretation,
-        val buffer: Uint8Array,
-    )
 
     init {
+        @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         worker.onmessage = { event ->
-            println("response ${getMessageType(event.data)}")
-            val messageType = WorkerMessage.valueOf(getMessageType(event.data))
-            when (messageType) {
+            val message = event.data as WorkerMessage
+            when (WorkerMessageType.valueOf(message.type)) {
                 INIT -> initialized = true
-                DECODE_AND_GET_DATA -> handleDecodeResponse(requireNotNull(event.data))
-//                DECODE -> TODO()
-//                GET_DIMENSIONS -> TODO()
-//                RESIZE -> TODO()
-//                DECODE_REGION -> TODO()
-//                CLOSE_IMAGE -> TODO()
+                DECODE_AND_GET_DATA -> decodeResponse(message as DecodeAndGetResponse)
+                WorkerMessageType.GET_DIMENSIONS -> dimensionsResponse(message as DimensionsResponse)
             }
         }
     }
@@ -46,38 +57,56 @@ class ImageWorker {
     }
 
     suspend fun decodeAndGet(
-        bytes: Int8Array,
+        bytes: ByteArray,
         dstWidth: Int?,
         dstHeight: Int?,
         crop: Boolean
     ): VipsImageData {
         return suspendCoroutine { continuation ->
             val id = jobIdCounter++
-            jobs[id] = continuation
+            decodeJobs[id] = continuation
 
+            val jsArray = bytes.asJsArray()
             worker.postMessage(
-                decodeRequest(id, bytes, dstWidth, dstHeight, crop),
-                decodeRequestTransfer(bytes.buffer)
+                decodeAndGetRequest(id, dstWidth, dstHeight, crop, jsArray),
+                workerBufferTransfer(jsArray.buffer)
             )
         }
     }
 
-    private fun handleDecodeResponse(data: JsAny) {
-        require(initialized)
-        val id = getDecodeId(data)
-        val continuation = requireNotNull(jobs.remove(id))
+    suspend fun getDimensions(bytes: ByteArray): VipsImageDimensions {
+        return suspendCoroutine { continuation ->
+            val id = jobIdCounter++
+            dimensionJobs[id] = continuation
+
+            val jsArray = bytes.asJsArray()
+            worker.postMessage(
+                dimensionsRequest(id, jsArray),
+                workerBufferTransfer(jsArray.buffer)
+            )
+        }
+    }
+
+    private fun decodeResponse(message: DecodeAndGetResponse) {
+        val continuation = requireNotNull(decodeJobs.remove(message.requestId))
 
         val response = VipsImageData(
-            width = getDecodeWidth(data),
-            height = getDecodeHeight(data),
-            bands = getDecodeBands(data),
-            interpretation = when (getDecodeInterpretation(data)) {
+            width = message.width,
+            height = message.height,
+            bands = message.bands,
+            interpretation = when (message.interpretation) {
                 "b-w" -> Interpretation.BW
                 "srgb" -> Interpretation.SRGB
                 else -> throw IllegalStateException(" Unsupported interpretation")
             },
-            buffer = getDecodeBuffer(data)
+            buffer = message.buffer
         )
+        continuation.resume(response)
+    }
+
+    private fun dimensionsResponse(message: DimensionsResponse) {
+        val continuation = requireNotNull(dimensionJobs.remove(message.requestId))
+        val response = VipsImageDimensions(message.width, message.height, message.bands)
         continuation.resume(response)
     }
 
@@ -88,59 +117,3 @@ class ImageWorker {
     }
 }
 
-private fun decodeRequest(
-    requestId: Int,
-    requestBuffer: Int8Array,
-    requestWidth: Int?,
-    requestHeight: Int?,
-    requestCrop: Boolean
-): JsAny {
-    js(
-        """
-          return {
-            type: 'DECODE_AND_GET_DATA',
-            id: requestId,
-            width: requestWidth,
-            height: requestHeight,
-            crop: requestCrop,
-            buffer: requestBuffer,
-          };
-      """
-    )
-}
-
-private fun getMessageType(data: JsAny?): String {
-    js("return data.type;")
-}
-
-private fun decodeRequestTransfer(bytes: ArrayBuffer): JsArray<JsAny> {
-    js("return [bytes];")
-}
-
-private fun getDecodeId(data: JsAny): Int {
-    js("return data.id;")
-}
-
-private fun getDecodeWidth(data: JsAny): Int {
-    js("return data.width;")
-}
-
-private fun getDecodeHeight(data: JsAny): Int {
-    js("return data.height;")
-}
-
-private fun getDecodeBands(data: JsAny): Int {
-    js("return data.bands;")
-}
-
-private fun getDecodeInterpretation(data: JsAny): String {
-    js("return data.interpretation;")
-}
-
-private fun getDecodeBuffer(data: JsAny): Uint8Array {
-    js("return data.buffer;")
-}
-
-private fun initMessage(): JsAny {
-    js("return {type: 'INIT'}")
-}

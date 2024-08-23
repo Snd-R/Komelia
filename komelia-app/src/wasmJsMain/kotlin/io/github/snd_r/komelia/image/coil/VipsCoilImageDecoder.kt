@@ -12,18 +12,11 @@ import coil3.size.Dimension
 import coil3.size.Scale
 import coil3.size.isOriginal
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.image.toBitmap
 import io.github.snd_r.komelia.worker.ImageWorker
-import io.github.snd_r.komelia.worker.ImageWorker.Interpretation
-import io.ktor.util.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import okio.use
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.ColorAlphaType
-import org.jetbrains.skia.ColorInfo
-import org.jetbrains.skia.ColorSpace
-import org.jetbrains.skia.ColorType
-import org.jetbrains.skia.ImageInfo
-import org.khronos.webgl.Uint8Array
-import org.khronos.webgl.get
 import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
@@ -37,8 +30,12 @@ class VipsCoilImageDecoder(
     @OptIn(ExperimentalCoilApi::class)
     override suspend fun decode(): DecodeResult {
         val dataResult = measureTimedValue {
-            // FIXME? wasm bytearray to js array copy overhead
-            source.source().use { it.readByteArray() }.toJsArray()
+            try {
+                source.source().use { it.readByteArray() }
+            } catch (e: Throwable) {
+                currentCoroutineContext().ensureActive()
+                throw RuntimeException(e)
+            }
         }.also { logger.info { "retrieved image bytes in ${it.duration}" } }
 
         val crop = options.scale == Scale.FILL
@@ -52,46 +49,14 @@ class VipsCoilImageDecoder(
             crop = crop
         )
 
-        // FIXME? js array to wasm array copy overhead
         val decodeResult = measureTimedValue {
-            val bitmap = toBitmap(decoded)
-            bitmap.setImmutable()
-
             DecodeResult(
-                image = bitmap.asImage(),
+                image = decoded.toBitmap().asImage(),
                 isSampled = !options.size.isOriginal
             )
         }.also { logger.info { "installed pixels in ${it.duration}" } }
 
         return decodeResult.value
-    }
-
-    private fun toBitmap(decoded: ImageWorker.VipsImageData): Bitmap {
-        val colorInfo = when (decoded.interpretation) {
-            Interpretation.BW -> {
-                require(decoded.bands == 1) { "Unexpected number of bands  for grayscale image \"${decoded.bands}\"" }
-                ColorInfo(
-                    ColorType.GRAY_8,
-                    ColorAlphaType.UNPREMUL,
-                    ColorSpace.sRGB
-                )
-            }
-
-            Interpretation.SRGB -> {
-                require(decoded.bands == 4) { "Unexpected number of bands  for sRGB image  \"${decoded.bands}\"" }
-                ColorInfo(
-                    ColorType.RGBA_8888,
-                    ColorAlphaType.UNPREMUL,
-                    ColorSpace.sRGB
-                )
-            }
-        }
-
-        val imageInfo = ImageInfo(colorInfo, decoded.width, decoded.height)
-        val bitmap = Bitmap()
-        bitmap.allocPixels(imageInfo)
-        bitmap.installPixels(decoded.buffer.toByteArray())
-        return bitmap
     }
 
     class Factory(
@@ -109,7 +74,4 @@ class VipsCoilImageDecoder(
     }
 }
 
-fun Dimension.pxOrNull(): Int? = if (this is Dimension.Pixels) px else null
-
-private fun Uint8Array.toByteArray(): ByteArray = ByteArray(this.length) { this[it] }
-
+private fun Dimension.pxOrNull(): Int? = if (this is Dimension.Pixels) px else null

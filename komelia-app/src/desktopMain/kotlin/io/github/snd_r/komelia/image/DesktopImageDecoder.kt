@@ -10,7 +10,7 @@ class DesktopImageDecoder(
     private val onnxUpscaler: ManagedOnnxUpscaler?,
 ) : ImageDecoder {
 
-    override fun decode(bytes: ByteArray, pageId: PageId): ReaderImage {
+    override suspend fun decode(bytes: ByteArray, pageId: PageId): ReaderImage {
         return DesktopTilingReaderImage(
             encoded = bytes,
             pageId = pageId,
@@ -19,7 +19,7 @@ class DesktopImageDecoder(
         )
     }
 
-    override fun decode(cacheFile: okio.Path, pageId: PageId): ReaderImage {
+    override suspend fun decode(cacheFile: okio.Path, pageId: PageId): ReaderImage {
         val bytes = cacheFile.toNioPath().readBytes()
         return DesktopTilingReaderImage(
             encoded = bytes,

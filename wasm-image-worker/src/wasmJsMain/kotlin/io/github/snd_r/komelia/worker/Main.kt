@@ -1,283 +1,84 @@
 package io.github.snd_r.komelia.worker
 
+import io.github.snd_r.komelia.worker.messages.DecodeAndGetRequest
+import io.github.snd_r.komelia.worker.messages.DimensionsRequest
+import io.github.snd_r.komelia.worker.messages.WorkerMessage
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType.DECODE_AND_GET_DATA
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType.GET_DIMENSIONS
+import io.github.snd_r.komelia.worker.messages.WorkerMessageType.INIT
+import io.github.snd_r.komelia.worker.messages.decodeAndGetResponse
+import io.github.snd_r.komelia.worker.messages.dimensionsResponse
+import io.github.snd_r.komelia.worker.vips.Vips
+import io.github.snd_r.komelia.worker.vips.vipsMaxSize
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.asDeferred
 import kotlinx.coroutines.launch
-import org.khronos.webgl.Int8Array
-import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.ArrayBuffer
 import org.w3c.dom.DedicatedWorkerGlobalScope
-import kotlin.js.Promise
 import kotlin.time.measureTime
-
 
 external val self: DedicatedWorkerGlobalScope
 
-private const val vipsMaxSize = 10000000
-private var vips: JsAny? = null
-
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
 @OptIn(DelicateCoroutinesApi::class)
 fun main() {
     self.importScripts("vips.js")
     GlobalScope.launch {
-        vips = getVipsModule().asDeferred<JsAny>().await()
-
-        self.onmessage = { message ->
-            val type = WorkerMessage.valueOf(getMessageType(message.data))
-            println(type)
-            when (type) {
-                WorkerMessage.INIT -> self.postMessage(initMessage())
-                WorkerMessage.DECODE_AND_GET_DATA -> if (message.data != null) handleDecode(message.data!!)
-//                WorkerMessage.DECODE -> TODO()
-//                WorkerMessage.GET_DIMENSIONS -> TODO()
-//                WorkerMessage.RESIZE -> TODO()
-//                WorkerMessage.DECODE_REGION -> TODO()
-//                WorkerMessage.CLOSE_IMAGE -> TODO()
+        Vips.init()
+        self.onmessage = { messageEvent ->
+            val message = messageEvent.data as WorkerMessage
+            when (WorkerMessageType.valueOf(message.type)) {
+                INIT -> self.postMessage(message)
+                DECODE_AND_GET_DATA -> handleDecode(message as DecodeAndGetRequest)
+                GET_DIMENSIONS -> handleGetDimensions(message as DimensionsRequest)
             }
         }
     }
 }
 
-internal enum class WorkerMessage {
-    INIT,
-    DECODE_AND_GET_DATA,
-//    DECODE,
-//    GET_DIMENSIONS,
-//    RESIZE,
-//    DECODE_REGION,
-//    CLOSE_IMAGE,
-}
-
-external class DecodeRequest : JsAny {
-    val type: String
-    val id: Int
-    val width: Int?
-    val height: Int?
-    val crop: Boolean
-}
-
-external class ImageDataResponse : JsAny {
-    val type: String
-    val id: Int
-    val width: Int
-    val height: Int
-    val bands: Int
-    val interpretation: String
-    val buffer: Uint8Array
-}
-
-private fun handleDecode(data: JsAny) {
+private fun handleDecode(request: DecodeAndGetRequest) {
     val duration = measureTime {
-        val vips = requireNotNull(vips)
-        val requestId = getDecodeId(data)
-        val requestWidth = getDecodeWidth(data)
-        val requestHeight = getDecodeHeight(data)
-        val requestCrop = getDecodeCrop(data)
-        val requestBuffer = getDecodeBuffer(data)
 
-        val decodedImage = if (requestWidth == null && requestHeight == null) {
-            vipsImageFromBuffer(vips, requestBuffer)
+        val decodedImage = if (request.width == null && request.height == null) {
+            Vips.vipsImageFromBuffer(request.buffer)
         } else {
-            val dstWidth = requestWidth ?: vipsMaxSize
-            val dstHeight = requestHeight ?: vipsMaxSize
-            vipsThumbnail(vips, requestBuffer, dstWidth, dstHeight, requestCrop)
+            val dstWidth = request.width ?: vipsMaxSize
+            val dstHeight = request.height ?: vipsMaxSize
+            Vips.vipsThumbnail(request.buffer, dstWidth, dstHeight, request.crop)
         }
-        val decodedBytes = vipsGetBytes(decodedImage)
+        val decodedBytes = decodedImage.writeToMemory()
 
         self.postMessage(
-            decodeResponse(
-                responseId = requestId,
-                responseWidth = vipsGetWidth(decodedImage),
-                responseHeight = vipsGetHeight(decodedImage),
-                responseBands = vipsGetBands(decodedImage),
-                responseInterpretation = vipsGetInterpretation(decodedImage),
-                bytes = decodedBytes,
+            decodeAndGetResponse(
+                requestId = request.requestId,
+                width = decodedImage.width,
+                height = decodedImage.height,
+                bands = decodedImage.bands,
+                interpretation = decodedImage.interpretation,
+                buffer = decodedBytes,
             ),
-            decodeResponseTransfer(decodedBytes)
+            workerBufferTransfer(decodedBytes.buffer)
         )
-        vipsImageDelete(decodedImage)
+        decodedImage.delete()
     }
     println("Worker finished image decode in $duration")
 }
 
-private fun getMessageType(data: JsAny?): String {
-    js("return data.type;")
-}
+private fun handleGetDimensions(request: DimensionsRequest) {
+    val image = Vips.vipsImageDecode(request.buffer)
 
-private fun getDecodeId(data: JsAny): Int {
-    js("return data.id;")
-}
-
-private fun getDecodeWidth(data: JsAny): Int? {
-    js("return data.width;")
-}
-
-private fun getDecodeHeight(data: JsAny): Int? {
-    js("return data.height;")
-}
-
-private fun getDecodeCrop(data: JsAny): Boolean {
-    js("return data.crop;")
-}
-
-private fun getDecodeBuffer(data: JsAny): Int8Array {
-    js("return data.buffer;")
-}
-
-private fun decodeResponse(
-    responseId: Int,
-    responseWidth: Int,
-    responseHeight: Int,
-    responseBands: Int,
-    responseInterpretation: String,
-    bytes: Uint8Array,
-): JsAny {
-    js(
-        """
-        return { type: 'DECODE_AND_GET_DATA',
-                 id: responseId,
-                 width: responseWidth,
-                 height: responseHeight,
-                 bands: responseBands,
-                 interpretation: responseInterpretation,
-                 buffer: bytes,
-        };
-    """
+    self.postMessage(
+        dimensionsResponse(
+            requestId = request.requestId,
+            width = image.width,
+            height = image.height,
+            bands = image.bands
+        )
     )
+    image.delete()
 }
 
-private fun decodeResponseTransfer(bytes: Uint8Array): JsArray<JsAny> {
-    js("return [bytes.buffer];")
-}
-
-private fun vipsThumbnail(vips: JsAny, buffer: Int8Array, dstWidth: Int, dstHeight: Int, shouldCrop: Boolean): JsAny {
-    js(
-        """
-    let image = vips.Image.thumbnailBuffer (
-            buffer,
-    dstWidth,
-    {
-        height: dstHeight,
-        ...(shouldCrop && { crop: 'entropy' })
-    }
-    );
-
-    if (image.interpretation == 'b-w' && image.bands != 1 ||
-        image.interpretation != 'srgb' && image.interpretation != 'b-w'
-    ) {
-        let old = image
-                image = image.colourspace('srgb');
-        old.delete()
-    }
-    if (image.interpretation == 'srgb' && image.bands == 3) {
-        let old = image
-                image = image.bandjoin(255)
-        old.delete()
-    }
-
-    return image;
-    """
-    )
-}
-
-private fun vipsImageFromBuffer(vips: JsAny, buffer: Int8Array): JsAny {
-
-    js(
-        """
-    let image = vips.Image.newFromBuffer (buffer);
-
-    if (image.interpretation == 'b-w' && image.bands != 1 ||
-        image.interpretation != 'srgb' && image.interpretation != 'b-w'
-    ) {
-        let old = image;
-        image = image.colourspace('srgb');
-        old.delete();
-    }
-    if (image.interpretation == 'srgb' && image.bands == 3) {
-        let old = image;
-        image = image.bandjoin(255);
-        old.delete();
-    }
-
-    return image;
-    """
-    )
-}
-
-private fun vipsGetInterpretation(image: JsAny): String {
-    js(
-        """
-    return image.interpretation;
-    """
-    )
-}
-
-private fun vipsGetBytes(image: JsAny): Uint8Array {
-    js(
-        """
-    return image.writeToMemory();
-    """
-    )
-}
-
-private fun vipsGetBands(image: JsAny): Int {
-    js(
-        """
-    return image.bands;
-    """
-    )
-}
-
-private fun vipsGetWidth(image: JsAny): Int {
-    js(
-        """
-    return image.width;
-    """
-    )
-}
-
-private fun vipsGetHeight(image: JsAny): Int {
-    js(
-        """
-    return image.height;
-    """
-    )
-}
-
-private fun vipsImageDelete(image: JsAny): Int {
-    js(
-        """
-    return image.delete();
-    """
-    )
-}
-
-private fun initMessage(): JsAny {
-    js("return {type: 'INIT'}")
-}
-
-private fun getVipsModule(): Promise<JsAny> {
-    js(
-        """
-        return new Promise(async (resolve, reject) => {
-            const VipsCreateModule = typeof globalThis.Vips === 'undefined' ? null : globalThis.Vips;
-            if (!VipsCreateModule) {
-                reject(new Error('Module Not Loaded'));
-                return;
-            }
-            try {
-                    let vips = await VipsCreateModule({
-                        dynamicLibraries: [],
-                        mainScriptUrlOrBlob: './vips.js',
-                        locateFile: (fileName, scriptDirectory) => fileName,
-                    });
-                
-                resolve(vips);
-            } catch (err) {
-                console.warn(err)
-                reject(err);
-            }
-    }); 
-    """
-    )
+internal fun workerBufferTransfer(bytes: ArrayBuffer): JsArray<JsAny> {
+    js("return [bytes];")
 }

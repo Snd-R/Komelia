@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 import snd.komf.api.config.KomfConfig
 import snd.komf.client.KomfConfigClient
 
@@ -21,28 +20,25 @@ class KomfConfigState(
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val errorFlow = mutableErrorFlow.asStateFlow()
 
-    fun getConfig(): Flow<KomfConfig> {
+    suspend fun getConfig(): Flow<KomfConfig> {
         val flow = config.filterNotNull()
 
-        coroutineScope.launch {
-            val currentConfig = config.value
+        val currentConfig = config.value
 
-            if (currentConfig == null) {
-                val newConfig = try {
-                    komfConfigClient.getConfig()
-                } catch (e: Throwable) {
-                    println(e)
-                    mutableErrorFlow.value = e
-                    throw e
-                }
-
-                mutableErrorFlow.value = null
-                config.value = newConfig
-            } else {
-                notifications.runCatchingToNotifications { config.value = komfConfigClient.getConfig() }
-                    .onFailure { mutableErrorFlow.value = it }
-                    .onSuccess { mutableErrorFlow.value = null }
+        if (currentConfig == null) {
+            val newConfig = try {
+                komfConfigClient.getConfig()
+            } catch (e: Throwable) {
+                mutableErrorFlow.value = e
+                throw e
             }
+
+            mutableErrorFlow.value = null
+            config.value = newConfig
+        } else {
+            notifications.runCatchingToNotifications { config.value = komfConfigClient.getConfig() }
+                .onFailure { mutableErrorFlow.value = it }
+                .onSuccess { mutableErrorFlow.value = null }
         }
 
         return flow

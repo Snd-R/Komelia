@@ -1,5 +1,7 @@
 package io.github.snd_r.komelia.image
 
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -28,5 +30,9 @@ interface ReaderImage : AutoCloseable {
             return "${bookId}_$pageNumber"
         }
     }
+}
+val noopPainter = object : Painter() {
+    override val intrinsicSize: Size = Size.Zero
+    override fun DrawScope.onDraw() {}
 }
 

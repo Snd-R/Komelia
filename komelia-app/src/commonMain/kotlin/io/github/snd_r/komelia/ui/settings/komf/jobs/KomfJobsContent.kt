@@ -166,9 +166,9 @@ private fun JobCard(
             tooltip = { SeriesTooltip(series, loading) },
             modifier = Modifier
                 .clickable { series?.let { onSeriesClick(it) } }
+                .padding(10.dp)
                 .cursorForHand()
                 .width(200.dp)
-                .padding(10.dp)
         ) {
             Crossfade(
                 targetState = seriesTitle,

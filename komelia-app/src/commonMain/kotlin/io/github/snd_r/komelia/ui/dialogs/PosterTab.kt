@@ -42,17 +42,17 @@ import io.github.snd_r.komelia.ui.common.cards.ThumbnailUploadCard
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.ThumbnailToBeUploaded
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import snd.komga.client.book.KomgaBookThumbnail
-import snd.komga.client.collection.KomgaCollectionThumbnail
-import snd.komga.client.common.KomgaThumbnailId
-import snd.komga.client.readlist.KomgaReadListThumbnail
-import snd.komga.client.series.KomgaSeriesThumbnail
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PlatformFile
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBookThumbnail
+import snd.komga.client.collection.KomgaCollectionThumbnail
+import snd.komga.client.common.KomgaThumbnailId
+import snd.komga.client.readlist.KomgaReadListThumbnail
+import snd.komga.client.series.KomgaSeriesThumbnail
 import kotlin.math.roundToInt
 
 class PosterTab(private val state: PosterEditState) : DialogTab {
