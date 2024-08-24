@@ -51,6 +51,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.FileSystem
+import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import java.util.concurrent.TimeUnit
 import kotlin.time.measureTime
@@ -66,7 +67,8 @@ class AndroidDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,
     override val readerImageLoader: ReaderImageLoader,
     override val imageLoader: ImageLoader,
-    override val imageLoaderContext: PlatformContext
+    override val imageLoaderContext: PlatformContext,
+    override val komfClientFactory: KomfClientFactory,
 ) : DependencyContainer {
     override val appNotifications: AppNotifications = AppNotifications()
 
@@ -92,6 +94,7 @@ class AndroidDependencyContainer(
             val secretsRepository = AndroidSecretsRepository(datastore)
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(scope)
+            val komfUrl = settingsRepository.getKomfUrl().stateIn(scope)
 
             val okHttpWithoutCache = createOkHttpClient()
             val okHttpWithCache = okHttpWithoutCache.newBuilder()
@@ -121,6 +124,11 @@ class AndroidDependencyContainer(
             val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, context)
             SingletonImageLoader.setSafe { coil }
 
+            val komfClientFactory = KomfClientFactory.Builder()
+                .baseUrl { komfUrl.value }
+                .ktor(ktorWithCache)
+                .build()
+
             return AndroidDependencyContainer(
                 settingsRepository = settingsRepository,
                 readerSettingsRepository = readerSettingsRepository,
@@ -130,7 +138,8 @@ class AndroidDependencyContainer(
                 komgaClientFactory = komgaClientFactory,
                 imageLoader = coil,
                 imageLoaderContext = context,
-                readerImageLoader = readerImageLoader
+                readerImageLoader = readerImageLoader,
+                komfClientFactory = komfClientFactory,
             )
         }
 

@@ -9,8 +9,10 @@ import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.settings.AppearanceSettings.PBAppTheme
 import io.github.snd_r.komelia.settings.AppearanceSettings.PBBooksLayout
+import io.github.snd_r.komelia.settings.Komf.PBKomfMode
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
+import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -200,5 +202,43 @@ class AndroidSettingsRepository(
                 }
             }
         }
+    }
+
+    override fun getKomfEnabled(): Flow<Boolean> {
+        return dataStore.data.map { it.komf.enabled }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomfEnabled(enabled: Boolean) {
+        dataStore.updateData { current -> current.copy { komf = komf.copy { this.enabled = enabled } } }
+    }
+
+    override fun getKomfMode(): Flow<KomfMode> {
+        return dataStore.data.map {
+            when (it.komf.mode) {
+                PBKomfMode.REMOTE, PBKomfMode.UNRECOGNIZED, null -> KomfMode.REMOTE
+                PBKomfMode.EMBEDDED -> KomfMode.EMBEDDED
+            }
+        }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomfMode(mode: KomfMode) {
+        dataStore.updateData { current ->
+            current.copy {
+                komf = komf.copy {
+                    this.mode = when (mode) {
+                        KomfMode.REMOTE -> PBKomfMode.REMOTE
+                        KomfMode.EMBEDDED -> PBKomfMode.EMBEDDED
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getKomfUrl(): Flow<String> {
+        return dataStore.data.map { it.komf.remoteUrl.ifBlank { "http://localhost:8085" } }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomfUrl(url: String) {
+        dataStore.updateData { current -> current.copy { komf = komf.copy { this.remoteUrl = url } } }
     }
 }

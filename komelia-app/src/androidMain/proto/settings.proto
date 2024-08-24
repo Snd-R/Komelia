@@ -12,6 +12,7 @@ message AppSettings {
   AppearanceSettings appearance = 3;
   ReaderBaseSettings reader = 4;
   Updates updates = 5;
+  Komf komf = 6;
 }
 
 message ServerSettings{
@@ -93,4 +94,15 @@ message Updates{
   int64 lastUpdateCheckTimestamp = 2;
   optional string lastCheckedReleaseVersion = 3;
   optional string dismissedVersion = 4;
+}
+
+message Komf{
+  bool enabled = 1;
+  PBKomfMode mode = 2;
+  string remoteUrl = 3;
+
+  enum PBKomfMode{
+    REMOTE = 0;
+    EMBEDDED = 1;
+  }
 }
