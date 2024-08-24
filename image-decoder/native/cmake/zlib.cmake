@@ -2,7 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_zlib
         GIT_REPOSITORY https://github.com/zlib-ng/zlib-ng.git
-        GIT_TAG 2.1.6
+        GIT_TAG 2.2.1
         UPDATE_DISCONNECTED True
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=Release

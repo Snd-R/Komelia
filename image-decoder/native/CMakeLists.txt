@@ -23,6 +23,7 @@ set(CMAKE_FIND_ROOT_PATH ${THIRD_PARTY_LIB_PATH}/lib;${CMAKE_FIND_ROOT_PATH})
 set_directory_properties(PROPERTIES EP_PREFIX ${THIRD_PARTY_LIB_PATH})
 
 include("cmake/zlib.cmake")
+include("cmake/brotli.cmake")
 include("cmake/ffi.cmake")
 include("cmake/iconv.cmake")
 include("cmake/expat.cmake")

@@ -2,10 +2,15 @@ package io.github.snd_r.komelia.ui.reader.paged
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,13 +20,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
@@ -30,9 +36,16 @@ import io.github.snd_r.komelia.ui.reader.common.PagedReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.common.ReaderControlsOverlay
 import io.github.snd_r.komelia.ui.reader.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.common.SettingsMenu
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.Page
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookEnd
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookStart
 import kotlinx.coroutines.flow.SharedFlow
 import snd.komga.client.book.KomgaBook
 
@@ -78,10 +91,15 @@ fun BoxScope.PagedReaderContent(
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
     ) {
         ScalableContainer(scaleState = screenScaleState) {
-            ReaderPages(
-                pagedReaderState.currentSpread.collectAsState().value.pages,
-                readingDirection
-            )
+            val transitionPage = pagedReaderState.transitionPage.collectAsState().value
+            if (transitionPage != null) {
+                TransitionPage(transitionPage)
+            } else {
+                ReaderPages(
+                    currentPages = pagedReaderState.currentSpread.collectAsState().value.pages,
+                    readingDirection = readingDirection,
+                )
+            }
         }
     }
 
@@ -108,42 +126,47 @@ fun BoxScope.PagedReaderContent(
     )
 }
 
+
 @Composable
-fun ReaderPages(
-    currentPages: List<Page>,
-    readingDirection: PagedReaderState.ReadingDirection,
-) {
-    val pages = when (readingDirection) {
-        LEFT_TO_RIGHT -> currentPages
-        RIGHT_TO_LEFT -> currentPages.reversed()
-    }
+private fun TransitionPage(page: TransitionPage) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when (page) {
+            is BookEnd -> {
+                Column {
+                    Text("Finished:", style = MaterialTheme.typography.bodyMedium)
+                    Text(page.currentBook.metadata.title, style = MaterialTheme.typography.titleLarge)
+                }
+                Spacer(Modifier.size(50.dp))
 
-    Box(contentAlignment = Alignment.Center) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            pages.forEach { page ->
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.weight(1f, false)
-                ) {
-                    when (val result = page.imageResult) {
-                        is PagedReaderState.ImageResult.Success -> {
-                            val painter = result.image.painter.collectAsState().value
-                            val error = result.image.error.collectAsState().value
-                            ImageDisplay(painter, error)
-                        }
-
-                        is PagedReaderState.ImageResult.Error -> Text(
-                            "${result.throwable::class.simpleName}: ${result.throwable.message}",
-                            color = MaterialTheme.colorScheme.error
-                        )
-
-                        null -> Box(
-                            modifier = Modifier.fillMaxSize().background(Color.White),
-                            contentAlignment = Alignment.TopCenter,
-                            content = { CircularProgressIndicator(color = Color.Black) }
-                        )
-
+                if (page.nextBook != null) {
+                    Column {
+                        Text("Next:", style = MaterialTheme.typography.bodyMedium)
+                        Text(page.nextBook.metadata.title, style = MaterialTheme.typography.titleLarge)
                     }
+                } else {
+                    Text("There's no next book")
+                }
+
+            }
+
+            is BookStart -> {
+                if (page.previousBook != null) {
+                    Column {
+                        Text("Previous:", style = MaterialTheme.typography.bodyMedium)
+                        Text(page.previousBook.metadata.title, style = MaterialTheme.typography.titleLarge)
+                    }
+                } else {
+                    Text("There's no previous book")
+
+                }
+                Spacer(Modifier.size(50.dp))
+                Column {
+                    Text("Current:", style = MaterialTheme.typography.bodyMedium)
+                    Text(page.currentBook.metadata.title, style = MaterialTheme.typography.titleLarge)
                 }
 
             }
@@ -152,20 +175,76 @@ fun ReaderPages(
 }
 
 @Composable
-private fun ImageDisplay(painter: Painter, error: Exception?) {
-    if (error != null) {
-        Text(
-            "${error::class.simpleName}: ${error.message}",
+fun ReaderPages(
+    currentPages: List<Page>,
+    readingDirection: ReadingDirection,
+) {
+    Layout(content = {
+        when (currentPages.size) {
+            0 -> {}
+            1 -> PageContent(currentPages[0].imageResult)
+            2 -> {
+                PageContent(currentPages[0].imageResult)
+                PageContent(currentPages[1].imageResult)
+            }
+
+            else -> error("can't display more than 2 images")
+        }
+    }) { measurables, constraints ->
+        val measured = measurables
+            .map { it.measure(constraints.copy(maxWidth = constraints.maxWidth / measurables.size)) }
+            .let {
+                when (readingDirection) {
+                    LEFT_TO_RIGHT -> it
+                    RIGHT_TO_LEFT -> it.reversed()
+                }
+            }
+
+        val totalWidth = measured.fold(0) { acc, placeable -> acc + placeable.width }
+        val startPadding = (constraints.maxWidth - totalWidth) / 2
+
+        var widthTaken = startPadding
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            measured.forEach {
+                it.placeRelative(widthTaken, 0)
+                widthTaken += it.width
+            }
+        }
+    }
+}
+
+@Composable
+private fun PageContent(imageResult: ImageResult?) {
+    when (imageResult) {
+        is Success -> {
+            val painter = imageResult.image.painter.collectAsState().value
+            val error = imageResult.image.error.collectAsState().value
+
+            if (error != null) {
+                Text(
+                    "${error::class.simpleName}: ${error.message}",
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                Image(
+                    modifier = Modifier.background(Color.White),
+                    painter = painter,
+                    contentDescription = null,
+                )
+            }
+        }
+
+        is Error -> Text(
+            "${imageResult.throwable::class.simpleName}: ${imageResult.throwable.message}",
             color = MaterialTheme.colorScheme.error
         )
-    } else {
-        Image(
-            modifier = Modifier.background(Color.White),
-            painter = painter,
-            contentDescription = null,
+
+        null -> Box(
+            modifier = Modifier.widthIn(min = 200.dp).fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+            content = { CircularProgressIndicator() }
         )
     }
-
 }
 
 private suspend fun registerPagedReaderKeyboardEvents(

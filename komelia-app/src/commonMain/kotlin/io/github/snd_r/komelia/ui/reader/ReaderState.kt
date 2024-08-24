@@ -134,6 +134,7 @@ class ReaderState(
             }
             val nextBookPages = if (nextBook != null) loadBookPages(nextBook.id) else emptyList()
 
+            readProgressPage.value = 1
             this.booksState.value = BookState(
                 currentBook = booksState.nextBook,
                 currentBookPages = booksState.nextBookPages,
@@ -143,12 +144,6 @@ class ReaderState(
                 nextBook = nextBook,
                 nextBookPages = nextBookPages
             )
-
-            val bookProgress = booksState.nextBook.readProgress
-            readProgressPage.value = when {
-                bookProgress == null || bookProgress.completed -> 1
-                else -> bookProgress.page
-            }
         } else {
             navigator replace MainScreen(SeriesScreen(booksState.currentBook.seriesId))
         }
@@ -165,6 +160,7 @@ class ReaderState(
             }
             val previousBookPages = if (previousBook != null) loadBookPages(previousBook.id) else emptyList()
 
+            readProgressPage.value = booksState.previousBookPages.size
             this.booksState.value = BookState(
                 currentBook = booksState.previousBook,
                 currentBookPages = booksState.previousBookPages,
@@ -174,11 +170,6 @@ class ReaderState(
                 previousBook = previousBook,
                 previousBookPages = previousBookPages,
             )
-            val bookProgress = booksState.previousBook.readProgress
-            readProgressPage.value = when {
-                bookProgress == null || bookProgress.completed -> 1
-                else -> bookProgress.page
-            }
         } else
             appNotifications.add(AppNotification.Normal("You're at the beginning of the book"))
         return

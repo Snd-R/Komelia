@@ -8,10 +8,11 @@ import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.SCREEN
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
@@ -65,7 +66,7 @@ data class ReaderBaseSettings(
 
 @Serializable
 data class PagedReaderSettings(
-    val scaleType: LayoutScaleType = LayoutScaleType.SCREEN,
+    val scaleType: LayoutScaleType = SCREEN,
     val stretchToFit: Boolean = true,
     val readingDirection: PagedReaderState.ReadingDirection = PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
     val pageLayout: PageDisplayLayout = SINGLE_PAGE

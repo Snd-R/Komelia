@@ -22,18 +22,19 @@ import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.SpreadIndex
 import io.github.snd_r.komelia.ui.reader.getDisplaySizeFor
-import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.DOUBLE_PAGES
-import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookEnd
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookStart
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
@@ -47,6 +48,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import snd.komga.client.book.KomgaBook
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -62,8 +64,6 @@ class PagedReaderState(
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private var bookSwitchConfirmed = false
-    private val bookSwitchNotificationJobs = mutableMapOf<AppNotification, Job>()
     private val imageCache = Cache.Builder<ImageCacheKey, Deferred<Page>>()
         .maximumCacheSize(10)
         .eventListener {
@@ -79,8 +79,9 @@ class PagedReaderState(
         .build()
 
     val pageSpreads = MutableStateFlow<List<List<PageMetadata>>>(emptyList())
-    val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
     val currentSpreadIndex = MutableStateFlow(0)
+    val currentSpread: MutableStateFlow<PageSpread> = MutableStateFlow(PageSpread(emptyList()))
+    val transitionPage: MutableStateFlow<TransitionPage?> = MutableStateFlow(null)
 
     val layout = MutableStateFlow(SINGLE_PAGE)
     val layoutOffset = MutableStateFlow(false)
@@ -212,76 +213,70 @@ class PagedReaderState(
         val pageSpreads = buildSpreadMap(bookState.currentBookPages, layout.value)
         this.pageSpreads.value = pageSpreads
 
-        val lastReadSpreadIndex = pageSpreads.indexOfFirst { spread ->
+        val newSpreadIndex = pageSpreads.indexOfFirst { spread ->
             spread.any { it.pageNumber == readerState.readProgressPage.value }
         }
 
         currentSpread.value = PageSpread(
-            pages = pageSpreads[lastReadSpreadIndex].map { Page(it, null) },
+            pages = pageSpreads[newSpreadIndex].map { Page(it, null) },
         )
-        currentSpreadIndex.value = lastReadSpreadIndex
+        currentSpreadIndex.value = newSpreadIndex
 
-        loadPage(lastReadSpreadIndex)
+        loadPage(newSpreadIndex)
     }
 
     fun nextPage() {
         val currentSpreadIndex = currentSpreadIndex.value
+        val currentTransitionPage = transitionPage.value
         when {
-            currentSpreadIndex != pageSpreads.value.size - 1 -> onPageChange(currentSpreadIndex + 1)
-
-            !bookSwitchConfirmed -> {
-                val notification = if (readerState.booksState.value?.nextBook == null) {
-                    AppNotification.Normal("You've reached the end of the book\nClick or press \"Next\" again to exit the reader")
-                } else {
-                    AppNotification.Normal("You've reached the end of the book\nClick or press next to move to the next book")
-                }
-
-                launchBookSwitchNotification(notification)
+            currentSpreadIndex < pageSpreads.value.size - 1 -> {
+                if (currentTransitionPage != null) this.transitionPage.value = null
+                else onPageChange(currentSpreadIndex + 1)
             }
 
-            else -> {
-                bookSwitchNotificationJobs.forEach { (notification, job) ->
-                    job.cancel()
-                    appNotifications.remove(notification.id)
-                    bookSwitchConfirmed = false
-
-                }
-                stateScope.launch { readerState.loadNextBook() }
-
+            currentTransitionPage == null -> {
+                val bookState = readerState.booksState.value ?: return
+                this.transitionPage.value = BookEnd(
+                    currentBook = bookState.currentBook,
+                    nextBook = bookState.nextBook
+                )
             }
 
+            currentTransitionPage is BookEnd && currentTransitionPage.nextBook != null -> {
+                stateScope.launch {
+                    currentSpread.value = PageSpread(emptyList())
+                    transitionPage.value = null
+                    readerState.loadNextBook()
+                }
+            }
         }
-
     }
 
     fun previousPage() {
         val currentSpreadIndex = currentSpreadIndex.value
+        val currentTransitionPage = transitionPage.value
         when {
-            currentSpreadIndex != 0 -> onPageChange(currentSpreadIndex - 1)
-            readerState.booksState.value?.previousBook == null -> appNotifications.add(AppNotification.Normal("You're at the beginning of the book"))
-            !bookSwitchConfirmed -> launchBookSwitchNotification(
-                AppNotification.Normal("You're at the beginning of the book\nClick or press \"Previous\" again to move to the previous book")
-            )
+            currentSpreadIndex != 0 -> {
+                if (currentTransitionPage != null) this.transitionPage.value = null
+                else onPageChange(currentSpreadIndex - 1)
 
-            else -> {
-                bookSwitchNotificationJobs.forEach { (notification, job) ->
-                    job.cancel()
-                    appNotifications.remove(notification.id)
-                    bookSwitchConfirmed = false
-
-                }
-                stateScope.launch { readerState.loadPreviousBook() }
             }
-        }
-    }
 
-    private fun launchBookSwitchNotification(notification: AppNotification) {
-        appNotifications.add(notification)
-        bookSwitchConfirmed = true
-        bookSwitchNotificationJobs[notification] = stateScope.launch {
-            delay(3000)
-            bookSwitchConfirmed = false
-            appNotifications.remove(notification.id)
+            currentTransitionPage == null -> {
+                val bookState = readerState.booksState.value ?: return
+                this.transitionPage.value = BookStart(
+                    currentBook = bookState.currentBook,
+                    previousBook = bookState.previousBook
+                )
+            }
+
+            currentTransitionPage is BookStart && currentTransitionPage.previousBook != null -> {
+                stateScope.launch {
+                    currentSpread.value = PageSpread(emptyList())
+                    transitionPage.value = null
+                    readerState.loadPreviousBook()
+                }
+            }
         }
     }
 
@@ -412,7 +407,6 @@ class PagedReaderState(
     private fun buildSpreadMap(pages: List<PageMetadata>, layout: PageDisplayLayout): List<List<PageMetadata>> {
         return when (layout) {
             SINGLE_PAGE -> pages.map { listOf(it) }
-
             DOUBLE_PAGES -> buildSpreadMapForDoublePages(pages, layoutOffset.value)
         }
     }
@@ -507,6 +501,104 @@ class PagedReaderState(
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
     }
 
+    private fun calculateScreenScale(
+        pages: List<Page>,
+        areaSize: IntSize,
+        maxPageSize: IntSize,
+        scaleType: LayoutScaleType,
+        stretchToFit: Boolean,
+    ): ScreenScaleState {
+        val scaleState = ScreenScaleState()
+        scaleState.setAreaSize(areaSize)
+        val fitToScreenSize = pages
+            .map {
+                when (it.imageResult) {
+                    is Error, null -> maxPageSize
+                    is Success -> it.imageResult.image.getDisplaySizeFor(maxPageSize)
+                }
+            }
+            .reduce { total, current ->
+                IntSize(
+                    width = (total.width + current.width),
+                    height = max(total.height, current.height)
+                )
+            }
+        scaleState.setTargetSize(fitToScreenSize.toSize())
+
+        val actualSpreadSize = pages.map {
+            when (val result = it.imageResult) {
+                is Error, null -> maxPageSize
+                is Success -> IntSize(result.image.width, result.image.height)
+            }
+        }.fold(IntSize.Zero) { total, current ->
+            IntSize(
+                (total.width + current.width),
+                max(total.height, current.height)
+            )
+        }
+
+        when (scaleType) {
+            LayoutScaleType.SCREEN -> scaleState.setZoom(0f)
+            LayoutScaleType.FIT_WIDTH -> {
+                if (!stretchToFit && areaSize.width > actualSpreadSize.width) {
+                    val newZoom = zoomForOriginalSize(
+                        actualSpreadSize,
+                        fitToScreenSize,
+                        scaleState.scaleFor100PercentZoom()
+                    )
+                    scaleState.setZoom(newZoom.coerceAtMost(1.0f))
+                } else if (fitToScreenSize.width < areaSize.width) scaleState.setZoom(1f)
+                else scaleState.setZoom(0f)
+            }
+
+            LayoutScaleType.FIT_HEIGHT -> {
+                if (!stretchToFit && areaSize.height > actualSpreadSize.height) {
+                    val newZoom = zoomForOriginalSize(
+                        actualSpreadSize,
+                        fitToScreenSize,
+                        scaleState.scaleFor100PercentZoom()
+                    )
+                    scaleState.setZoom(newZoom.coerceAtMost(1.0f))
+
+                } else if (fitToScreenSize.height < areaSize.height) scaleState.setZoom(1f)
+                else scaleState.setZoom(0f)
+            }
+
+            LayoutScaleType.ORIGINAL -> {
+                if (actualSpreadSize.width > areaSize.width || actualSpreadSize.height > areaSize.height) {
+                    val newZoom = zoomForOriginalSize(
+                        actualSpreadSize,
+                        fitToScreenSize,
+                        scaleState.scaleFor100PercentZoom()
+                    )
+                    scaleState.setZoom(newZoom)
+
+                } else scaleState.setZoom(0f)
+            }
+        }
+
+        return scaleState
+    }
+
+    private fun zoomForOriginalSize(originalSize: IntSize, targetSize: IntSize, scaleFor100Percent: Float): Float {
+        return max(
+            originalSize.width.toFloat() / targetSize.width,
+            originalSize.height.toFloat() / targetSize.height
+        ) / scaleFor100Percent
+    }
+
+    enum class PageDisplayLayout {
+        SINGLE_PAGE,
+        DOUBLE_PAGES,
+    }
+
+    enum class LayoutScaleType {
+        SCREEN,
+        FIT_WIDTH,
+        FIT_HEIGHT,
+        ORIGINAL
+    }
+
     enum class ReadingDirection {
         LEFT_TO_RIGHT,
         RIGHT_TO_LEFT
@@ -519,191 +611,25 @@ class PagedReaderState(
         val imageResult: ImageResult?,
     )
 
-    data class SpreadImageLoadJob(
-        val pages: List<Page>,
-        val scale: ScreenScaleState,
-    )
-
     sealed interface ImageResult {
         val image: ReaderImage?
 
-        data class Success(
-            override val image: ReaderImage,
-        ) : ImageResult
-
-        data class Error(
-            val throwable: Throwable,
-        ) : ImageResult {
-
+        data class Success(override val image: ReaderImage) : ImageResult
+        data class Error(val throwable: Throwable) : ImageResult {
             override val image: ReaderImage? = null
         }
-
     }
 
-}
+    sealed interface TransitionPage {
+        data class BookEnd(
+            val currentBook: KomgaBook,
+            val nextBook: KomgaBook?,
+        ) : TransitionPage
 
-//        return if (offset) {
-//            val spreads: MutableList<List<PageMetadata>> = ArrayList()
-//
-//            // if contains landscape pages - offset every chunk between them
-//            val landscapeTerminatedChunks = mutableListOf<List<PageMetadata>>()
-//            var currentChunk = mutableListOf<PageMetadata>()
-//            for (page in pages) {
-//                if (page.isLandscape()) {
-//                    currentChunk.add(page)
-//                    landscapeTerminatedChunks.add(currentChunk)
-//                    currentChunk = mutableListOf()
-//                } else {
-//                    currentChunk.add(page)
-//                }
-//            }
-//
-//            for (chunk in landscapeTerminatedChunks) {
-//                spreads.add(listOf(chunk.first()))
-//                spreads.addAll(buildDoubleSpreadMap(chunk.drop(1)))
-////                spreads.add(listOf(chunk.last()))
-//            }
-//            spreads
-//
-//        } else {
-//            buildDoubleSpreadMap(pages)
-//        }
-
-
-//    private fun buildDoubleSpreadMap(pages: List<PageMetadata>): List<List<PageMetadata>> {
-//        val spreads: MutableList<List<PageMetadata>> = ArrayList()
-//        var currentSpread = emptyList<PageMetadata>()
-//        for (page in pages) {
-//
-//            if (page.isLandscape()) {
-//                if (currentSpread.isNotEmpty()) {
-//                    spreads.add(currentSpread)
-//                }
-//                spreads.add(listOf(page))
-//                currentSpread = emptyList()
-//                continue
-//            }
-//
-//            when (currentSpread.size) {
-//                0 -> currentSpread = listOf(page)
-//                1 -> currentSpread = currentSpread + page
-//                2 -> {
-//                    spreads.add(currentSpread)
-//                    currentSpread = emptyList()
-//                }
-//
-//                else -> throw IllegalStateException("Should not be reachable")
-//            }
-//        }
-//
-//        if (currentSpread.isNotEmpty()) {
-//            spreads.add(currentSpread)
-//        }
-//
-//        return spreads
-//    }
-
-data class ImageLoadParams(
-    val zoomScaleFactor: Float,
-    val displayScaleFactor: Float,
-    val targetSize: IntSize
-)
-
-private fun calculateScreenScale(
-    pages: List<PagedReaderState.Page>,
-    areaSize: IntSize,
-    maxPageSize: IntSize,
-    scaleType: LayoutScaleType,
-    stretchToFit: Boolean,
-): ScreenScaleState {
-    val scaleState = ScreenScaleState()
-    scaleState.setAreaSize(areaSize)
-    val fitToScreenSize = pages
-        .map {
-            when (it.imageResult) {
-                is Error, null -> maxPageSize
-                is Success -> it.imageResult.image.getDisplaySizeFor(maxPageSize)
-            }
-        }
-        .reduce { total, current ->
-            IntSize(
-                width = (total.width + current.width),
-                height = max(total.height, current.height)
-            )
-        }
-    scaleState.setTargetSize(fitToScreenSize.toSize())
-
-    val actualSpreadSize = pages.map {
-        when (val result = it.imageResult) {
-            is Error, null -> maxPageSize
-            is Success -> IntSize(result.image.width, result.image.height)
-        }
-    }.fold(IntSize.Zero) { total, current ->
-        IntSize(
-            (total.width + current.width),
-            max(total.height, current.height)
-        )
+        data class BookStart(
+            val currentBook: KomgaBook,
+            val previousBook: KomgaBook?,
+        ) : TransitionPage
     }
-
-    when (scaleType) {
-        LayoutScaleType.SCREEN -> scaleState.setZoom(0f)
-        LayoutScaleType.FIT_WIDTH -> {
-            if (!stretchToFit && areaSize.width > actualSpreadSize.width) {
-                val newZoom = zoomForOriginalSize(
-                    actualSpreadSize,
-                    fitToScreenSize,
-                    scaleState.scaleFor100PercentZoom()
-                )
-                scaleState.setZoom(newZoom.coerceAtMost(1.0f))
-            } else if (fitToScreenSize.width < areaSize.width) scaleState.setZoom(1f)
-            else scaleState.setZoom(0f)
-        }
-
-        LayoutScaleType.FIT_HEIGHT -> {
-            if (!stretchToFit && areaSize.height > actualSpreadSize.height) {
-                val newZoom = zoomForOriginalSize(
-                    actualSpreadSize,
-                    fitToScreenSize,
-                    scaleState.scaleFor100PercentZoom()
-                )
-                scaleState.setZoom(newZoom.coerceAtMost(1.0f))
-
-            } else if (fitToScreenSize.height < areaSize.height) scaleState.setZoom(1f)
-            else scaleState.setZoom(0f)
-        }
-
-        LayoutScaleType.ORIGINAL -> {
-            if (actualSpreadSize.width > areaSize.width || actualSpreadSize.height > areaSize.height) {
-                val newZoom = zoomForOriginalSize(
-                    actualSpreadSize,
-                    fitToScreenSize,
-                    scaleState.scaleFor100PercentZoom()
-                )
-                scaleState.setZoom(newZoom)
-
-            } else scaleState.setZoom(0f)
-        }
-    }
-
-    return scaleState
-}
-
-private fun zoomForOriginalSize(originalSize: IntSize, targetSize: IntSize, scaleFor100Percent: Float): Float {
-    return max(
-        originalSize.width.toFloat() / targetSize.width,
-        originalSize.height.toFloat() / targetSize.height
-    ) / scaleFor100Percent
-}
-
-enum class PageDisplayLayout {
-    SINGLE_PAGE,
-    DOUBLE_PAGES,
-}
-
-enum class LayoutScaleType {
-    SCREEN,
-    FIT_WIDTH,
-    FIT_HEIGHT,
-    ORIGINAL
 }
 

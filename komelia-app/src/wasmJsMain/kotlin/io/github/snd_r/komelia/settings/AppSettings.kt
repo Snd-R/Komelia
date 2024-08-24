@@ -3,9 +3,9 @@ package io.github.snd_r.komelia.settings
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import kotlinx.browser.localStorage

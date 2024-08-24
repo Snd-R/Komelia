@@ -18,6 +18,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -59,7 +60,7 @@ abstract class TilingReaderImage(
     protected val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
 
     init {
-        jobFlow.conflate()
+        jobFlow.distinctUntilChanged().conflate()
             .onEach { request ->
                 this.error.value = null
                 try {
@@ -90,9 +91,6 @@ abstract class TilingReaderImage(
 
     private suspend fun doUpdate(request: UpdateRequest) {
         lastUpdateRequest = request
-        if (painter.value == noopPainter) {
-            painter.value = createPlaceholderPainter(request.displaySize)
-        }
 
         val displaySize = request.displaySize
         val zoomFactor = request.zoomFactor
@@ -105,6 +103,10 @@ abstract class TilingReaderImage(
 
         val dstWidth = displaySize.width * zoomFactor
         val dstHeight = displaySize.height * zoomFactor
+
+        if (painter.value == noopPainter) {
+            painter.value = createPlaceholderPainter(IntSize(dstWidth.roundToInt(), dstHeight.roundToInt()))
+        }
         val displayPixCount = (dstWidth * dstHeight).roundToInt()
         val tileSize = when (displayPixCount) {
             in 0..tileThreshold1 -> null

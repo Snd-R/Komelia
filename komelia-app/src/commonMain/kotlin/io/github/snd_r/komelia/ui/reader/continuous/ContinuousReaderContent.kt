@@ -294,13 +294,13 @@ private fun LazyListScope.continuousPagesLayout(
                     pageIntervals.getOrNull(index - 1)?.let { previous ->
                         Column {
                             Text("Previous:", style = MaterialTheme.typography.bodyMedium)
-                            Text(previous.book.name, style = MaterialTheme.typography.titleLarge)
+                            Text(previous.book.metadata.title, style = MaterialTheme.typography.titleLarge)
                         }
                     }
                     Spacer(Modifier.size(50.dp))
                     Column {
                         Text("Current:", style = MaterialTheme.typography.bodyMedium)
-                        Text(interval.book.name, style = MaterialTheme.typography.titleLarge)
+                        Text(interval.book.metadata.title, style = MaterialTheme.typography.titleLarge)
                     }
                 }
             }

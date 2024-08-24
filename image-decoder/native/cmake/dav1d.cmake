@@ -6,7 +6,7 @@ endif()
 
 ExternalProject_Add(ep_dav1d
 GIT_REPOSITORY https://code.videolan.org/videolan/dav1d.git
-        GIT_TAG 1.4.2
+        GIT_TAG 1.4.3
         DEPENDS ep_zlib
         CONFIGURE_COMMAND
             ${Meson_EXECUTABLE} setup ${MESON_CROSS_FILE_ARG} --prefix=<INSTALL_DIR> --libdir=lib <BINARY_DIR> <SOURCE_DIR>

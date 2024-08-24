@@ -3,7 +3,7 @@ include(ExternalProject)
 ExternalProject_Add(ep_jxl
     GIT_REPOSITORY      https://github.com/libjxl/libjxl
     GIT_TAG             v0.10.3
-    DEPENDS ep_highway
+    DEPENDS ep_highway ep_brotli
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/fakeroot
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -16,6 +16,7 @@ ExternalProject_Add(ep_jxl
         #-DJPEGXL_ENABLE_JPEGLI_LIBJPEG=true
         #-DJPEGXL_INSTALL_JPEGLI_LIBJPEG=true
         #-DJPEGXL_FORCE_SYSTEM_HWY=true
+        -DJPEGXL_FORCE_SYSTEM_BROTLI=true
         -DJPEGXL_ENABLE_OPENEXR=false
         -DJPEGXL_ENABLE_TOOLS=false
         -DJPEGXL_BUNDLE_LIBPNG=false

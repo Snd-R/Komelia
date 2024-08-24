@@ -19,6 +19,8 @@ import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
 
 @Composable
 fun ColumnScope.PagedReaderSettingsContent(

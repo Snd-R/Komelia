@@ -7,7 +7,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
-import coil3.network.ktor.KtorNetworkFetcherFactory
+import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.AndroidSharedLibrariesLoader
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore

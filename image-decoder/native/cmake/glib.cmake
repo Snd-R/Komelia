@@ -5,8 +5,8 @@ if (MESON_CROSS_FILE)
 endif()
 
 ExternalProject_Add(ep_glib
-        URL https://download.gnome.org/sources/glib/2.80/glib-2.80.2.tar.xz
-        URL_HASH SHA256=b9cfb6f7a5bd5b31238fd5d56df226b2dda5ea37611475bf89f6a0f9400fe8bd
+        URL https://download.gnome.org/sources/glib/2.81/glib-2.81.2.tar.xz
+        URL_HASH SHA256=ce84b241b84750a3d42c78c456976fac57f2d2726a110f2ba059c052a4349d1c
         DEPENDS ep_zlib ep_ffi ep_iconv
         CONFIGURE_COMMAND
             ${Meson_EXECUTABLE} setup  ${MESON_CROSS_FILE_ARG} --prefix=<INSTALL_DIR> --libdir=lib
