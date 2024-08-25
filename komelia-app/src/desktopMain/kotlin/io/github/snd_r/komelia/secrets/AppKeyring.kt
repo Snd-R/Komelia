@@ -9,7 +9,8 @@ class AppKeyring {
 
     private val backend = when {
         DesktopPlatform.Current == Linux ->
-            runCatching { LinuxSecretService() }.getOrNull() ?: KeyringBackendFactory.create()
+            runCatching { LinuxSecretService() }.onFailure { it.printStackTrace() }
+                .getOrNull() ?: KeyringBackendFactory.create()
 
         else -> KeyringBackendFactory.create()
     }
