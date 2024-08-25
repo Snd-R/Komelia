@@ -10,6 +10,11 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -52,10 +57,21 @@ class KomfSettingsViewModel(
     var notificationsLibraryFilters by mutableStateOf(emptyList<KomgaLibraryId>())
         private set
 
+    private val configListenerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     suspend fun initialize() {
         komfEnabled = settingsRepository.getKomfEnabled().first()
         komfMode = settingsRepository.getKomfMode().first()
         komfUrl = settingsRepository.getKomfUrl().first()
+        if (komfEnabled) {
+            loadConfig()
+        } else {
+            mutableState.value = LoadState.Success(Unit)
+        }
+    }
+
+    private suspend fun loadConfig() {
+        configListenerScope.coroutineContext.cancelChildren()
 
         appNotifications.runCatchingToNotifications { komfConfig.getConfig() }
             .onFailure {
@@ -64,14 +80,15 @@ class KomfSettingsViewModel(
             }.onSuccess { config ->
                 komfConnectionError = null
                 mutableState.value = LoadState.Success(Unit)
-                config.onEach { initFields(it) }.launchIn(screenModelScope)
+                config.onEach { initFields(it) }.launchIn(configListenerScope)
             }
 
         komfConfig.errorFlow
             .onEach {
                 komfConnectionError = if (it == null) null
                 else "${it::class.simpleName}: ${it.message}"
-            }.launchIn(screenModelScope)
+            }.launchIn(configListenerScope)
+
     }
 
     private fun initFields(config: KomfConfig) {
@@ -82,8 +99,11 @@ class KomfSettingsViewModel(
         notificationsLibraryFilters = config.komga.eventListener.notificationsLibraryFilter.map { KomgaLibraryId(it) }
     }
 
-    fun onKomfEnabledChange(enabled: Boolean) {
+    suspend fun onKomfEnabledChange(enabled: Boolean) {
         this.komfEnabled = enabled
+
+        if (enabled) loadConfig()
+        else configListenerScope.coroutineContext.cancelChildren()
         screenModelScope.launch { settingsRepository.putKomfEnabled(enabled) }
     }
 
@@ -157,5 +177,9 @@ class KomfSettingsViewModel(
         else mutable.add(value)
 
         return mutable
+    }
+
+    override fun onDispose() {
+        configListenerScope.cancel()
     }
 }

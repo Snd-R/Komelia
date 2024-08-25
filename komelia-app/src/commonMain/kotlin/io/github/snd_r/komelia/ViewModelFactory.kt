@@ -409,7 +409,8 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
             secretsRepository = secretsRepository,
             currentServerUrl = settingsRepository.getServerUrl(),
             bookClient = komgaClientFactory.bookClient(),
-            latestVersion = settingsRepository.getLastCheckedReleaseVersion()
+            latestVersion = settingsRepository.getLastCheckedReleaseVersion(),
+            komfEnabled = settingsRepository.getKomfEnabled()
         )
     }
 

@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.settings.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ import io.github.snd_r.komelia.ui.settings.users.UsersScreen
 @Composable
 fun SettingsNavigationMenu(
     hasMediaErrors: Boolean,
+    komfEnabled: Boolean,
     newVersionIsAvailable: Boolean,
     currentScreen: Screen,
     onNavigation: (Screen) -> Unit = {},
@@ -144,35 +146,39 @@ fun SettingsNavigationMenu(
         HorizontalDivider(Modifier.padding(vertical = 10.dp))
         Text("Komf Settings", style = MaterialTheme.typography.titleSmall)
         NavigationButton(
-            label = "General",
+            label = "Connection",
             onClick = { onNavigation(KomfSettingsScreen()) },
             isSelected = currentScreen is KomfSettingsScreen,
             color = contentColor,
         )
-        NavigationButton(
-            label = "Processing",
-            onClick = { onNavigation(KomfProcessingSettingsScreen()) },
-            isSelected = currentScreen is KomfProcessingSettingsScreen,
-            color = contentColor,
-        )
-        NavigationButton(
-            label = "Providers",
-            onClick = { onNavigation(KomfProvidersSettingsScreen()) },
-            isSelected = currentScreen is KomfProvidersSettingsScreen,
-            color = contentColor,
-        )
-        NavigationButton(
-            label = "Notifications",
-            onClick = { onNavigation(KomfNotificationSettingsScreen()) },
-            isSelected = currentScreen is KomfNotificationSettingsScreen,
-            color = contentColor,
-        )
-        NavigationButton(
-            label = "Job History",
-            onClick = { onNavigation(KomfJobsScreen()) },
-            isSelected = currentScreen is KomfJobsScreen,
-            color = contentColor,
-        )
+        AnimatedVisibility(komfEnabled) {
+            Column {
+                NavigationButton(
+                    label = "Processing",
+                    onClick = { onNavigation(KomfProcessingSettingsScreen()) },
+                    isSelected = currentScreen is KomfProcessingSettingsScreen,
+                    color = contentColor,
+                )
+                NavigationButton(
+                    label = "Providers",
+                    onClick = { onNavigation(KomfProvidersSettingsScreen()) },
+                    isSelected = currentScreen is KomfProvidersSettingsScreen,
+                    color = contentColor,
+                )
+                NavigationButton(
+                    label = "Notifications",
+                    onClick = { onNavigation(KomfNotificationSettingsScreen()) },
+                    isSelected = currentScreen is KomfNotificationSettingsScreen,
+                    color = contentColor,
+                )
+                NavigationButton(
+                    label = "Job History",
+                    onClick = { onNavigation(KomfJobsScreen()) },
+                    isSelected = currentScreen is KomfJobsScreen,
+                    color = contentColor,
+                )
+            }
+        }
 
         HorizontalDivider(Modifier.padding(vertical = 10.dp))
 

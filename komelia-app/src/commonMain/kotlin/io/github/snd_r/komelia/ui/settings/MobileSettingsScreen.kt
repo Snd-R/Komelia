@@ -14,6 +14,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -56,6 +57,7 @@ class MobileSettingsScreen : Screen {
                     currentScreen = currentNavigator.lastItem,
                     onNavigation = { currentNavigator.push(it) },
                     hasMediaErrors = vm.hasMediaErrors,
+                    komfEnabled = vm.komfEnabledFlow.collectAsState().value,
                     newVersionIsAvailable = vm.newVersionIsAvailable,
                     onLogout = vm::logout,
                     contentColor = MaterialTheme.colorScheme.surface

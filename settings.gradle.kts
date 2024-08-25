@@ -48,4 +48,5 @@ includeBuild("third_party/compose-sonner") {
 }
 includeBuild("third_party/ChipTextField") {
     dependencySubstitution { substitute(module("io.github.dokar3:chiptextfield-m3")).using(project(":chiptextfield-m3")) }
+    dependencySubstitution { substitute(module("io.github.dokar3:chiptextfield-core")).using(project(":chiptextfield-core")) }
 }

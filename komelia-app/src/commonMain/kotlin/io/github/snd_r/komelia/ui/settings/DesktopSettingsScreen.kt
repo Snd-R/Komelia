@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -70,6 +71,7 @@ class SettingsScreen : Screen {
                                 currentScreen = navigator.lastItem,
                                 onNavigation = { navigator.replaceAll(it) },
                                 hasMediaErrors = vm.hasMediaErrors,
+                                komfEnabled = vm.komfEnabledFlow.collectAsState().value,
                                 newVersionIsAvailable = vm.newVersionIsAvailable,
                                 onLogout = vm::logout,
                                 contentColor = MaterialTheme.colorScheme.surfaceVariant,

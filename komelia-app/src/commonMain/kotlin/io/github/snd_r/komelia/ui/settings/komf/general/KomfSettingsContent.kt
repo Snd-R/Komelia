@@ -19,9 +19,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.DropdownMultiChoiceMenu
@@ -31,13 +36,15 @@ import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.ui.settings.komf.SavableHttpTextField
 import io.github.snd_r.komelia.ui.settings.komf.SavableTextField
+import kotlinx.coroutines.launch
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun KomfSettingsContent(
-    komfEnabled: StateHolder<Boolean>,
+    komfEnabled: Boolean,
+    onKomfEnabledChange: suspend (Boolean) -> Unit,
     komfMode: StateHolder<KomfMode>,
     komfUrl: StateHolder<String>,
     komfConnectionError: String?,
@@ -50,14 +57,22 @@ fun KomfSettingsContent(
     onMetadataLibraryFilterSelect: (KomgaLibraryId) -> Unit,
     notificationsFilter: List<KomgaLibraryId>,
     onNotificationsLibraryFilterSelect: (KomgaLibraryId) -> Unit,
-    libraries: List<KomgaLibrary>
+    libraries: List<KomgaLibrary>,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        val uriHandler = LocalUriHandler.current
+        val coroutineScope = rememberCoroutineScope()
+        var komfEnabledConfirmed by remember { mutableStateOf(komfEnabled) }
         SwitchWithLabel(
-            checked = komfEnabled.value,
-            onCheckedChange = { komfEnabled.setValue(it) },
+            checked = komfEnabled,
+            onCheckedChange = {
+                coroutineScope.launch {
+                    onKomfEnabledChange(it)
+                    komfEnabledConfirmed = true
+                }
+            },
             label = { Text("Enable Komf Integration") },
             supportingText = {
                 FlowRow(
@@ -67,7 +82,7 @@ fun KomfSettingsContent(
                     Text("Adds features aimed at metadata updates and editing")
                     Spacer(Modifier.weight(1f))
                     ElevatedButton(
-                        onClick = {},
+                        onClick = { uriHandler.openUri("https://github.com/Snd-R/komf") },
                         shape = RoundedCornerShape(5.dp),
                     ) {
                         Text("Project Link")
@@ -76,7 +91,7 @@ fun KomfSettingsContent(
             }
         )
 
-        AnimatedVisibility(komfEnabled.value) {
+        AnimatedVisibility(komfEnabled && komfEnabledConfirmed) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 KomfConnectionDetails(komfMode, komfUrl, komfConnectionError)
 

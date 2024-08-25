@@ -98,6 +98,7 @@ kotlin {
             implementation("cafe.adriel.lyricist:lyricist:1.7.0")
 
             implementation("io.github.dokar3:sonner")
+            implementation("io.github.dokar3:chiptextfield-core")
             implementation("io.github.dokar3:chiptextfield-m3")
 
             implementation("sh.calvin.reorderable:reorderable:2.3.0")

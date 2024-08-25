@@ -177,7 +177,7 @@ fun NotificationContextDialogContent(
         Column(Modifier.padding(start = 10.dp)) {
             ValueList(
                 values = state.seriesAlternativeTitles,
-                valueName = "Aluuternative Title",
+                valueName = "Alternative Title",
                 onAdd = state::onSeriesAlternativeTitleAdd,
                 onDelete = state::onSeriesAlternativeTitleDelete,
                 content = { AlternativeTitlesEdit(it) }

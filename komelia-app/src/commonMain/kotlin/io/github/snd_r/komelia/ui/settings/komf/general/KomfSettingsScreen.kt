@@ -24,7 +24,8 @@ class KomfSettingsScreen : Screen {
 
                 LoadState.Loading, LoadState.Uninitialized -> LoadingMaxSizeIndicator()
                 is LoadState.Error, is LoadState.Success -> KomfSettingsContent(
-                    komfEnabled = StateHolder(vm.komfEnabled, vm::onKomfEnabledChange),
+                    komfEnabled = vm.komfEnabled,
+                    onKomfEnabledChange = vm::onKomfEnabledChange,
                     komfMode = StateHolder(vm.komfMode, {}),
                     komfUrl = StateHolder(vm.komfUrl, vm::onKomfUrlChange),
                     komfConnectionError = vm.komfConnectionError,
