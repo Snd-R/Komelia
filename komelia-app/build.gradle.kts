@@ -9,16 +9,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
-
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.parcelize")
-    id("com.google.protobuf") version "0.9.4"
-
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.parcelize)
+    alias(libs.plugins.protobuf)
 }
 
 group = "io.github.snd-r"
@@ -61,15 +58,8 @@ kotlin {
         binaries.executable()
     }
 
-    val coilVersion = "3.0.0-alpha09"
-    val ktorVersion = "3.0.0-rc-1-eap-1000"
-    val voyagerVersion = "1.1.0-beta02"
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-        }
-        val desktopMain by getting
-
+        all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -77,98 +67,77 @@ kotlin {
             implementation(compose.material)
             implementation(compose.material3)
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+            implementation(libs.kotlin.logging)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.core)
 
-            implementation("io.github.oshai:kotlin-logging:7.0.0")
-
-            implementation("io.ktor:ktor-client-core:$ktorVersion")
-            implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-            implementation("io.ktor:ktor-client-encoding:$ktorVersion")
-
-            implementation("io.coil-kt.coil3:coil:$coilVersion")
-            implementation("io.coil-kt.coil3:coil-compose:$coilVersion")
-            implementation("io.coil-kt.coil3:coil-network-ktor3:$coilVersion")
-
-            implementation("cafe.adriel.voyager:voyager-screenmodel:$voyagerVersion")
-            implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
-            implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
-            implementation("cafe.adriel.lyricist:lyricist:1.7.0")
-
-            implementation("io.github.dokar3:sonner")
-            implementation("io.github.dokar3:chiptextfield-core")
-            implementation("io.github.dokar3:chiptextfield-m3")
-
-            implementation("sh.calvin.reorderable:reorderable:2.3.0")
-
-            implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
-
-            implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc05")
-            implementation("org.jetbrains:markdown:0.7.3")
-
-            implementation("io.github.vinceglb:filekit-core:0.7.0")
-            implementation("io.github.vinceglb:filekit-compose:0.7.0")
-
-            implementation("io.github.snd-r:komf-client:1.0.0-SNAPSHOT")
-            implementation("io.github.snd-r:komga-client:0.1.0-SNAPSHOT")
+            implementation(libs.cache4k)
+            implementation(libs.coil)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.chiptextfield.core)
+            implementation(libs.chiptextfield.m3)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.compose)
+            implementation(libs.komf.client)
+            implementation(libs.komga.client)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.encoding)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.lyricist)
+            implementation(libs.markdown)
+            implementation(libs.reorderable)
+            implementation(libs.richEditor.compose)
+            implementation(libs.sonner)
+            implementation(libs.voyager.screenmodel)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.transition)
         }
 
         androidMain.dependencies {
-            api("androidx.activity:activity-compose:1.9.1")
-            api("androidx.appcompat:appcompat:1.7.0")
-            api("androidx.core:core-ktx:1.13.1")
-            implementation("androidx.window:window:1.3.0")
-            implementation("androidx.datastore:datastore:1.1.1")
-
-            implementation("org.slf4j:slf4j-api:2.0.13")
-            implementation("com.github.tony19:logback-android:3.0.0")
-
-            implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
-            implementation("io.ktor:ktor-client-logging:$ktorVersion")
-            implementation("com.squareup.okhttp3:okhttp:4.12.0")
-            implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
-            implementation("com.google.protobuf:protobuf-javalite:3.21.11")
-            implementation("com.google.protobuf:protobuf-kotlin-lite:3.21.11")
-
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.window)
+            implementation(libs.androidx.datastore)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.okhttp)
+            implementation(libs.okhttp.logging.interceptor)
+            implementation(libs.protobuf.javalite)
+            implementation(libs.protobuf.kotlin.lite)
             implementation(project(":image-decoder"))
         }
 
+        val desktopMain by getting
         desktopMain.dependencies {
             implementation(compose.desktop.common)
             implementation(compose.desktop.currentOs)
 
-            runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0-RC.2")
+            implementation(libs.kotlinx.coroutines.swing)
 
-            implementation("org.slf4j:slf4j-api:2.0.13")
-            implementation("ch.qos.logback:logback-core:1.5.6")
-            implementation("ch.qos.logback:logback-classic:1.5.6")
-
-            implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
-            implementation("io.ktor:ktor-client-logging:$ktorVersion")
-            implementation("com.squareup.okhttp3:okhttp:4.12.0")
-            implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
-            implementation("com.akuleshov7:ktoml-core:0.5.2")
-            implementation("com.akuleshov7:ktoml-file:0.5.2")
-            implementation("com.akuleshov7:ktoml-source-jvm:0.5.2")
-
-            implementation("dev.dirs:directories:26")
-
-            implementation("com.github.javakeyring:java-keyring:1.0.4")
-            implementation("de.swiesend:secret-service")
-
-            implementation("org.apache.commons:commons-compress:1.26.2")
+            implementation(libs.commons.compress)
+            implementation(libs.directories)
+            implementation(libs.java.keyring)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktoml.core)
+            implementation(libs.ktoml.file)
+            implementation(libs.ktoml.source.jvm)
+            implementation(libs.logback.core)
+            implementation(libs.logback.classic)
+            implementation(libs.okhttp)
+            implementation(libs.okhttp.logging.interceptor)
+            implementation(libs.secret.service)
+            implementation(libs.slf4j.api)
             implementation(project(":image-decoder"))
-
             implementation(files("jbr-api/jbr-api-6.4.2.jar"))
         }
 
         val wasmJsMain by getting
         wasmJsMain.dependencies {
-            implementation("io.ktor:ktor-client-js:$ktorVersion")
+            implementation(libs.ktor.client.js)
             implementation(project(":wasm-image-worker"))
         }
     }
@@ -176,7 +145,7 @@ kotlin {
 
 android {
     namespace = "io.github.snd_r.komelia"
-    compileSdk = 34
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -187,8 +156,8 @@ android {
 
     defaultConfig {
         applicationId = "io.github.snd_r.komelia"
-        minSdk = 26
-        targetSdk = 34
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "0.7.0"
     }

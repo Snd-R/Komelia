@@ -5,9 +5,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("multiplatform")
-    id("com.android.library")
-    id("de.undercouch.download") version "5.6.0"
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
 }
 
 group = "io.github.snd_r"
@@ -24,8 +23,9 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {
-        }
+        commonMain.dependencies {}
+
+        androidMain.dependencies {}
 
         val jvmMain by getting
         jvmMain.dependencies {
@@ -44,21 +44,18 @@ kotlin {
 
             val version = "0.8.10"
 
-            implementation("org.slf4j:slf4j-api:2.0.13")
-            implementation("dev.dirs:directories:26")
+            implementation(libs.slf4j.api)
+            implementation(libs.directories)
             compileOnly("org.jetbrains.skiko:skiko-awt-runtime-$hostOs-$hostArch:$version")
-        }
-
-        androidMain.dependencies {
         }
     }
 }
 android {
     namespace = "io.github.snd_r.image_decoder"
-    compileSdk = 34
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

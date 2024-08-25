@@ -1,0 +1,104 @@
+[versions]
+agp = "8.2.0"
+android-compileSdk = "34"
+android-minSdk = "26"
+android-targetSdk = "34"
+androidx-activityCompose = "1.9.1"
+
+androidx-appcompat = "1.7.0"
+androidx-core-ktx = "1.13.1"
+androidx-datastore = "1.1.1"
+androidx-window = "1.3.0"
+
+cache4k = "0.13.0"
+coil = "3.0.0-alpha09"
+commons-compress = "1.27.1"
+compose-multiplatform = "1.7.0-alpha03"
+directories = "26"
+filekit = "0.7.0"
+java-keyring = "1.0.4"
+komf-client = "1.0.0-SNAPSHOT"
+kotlin = "2.0.20"
+kotlin-atomicfu = "0.25.0"
+kotlin-logging = "7.0.0"
+kotlinx-coroutines = "1.9.0-RC.2"
+kotlinx-datetime = "0.6.0"
+kotlinx-serialization = "1.7.1"
+kotlinx-io = "0.5.1"
+komga-client = "0.1.0-SNAPSHOT"
+ktor = "3.0.0-rc-1-eap-1000"
+ktoml = "0.5.2"
+logback = "1.5.6"
+lyricist = "1.7.0"
+markdown = "0.7.3"
+okhttp = "4.12.0"
+protobuf-plugin = "0.9.4"
+protobuf-lite = "3.21.11"
+reorderable = "2.3.0"
+richEditor = "1.0.0-rc05"
+slf4j = "2.0.16"
+voyager = "1.1.0-beta02"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidx-datastore" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
+cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
+chiptextfield-core = { module = "io.github.dokar3:chiptextfield-core" }
+chiptextfield-m3 = { module = "io.github.dokar3:chiptextfield-m3" }
+coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+directories = { module = "dev.dirs:directories", version.ref = "directories" }
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
+filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
+java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "java-keyring" }
+komf-client = { module = "io.github.snd-r:komf-client", version.ref = "komf-client" }
+komga-client = { module = "io.github.snd-r:komga-client", version.ref = "komga-client" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
+ktoml-source-jvm = { module = "com.akuleshov7:ktoml-source-jvm", version.ref = "ktoml" }
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+lyricist = { module = "cafe.adriel.lyricist:lyricist", version.ref = "lyricist" }
+markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf-lite" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf-lite" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+richEditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richEditor" }
+secret-service = { module = "de.swiesend:secret-service" }
+sonner = { module = "io.github.dokar3:sonner" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
+voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
+voyager-transition = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+kotlinAtomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "kotlin-atomicfu" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
