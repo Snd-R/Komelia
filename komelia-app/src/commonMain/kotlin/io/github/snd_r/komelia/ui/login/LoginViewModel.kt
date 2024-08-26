@@ -7,7 +7,6 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
@@ -29,7 +28,6 @@ class LoginViewModel(
     private val komgaLibraryClient: KomgaLibraryClient,
     private val authenticatedUserFlow: MutableStateFlow<KomgaUser?>,
     private val availableLibrariesFlow: MutableStateFlow<List<KomgaLibrary>>,
-    private val secretsRepository: SecretsRepository,
     private val notifications: AppNotifications,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
@@ -37,7 +35,6 @@ class LoginViewModel(
     var user by mutableStateOf("")
     var password by mutableStateOf("")
     var userLoginError by mutableStateOf<String?>(null)
-
     var autoLoginError by mutableStateOf<String?>(null)
 
     fun initialize() {
@@ -46,13 +43,7 @@ class LoginViewModel(
         screenModelScope.launch {
             url = settingsRepository.getServerUrl().first()
             user = settingsRepository.getCurrentUser().first()
-            val loginCookie = secretsRepository.getCookie(url)
             tryAutologin()
-//            if (!loginCookie.isNullOrBlank()) {
-//                tryAutologin()
-//            } else {
-//                mutableState.value = LoadState.Error(RuntimeException())
-//            }
         }
     }
 
@@ -85,10 +76,13 @@ class LoginViewModel(
         } catch (e: CancellationException) {
             throw e
         } catch (e: ClientRequestException) {
-            autoLoginError = if (e.response.status == Unauthorized) "Invalid credentials"
-            else "Login error: ${e::class.simpleName} ${e.message}"
+            if (e.response.status == Unauthorized) {
+                autoLoginError = null
+            } else {
+                autoLoginError = "Login error: ${e::class.simpleName} ${e.message}"
+                notifications.add(AppNotification.Error(e.message))
+            }
             mutableState.value = LoadState.Error(e)
-            notifications.add(AppNotification.Error(e.message))
         } catch (e: Throwable) {
             val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
             autoLoginError = errorMessage

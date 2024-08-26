@@ -29,7 +29,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
-import io.github.snd_r.komelia.platform.PlatformType.WEB
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.ui.LocalPlatform
 
@@ -41,7 +41,7 @@ fun SettingsScreenContainer(
     val platform = LocalPlatform.current
     when (platform) {
         MOBILE -> MobileContainer(title, content)
-        DESKTOP, WEB -> DesktopContainer(title, content)
+        DESKTOP, WEB_KOMF -> DesktopContainer(title, content)
     }
 }
 

@@ -11,52 +11,72 @@ import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.PlatformTitleBar
+import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
+import io.github.snd_r.komelia.platform.PlatformType.MOBILE
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
+import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
 class LoginScreen : Screen {
 
     @Composable
     override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
-
+        val rootNavigator = LocalNavigator.currentOrThrow.parent ?: LocalNavigator.currentOrThrow
+        val platform = LocalPlatform.current
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getLoginViewModel() }
 
-        val state = vm.state.collectAsState()
         LaunchedEffect(Unit) { vm.initialize() }
         Column {
             PlatformTitleBar { }
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            when (platform) {
+                MOBILE, DESKTOP ->
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) { ScreenContent(vm, rootNavigator) }
 
-                when (state.value) {
-                    Loading, Uninitialized -> LoginLoadingContent(vm::cancel)
-
-                    is Error -> LoginContent(
-                        url = vm.url,
-                        onUrlChange = vm::url::set,
-                        user = vm.user,
-                        onUserChange = { vm.user = it },
-                        password = vm.password,
-                        onPasswordChange = { vm.password = it },
-                        userLoginError = vm.userLoginError,
-                        autoLoginError = vm.autoLoginError,
-                        onAutoLoginRetry = vm::retryAutoLogin,
-                        onLogin = vm::loginWithCredentials
-                    )
-
-                    is Success -> navigator.replaceAll(MainScreen())
+                WEB_KOMF -> SettingsScreenContainer(title = "Komga Login") {
+                    ScreenContent(vm, rootNavigator)
                 }
             }
         }
+    }
+
+    @Composable
+    private fun ScreenContent(
+        viewModel: LoginViewModel,
+        rootNavigator: Navigator
+    ) {
+        val state = viewModel.state.collectAsState()
+
+        when (state.value) {
+            Loading, Uninitialized -> LoginLoadingContent(viewModel::cancel)
+
+            is Error -> LoginContent(
+                url = viewModel.url,
+                onUrlChange = viewModel::url::set,
+                user = viewModel.user,
+                onUserChange = { viewModel.user = it },
+                password = viewModel.password,
+                onPasswordChange = { viewModel.password = it },
+                userLoginError = viewModel.userLoginError,
+                autoLoginError = viewModel.autoLoginError,
+                onAutoLoginRetry = viewModel::retryAutoLogin,
+                onLogin = viewModel::loginWithCredentials
+            )
+
+            is Success -> rootNavigator.replaceAll(MainScreen())
+        }
+
     }
 }

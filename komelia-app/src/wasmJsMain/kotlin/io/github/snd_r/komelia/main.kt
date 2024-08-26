@@ -48,7 +48,7 @@ fun main() {
         MainView(
             dependencies = dependencies.collectAsState().value,
             windowWidth = windowWidth.collectAsState().value,
-            platformType = PlatformType.WEB,
+            platformType = PlatformType.WEB_KOMF,
             keyEvents = keyEvents
         )
     }

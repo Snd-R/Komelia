@@ -25,7 +25,7 @@ import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
-import io.github.snd_r.komelia.platform.PlatformType.WEB
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.onPointerEvent
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalPlatform
@@ -47,7 +47,7 @@ fun ScalableContainer(
     LaunchedEffect(Unit) {
         keyEvents.collect { event ->
             isCtrlPressed =
-                if (platform == WEB) event.isAltPressed
+                if (platform == WEB_KOMF) event.isAltPressed
                 else event.isCtrlPressed
         }
     }
@@ -107,11 +107,11 @@ fun ScalableContainer(
                 val delta = it.changes[0].scrollDelta
                 if (isCtrlPressed) {
                     val centroid = it.changes[0].position
-                    val zoomMultiplier = if (platform == WEB) 0.002f else 0.2f
+                    val zoomMultiplier = if (platform == WEB_KOMF) 0.002f else 0.2f
                     scaleState.addZoom(zoomMultiplier * -delta.y, centroid - areaCenter)
                 } else {
                     val maxDelta = if (abs(delta.y) > abs(delta.x)) delta.y else delta.x
-                    val panMultiplier = if (platform == WEB) 1 else 80
+                    val panMultiplier = if (platform == WEB_KOMF) 1 else 80
                     val pan = (if (scaleState.scrollReversed.value) maxDelta else -maxDelta) * panMultiplier
                     when (scrollOrientation) {
                         Vertical, null -> scaleState.addPan(Offset(0f, pan))

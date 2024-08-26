@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
-import io.github.snd_r.komelia.platform.PlatformType.WEB
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
@@ -204,7 +204,7 @@ fun SettingsNavigationMenu(
 
 
 @Composable
-private fun NavigationButton(
+fun NavigationButton(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
@@ -216,7 +216,7 @@ private fun NavigationButton(
 
     val height = when (LocalPlatform.current) {
         MOBILE -> 50.dp
-        DESKTOP, WEB -> 40.dp
+        DESKTOP, WEB_KOMF -> 40.dp
     }
 
     Surface(

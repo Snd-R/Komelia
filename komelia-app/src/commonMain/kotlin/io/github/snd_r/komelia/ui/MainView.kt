@@ -35,6 +35,9 @@ import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.ConfigurePlatformTheme
 import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
+import io.github.snd_r.komelia.platform.PlatformType.MOBILE
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.toToast
@@ -42,6 +45,7 @@ import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.dialogs.update.UpdateDialog
 import io.github.snd_r.komelia.ui.dialogs.update.UpdateProgressDialog
+import io.github.snd_r.komelia.ui.komf.KomfMainScreen
 import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
@@ -94,7 +98,7 @@ fun MainView(
             val viewModelFactory = vmFactory.collectAsState().value
             LaunchedEffect(Unit) {
                 if (vmFactory.value == null) {
-                    vmFactory.value = ViewModelFactory(dependencies)
+                    vmFactory.value = ViewModelFactory(dependencies, platformType)
                 }
             }
 
@@ -115,7 +119,10 @@ fun MainView(
                 ) {
 
                     Navigator(
-                        screen = LoginScreen(),
+                        screen = when (platformType) {
+                            MOBILE, DESKTOP -> LoginScreen()
+                            WEB_KOMF -> KomfMainScreen()
+                        },
                         onBackPressed = null
                     )
 

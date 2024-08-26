@@ -6,6 +6,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
@@ -102,7 +103,10 @@ interface DependencyContainer {
         get() = Lyricist(Locales.EN, mapOf(Locales.EN to EnStrings))
 }
 
-class ViewModelFactory(private val dependencies: DependencyContainer) {
+class ViewModelFactory(
+    private val dependencies: DependencyContainer,
+    private val platformType: PlatformType,
+) {
     private val komgaClientFactory: KomgaClientFactory
         get() = dependencies.komgaClientFactory
     private val appUpdater: AppUpdater
@@ -248,7 +252,6 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
             komgaLibraryClient = komgaClientFactory.libraryClient(),
             authenticatedUserFlow = authenticatedUser,
             availableLibrariesFlow = libraries,
-            secretsRepository = secretsRepository,
             notifications = appNotifications,
         )
     }
@@ -410,7 +413,8 @@ class ViewModelFactory(private val dependencies: DependencyContainer) {
             currentServerUrl = settingsRepository.getServerUrl(),
             bookClient = komgaClientFactory.bookClient(),
             latestVersion = settingsRepository.getLastCheckedReleaseVersion(),
-            komfEnabled = settingsRepository.getKomfEnabled()
+            komfEnabled = settingsRepository.getKomfEnabled(),
+            platformType = platformType
         )
     }
 

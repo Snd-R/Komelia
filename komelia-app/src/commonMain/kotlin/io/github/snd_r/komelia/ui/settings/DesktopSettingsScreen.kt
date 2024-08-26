@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -36,7 +34,6 @@ import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsScreen
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationMenu
 import kotlinx.coroutines.flow.SharedFlow
-import kotlin.math.roundToInt
 
 val settingsDesktopNavMenuWidth = 250.dp
 val settingsDesktopContentWidth = 700.dp
@@ -96,49 +93,4 @@ class SettingsScreen : Screen {
 
     }
 
-    @Composable
-    private fun SettingsScreenLayout(
-        navMenu: @Composable () -> Unit,
-        content: @Composable () -> Unit,
-        dismissButton: @Composable () -> Unit,
-    ) = Layout(
-        modifier = Modifier.fillMaxSize(),
-        contents = listOf(navMenu, content, dismissButton)
-    ) { (navMenuMeasurable, contentMeasurable, dismissMeasurable), constraints ->
-        val navWidth = settingsDesktopNavMenuWidth.roundToPx()
-        val contentWidth = settingsDesktopContentWidth.roundToPx()
-        val padding =
-            ((constraints.maxWidth - (navWidth + contentWidth)).toFloat() / 2).roundToInt().coerceAtLeast(0)
-
-        val contentPlaceable = contentMeasurable.first()
-            .measure(
-                constraints.copy(
-                    minWidth = 0,
-                    maxWidth = padding + contentWidth.coerceAtMost(constraints.maxWidth - navWidth)
-                )
-            )
-
-        val navMenuPlaceable = navMenuMeasurable.first()
-            .measure(
-                constraints.copy(
-                    minWidth = 0,
-                    maxWidth = padding + navWidth
-                )
-            )
-        val dismissPlaceable = dismissMeasurable.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
-        layout(constraints.maxWidth, constraints.maxHeight) {
-            navMenuPlaceable.placeRelative(
-                0,
-                0
-            )
-            contentPlaceable.placeRelative(
-                padding + navWidth,
-                0
-            )
-            dismissPlaceable.placeRelative(
-                (padding + navWidth + contentWidth).coerceAtMost(constraints.maxWidth - dismissPlaceable.width),
-                0
-            )
-        }
-    }
 }

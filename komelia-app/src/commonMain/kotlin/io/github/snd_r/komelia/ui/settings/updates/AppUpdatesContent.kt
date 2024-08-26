@@ -70,7 +70,7 @@ fun AppUpdatesContent(
                 shape = RoundedCornerShape(5.dp),
             ) { Text("Check for updates") }
 
-            if (LocalPlatform.current != PlatformType.WEB &&
+            if (LocalPlatform.current != PlatformType.WEB_KOMF &&
                 latestVersion != null && currentVersion < latestVersion
             ) {
                 FilledTonalButton(

@@ -45,7 +45,7 @@ import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
-import io.github.snd_r.komelia.platform.PlatformType.WEB
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.cursorForHand
@@ -79,7 +79,7 @@ class MainScreen(
             val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel(navigator) }
             when (platform) {
                 MOBILE -> MobileLayout(navigator, vm)
-                DESKTOP, WEB -> DesktopLayout(navigator, vm)
+                DESKTOP, WEB_KOMF -> DesktopLayout(navigator, vm)
             }
 
             val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current

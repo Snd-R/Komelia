@@ -7,7 +7,12 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
+import io.github.snd_r.komelia.platform.PlatformType.MOBILE
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.settings.SecretsRepository
+import io.github.snd_r.komelia.ui.komf.KomfMainScreen
 import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +36,7 @@ class SettingsNavigationViewModel(
     private val currentServerUrl: Flow<String>,
     private val bookClient: KomgaBookClient,
     private val latestVersion: Flow<AppVersion?>,
+    private val platformType: PlatformType,
     komfEnabled: Flow<Boolean>,
 ) : ScreenModel {
     var hasMediaErrors by mutableStateOf(false)
@@ -40,15 +46,17 @@ class SettingsNavigationViewModel(
     val komfEnabledFlow = komfEnabled.stateIn(screenModelScope, Eagerly, false)
 
     suspend fun initialize() {
-        val pageResponse = bookClient.getAllBooks(
-            KomgaBookQuery(mediaStatus = listOf(KomgaMediaStatus.ERROR, KomgaMediaStatus.UNSUPPORTED)),
-            KomgaPageRequest(size = 0)
-        )
-        if (pageResponse.numberOfElements > 0) {
-            hasMediaErrors = true
+        appNotifications.runCatchingToNotifications {
+            val pageResponse = bookClient.getAllBooks(
+                KomgaBookQuery(mediaStatus = listOf(KomgaMediaStatus.ERROR, KomgaMediaStatus.UNSUPPORTED)),
+                KomgaPageRequest(size = 0)
+            )
+            if (pageResponse.numberOfElements > 0) {
+                hasMediaErrors = true
+            }
+            val latestVersion = latestVersion.first()
+            newVersionIsAvailable = latestVersion != null && AppVersion.current < latestVersion
         }
-        val latestVersion = latestVersion.first()
-        newVersionIsAvailable = latestVersion != null && AppVersion.current < latestVersion
     }
 
     fun logout() {
@@ -56,7 +64,11 @@ class SettingsNavigationViewModel(
             secretsRepository.deleteCookie(currentServerUrl.first())
             userClient.logout()
             authenticatedUser.value = null
-            rootNavigator.replaceAll(LoginScreen())
+            when (platformType) {
+                MOBILE, DESKTOP -> rootNavigator.replaceAll(LoginScreen())
+                WEB_KOMF -> rootNavigator.replaceAll(KomfMainScreen())
+            }
+
         }
     }
 }
