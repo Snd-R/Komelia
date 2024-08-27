@@ -51,8 +51,7 @@ class ReadListViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
-    lateinit var readList: KomgaReadList
-
+    var readList by mutableStateOf<KomgaReadList?>(null)
     var books by mutableStateOf<List<KomgaBook>>(emptyList())
 
     var totalBookPages by mutableStateOf(1)
@@ -94,7 +93,7 @@ class ReadListViewModel(
             }
 
             delay(1000)
-        }
+        }.launchIn(screenModelScope)
 
         isAnyItemDragging
             .filter { isDragging -> !isDragging && state.value != Uninitialized }

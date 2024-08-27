@@ -51,8 +51,8 @@ class CollectionViewModel(
     private val komgaEvents: SharedFlow<KomgaEvent>,
     cardWidthFlow: Flow<Dp>
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-    lateinit var collection: KomgaCollection
 
+    var collection by mutableStateOf<KomgaCollection?>(null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
     var series by mutableStateOf<List<KomgaSeries>>(emptyList())
         private set

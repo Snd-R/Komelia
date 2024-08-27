@@ -1,15 +1,20 @@
 package io.github.snd_r.komelia.ui.readlist
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.WindowWidth
@@ -71,16 +77,23 @@ fun ReadListContent(
                 selectedBooks = selectedBooks,
                 onBookSelect = onBookSelect
             )
-        else
+        else {
             ReadListToolbar(
                 readList = readList,
                 onReadListDelete = onReadListDelete,
+                onEditModeEnable = { onEditModeChange(true) },
 
                 pageSize = pageSize,
                 onPageSizeChange = onPageSizeChange,
                 onBackClick = onBackClick
             )
+        }
 
+        if (readList.summary.isNotBlank()) {
+            Text(readList.summary)
+            Spacer(Modifier.height(5.dp))
+            HorizontalDivider()
+        }
         BookLazyCardGrid(
             books = books,
             onBookClick = if (editMode) onBookSelect else onBookClick,
@@ -115,6 +128,7 @@ fun ReadListContent(
 private fun ReadListToolbar(
     readList: KomgaReadList,
     onReadListDelete: () -> Unit,
+    onEditModeEnable: () -> Unit,
     pageSize: Int,
     onPageSizeChange: (Int) -> Unit,
 
@@ -126,7 +140,24 @@ private fun ReadListToolbar(
             Icon(Icons.AutoMirrored.Rounded.ArrowBack, null)
         }
 
-        Text(readList.name)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text(
+                "read list",
+                style = MaterialTheme.typography.labelMedium,
+                fontStyle = FontStyle.Italic
+            )
+            Text(readList.name)
+        }
+
+        SuggestionChip(
+            onClick = {},
+            label = { Text("${readList.bookIds.size} books", style = MaterialTheme.typography.bodyMedium) },
+            modifier = Modifier.padding(10.dp, 0.dp),
+        )
 
         Box {
             var expandActions by remember { mutableStateOf(false) }
@@ -141,12 +172,7 @@ private fun ReadListToolbar(
                 onDismissRequest = { expandActions = false }
             )
         }
-
-        SuggestionChip(
-            onClick = {},
-            label = { Text("${readList.bookIds.size} books") },
-            modifier = Modifier.padding(10.dp, 0.dp),
-        )
+        IconButton(onClick = onEditModeEnable) { Icon(Icons.Default.EditNote, null) }
 
         Spacer(Modifier.weight(1f))
         PageSizeSelectionDropdown(pageSize, onPageSizeChange)

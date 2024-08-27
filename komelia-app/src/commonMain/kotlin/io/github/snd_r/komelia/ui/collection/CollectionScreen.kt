@@ -31,32 +31,38 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
 
         when (vm.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
-            is Success, Loading -> CollectionContent(
-                collection = vm.collection,
-                onCollectionDelete = vm::onCollectionDelete,
+            is Success, Loading -> {
+                val collection = vm.collection
+                if (collection == null) {
+                    LoadingMaxSizeIndicator()
+                } else
+                    CollectionContent(
+                        collection = collection,
+                        onCollectionDelete = vm::onCollectionDelete,
 
-                series = vm.series,
-                seriesActions = vm.seriesMenuActions(),
-                onSeriesClick = { navigator push SeriesScreen(it.id) },
+                        series = vm.series,
+                        seriesActions = vm.seriesMenuActions(),
+                        onSeriesClick = { navigator push SeriesScreen(it.id) },
 
-                selectedSeries = vm.selectedSeries,
-                onSeriesSelect = vm::onSeriesSelect,
+                        selectedSeries = vm.selectedSeries,
+                        onSeriesSelect = vm::onSeriesSelect,
 
-                editMode = vm.isInEditMode,
-                onEditModeChange = vm::setEditMode,
-                onReorder = vm::onSeriesReorder,
-                onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
+                        editMode = vm.isInEditMode,
+                        onEditModeChange = vm::setEditMode,
+                        onReorder = vm::onSeriesReorder,
+                        onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
 
-                totalSeriesCount = vm.totalSeriesCount,
-                totalPages = vm.totalSeriesPages,
-                currentPage = vm.currentSeriesPage,
-                pageSize = vm.pageLoadSize,
-                onPageChange = vm::onPageChange,
-                onPageSizeChange = vm::onPageSizeChange,
+                        totalSeriesCount = vm.totalSeriesCount,
+                        totalPages = vm.totalSeriesPages,
+                        currentPage = vm.currentSeriesPage,
+                        pageSize = vm.pageLoadSize,
+                        onPageChange = vm::onPageChange,
+                        onPageSizeChange = vm::onPageSizeChange,
 
-                onBackClick = { navigator.pop() },
-                cardMinSize = vm.cardWidth.collectAsState().value,
-            )
+                        onBackClick = { navigator.pop() },
+                        cardMinSize = vm.cardWidth.collectAsState().value,
+                    )
+            }
 
             is Error -> Text("Error")
         }

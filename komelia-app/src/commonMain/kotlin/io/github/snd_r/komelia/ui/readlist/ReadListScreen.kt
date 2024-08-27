@@ -35,32 +35,37 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
         when (vm.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
             is Error -> Text("Error")
-            is LoadState.Success, Loading -> ReadListContent(
-                readList = vm.readList,
-                onReadListDelete = vm::onReadListDelete,
+            is LoadState.Success, Loading -> {
+                val readList = vm.readList
+                if (readList == null) LoadingMaxSizeIndicator()
+                else
+                    ReadListContent(
+                        readList = readList,
+                        onReadListDelete = vm::onReadListDelete,
 
-                books = vm.books,
-                bookMenuActions = vm.bookMenuActions(),
-                onBookClick = { navigator push BookScreen(it.id) },
-                onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
+                        books = vm.books,
+                        bookMenuActions = vm.bookMenuActions(),
+                        onBookClick = { navigator push BookScreen(it.id) },
+                        onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
 
-                selectedBooks = vm.selectedBooks,
-                onBookSelect = vm::onBookSelect,
+                        selectedBooks = vm.selectedBooks,
+                        onBookSelect = vm::onBookSelect,
 
-                editMode = vm.isInEditMode,
-                onEditModeChange = vm::setEditMode,
-                onReorder = vm::onBookReorder,
-                onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
+                        editMode = vm.isInEditMode,
+                        onEditModeChange = vm::setEditMode,
+                        onReorder = vm::onBookReorder,
+                        onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
 
-                totalPages = vm.totalBookPages,
-                currentPage = vm.currentBookPage,
-                pageSize = vm.pageLoadSize,
-                onPageChange = vm::onPageChange,
-                onPageSizeChange = vm::onPageSizeChange,
+                        totalPages = vm.totalBookPages,
+                        currentPage = vm.currentBookPage,
+                        pageSize = vm.pageLoadSize,
+                        onPageChange = vm::onPageChange,
+                        onPageSizeChange = vm::onPageSizeChange,
 
-                onBackClick = { navigator.pop() },
-                cardMinSize = vm.cardWidth.collectAsState().value,
-            )
+                        onBackClick = { navigator.pop() },
+                        cardMinSize = vm.cardWidth.collectAsState().value,
+                    )
+            }
         }
 
         BackPressHandler { navigator.pop() }
