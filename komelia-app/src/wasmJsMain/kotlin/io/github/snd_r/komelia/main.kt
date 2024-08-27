@@ -1,8 +1,10 @@
 package io.github.snd_r.komelia
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
 import io.github.snd_r.komelia.platform.PlatformType
@@ -36,15 +38,33 @@ fun main() {
     document.addEventListener("keyup") { event ->
         initScope.launch { keyEvents.emit((event as KeyboardEvent).toComposeEvent()) }
     }
+    overrideFetch()
 
     CanvasBasedWindow(canvasElementId = "ComposeTarget") {
+        val fontFamilyResolver = LocalFontFamilyResolver.current
+            MainView(
+                dependencies = dependencies.collectAsState().value,
+                windowWidth = windowWidth.collectAsState().value,
+                platformType = PlatformType.WEB_KOMF,
+                keyEvents = keyEvents
+            )
 
-        MainView(
-            dependencies = dependencies.collectAsState().value,
-            windowWidth = windowWidth.collectAsState().value,
-            platformType = PlatformType.WEB_KOMF,
-            keyEvents = keyEvents
-        )
+        LaunchedEffect(Unit) {
+            loadFonts(fontFamilyResolver)
+        }
     }
 }
 
+private fun overrideFetch() {
+    js(
+        """
+    window.originalFetch = window.fetch;
+    window.fetch = function (resource, init) {
+        init = Object.assign({}, init);
+        init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
+        init.credentials = init.credentials !== undefined ? init.credentials : 'same-origin';
+        return window.originalFetch(resource, init);
+    };
+"""
+    )
+}

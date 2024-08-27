@@ -104,7 +104,6 @@ class WasmDependencyContainer(
         private fun createKtorClient(
             baseUrl: StateFlow<String>,
         ): HttpClient {
-            overrideFetch()
             return HttpClient(Js) {
                 defaultRequest { url(baseUrl.value) }
                 expectSuccess = true
@@ -169,23 +168,8 @@ class WasmDependencyContainer(
     }
 }
 
-private fun overrideFetch() {
-    js(
-        """
-    window.originalFetch = window.fetch;
-    window.fetch = function (resource, init) {
-        init = Object.assign({}, init);
-        init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
-        init.credentials = init.credentials !== undefined ? init.credentials : 'include';
-        return window.originalFetch(resource, init);
-    };
-"""
-    )
-}
-
 private object NoopAppUpdater : AppUpdater {
     override suspend fun getReleases(): List<AppRelease> = emptyList()
     override suspend fun updateToLatest(): Flow<UpdateProgress>? = null
     override fun updateTo(release: AppRelease): Flow<UpdateProgress>? = null
 }
-
