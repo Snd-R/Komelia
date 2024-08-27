@@ -37,6 +37,7 @@ import snd.komf.api.KomfProviders.MANGA_UPDATES
 import snd.komf.api.KomfProviders.NAUTILJON
 import snd.komf.api.KomfProviders.VIZ
 import snd.komf.api.KomfProviders.YEN_PRESS
+import snd.komf.api.MangaDexLink
 import snd.komf.api.PatchValue
 import snd.komf.api.PatchValue.Some
 import snd.komf.api.config.AniListConfigDto
@@ -74,7 +75,6 @@ class KomfProvidersSettingsViewModel(
         private set
     var nameMatchingMode by mutableStateOf(KomfNameMatchingMode.CLOSEST_MATCH)
         private set
-
 
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications { komfConfig.getConfig() }
@@ -143,7 +143,6 @@ class KomfProvidersSettingsViewModel(
         private val nautiljon = GenericProviderConfigState(NAUTILJON, config?.nautiljon, this::onProviderConfigUpdate)
         private val yenPress = GenericProviderConfigState(YEN_PRESS, config?.yenPress, this::onProviderConfigUpdate)
         private val viz = GenericProviderConfigState(VIZ, config?.viz, this::onProviderConfigUpdate)
-
 
         var enabledProviders by mutableStateOf<List<ProviderConfigState>>(
             config?.let { config ->
@@ -289,6 +288,15 @@ class KomfProvidersSettingsViewModel(
             private set
         var seriesBookCount by mutableStateOf(config?.seriesMetadata?.totalBookCount ?: true)
             private set
+
+        val isBookMetadataAvailable = when (provider) {
+            ANILIST, MAL, MANGA_UPDATES -> false
+            else -> true
+        }
+        val canHaveMultiplePublishers = when (provider) {
+            MANGA_UPDATES, NAUTILJON -> true
+            else -> false
+        }
 
         var bookEnabled by mutableStateOf(config?.seriesMetadata?.books ?: true)
             private set
@@ -579,10 +587,16 @@ class KomfProvidersSettingsViewModel(
         ) : ProviderConfigState(config, provider) {
 
             var coverLanguages by mutableStateOf(config?.coverLanguages ?: listOf("en", "ja"))
+            var links by mutableStateOf(config?.links ?: emptyList())
 
             fun onCoverLanguagesChange(languages: List<String>) {
                 this.coverLanguages = languages
                 onMetadataUpdate(MangaDexConfigUpdateRequest(coverLanguages = Some(languages)))
+            }
+
+            fun onLinkSelect(link: MangaDexLink) {
+                links =links.addOrRemove(link)
+                onMetadataUpdate(MangaDexConfigUpdateRequest(links = Some(links)))
             }
 
             override fun onPrioritySave(priority: Int) {
@@ -619,6 +633,17 @@ class KomfProvidersSettingsViewModel(
             override fun onArtistRolesSave(roles: List<KomfAuthorRole>) {
                 onMetadataUpdate(MangaDexConfigUpdateRequest(artistRoles = Some(roles)))
             }
+
+            private fun <T> List<T>.addOrRemove(value: T): List<T> {
+                val mutable = this.toMutableList()
+                val existingIndex = mutable.indexOf(value)
+                if (existingIndex != -1) mutable.removeAt(existingIndex)
+                else mutable.add(value)
+
+                return mutable
+            }
         }
     }
+
+
 }

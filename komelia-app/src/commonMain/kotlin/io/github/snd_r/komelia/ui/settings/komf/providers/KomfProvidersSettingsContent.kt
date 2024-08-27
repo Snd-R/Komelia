@@ -65,6 +65,7 @@ import snd.komf.api.KomfAuthorRole
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfNameMatchingMode
 import snd.komf.api.KomfProviders
+import snd.komf.api.MangaDexLink
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 
@@ -290,9 +291,9 @@ private fun ProviderCard(
     }
 
     val tabs = remember(state) {
-        listOf(
+        listOfNotNull(
             SeriesMetadataTab(state),
-            BookMetadataTab(state),
+            if (state.isBookMetadataAvailable) BookMetadataTab(state) else null,
             ProviderSettingsTab(state)
         )
     }
@@ -370,13 +371,15 @@ private class SeriesMetadataTab(private val state: ProviderConfigState) : Dialog
             )
             HorizontalDivider()
 
-            SwitchWithLabel(
-                checked = state.seriesOriginalPublisher,
-                onCheckedChange = state::onSeriesOriginalPublisherChange,
-                label = { Text("Use Original Publisher") },
-                supportingText = { Text("Prefer original publisher instead of localizing publisher") }
-            )
-            HorizontalDivider()
+            if (state.canHaveMultiplePublishers) {
+                SwitchWithLabel(
+                    checked = state.seriesOriginalPublisher,
+                    onCheckedChange = state::onSeriesOriginalPublisherChange,
+                    label = { Text("Use Original Publisher") },
+                    supportingText = { Text("Prefer original publisher instead of localizing publisher") }
+                )
+                HorizontalDivider()
+            }
 
             SwitchWithLabel(
                 checked = state.seriesReleaseDate,
@@ -579,10 +582,20 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
 
     @Composable
     private fun MangaDexProviderSettings(state: MangaDexConfigState) {
-        LanguageChipsField(
-            currentLanguages = state.coverLanguages,
-            onLanguagesChange = state::onCoverLanguagesChange
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LanguageChipsField(
+                currentLanguages = state.coverLanguages,
+                onLanguagesChange = state::onCoverLanguagesChange
+            )
+            DropdownMultiChoiceMenu(
+                selectedOptions = state.links.map { LabeledEntry(it, it.name) },
+                options = MangaDexLink.entries.map { LabeledEntry(it, it.name) },
+                onOptionSelect = { state.onLinkSelect(it.value) },
+                label = { Text("Include links") },
+                placeholder = "All",
+                inputFieldModifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
