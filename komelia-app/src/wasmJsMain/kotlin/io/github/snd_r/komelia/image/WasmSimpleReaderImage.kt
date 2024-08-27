@@ -54,6 +54,7 @@ class WasmSimpleReaderImage(
             currentImage = image
             bitmap.close()
 
+            currentSize.value = IntSize(dstWidth, dstHeight)
             painter.value = ImagePainter(image, SamplingMode.CATMULL_ROM, actualScaleFactor, displaySize)
             lastUsedScaleFactor = actualScaleFactor
         }

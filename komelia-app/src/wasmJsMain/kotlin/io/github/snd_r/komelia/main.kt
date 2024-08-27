@@ -31,16 +31,10 @@ fun main() {
         windowWidth.value = WindowWidth.fromDp(window.innerWidth.dp)
     }
     document.addEventListener("keydown") { event ->
-        initScope.launch {
-            println("keydown $event")
-            keyEvents.emit((event as KeyboardEvent).toComposeEvent())
-        }
+        initScope.launch { keyEvents.emit((event as KeyboardEvent).toComposeEvent()) }
     }
     document.addEventListener("keyup") { event ->
-        initScope.launch {
-            println("keyup $event")
-            keyEvents.emit((event as KeyboardEvent).toComposeEvent())
-        }
+        initScope.launch { keyEvents.emit((event as KeyboardEvent).toComposeEvent()) }
     }
 
     CanvasBasedWindow(canvasElementId = "ComposeTarget") {
