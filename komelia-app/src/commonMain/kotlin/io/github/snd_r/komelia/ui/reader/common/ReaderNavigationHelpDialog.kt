@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 
@@ -65,6 +67,7 @@ fun ContinuousReaderHelpDialog(
 private fun PagedDialogContent(
     elementsModifier: Modifier = Modifier,
 ) {
+    val platform = LocalPlatform.current
     KeyDescriptionColumn(
         "Reader Navigation",
         mapOf(
@@ -72,7 +75,11 @@ private fun PagedDialogContent(
             listOf("→") to "Next page",
             listOf("Home") to "First page",
             listOf("End") to "Last page",
-            listOf("Ctrl", "Scroll Wheel") to "Zoom"
+            if (platform == PlatformType.WEB_KOMF) {
+                listOf("Alt", "Scroll Wheel") to "Zoom"
+            } else {
+                listOf("Ctrl", "Scroll Wheel") to "Zoom"
+            }
         ),
         elementsModifier
     )
@@ -106,6 +113,7 @@ private fun ContinuousDialogContent(
     orientation: Orientation,
     elementsModifier: Modifier = Modifier,
 ) {
+    val platform = LocalPlatform.current
     val scrollDirection = when (orientation) {
         Vertical -> mapOf(
             listOf("↑") to "Scroll up",
@@ -122,7 +130,11 @@ private fun ContinuousDialogContent(
         scrollDirection + mapOf(
             listOf("Home") to "First page",
             listOf("End") to "Last page",
-            listOf("Ctrl", "Scroll Wheel") to "Zoom"
+            if (platform == PlatformType.WEB_KOMF) {
+                listOf("Alt", "Scroll Wheel") to "Zoom"
+            } else {
+                listOf("Ctrl", "Scroll Wheel") to "Zoom"
+            }
         ),
         elementsModifier
     )

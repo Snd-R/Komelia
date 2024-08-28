@@ -61,6 +61,7 @@ import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.MediaProfile.DIVINA
 
 @Composable
 fun BookImageCard(
@@ -154,6 +155,7 @@ private fun BookImageOverlay(
                                 blurRadius = 0f
                             ),
                         ),
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                 }
@@ -231,7 +233,7 @@ private fun BookHoverOverlay(
                     modifier = Modifier.padding(vertical = 5.dp).fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
                 ) {
-                    if (onBookReadClick != null) {
+                    if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
                         ReadButton(onBookReadClick)
                     }
 
@@ -356,7 +358,7 @@ private fun BookDetailedListDetails(
 
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.Start) {
-            if (onBookReadClick != null) {
+            if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
                 ReadButton(onBookReadClick)
             }
             if (bookMenuActions != null) {

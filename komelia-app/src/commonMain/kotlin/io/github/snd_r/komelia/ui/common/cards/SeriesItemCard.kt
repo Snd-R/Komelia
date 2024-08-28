@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.NoPaddingChip
@@ -200,17 +201,20 @@ private fun SeriesImageOverlay(
                 Text(
                     text = series.metadata.title,
                     maxLines = 4,
-                    style = cardTextStyle()
+                    style = cardTextStyle(),
+                    overflow = TextOverflow.Ellipsis,
                 )
+
                 if (series.deleted) {
-                    Text(text = "Unavailable", style = cardTextStyle().copy(color = MaterialTheme.colorScheme.error))
+                    Text(
+                        text = "Unavailable",
+                        style = cardTextStyle().copy(color = MaterialTheme.colorScheme.error)
+                    )
                 }
             }
         }
     }
-
 }
-
 
 @Composable
 fun SeriesDetailedListCard(

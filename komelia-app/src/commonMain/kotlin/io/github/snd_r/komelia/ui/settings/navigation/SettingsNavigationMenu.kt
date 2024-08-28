@@ -135,13 +135,15 @@ fun SettingsNavigationMenu(
                 isSelected = currentScreen is DecoderSettingsScreen,
                 color = contentColor,
             )
-        NavigationButton(
-            label = "Updates",
-            onClick = { onNavigation(AppUpdatesScreen()) },
-            isSelected = currentScreen is AppUpdatesScreen,
-            error = newVersionIsAvailable,
-            color = contentColor,
-        )
+        if (platform != WEB_KOMF) {
+            NavigationButton(
+                label = "Updates",
+                onClick = { onNavigation(AppUpdatesScreen()) },
+                isSelected = currentScreen is AppUpdatesScreen,
+                error = newVersionIsAvailable,
+                color = contentColor,
+            )
+        }
 
         HorizontalDivider(Modifier.padding(vertical = 10.dp))
         Text("Komf Settings", style = MaterialTheme.typography.titleSmall)

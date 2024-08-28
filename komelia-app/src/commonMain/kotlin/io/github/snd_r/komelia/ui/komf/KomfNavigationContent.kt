@@ -41,7 +41,7 @@ fun KomfNavigationContent(
         Text("Komf Settings", style = MaterialTheme.typography.titleSmall)
         NavigationButton(
             label = "Connection",
-            onClick = { onNavigation(KomfSettingsScreen()) },
+            onClick = { onNavigation(KomfSettingsScreen(false)) },
             isSelected = currentScreen is KomfSettingsScreen,
             color = contentColor,
         )

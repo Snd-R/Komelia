@@ -11,7 +11,7 @@ import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
-class KomfSettingsScreen : Screen {
+class KomfSettingsScreen(private val integrationToggleEnabled: Boolean = true) : Screen {
 
     @Composable
     override fun Content() {
@@ -38,7 +38,8 @@ class KomfSettingsScreen : Screen {
                     onMetadataLibraryFilterSelect = vm::onMetadataLibraryFilterSelect,
                     notificationsFilter = vm.notificationsLibraryFilters,
                     onNotificationsLibraryFilterSelect = vm::onNotificationsLibraryFilterSelect,
-                    libraries = vm.libraries.collectAsState().value
+                    libraries = vm.libraries.collectAsState().value,
+                    integrationToggleEnabled = integrationToggleEnabled
                 )
             }
 

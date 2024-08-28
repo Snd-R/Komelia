@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
@@ -61,8 +60,7 @@ fun ReaderContent(
 
     Box(Modifier.fillMaxSize().onSizeChanged { screenScaleState.setAreaSize(it) }) {
         val areaSize = screenScaleState.areaSize.collectAsState()
-        val targetSize = screenScaleState.targetSize.collectAsState()
-        if (areaSize.value == IntSize.Zero || targetSize.value == Size.Zero) {
+        if (areaSize.value == IntSize.Zero) {
             LoadingMaxSizeIndicator()
             return
         }

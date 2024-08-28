@@ -331,10 +331,19 @@ fun SeriesInfo(
         }
 
 
-        ExpandableText(
-            text = series.metadata.summary,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        val summary = remember(series) {
+            if (series.metadata.summary.isNotBlank()) {
+                series.metadata.summary
+            } else if (series.booksMetadata.summary.isNotBlank()) {
+                "Summary from book ${series.booksMetadata.summaryNumber}:\n" + series.booksMetadata.summary
+            } else null
+        }
+        if (summary != null) {
+            ExpandableText(
+                text = summary,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }
 

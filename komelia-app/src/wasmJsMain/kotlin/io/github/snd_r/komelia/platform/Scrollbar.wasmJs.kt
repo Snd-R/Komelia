@@ -2,22 +2,30 @@ package io.github.snd_r.komelia.platform
 
 import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.v2.LazyGridScrollbarAdapter
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+
 @Composable
 actual fun VerticalScrollbar(
     scrollState: LazyListState,
     modifier: Modifier,
-) = androidx.compose.foundation.VerticalScrollbar(
+) = CustomVerticalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-        hoverColor = MaterialTheme.colorScheme.background,
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
 
@@ -25,12 +33,12 @@ actual fun VerticalScrollbar(
 actual fun VerticalScrollbar(
     scrollState: ScrollState,
     modifier: Modifier,
-) = androidx.compose.foundation.VerticalScrollbar(
+) = CustomVerticalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-        hoverColor = MaterialTheme.colorScheme.background,
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
 
@@ -42,8 +50,8 @@ actual fun HorizontalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-        hoverColor = MaterialTheme.colorScheme.background,
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
 
@@ -56,8 +64,8 @@ actual fun HorizontalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-        hoverColor = MaterialTheme.colorScheme.background,
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
 
@@ -69,8 +77,8 @@ actual fun HorizontalScrollbar(
     adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-        hoverColor = MaterialTheme.colorScheme.background,
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
 
@@ -78,11 +86,34 @@ actual fun HorizontalScrollbar(
 actual fun VerticalScrollbar(
     scrollState: LazyGridState,
     modifier: Modifier,
-) = androidx.compose.foundation.VerticalScrollbar(
-    adapter = rememberScrollbarAdapter(scrollState),
+) = CustomVerticalScrollbar(
+    // TODO restore after https://github.com/JetBrains/compose-multiplatform/issues/1980 is fixed
+//    adapter = rememberScrollbarAdapter(scrollState),
+    adapter = remember(scrollState) { LazyGridScrollbarAdapter(scrollState) },
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
-        unhoverColor = MaterialTheme.colorScheme.background.copy(alpha = .8f),
-        hoverColor = MaterialTheme.colorScheme.background,
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
     ),
 )
+
+@Composable
+private fun CustomVerticalScrollbar(
+    adapter: androidx.compose.foundation.v2.ScrollbarAdapter,
+    modifier: Modifier = Modifier,
+    reverseLayout: Boolean = false,
+    style: ScrollbarStyle = LocalScrollbarStyle.current,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+) {
+    val isHovered = interactionSource.collectIsHoveredAsState().value
+    val isDragged = interactionSource.collectIsDraggedAsState().value
+    val scaleModifier = if (isHovered || isDragged) Modifier.scale(1.5f, 1f) else Modifier
+
+    androidx.compose.foundation.VerticalScrollbar(
+        adapter = adapter,
+        modifier = modifier.then(scaleModifier),
+        reverseLayout = reverseLayout,
+        style = style,
+        interactionSource = interactionSource
+    )
+}

@@ -33,7 +33,7 @@ class ScreenScaleState {
     private var currentOffset = Offset.Zero
 
     val areaSize = MutableStateFlow(IntSize.Zero)
-    val targetSize = MutableStateFlow(Size.Zero)
+    val targetSize = MutableStateFlow(Size(1f,1f))
 
     val offsetXLimits = MutableStateFlow(-1f..1f)
     val offsetYLimits = MutableStateFlow(-1f..1f)

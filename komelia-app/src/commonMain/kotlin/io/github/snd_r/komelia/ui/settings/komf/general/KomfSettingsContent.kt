@@ -58,42 +58,45 @@ fun KomfSettingsContent(
     notificationsFilter: List<KomgaLibraryId>,
     onNotificationsLibraryFilterSelect: (KomgaLibraryId) -> Unit,
     libraries: List<KomgaLibrary>,
+    integrationToggleEnabled: Boolean
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         val uriHandler = LocalUriHandler.current
         val coroutineScope = rememberCoroutineScope()
-        var komfEnabledConfirmed by remember { mutableStateOf(komfEnabled) }
-        SwitchWithLabel(
-            checked = komfEnabled,
-            onCheckedChange = {
-                coroutineScope.launch {
-                    onKomfEnabledChange(it)
-                    komfEnabledConfirmed = true
-                }
-            },
-            label = { Text("Enable Komf Integration") },
-            supportingText = {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("Adds features aimed at metadata updates and editing")
-                    Spacer(Modifier.weight(1f))
-                    ElevatedButton(
-                        onClick = { uriHandler.openUri("https://github.com/Snd-R/komf") },
-                        shape = RoundedCornerShape(5.dp),
+        var komfEnabledConfirmed by remember { mutableStateOf(komfEnabled || !integrationToggleEnabled) }
+        if (integrationToggleEnabled) {
+            SwitchWithLabel(
+                checked = komfEnabled,
+                onCheckedChange = {
+                    coroutineScope.launch {
+                        onKomfEnabledChange(it)
+                        komfEnabledConfirmed = true
+                    }
+                },
+                label = { Text("Enable Komf Integration") },
+                supportingText = {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Text("Project Link")
+                        Text("Adds features aimed at metadata updates and editing")
+                        Spacer(Modifier.weight(1f))
+                        ElevatedButton(
+                            onClick = { uriHandler.openUri("https://github.com/Snd-R/komf") },
+                            shape = RoundedCornerShape(5.dp),
+                        ) {
+                            Text("Project Link")
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
 
         AnimatedVisibility(komfEnabled && komfEnabledConfirmed) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                KomfConnectionDetails(komfMode, komfUrl, komfConnectionError)
+                KomfConnectionDetails(komfMode, komfUrl, komfConnectionError, integrationToggleEnabled)
 
                 AnimatedVisibility(komfConnectionError == null) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -123,19 +126,22 @@ private fun KomfConnectionDetails(
     komfMode: StateHolder<KomfMode>,
     komfUrl: StateHolder<String>,
     komfConnectionError: String?,
+    integrationToggleEnabled: Boolean
 ) {
-    DropdownChoiceMenu(
-        label = { Text("Mode") },
-        selectedOption = remember { LabeledEntry(komfMode, "Remote server") },
-        options = remember {
-            listOf(
-                LabeledEntry(KomfMode.REMOTE, "Remote Server"),
-                LabeledEntry(KomfMode.EMBEDDED, "Embedded (Not Yet Implemented)"),
-            )
-        },
-        onOptionChange = {},
-        inputFieldModifier = Modifier.fillMaxWidth()
-    )
+    if (integrationToggleEnabled) {
+        DropdownChoiceMenu(
+            label = { Text("Mode") },
+            selectedOption = remember { LabeledEntry(komfMode, "Remote server") },
+            options = remember {
+                listOf(
+                    LabeledEntry(KomfMode.REMOTE, "Remote Server"),
+                    LabeledEntry(KomfMode.EMBEDDED, "Embedded (Not Yet Implemented)"),
+                )
+            },
+            onOptionChange = {},
+            inputFieldModifier = Modifier.fillMaxWidth()
+        )
+    }
     if (komfMode.value == KomfMode.REMOTE) {
         SavableHttpTextField(
             label = "Komf Url",

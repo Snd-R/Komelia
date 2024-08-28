@@ -77,6 +77,7 @@ import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
 import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.MediaProfile.DIVINA
 import snd.komga.client.common.coloristRole
 import snd.komga.client.common.coverRole
 import snd.komga.client.common.editorRole
@@ -305,6 +306,7 @@ private fun BookInfoUpperPanel(
                     onClick = { onBookReadPress(true) },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.cursorForHand(),
+                    enabled = book.media.mediaProfile == DIVINA,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -320,6 +322,7 @@ private fun BookInfoUpperPanel(
                     onClick = { onBookReadPress(false) },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.cursorForHand(),
+                    enabled = book.media.mediaProfile == DIVINA,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
