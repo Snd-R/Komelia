@@ -8,6 +8,7 @@ import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.OnnxRuntimeSharedLibraries
+import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsSharedLibraries
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
@@ -119,7 +120,11 @@ class DesktopDependencyContainer private constructor(
                 } catch (e: UnsatisfiedLinkError) {
                     logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
                     null
+                } catch (e: OnnxRuntimeUpscaler.OrtException) {
+                    logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+                    null
                 }
+
             }.also { logger.info { "completed ONNX Runtime load in ${it.duration}" } }
 
             val secretsRepository = createSecretsRepository()

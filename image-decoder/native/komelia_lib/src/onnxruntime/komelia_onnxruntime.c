@@ -501,7 +501,9 @@ JNIEXPORT void JNICALL
 Java_io_github_snd_1r_OnnxRuntimeUpscaler_init(JNIEnv *env, jclass this, jstring provider) {
     g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
     if (!g_ort) {
-        throw_jvm_ort_exception(env, "Failed to init ONNX Runtime engine");
+        char message[124];
+        snprintf(message, 124, "The requested API version [%u] is not available. Update to newer version", ORT_API_VERSION);
+        throw_jvm_ort_exception(env, message);
         return;
     }
 

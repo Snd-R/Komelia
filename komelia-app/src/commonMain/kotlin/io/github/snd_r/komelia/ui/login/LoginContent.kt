@@ -73,7 +73,7 @@ fun LoginContent(
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(onClick = onAutoLoginRetry) { Text("Retry") }
-                Button(onClick = { showAutoLoginError = false }) { Text("Login with another credentials") }
+                Button(onClick = { showAutoLoginError = false }) { Text("Login with another account") }
             }
         }
     } else {

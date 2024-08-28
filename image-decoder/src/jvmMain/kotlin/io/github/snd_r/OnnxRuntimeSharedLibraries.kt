@@ -10,6 +10,7 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.C
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
+import io.github.snd_r.OnnxRuntimeUpscaler.OrtException
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -135,6 +136,9 @@ object OnnxRuntimeSharedLibraries {
             isAvailable = true
             this.executionProvider = executionProvider
         } catch (e: UnsatisfiedLinkError) {
+            loadErrorMessage = e.message
+            throw e
+        } catch (e: OrtException) {
             loadErrorMessage = e.message
             throw e
         }
