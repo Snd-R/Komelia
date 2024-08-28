@@ -94,7 +94,7 @@ fun KomfSettingsContent(
             )
         }
 
-        AnimatedVisibility(komfEnabled && komfEnabledConfirmed) {
+        AnimatedVisibility(komfEnabled || !komfEnabledConfirmed) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 KomfConnectionDetails(komfMode, komfUrl, komfConnectionError, integrationToggleEnabled)
 

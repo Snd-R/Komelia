@@ -195,7 +195,15 @@ private fun TemplatesEditor(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Notification Template", style = MaterialTheme.typography.titleLarge)
         Column {
-            Text("Templates are rendered using Apache Velocity")
+            Text("Uses Apprise executable installed on the system.\nTemplates are rendered using Apache Velocity")
+            Text(
+                "Apprise github page",
+                color = MaterialTheme.colorScheme.secondary,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {
+                    uriHandler.openUri("https://github.com/caronc/apprise")
+                }.padding(2.dp).cursorForHand()
+            )
             Text(
                 "Velocity Template Language syntax reference",
                 color = MaterialTheme.colorScheme.secondary,

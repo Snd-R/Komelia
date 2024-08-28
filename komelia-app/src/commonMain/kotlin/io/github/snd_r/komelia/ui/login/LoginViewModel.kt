@@ -83,6 +83,10 @@ class LoginViewModel(
                 notifications.add(AppNotification.Error(e.message))
             }
             mutableState.value = LoadState.Error(e)
+        } catch (e: Error) { // wasm fetch error
+            val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
+            mutableState.value = LoadState.Error(e)
+            notifications.add(AppNotification.Error(errorMessage))
         } catch (e: Throwable) {
             val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
             autoLoginError = errorMessage
