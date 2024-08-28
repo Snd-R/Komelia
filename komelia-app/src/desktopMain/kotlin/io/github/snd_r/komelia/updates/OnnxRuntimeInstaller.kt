@@ -41,24 +41,22 @@ import kotlin.io.path.outputStream
 
 
 class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
-    private val onnxRuntimeTagName = "v1.18.0"
-    private val onnxRuntimeVersion = "1.18.0"
+    private val onnxRuntimeTagName = "v1.19.0"
+    private val onnxRuntimeVersion = "1.19.0"
 
-    private val onnxRuntimeTagNameCuda = "v1.19.0"
-    private val onnxRuntimeVersionCuda = "1.19.0"
-
-    private val linuxCudaAssetName = "onnxruntime-linux-x64-gpu-$onnxRuntimeVersionCuda.tgz"
+    private val linuxCudaAssetName = "onnxruntime-linux-x64-gpu-$onnxRuntimeVersion.tgz"
     private val linuxRocmAssetName = "onnxruntime-linux-x64-rocm-$onnxRuntimeVersion.tgz"
     private val linuxCPUAssetName = "onnxruntime-linux-x64-$onnxRuntimeVersion.tgz"
 
-    private val linuxCudaLibPath = Path("onnxruntime-linux-x64-gpu-$onnxRuntimeVersionCuda/lib/")
-    private val linuxRocmLibPath = Path("onnxruntime-linux-x64-rocm-$onnxRuntimeVersion/lib/")
+    private val linuxCudaLibPath = Path("onnxruntime-linux-x64-gpu-$onnxRuntimeVersion/lib/")
+
+    //    private val linuxRocmLibPath = Path("onnxruntime-linux-x64-rocm-$onnxRuntimeVersion/lib/")
     private val linuxCpuLibPath = Path("onnxruntime-linux-x64-$onnxRuntimeVersion/lib/")
 
-    private val windowsCudaAssetName = "onnxruntime-win-x64-gpu-$onnxRuntimeVersionCuda.zip"
+    private val windowsCudaAssetName = "onnxruntime-win-x64-gpu-$onnxRuntimeVersion.zip"
     private val windowsDirectMLAssetName = "Microsoft.ML.OnnxRuntime.DirectML.$onnxRuntimeVersion.zip"
 
-    private val windowsCudaLibPath = Path("onnxruntime-win-x64-gpu-$onnxRuntimeVersionCuda/lib/")
+    private val windowsCudaLibPath = Path("onnxruntime-win-x64-gpu-$onnxRuntimeVersion/lib/")
     private val windowsDirectMlLibPath = Path("runtimes/win-x64/native/")
 
     private val directMlDownloadFilename = "microsoft.ai.directml.1.15.0.nupkg"
@@ -68,9 +66,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
     suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
         onnxRuntimeInstallPath.createDirectories()
 
-        val release =
-            if (provider == CUDA) updateClient.getOnnxRuntimeRelease(onnxRuntimeTagNameCuda)
-            else updateClient.getOnnxRuntimeRelease(onnxRuntimeTagName)
+        val release = updateClient.getOnnxRuntimeRelease(onnxRuntimeTagName)
         val asset = when (DesktopPlatform.Current) {
             Linux -> getLinuxAsset(release.assets, provider)
             Windows -> getWindowsAsset(release.assets, provider)
@@ -144,7 +140,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
             val symlinkPath = onnxRuntimeInstallPath.resolve("libonnxruntime.so")
             symlinkPath.deleteIfExists()
             val linuxLibName =
-                if (provider == CUDA) getLinuxOnnxruntimeLib(onnxRuntimeVersionCuda)
+                if (provider == CUDA || provider == TENSOR_RT) getLinuxOnnxruntimeLib(onnxRuntimeVersion)
                 else getLinuxOnnxruntimeLib(onnxRuntimeVersion)
 
             Files.createSymbolicLink(symlinkPath, onnxRuntimeInstallPath.resolve(linuxLibName))
@@ -222,7 +218,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    getLinuxLibNames(onnxRuntimeVersionCuda, provider).map { linuxCudaLibPath.resolve(it) }
+                    getLinuxLibNames(provider).map { linuxCudaLibPath.resolve(it) }
                 )
             }
 
@@ -231,25 +227,27 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    getLinuxLibNames(onnxRuntimeVersionCuda, provider).map { linuxCudaLibPath.resolve(it) }
+                    getLinuxLibNames(provider).map { linuxCudaLibPath.resolve(it) }
                 )
             }
 
-            ROCm -> {
-                val asset = assets.first { it.name == linuxRocmAssetName }
-                OnnxRuntimeDownloadInfo(
-                    asset.name,
-                    asset.browserDownloadUrl,
-                    getLinuxLibNames(onnxRuntimeVersion, provider).map { linuxRocmLibPath.resolve(it) }
-                )
-            }
+            ROCm -> error("ROCm is currently not supported")
+
+//            ROCm -> {
+//                val asset = assets.first { it.name == linuxRocmAssetName }
+//                OnnxRuntimeDownloadInfo(
+//                    asset.name,
+//                    asset.browserDownloadUrl,
+//                    getLinuxLibNames(onnxRuntimeVersion, provider).map { linuxRocmLibPath.resolve(it) }
+//                )
+//            }
 
             CPU -> {
                 val asset = assets.first { it.name == linuxCPUAssetName }
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    getLinuxLibNames(onnxRuntimeVersion, provider).map { linuxCpuLibPath.resolve(it) }
+                    getLinuxLibNames(provider).map { linuxCpuLibPath.resolve(it) }
                 )
             }
 
@@ -263,7 +261,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         val extractPaths: List<Path>
     )
 
-    private fun getLinuxLibNames(version: String, provider: OnnxRuntimeExecutionProvider): List<String> {
+    private fun getLinuxLibNames(provider: OnnxRuntimeExecutionProvider): List<String> {
         val libs = when (provider) {
             TENSOR_RT -> listOf(
                 "libonnxruntime_providers_shared.so",
@@ -283,7 +281,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
 
             DirectML, CPU -> emptyList()
         }
-        return libs + getLinuxOnnxruntimeLib(version)
+        return libs + "libonnxruntime.so.$onnxRuntimeVersion"
     }
 
     private fun getWindowsLibNames(provider: OnnxRuntimeExecutionProvider): List<String> {
