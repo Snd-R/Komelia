@@ -9,8 +9,8 @@ cd ./build-w64
 
 wget --retry-connrefused --waitretry=1 \
 	--read-timeout=20 --timeout=15 -t 0 \
-        https://github.com/microsoft/onnxruntime/releases/download/v1.19.0/Microsoft.ML.OnnxRuntime.DirectML.1.19.0.zip \
-        && unzip Microsoft.ML.OnnxRuntime.DirectML.1.19.0.zip -d onnxruntime-win-x64 \
+        https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/Microsoft.ML.OnnxRuntime.DirectML.1.18.0.zip \
+        && unzip Microsoft.ML.OnnxRuntime.DirectML.1.18.0.zip -d onnxruntime-win-x64 \
         && mv ./onnxruntime-win-x64/build/native/include/* ./fakeroot/include \
         && mv ./onnxruntime-win-x64/runtimes/win-x64/native/* ./fakeroot/lib
 

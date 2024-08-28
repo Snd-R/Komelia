@@ -41,22 +41,23 @@ import kotlin.io.path.outputStream
 
 
 class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
-    private val onnxRuntimeTagName = "v1.19.0"
-    private val onnxRuntimeVersion = "1.19.0"
+    private val onnxRuntimeTagName = "v1.18.1"
+    private val onnxRuntimeVersion = "1.18.1"
+    private val onnxRuntimeTagNameDirectMl = "v1.18.0"
+    private val onnxRuntimeVersionDirectMl = "1.18.0"
 
-    private val linuxCudaAssetName = "onnxruntime-linux-x64-gpu-$onnxRuntimeVersion.tgz"
-    private val linuxRocmAssetName = "onnxruntime-linux-x64-rocm-$onnxRuntimeVersion.tgz"
-    private val linuxCPUAssetName = "onnxruntime-linux-x64-$onnxRuntimeVersion.tgz"
-
+    private val linuxCudaAssetName = "onnxruntime-linux-x64-gpu-cuda12-$onnxRuntimeVersion.tgz"
     private val linuxCudaLibPath = Path("onnxruntime-linux-x64-gpu-$onnxRuntimeVersion/lib/")
+    private val windowsCudaAssetName = "onnxruntime-win-x64-gpu-cuda12-$onnxRuntimeVersion.zip"
+    private val windowsCudaLibPath = Path("onnxruntime-win-x64-gpu-$onnxRuntimeVersion/lib/")
 
-    //    private val linuxRocmLibPath = Path("onnxruntime-linux-x64-rocm-$onnxRuntimeVersion/lib/")
+//    private val linuxRocmAssetName = "onnxruntime-linux-x64-rocm-$onnxRuntimeVersion.tgz"
+//    private val linuxRocmLibPath = Path("onnxruntime-linux-x64-rocm-$onnxRuntimeVersion/lib/")
+
+    private val linuxCPUAssetName = "onnxruntime-linux-x64-$onnxRuntimeVersion.tgz"
     private val linuxCpuLibPath = Path("onnxruntime-linux-x64-$onnxRuntimeVersion/lib/")
 
-    private val windowsCudaAssetName = "onnxruntime-win-x64-gpu-$onnxRuntimeVersion.zip"
-    private val windowsDirectMLAssetName = "Microsoft.ML.OnnxRuntime.DirectML.$onnxRuntimeVersion.zip"
-
-    private val windowsCudaLibPath = Path("onnxruntime-win-x64-gpu-$onnxRuntimeVersion/lib/")
+    private val windowsDirectMLAssetName = "Microsoft.ML.OnnxRuntime.DirectML.$onnxRuntimeVersionDirectMl.zip"
     private val windowsDirectMlLibPath = Path("runtimes/win-x64/native/")
 
     private val directMlDownloadFilename = "microsoft.ai.directml.1.15.0.nupkg"
@@ -66,26 +67,36 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
     suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
         onnxRuntimeInstallPath.createDirectories()
 
-        val release = updateClient.getOnnxRuntimeRelease(onnxRuntimeTagName)
-        val asset = when (DesktopPlatform.Current) {
+        val release = when (provider) {
+            TENSOR_RT, CUDA, CPU -> updateClient.getOnnxRuntimeRelease(onnxRuntimeTagName)
+            DirectML -> updateClient.getOnnxRuntimeRelease(onnxRuntimeTagNameDirectMl)
+            ROCm -> error("Unsupported")
+        }
+        val githubAsset = when (DesktopPlatform.Current) {
             Linux -> getLinuxAsset(release.assets, provider)
             Windows -> getWindowsAsset(release.assets, provider)
             MacOS, Unknown -> error("Unsupported OS")
         }
 
         return flow {
-            emit(UpdateProgress(0, 0, asset.filename))
-            val onnxruntimeFile = createTempFile(asset.filename)
+            emit(UpdateProgress(0, 0, githubAsset.filename))
+            val onnxruntimeFile = createTempFile(githubAsset.filename)
 
-            updateClient.streamFile(asset.downloadUrl) { downloadToFile(it, onnxruntimeFile, asset.filename) }
+            updateClient.streamFile(githubAsset.downloadUrl) {
+                downloadToFile(
+                    it,
+                    onnxruntimeFile,
+                    githubAsset.filename
+                )
+            }
             onnxRuntimeInstallPath.listDirectoryEntries().filter { !it.isDirectory() }.forEach { it.deleteExisting() }
 
             emit(UpdateProgress(0, 0, "Extracting Archive"))
 
-            if (asset.filename.endsWith(".tgz")) {
-                extractTarArchive(onnxruntimeFile, asset.extractPaths, provider)
+            if (githubAsset.filename.endsWith(".tgz")) {
+                extractTarArchive(onnxruntimeFile, githubAsset.extractPaths, provider)
             } else {
-                extractZipArchive(onnxruntimeFile, asset.extractPaths)
+                extractZipArchive(onnxruntimeFile, githubAsset.extractPaths)
             }
 
             if (provider == DirectML) {

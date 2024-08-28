@@ -142,7 +142,6 @@ int enable_tensorrt(JNIEnv *env, int device_id, OrtSessionOptions *options) {
     OrtTensorRTProviderOptions tensorrt_options = {0};
     tensorrt_options.device_id = device_id;
     tensorrt_options.trt_fp16_enable = 1;
-    tensorrt_options.trt_int8_enable = 1;
     tensorrt_options.trt_engine_cache_enable = 1;
     tensorrt_options.trt_engine_cache_path = g_get_tmp_dir();
     ORT_INT_STATUS_THROW(env, g_ort->SessionOptionsAppendExecutionProvider_TensorRT(options, &tensorrt_options));
