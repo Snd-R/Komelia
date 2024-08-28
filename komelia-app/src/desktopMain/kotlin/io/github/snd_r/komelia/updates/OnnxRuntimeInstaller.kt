@@ -5,6 +5,7 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.C
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
 import io.github.snd_r.komelia.AppDirectories.onnxRuntimeInstallPath
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
@@ -43,10 +44,10 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
     private val onnxRuntimeTagName = "v1.18.0"
     private val onnxRuntimeVersion = "1.18.0"
 
-    private val onnxRuntimeTagNameCuda = "v1.18.1"
-    private val onnxRuntimeVersionCuda = "1.18.1"
+    private val onnxRuntimeTagNameCuda = "v1.19.0"
+    private val onnxRuntimeVersionCuda = "1.19.0"
 
-    private val linuxCudaAssetName = "onnxruntime-linux-x64-gpu-cuda12-$onnxRuntimeVersionCuda.tgz"
+    private val linuxCudaAssetName = "onnxruntime-linux-x64-gpu-$onnxRuntimeVersionCuda.tgz"
     private val linuxRocmAssetName = "onnxruntime-linux-x64-rocm-$onnxRuntimeVersion.tgz"
     private val linuxCPUAssetName = "onnxruntime-linux-x64-$onnxRuntimeVersion.tgz"
 
@@ -54,17 +55,11 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
     private val linuxRocmLibPath = Path("onnxruntime-linux-x64-rocm-$onnxRuntimeVersion/lib/")
     private val linuxCpuLibPath = Path("onnxruntime-linux-x64-$onnxRuntimeVersion/lib/")
 
-    private val windowsCudaAssetName = "onnxruntime-win-x64-gpu-cuda12-$onnxRuntimeVersionCuda.zip"
+    private val windowsCudaAssetName = "onnxruntime-win-x64-gpu-$onnxRuntimeVersionCuda.zip"
     private val windowsDirectMLAssetName = "Microsoft.ML.OnnxRuntime.DirectML.$onnxRuntimeVersion.zip"
 
     private val windowsCudaLibPath = Path("onnxruntime-win-x64-gpu-$onnxRuntimeVersionCuda/lib/")
     private val windowsDirectMlLibPath = Path("runtimes/win-x64/native/")
-
-    private val windowsLibs = listOf(
-        "onnxruntime.dll",
-        "onnxruntime_providers_shared.dll",
-        "onnxruntime_providers_cuda.dll",
-    )
 
     private val directMlDownloadFilename = "microsoft.ai.directml.1.15.0.nupkg"
     private val directMlLink = "https://globalcdn.nuget.org/packages/$directMlDownloadFilename"
@@ -177,12 +172,21 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         provider: OnnxRuntimeExecutionProvider
     ): OnnxRuntimeDownloadInfo {
         return when (provider) {
+            TENSOR_RT -> {
+                val asset = assets.first { it.name == windowsCudaAssetName }
+                OnnxRuntimeDownloadInfo(
+                    asset.name,
+                    asset.browserDownloadUrl,
+                    getWindowsLibNames(provider).map { windowsCudaLibPath.resolve(it) }
+                )
+            }
+
             CUDA -> {
                 val asset = assets.first { it.name == windowsCudaAssetName }
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    windowsLibs.map { windowsCudaLibPath.resolve(it) }
+                    getWindowsLibNames(provider).map { windowsCudaLibPath.resolve(it) }
                 )
             }
 
@@ -193,7 +197,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    windowsLibs.map { windowsDirectMlLibPath.resolve(it) }
+                    getWindowsLibNames(provider).map { windowsDirectMlLibPath.resolve(it) }
                 )
             }
 
@@ -202,7 +206,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    windowsLibs.map { windowsDirectMlLibPath.resolve(it) }
+                    getWindowsLibNames(provider).map { windowsDirectMlLibPath.resolve(it) }
                 )
             }
         }
@@ -213,12 +217,21 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         provider: OnnxRuntimeExecutionProvider
     ): OnnxRuntimeDownloadInfo {
         return when (provider) {
+            TENSOR_RT -> {
+                val asset = assets.first { it.name == linuxCudaAssetName }
+                OnnxRuntimeDownloadInfo(
+                    asset.name,
+                    asset.browserDownloadUrl,
+                    getLinuxLibNames(onnxRuntimeVersionCuda, provider).map { linuxCudaLibPath.resolve(it) }
+                )
+            }
+
             CUDA -> {
                 val asset = assets.first { it.name == linuxCudaAssetName }
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    getLinuxLibs(onnxRuntimeVersionCuda).map { linuxCudaLibPath.resolve(it) }
+                    getLinuxLibNames(onnxRuntimeVersionCuda, provider).map { linuxCudaLibPath.resolve(it) }
                 )
             }
 
@@ -227,7 +240,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    getLinuxLibs(onnxRuntimeVersion).map { linuxRocmLibPath.resolve(it) }
+                    getLinuxLibNames(onnxRuntimeVersion, provider).map { linuxRocmLibPath.resolve(it) }
                 )
             }
 
@@ -236,7 +249,7 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    getLinuxLibs(onnxRuntimeVersion).map { linuxCpuLibPath.resolve(it) }
+                    getLinuxLibNames(onnxRuntimeVersion, provider).map { linuxCpuLibPath.resolve(it) }
                 )
             }
 
@@ -250,14 +263,46 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         val extractPaths: List<Path>
     )
 
-    private fun getLinuxOnnxruntimeLib(version: String) = "libonnxruntime.so.$version"
+    private fun getLinuxLibNames(version: String, provider: OnnxRuntimeExecutionProvider): List<String> {
+        val libs = when (provider) {
+            TENSOR_RT -> listOf(
+                "libonnxruntime_providers_shared.so",
+                "libonnxruntime_providers_cuda.so",
+                "libonnxruntime_providers_tensorrt.so",
+            )
 
-    private fun getLinuxLibs(version: String): List<String> {
-        return listOf(
-            getLinuxOnnxruntimeLib(version),
-            "libonnxruntime_providers_shared.so",
-            "libonnxruntime_providers_cuda.so",
-            "libonnxruntime_providers_rocm.so",
-        )
+            CUDA -> listOf(
+                "libonnxruntime_providers_shared.so",
+                "libonnxruntime_providers_cuda.so",
+            )
+
+            ROCm -> listOf(
+                "libonnxruntime_providers_shared.so",
+                "libonnxruntime_providers_rocm.so",
+            )
+
+            DirectML, CPU -> emptyList()
+        }
+        return libs + getLinuxOnnxruntimeLib(version)
     }
+
+    private fun getWindowsLibNames(provider: OnnxRuntimeExecutionProvider): List<String> {
+        val libs = when (provider) {
+            TENSOR_RT -> listOf(
+                "onnxruntime_providers_shared.dll",
+                "onnxruntime_providers_cuda.dll",
+                "onnxruntime_providers_tensorrt.dll"
+            )
+
+            CUDA -> listOf(
+                "onnxruntime_providers_shared.dll",
+                "onnxruntime_providers_cuda.dll",
+            )
+
+            ROCm, DirectML, CPU -> emptyList()
+        }
+        return libs + "onnxruntime.dll"
+    }
+
+    private fun getLinuxOnnxruntimeLib(version: String) = "libonnxruntime.so.$version"
 }

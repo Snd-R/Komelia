@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 project(komelia C CXX)
 set(CMAKE_C_STANDARD 23)
 
-OPTION(VULKAN_GPU_ENUMERATION "build gpu enumeration shared lib for vulkan" ON)
+OPTION(VULKAN_GPU_ENUMERATION "build gpu enumeration shared lib for vulkan" OFF)
 OPTION(CUDA_GPU_ENUMERATION "build gpu enumeration shared lib for cuda" OFF)
 OPTION(ROCM_GPU_ENUMERATION "build gpu enumeration shared lib for rocm" OFF)
 OPTION(DXGI_GPU_ENUMERATION "build gpu enumeration shared lib for dxgi" OFF)

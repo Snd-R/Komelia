@@ -14,6 +14,7 @@
 #endif
 
 typedef enum {
+    TENSOR_RT,
     CUDA,
     ROCm,
     DML,
@@ -137,6 +138,17 @@ int enable_cuda(JNIEnv *env, int device_id, OrtSessionOptions *options) {
     }
     return 0;
 }
+int enable_tensorrt(JNIEnv *env, int device_id, OrtSessionOptions *options) {
+    OrtTensorRTProviderOptions tensorrt_options = {0};
+    tensorrt_options.device_id = device_id;
+    tensorrt_options.trt_fp16_enable = 1;
+    tensorrt_options.trt_int8_enable = 1;
+    tensorrt_options.trt_engine_cache_enable = 1;
+    tensorrt_options.trt_engine_cache_path = g_get_tmp_dir();
+    ORT_INT_STATUS_THROW(env, g_ort->SessionOptionsAppendExecutionProvider_TensorRT(options, &tensorrt_options));
+
+    return enable_cuda(env, device_id, options);
+}
 
 int enable_rocm(JNIEnv *env, int device_id, OrtSessionOptions *options) {
     OrtROCMProviderOptions rocm_opts;
@@ -192,6 +204,9 @@ int init_onnxruntime_session(JNIEnv *env) {
 
     int provider_init_error = 0;
     switch (execution_provider) {
+        case TENSOR_RT:
+            provider_init_error = enable_tensorrt(env, current_device_id, current_session.session_options);
+            break;
         case CUDA:
             provider_init_error = enable_cuda(env, current_device_id, current_session.session_options);
             break;
@@ -506,7 +521,8 @@ Java_io_github_snd_1r_OnnxRuntimeUpscaler_init(JNIEnv *env, jclass this, jstring
     }
 
     const char *provider_chars = (*env)->GetStringUTFChars(env, provider, 0);
-    if (strcmp(provider_chars, "CUDA") == 0) execution_provider = CUDA;
+    if (strcmp(provider_chars, "TENSOR_RT") == 0) execution_provider = TENSOR_RT;
+    else if (strcmp(provider_chars, "CUDA") == 0) execution_provider = CUDA;
     else if (strcmp(provider_chars, "ROCM") == 0) execution_provider = ROCm;
     else if (strcmp(provider_chars, "DML") == 0) execution_provider = DML;
     else if (strcmp(provider_chars, "CPU") == 0) execution_provider = CPU;

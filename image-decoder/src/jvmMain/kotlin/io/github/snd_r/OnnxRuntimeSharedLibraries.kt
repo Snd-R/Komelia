@@ -9,6 +9,7 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.C
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -49,6 +50,7 @@ object OnnxRuntimeSharedLibraries {
 
         var onnxruntimePath: Path? = null
         var sharedProvidersPath: Path? = null
+        var tensorRtProviderPath: Path? = null
         var cudaProviderPath: Path? = null
         var rocmProviderPath: Path? = null
         var directMLPath: Path? = null
@@ -59,6 +61,8 @@ object OnnxRuntimeSharedLibraries {
                 "libonnxruntime_providers_shared.so", "onnxruntime_providers_shared.dll" -> sharedProvidersPath = entry
                 "libonnxruntime_providers_cuda.so", "onnxruntime_providers_cuda.dll" -> cudaProviderPath = entry
                 "libonnxruntime_providers_rocm.so" -> rocmProviderPath = entry
+                "libonnxruntime_providers_tensorrt.so", "onnxruntime_providers_tensorrt.dll" ->
+                    tensorRtProviderPath = entry
             }
         }
 
@@ -71,14 +75,17 @@ object OnnxRuntimeSharedLibraries {
             if (DesktopPlatform.Current == Windows) {
                 sharedProvidersPath?.let { copyToTempDir(it) }
                 cudaProviderPath?.let { copyToTempDir(it) }
+                tensorRtProviderPath?.let { copyToTempDir(it) }
                 rocmProviderPath?.let { copyToTempDir(it) }
             }
 
-            val executionProvider =
-                if (cudaProviderPath != null) CUDA
-                else if (rocmProviderPath != null) ROCm
-                else if (DesktopPlatform.Current == Windows) DirectML
-                else CPU
+            val executionProvider = when {
+                tensorRtProviderPath != null && cudaProviderPath != null -> TENSOR_RT
+                cudaProviderPath != null -> CUDA
+                rocmProviderPath != null -> ROCm
+                DesktopPlatform.Current == Windows -> DirectML
+                else -> CPU
+            }
             this.executionProvider = executionProvider
 
             when (DesktopPlatform.Current) {
@@ -117,6 +124,7 @@ object OnnxRuntimeSharedLibraries {
 
             OnnxRuntimeUpscaler.init(
                 when (executionProvider) {
+                    TENSOR_RT -> "TENSOR_RT"
                     CUDA -> "CUDA"
                     ROCm -> "ROCM"
                     DirectML -> "DML"
@@ -154,6 +162,7 @@ object OnnxRuntimeSharedLibraries {
     }
 
     enum class OnnxRuntimeExecutionProvider {
+        TENSOR_RT,
         CUDA,
         ROCm,
         DirectML,

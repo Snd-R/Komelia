@@ -48,6 +48,7 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.C
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
+import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
 import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
@@ -229,6 +230,7 @@ private fun OnnxRuntimeContent(
 
     val ortExecutionProvider = remember {
         when (OnnxRuntimeSharedLibraries.executionProvider) {
+            TENSOR_RT -> "TensorRT"
             CUDA -> "Cuda"
             ROCm -> "ROCm"
             DirectML -> "DirectML"
@@ -379,7 +381,7 @@ private fun OrtInstallDialog(
     val coroutineScope = rememberCoroutineScope()
     var provider by remember { mutableStateOf<OnnxRuntimeExecutionProvider?>(null) }
     AppDialog(
-        modifier = Modifier.widthIn(max = 620.dp),
+        modifier = Modifier.widthIn(max = 840.dp),
         header = {
             Column(modifier = Modifier.padding(10.dp)) {
                 if (updateProgress == null)
@@ -456,7 +458,7 @@ private fun OrtDownloadDialogContent(
             labelAlignment = Alignment.Top,
             label = {
                 Column {
-                    Text("Cuda (Nvida GPUs, requires CUDA12 and cuDNN9 system install)")
+                    Text("Cuda (Nvidia GPUs, requires CUDA12 and cuDNN9 system install)")
                     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                         Text(
                             "download CUDA12",
@@ -473,6 +475,50 @@ private fun OrtDownloadDialogContent(
                             textDecoration = Underline,
                             modifier = Modifier
                                 .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
+                                .cursorForHand()
+                                .padding(horizontal = 5.dp),
+                        )
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        CheckboxWithLabel(
+            checked = chosenProvider == TENSOR_RT,
+            onCheckedChange = { onProviderChoice(TENSOR_RT) },
+            labelAlignment = Alignment.Top,
+            label = {
+                Column {
+                    Text("TensorRT (Nvidia GPUs, requires CUDA12, cuDNN9 and TensorRT system install)")
+                    Text(
+                        "Uses TensorRT to create optimized graph engine. Takes a significant time on model first load. After initial load engine is cached for future use",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "download CUDA12",
+                            color = MaterialTheme.colorScheme.secondary,
+                            textDecoration = Underline,
+                            modifier = Modifier
+                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cuda-downloads") }
+                                .cursorForHand()
+                                .padding(horizontal = 5.dp),
+                        )
+                        Text(
+                            "download cuDNN9",
+                            color = MaterialTheme.colorScheme.secondary,
+                            textDecoration = Underline,
+                            modifier = Modifier
+                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
+                                .cursorForHand()
+                                .padding(horizontal = 5.dp),
+                        )
+                        Text(
+                            "download TensorRT",
+                            color = MaterialTheme.colorScheme.secondary,
+                            textDecoration = Underline,
+                            modifier = Modifier
+                                .clickable { uriHandler.openUri("https://developer.nvidia.com/tensorrt") }
                                 .cursorForHand()
                                 .padding(horizontal = 5.dp),
                         )
