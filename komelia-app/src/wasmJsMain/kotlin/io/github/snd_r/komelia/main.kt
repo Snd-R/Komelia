@@ -62,7 +62,7 @@ private fun overrideFetch() {
     window.fetch = function (resource, init) {
         init = Object.assign({}, init);
         init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
-        init.credentials = init.credentials !== undefined ? init.credentials : 'same-origin';
+        init.credentials = init.credentials !== undefined ? init.credentials : 'include';
         return window.originalFetch(resource, init);
     };
 """

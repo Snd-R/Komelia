@@ -115,7 +115,7 @@ private fun getVipsModule(): Promise<JsAny> {
             }
             try {
                     let vips = await VipsCreateModule({
-                        dynamicLibraries: [],
+                        dynamicLibraries: ['vips-jxl.wasm'],
                         mainScriptUrlOrBlob: './vips.js',
                         locateFile: (fileName, scriptDirectory) => fileName,
                     });
