@@ -17,7 +17,7 @@ compose-multiplatform = "1.7.0-alpha03"
 directories = "26"
 filekit = "0.8.1"
 java-keyring = "1.0.4"
-komf-client = "1.0.0-SNAPSHOT"
+komf-client = "1.0.0-alpha01"
 kotlin = "2.0.20"
 kotlin-atomicfu = "0.25.0"
 kotlin-logging = "7.0.0"
@@ -25,7 +25,7 @@ kotlinx-coroutines = "1.9.0-RC.2"
 kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.7.1"
 kotlinx-io = "0.5.3"
-komga-client = "0.1.0-SNAPSHOT"
+komga-client = "0.1.0"
 ktor = "3.0.0-rc-1-eap-1068"
 ktoml = "0.5.2"
 logback = "1.5.6"
@@ -57,7 +57,7 @@ directories = { module = "dev.dirs:directories", version.ref = "directories" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
 java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "java-keyring" }
-komf-client = { module = "io.github.snd-r:komf-client", version.ref = "komf-client" }
+komf-client = { module = "io.github.snd-r.komf:client", version.ref = "komf-client" }
 komga-client = { module = "io.github.snd-r:komga-client", version.ref = "komga-client" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
