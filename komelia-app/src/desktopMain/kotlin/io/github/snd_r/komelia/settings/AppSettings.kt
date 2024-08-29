@@ -48,7 +48,7 @@ data class UserSettings(
 
 @Serializable
 data class AppearanceSettings(
-    val cardWidth: Int = 200,
+    val cardWidth: Int = 170,
     val seriesPageLoadSize: Int = 20,
     val bookPageLoadSize: Int = 20,
     val bookListLayout: BooksLayout = BooksLayout.GRID,

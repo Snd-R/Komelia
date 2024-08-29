@@ -52,7 +52,7 @@ data class AppSettings(
                     username = localStorage[usernameKey] ?: ""
                 ),
                 appearance = AppearanceSettings(
-                    cardWidth = localStorage[cardWidthKey]?.toInt() ?: 240,
+                    cardWidth = localStorage[cardWidthKey]?.toInt() ?: 170,
                     seriesPageLoadSize = localStorage[seriesPageLoadSizeKey]?.toInt() ?: 20,
                     bookPageLoadSize = localStorage[bookPageLoadSizeKey]?.toInt() ?: 20,
                     bookListLayout = localStorage[bookListLayoutKey]?.let { BooksLayout.valueOf(it) }
