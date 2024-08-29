@@ -60,18 +60,22 @@ class AppNotifications {
         } catch (e: CancellationException) {
             KotlinLogging.logger {}.warn(e) {}
             throw e
-        } catch (responseException: ResponseException) {
-            KotlinLogging.logger {}.catching(responseException)
-            toErrorNotification(responseException)
-            return Result.failure(responseException)
         } catch (exception: Throwable) {
-            KotlinLogging.logger {}.catching(exception)
-            add(Error(exception.message ?: exception.cause?.message ?: "Unknown error"))
+            addErrorNotification(exception)
             return Result.failure(exception)
         }
     }
 
-    suspend fun toErrorNotification(exception: ResponseException) {
+    suspend fun addErrorNotification(exception: Throwable) {
+        KotlinLogging.logger {}.catching(exception)
+        when (exception) {
+            is CancellationException -> {}
+            is ResponseException -> toErrorNotification(exception)
+            else -> add(Error(exception.message ?: exception.cause?.message ?: "Unknown error"))
+        }
+    }
+
+    private suspend fun toErrorNotification(exception: ResponseException) {
         val contentType = exception.response.contentType()
         contentType?.toString()
         val errorMessage =

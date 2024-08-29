@@ -180,9 +180,14 @@ class KomfIdentifyDialogViewModel(
                             UnknownEvent -> {}
                         }
                     }
-                        .onCompletion {
-                            postProcessing = false
-                            state.value = LoadState.Success(Unit)
+                        .onCompletion { cause ->
+                            if (cause != null) {
+                                appNotifications.addErrorNotification(cause)
+                                onDismiss()
+                            } else {
+                                postProcessing = false
+                                state.value = LoadState.Success(Unit)
+                            }
                         }
                         .launchIn(coroutineScope)
                 }.onFailure { onDismiss() }
@@ -240,10 +245,10 @@ class KomfIdentifyDialogViewModel(
         suspend fun getSeriesCover(result: KomfMetadataSeriesSearchResult): ByteArray? {
             return appNotifications.runCatchingToNotifications {
                 komfMetadataClient.getSeriesCover(
-                        libraryId = KomfServerLibraryId(series.libraryId.value),
-                        provider = result.provider,
-                        providerSeriesId = result.resultId
-                    )
+                    libraryId = KomfServerLibraryId(series.libraryId.value),
+                    provider = result.provider,
+                    providerSeriesId = result.resultId
+                )
             }.getOrNull()
         }
     }
