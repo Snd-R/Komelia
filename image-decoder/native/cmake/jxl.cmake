@@ -16,7 +16,7 @@ ExternalProject_Add(ep_jxl
         #-DJPEGXL_ENABLE_JPEGLI_LIBJPEG=true
         #-DJPEGXL_INSTALL_JPEGLI_LIBJPEG=true
         #-DJPEGXL_FORCE_SYSTEM_HWY=true
-        -DJPEGXL_FORCE_SYSTEM_BROTLI=true
+        #-DJPEGXL_FORCE_SYSTEM_BROTLI=true
         -DJPEGXL_ENABLE_OPENEXR=false
         -DJPEGXL_ENABLE_TOOLS=false
         -DJPEGXL_BUNDLE_LIBPNG=false
