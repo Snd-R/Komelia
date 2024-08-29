@@ -30,5 +30,5 @@ private suspend fun loadFontBytes(url: String): ByteArray {
 }
 
 private fun loadRes(url: String): Promise<Response> {
-    js("return window.originalFetch(url);")
+    js("return window.fetch(url);")
 }

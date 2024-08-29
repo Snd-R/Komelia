@@ -71,6 +71,8 @@ class WasmDependencyContainer(
             val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
             val komfUrl = settingsRepository.getKomfUrl().stateIn(stateFlowScope)
 
+            overrideFetch { baseUrl.value }
+
             val ktorClient = createKtorClient(baseUrl)
             val komgaClientFactory = createKomgaClientFactory(baseUrl, ktorClient)
 
@@ -172,4 +174,20 @@ private object NoopAppUpdater : AppUpdater {
     override suspend fun getReleases(): List<AppRelease> = emptyList()
     override suspend fun updateToLatest(): Flow<UpdateProgress>? = null
     override fun updateTo(release: AppRelease): Flow<UpdateProgress>? = null
+}
+
+private fun overrideFetch(komgaUrl: () -> String) {
+    js(
+        """
+    window.originalFetch = window.fetch;
+    window.fetch = function (resource, init) {
+        init = Object.assign({}, init);
+        if(typeof resource =='string' && resource.startsWith(komgaUrl())) {
+            init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
+            init.credentials = 'include';
+        } 
+        return window.originalFetch(resource, init);
+    };
+"""
+    )
 }

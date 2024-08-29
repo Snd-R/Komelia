@@ -42,6 +42,7 @@ import snd.komf.api.metadata.KomfMetadataSeriesSearchResult
 fun KomfResultCard(
     modifier: Modifier = Modifier,
     result: KomfMetadataSeriesSearchResult,
+    image: ByteArray?,
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -56,11 +57,12 @@ fun KomfResultCard(
             image = {
                 result.imageUrl?.let {
                     ImageOverlay(isSelected) {
-                        ThumbnailImage(
-                            data = it,
-                            cacheKey = it,
-                            contentScale = ContentScale.Crop
-                        )
+                        if (image != null)
+                            ThumbnailImage(
+                                data = image,
+                                cacheKey = it,
+                                contentScale = ContentScale.Crop
+                            )
                     }
                 }
             },

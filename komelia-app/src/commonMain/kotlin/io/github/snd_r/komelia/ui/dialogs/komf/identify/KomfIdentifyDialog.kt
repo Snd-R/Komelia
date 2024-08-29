@@ -29,9 +29,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -167,13 +169,21 @@ private fun ResultsContent(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        state.searchResults.forEach { result ->
-            KomfResultCard(
-                modifier = Modifier.widthIn(max = 180.dp),
-                result = result,
-                isSelected = result.resultId == state.selectedSearchResult?.resultId,
-                onClick = { state.selectedSearchResult = result },
-            )
+        key(state.searchResults) {
+            state.searchResults.forEach { result ->
+                var resultImage by remember(result) { mutableStateOf<ByteArray?>(null) }
+                KomfResultCard(
+                    modifier = Modifier.widthIn(max = 180.dp),
+                    result = result,
+                    image = resultImage,
+                    isSelected = result.resultId == state.selectedSearchResult?.resultId,
+                    onClick = { state.selectedSearchResult = result },
+                )
+
+                LaunchedEffect(result) {
+                    resultImage = state.getSeriesCover(result)
+                }
+            }
         }
     }
 }

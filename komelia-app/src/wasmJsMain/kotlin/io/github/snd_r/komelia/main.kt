@@ -38,7 +38,6 @@ fun main() {
     document.addEventListener("keyup") { event ->
         initScope.launch { keyEvents.emit((event as KeyboardEvent).toComposeEvent()) }
     }
-    overrideFetch()
 
     CanvasBasedWindow(canvasElementId = "ComposeTarget") {
         val fontFamilyResolver = LocalFontFamilyResolver.current
@@ -53,18 +52,4 @@ fun main() {
             loadFonts(fontFamilyResolver)
         }
     }
-}
-
-private fun overrideFetch() {
-    js(
-        """
-    window.originalFetch = window.fetch;
-    window.fetch = function (resource, init) {
-        init = Object.assign({}, init);
-        init.headers = Object.assign( { 'X-Requested-With' : 'XMLHttpRequest' }, init.headers) 
-        init.credentials = init.credentials !== undefined ? init.credentials : 'include';
-        return window.originalFetch(resource, init);
-    };
-"""
-    )
 }

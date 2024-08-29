@@ -83,7 +83,6 @@ class KomfIdentifyDialogViewModel(
         onDismiss = onDismiss,
     )
 
-
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications { komfConfig.getConfig() }
             .onFailure { mutableState.value = LoadState.Error(it) }
@@ -236,6 +235,16 @@ class KomfIdentifyDialogViewModel(
                 )
                 onComplete(response.jobId)
             }.onFailure { onDismiss() }
+        }
+
+        suspend fun getSeriesCover(result: KomfMetadataSeriesSearchResult): ByteArray? {
+            return appNotifications.runCatchingToNotifications {
+                komfMetadataClient.getSeriesCover(
+                        libraryId = KomfServerLibraryId(series.libraryId.value),
+                        provider = result.provider,
+                        providerSeriesId = result.resultId
+                    )
+            }.getOrNull()
         }
     }
 
