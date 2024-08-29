@@ -29,6 +29,7 @@ komga-client = "0.1.0-SNAPSHOT"
 ktor = "3.0.0-rc-1-eap-1068"
 ktoml = "0.5.2"
 logback = "1.5.6"
+logback-android = "3.0.0"
 lyricist = "1.7.0"
 markdown = "0.7.3"
 okhttp = "4.12.0"
@@ -76,6 +77,7 @@ ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 ktoml-source-jvm = { module = "com.akuleshov7:ktoml-source-jvm", version.ref = "ktoml" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback-android" }
 lyricist = { module = "cafe.adriel.lyricist:lyricist", version.ref = "lyricist" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }

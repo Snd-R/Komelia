@@ -14,7 +14,6 @@ object AndroidSharedLibrariesLoader {
         "de265",
         "dav1d",
         "expat",
-        "fftw3",
         "hwy",
         "sharpyuv",
         "webp",

@@ -104,10 +104,12 @@ kotlin {
             implementation(libs.androidx.window)
             implementation(libs.androidx.datastore)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.logback.android)
             implementation(libs.okhttp)
             implementation(libs.okhttp.logging.interceptor)
             implementation(libs.protobuf.javalite)
             implementation(libs.protobuf.kotlin.lite)
+            implementation(libs.slf4j.api)
             implementation(project(":image-decoder"))
         }
 

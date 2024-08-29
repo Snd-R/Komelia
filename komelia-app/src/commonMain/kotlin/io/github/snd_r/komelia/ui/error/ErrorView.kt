@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,27 +38,55 @@ import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorView(
     exception: Throwable,
     onRestart: () -> Unit,
     onExit: () -> Unit
 ) {
+    val stacktrace = exception.stackTraceToString().replace("\t", "    ")
+    val errorText = remember {
+        buildString {
+            append("Encountered Unrecoverable Error: ")
+            append("\"${exception::class.simpleName} ${exception.message}\"")
+        }
+    }
+    ErrorView(
+        exceptionMessage = errorText,
+        stacktrace = stacktrace,
+        isRestartable = exception !is NonRestartableException,
+        onRestart = onRestart,
+        onExit = onExit
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun ErrorView(
+    exceptionMessage: String,
+    stacktrace: String?,
+    isRestartable: Boolean,
+    onRestart: () -> Unit,
+    onExit: () -> Unit
+) {
     MaterialTheme(colorScheme = AppTheme.DARK.colorScheme) {
         val clipboardManager = LocalClipboardManager.current
-
         Surface {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(10.dp).fillMaxSize()
             ) {
-                val stacktrace = exception.stackTraceToString().replace("\t", "    ")
                 val scope = rememberCoroutineScope()
                 val tooltipState = remember { TooltipState() }
-                Text("Encountered Unrecoverable Error: \"${exception::class.simpleName} ${exception.message}\"")
-                StackTrace(stacktrace)
-                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+
+                Text(exceptionMessage)
+                if (stacktrace != null) {
+                    StackTrace(stacktrace)
+                }
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(40.dp),
+                ) {
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = { Text("Copied to clipboard") },
@@ -65,14 +95,14 @@ fun ErrorView(
                     ) {
                         Button(
                             onClick = {
-                                clipboardManager.setText(AnnotatedString(stacktrace))
+                                stacktrace?.let { clipboardManager.setText(AnnotatedString(stacktrace)) }
                                 scope.launch { tooltipState.show() }
                             },
                         ) {
                             Text("Copy stacktrace to clipboard")
                         }
                     }
-                    if (exception !is NonRestartableException) {
+                    if (isRestartable) {
                         Button(
                             onClick = onRestart,
                         ) {
@@ -99,7 +129,7 @@ private fun ColumnScope.StackTrace(
     val clipboardManager = LocalClipboardManager.current
 
     Row(
-        Modifier.padding(horizontal = 50.dp, vertical = 10.dp)
+        Modifier.padding(vertical = 10.dp)
             .weight(1f)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { clipboardManager.setText(AnnotatedString(stacktrace)) }

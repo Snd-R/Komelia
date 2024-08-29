@@ -17,12 +17,18 @@
                 android:exported="true"
                 android:name="MainActivity"
         >
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+                android:name="crash.CrashActivity"
+                android:exported="false"
+                android:process=":error_handler" />
+
 
         <receiver
                 android:name="io.github.snd_r.komelia.updates.PackageInstallerStatusReceiver"
