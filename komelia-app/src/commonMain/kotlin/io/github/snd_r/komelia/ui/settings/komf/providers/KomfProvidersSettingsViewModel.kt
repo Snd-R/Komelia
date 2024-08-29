@@ -125,6 +125,24 @@ class KomfProvidersSettingsViewModel(
         updateConfig(providersUpdate)
     }
 
+    fun onNameMatchingModeChange(mode: KomfNameMatchingMode) {
+        this.nameMatchingMode = mode
+        val providersUpdate = MetadataProvidersConfigUpdateRequest(nameMatchingMode = Some(mode))
+        updateConfig(providersUpdate)
+    }
+
+    fun onComicVineClientIdChange(clientId: String) {
+        this.comicVineClientId = clientId
+        val providersUpdate = MetadataProvidersConfigUpdateRequest(comicVineClientId = Some(clientId))
+        updateConfig(providersUpdate)
+    }
+
+    fun onMalClientIdChange(clientId: String) {
+        this.malClientId = clientId
+        val providersUpdate = MetadataProvidersConfigUpdateRequest(malClientId = Some(clientId))
+        updateConfig(providersUpdate)
+    }
+
     class ProvidersConfigState(
         private val onMetadataUpdate: (MetadataProvidersConfigUpdateRequest) -> Unit,
         private val libraryId: KomgaLibraryId?,
@@ -187,7 +205,7 @@ class KomfProvidersSettingsViewModel(
             }
 
             enabledProviders = enabledProviders.plus(configState)
-            configState.onPriorityChange(enabledProviders.size + 1)
+            configState.onPriorityChange(enabledProviders.size)
             configState.onEnabledChange(true)
         }
 
@@ -595,7 +613,7 @@ class KomfProvidersSettingsViewModel(
             }
 
             fun onLinkSelect(link: MangaDexLink) {
-                links =links.addOrRemove(link)
+                links = links.addOrRemove(link)
                 onMetadataUpdate(MangaDexConfigUpdateRequest(links = Some(links)))
             }
 

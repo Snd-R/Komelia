@@ -107,11 +107,6 @@ class KomfSettingsViewModel(
         screenModelScope.launch { settingsRepository.putKomfEnabled(enabled) }
     }
 
-    fun onKomfModeChange(mode: KomfMode) {
-        this.komfMode = mode
-        screenModelScope.launch { settingsRepository.putKomfMode(mode) }
-    }
-
     fun onKomfUrlChange(url: String) {
         this.komfUrl = url
 
@@ -126,14 +121,19 @@ class KomfSettingsViewModel(
 
     fun onKomgaBaseUrlChange(url: String) {
         this.komgaBaseUrl = url
+        val komgaUpdate = KomgaConfigUpdateRequest(baseUri = Some(url))
+        onConfigUpdate(KomfConfigUpdateRequest(komga = Some(komgaUpdate)))
     }
 
     fun onKomgaUsernameChange(username: String) {
         this.komgaUsername = username
+        val komgaUpdate = KomgaConfigUpdateRequest(komgaUser = Some(username))
+        onConfigUpdate(KomfConfigUpdateRequest(komga = Some(komgaUpdate)))
     }
 
     fun onKomgaPasswordUpdate(password: String) {
-
+        val komgaUpdate = KomgaConfigUpdateRequest(komgaPassword = Some(password))
+        onConfigUpdate(KomfConfigUpdateRequest(komga = Some(komgaUpdate)))
     }
 
     fun onEventListenerEnable(enable: Boolean) {

@@ -37,11 +37,11 @@ class KomfProvidersSettingsScreen : Screen {
                     onLibraryConfigRemove = vm::onLibraryTabRemove,
                     libraries = vm.libraries.collectAsState().value,
                     nameMatchingMode = vm.nameMatchingMode,
-                    onNameMatchingModeChange = {},
+                    onNameMatchingModeChange = vm::onNameMatchingModeChange,
                     comicVineClientId = vm.comicVineClientId,
-                    onComicVineClientIdSave = {},
+                    onComicVineClientIdSave = vm::onComicVineClientIdChange,
                     malClientId = vm.malClientId,
-                    onMalClientIdSave = {}
+                    onMalClientIdSave = vm::onMalClientIdChange
                 )
             }
 
