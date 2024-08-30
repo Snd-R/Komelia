@@ -65,6 +65,7 @@ android {
 
 val linuxBuildDir = "$projectDir/native/build"
 val windowsBuildDir = "$projectDir/native/build-w64"
+val composeResourcesDir = "$projectDir/composeResources"
 val resourcesDir = "$projectDir/src/jvmMain/resources/"
 val androidArm64BuildDir = "$projectDir/native/build-android-arm64"
 val androidx8664BuildDir = "$projectDir/native/build-android-x86_64"
@@ -108,6 +109,44 @@ val desktopLinuxLibs = linuxCommonLibs + setOf(
     "libkomelia_enumerate_devices_vulkan.so",
     "libkomelia_skia.so",
 )
+val windowsLibs = setOf(
+    "libbrotlicommon.dll",
+    "libbrotlidec.dll",
+    "libbrotlienc.dll",
+    "libde265.dll",
+    "libdav1d.dll",
+    "libexpat-1.dll",
+    "libffi-8.dll",
+    "libgio-2.0-0.dll",
+    "libglib-2.0-0.dll",
+    "libgmodule-2.0-0.dll",
+    "libgobject-2.0-0.dll",
+    "libheif.dll",
+    "libhwy.dll",
+    "libintl-8.dll",
+    "libjpeg-62.dll",
+    "libjxl.dll",
+    "libjxl_cms.dll",
+    "libjxl_threads.dll",
+    "libsharpyuv.dll",
+    "libspng.dll",
+    "libtiff.dll",
+    "libvips-42.dll",
+    "libwebp.dll",
+    "libwebpdecoder.dll",
+    "libwebpdemux.dll",
+    "libwebpmux.dll",
+    "libz1.dll",
+    "libstdc++-6.dll",
+    "libwinpthread-1.dll",
+    "libgcc_s_seh-1.dll",
+    "libgomp-1.dll",
+    "libkomelia_vips.dll",
+    "libkomelia_onnxruntime.dll",
+    "libkomelia_onnxruntime_dml.dll",
+    "libkomelia_enumerate_devices_dxgi.dll",
+    "libkomelia_enumerate_devices_cuda.dll",
+)
 
 tasks.register<Sync>("linux-x86_64_copyJniLibs") {
     group = "jni"
@@ -141,49 +180,10 @@ tasks.register<Delete>("cleanJni") {
 tasks.register<Sync>("windows-x86_64_copyJniLibs") {
     group = "jni"
 
-    val libs = setOf(
-        "libbrotlicommon.dll",
-        "libbrotlidec.dll",
-        "libbrotlienc.dll",
-        "libde265.dll",
-        "libdav1d.dll",
-        "libexpat-1.dll",
-        "libffi-8.dll",
-        "libgio-2.0-0.dll",
-        "libglib-2.0-0.dll",
-        "libgmodule-2.0-0.dll",
-        "libgobject-2.0-0.dll",
-        "libheif.dll",
-        "libhwy.dll",
-        "libintl-8.dll",
-        "libjpeg-62.dll",
-        "libjxl.dll",
-        "libjxl_cms.dll",
-        "libjxl_threads.dll",
-        "libsharpyuv.dll",
-        "libspng.dll",
-        "libtiff.dll",
-        "libvips-42.dll",
-        "libwebp.dll",
-        "libwebpdecoder.dll",
-        "libwebpdemux.dll",
-        "libwebpmux.dll",
-        "libz1.dll",
-        "libstdc++-6.dll",
-        "libwinpthread-1.dll",
-        "libgcc_s_seh-1.dll",
-        "libgomp-1.dll",
-        "libkomelia_vips.dll",
-        "libkomelia_onnxruntime.dll",
-        "libkomelia_onnxruntime_dml.dll",
-        "libkomelia_enumerate_devices_dxgi.dll",
-        "libkomelia_enumerate_devices_cuda.dll",
-    )
     duplicatesStrategy = EXCLUDE
-
     from("$windowsBuildDir/fakeroot/bin/")
     into(resourcesDir)
-    include { it.name in libs }
+    include { it.name in windowsLibs }
 
     // include mingw dlls if compiled using system toolchain
     from("/usr/x86_64-w64-mingw32/bin/")
@@ -192,4 +192,21 @@ tasks.register<Sync>("windows-x86_64_copyJniLibs") {
     include("libgcc_s_seh-1.dll")
     include("libgomp-1.dll")
     into(resourcesDir)
+}
+
+tasks.register<Sync>("windows-x86_64_copyJniLibsComposeResources") {
+    group = "jni"
+
+    duplicatesStrategy = EXCLUDE
+    from("$windowsBuildDir/fakeroot/bin/")
+    into("$composeResourcesDir/windows")
+    include { it.name in windowsLibs }
+
+    // include mingw dlls if compiled using system toolchain
+    from("/usr/x86_64-w64-mingw32/bin/")
+    include("libstdc++-6.dll")
+    include("libwinpthread-1.dll")
+    include("libgcc_s_seh-1.dll")
+    include("libgomp-1.dll")
+    into("$composeResourcesDir/windows")
 }

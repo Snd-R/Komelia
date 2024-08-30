@@ -219,6 +219,9 @@ compose.desktop {
             description = "Komga media client"
             vendor = "Snd-R"
             modules("jdk.unsupported", "jdk.security.auth")
+            appResourcesRootDir.set(
+                project.parent!!.projectDir.resolve("image-decoder/desktopComposeResources")
+            )
 
             windows {
                 menu = true
