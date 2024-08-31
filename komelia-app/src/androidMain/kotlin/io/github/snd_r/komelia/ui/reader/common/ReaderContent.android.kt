@@ -17,16 +17,18 @@ actual fun ImmersiveMode(enabled: Boolean) {
     val view = LocalView.current
     val activity = view.context as Activity
     val insetsController = remember(view) { WindowInsetsControllerCompat(activity.window, view) }
-    val visibleBarColor = MaterialTheme.colorScheme.surfaceDim
+    val visibleBarColor = MaterialTheme.colorScheme.surfaceVariant
 
     DisposableEffect(enabled) {
         val window=  activity.window
         if (enabled) {
             insetsController.hide(statusBars() or navigationBars())
             window.statusBarColor = Color.TRANSPARENT
+            window.navigationBarColor = Color.TRANSPARENT
         } else {
             insetsController.show(statusBars() or navigationBars())
             window.statusBarColor = visibleBarColor.toArgb()
+            window.navigationBarColor = visibleBarColor.toArgb()
         }
 
         onDispose {
