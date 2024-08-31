@@ -246,7 +246,6 @@ class ViewModelFactory(
             availableDecoders = availableDecoders,
             appStrings = appStrings,
             markReadProgress = markReadProgress,
-            context = dependencies.platformContext
         )
     }
 

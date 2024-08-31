@@ -2,7 +2,6 @@ package io.github.snd_r.komelia.ui.reader
 
 import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
@@ -44,7 +43,6 @@ class ReaderState(
     private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
-    private val context: PlatformContext
 ) {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
 
@@ -55,10 +53,8 @@ class ReaderState(
     val imageStretchToFit = MutableStateFlow(true)
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
-    val showSettingsMenu = MutableStateFlow(false)
 
     suspend fun initialize(bookId: KomgaBookId) {
-        onImmersiveModeEnable(true, context)
 
         decoderSettings.value = settingsRepository.getDecoderSettings().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
@@ -215,13 +211,7 @@ class ReaderState(
         stateScope.launch { readerSettingsRepository.putStretchToFit(stretch) }
     }
 
-    fun onShowSettingsMenuChange(show: Boolean) {
-        showSettingsMenu.value = show
-        onImmersiveModeEnable(!show, context)
-    }
-
     fun onDispose() {
-        onImmersiveModeEnable(false, context)
     }
 }
 
@@ -267,5 +257,3 @@ enum class ReaderType {
     PAGED,
     CONTINUOUS
 }
-
-expect fun onImmersiveModeEnable(enable: Boolean, context: PlatformContext)

@@ -34,12 +34,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         GlobalExceptionHandler.initialize(applicationContext)
-
         enableEdgeToEdge()
+
         initScope.launch {
             initMutex.withLock {
-                if (dependencies.value == null)
-                    dependencies.value = AndroidDependencyContainer.createInstance(initScope, this@MainActivity)
+                if (dependencies.value == null) {
+                    dependencies.value =
+                        AndroidDependencyContainer.createInstance(initScope, this@MainActivity)
+                }
             }
         }
 

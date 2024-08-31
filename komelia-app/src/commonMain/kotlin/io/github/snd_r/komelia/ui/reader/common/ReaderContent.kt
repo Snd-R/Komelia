@@ -41,19 +41,19 @@ fun ReaderContent(
     continuousReaderState: ContinuousReaderState,
     screenScaleState: ScreenScaleState,
 
-    showSettingsMenu: Boolean,
-    onShowSettingsMenuChange: (Boolean) -> Unit,
     onSeriesBackClick: () -> Unit,
     onBookBackClick: () -> Unit,
 ) {
     val book = commonReaderState.booksState.collectAsState().value?.currentBook
     var showHelpDialog by remember { mutableStateOf(false) }
+    var showSettingsMenu by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
+    ImmersiveMode(!showSettingsMenu)
     LaunchedEffect(Unit) {
         registerCommonKeyboardEvents(
             keyEvents = keyEvents,
             showSettingsMenu = showSettingsMenu,
-            setShowSettingsDialog = onShowSettingsMenuChange,
+            setShowSettingsDialog = { showSettingsMenu = it },
             onShowHelpDialog = { showHelpDialog = !showHelpDialog },
             onClose = onSeriesBackClick
         )
@@ -70,7 +70,7 @@ fun ReaderContent(
                 showHelpDialog = showHelpDialog,
                 onShowHelpDialogChange = { showHelpDialog = it },
                 showSettingsMenu = showSettingsMenu,
-                onShowSettingsMenuChange = onShowSettingsMenuChange,
+                onShowSettingsMenuChange = { showSettingsMenu = it },
 
                 screenScaleState = screenScaleState,
                 pagedReaderState = pagedReaderState,
@@ -87,7 +87,7 @@ fun ReaderContent(
                 onShowHelpDialogChange = { showHelpDialog = it },
 
                 showSettingsMenu = showSettingsMenu,
-                onShowSettingsMenuChange = onShowSettingsMenuChange,
+                onShowSettingsMenuChange = { showSettingsMenu = it },
 
                 screenScaleState = screenScaleState,
                 continuousReaderState = continuousReaderState,
@@ -98,7 +98,6 @@ fun ReaderContent(
                 onSeriesBackClick = onSeriesBackClick,
             )
         }
-
     }
 }
 
@@ -168,3 +167,7 @@ private suspend fun registerCommonKeyboardEvents(
         }
     }
 }
+
+
+@Composable
+expect fun ImmersiveMode(enabled: Boolean)

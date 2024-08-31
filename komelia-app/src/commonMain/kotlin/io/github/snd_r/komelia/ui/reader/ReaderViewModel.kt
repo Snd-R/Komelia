@@ -4,7 +4,6 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
@@ -37,7 +36,6 @@ class ReaderViewModel(
     availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     appStrings: Flow<Strings>,
     markReadProgress: Boolean,
-    context: PlatformContext
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
 
@@ -50,7 +48,6 @@ class ReaderViewModel(
         availableDecoders = availableDecoders,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,
-        context = context
     )
 
     val pagedReaderState = PagedReaderState(

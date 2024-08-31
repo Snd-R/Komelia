@@ -89,8 +89,6 @@ class ReaderScreen(
                     )
                 }
             },
-            showSettingsMenu = vm.readerState.showSettingsMenu.collectAsState().value,
-            onShowSettingsMenuChange = vm.readerState::onShowSettingsMenuChange,
             onBookBackClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(

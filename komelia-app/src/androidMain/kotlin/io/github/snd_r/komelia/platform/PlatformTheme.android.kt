@@ -1,19 +1,30 @@
 package io.github.snd_r.komelia.platform
 
 import android.app.Activity
-import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowInsetsControllerCompat
 import io.github.snd_r.komelia.ui.common.AppTheme
 
 @Composable
 actual fun ConfigurePlatformTheme(theme: AppTheme) {
-    val activity = LocalView.current.context as Activity
+    val view = LocalView.current
+    val activity = view.context as Activity
     LaunchedEffect(theme) {
-        when (theme) {
-            AppTheme.DARK -> activity.window.decorView.systemUiVisibility = 0
-            AppTheme.LIGHT -> activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        WindowInsetsControllerCompat(activity.window, view).apply {
+            when (theme) {
+                AppTheme.DARK -> {
+                    isAppearanceLightStatusBars = false
+                    isAppearanceLightNavigationBars = false
+                }
+
+                AppTheme.LIGHT -> {
+                    isAppearanceLightStatusBars = true
+                    isAppearanceLightNavigationBars = true
+
+                }
+            }
         }
     }
 }
