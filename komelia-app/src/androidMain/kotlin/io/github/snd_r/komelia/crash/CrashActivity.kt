@@ -1,4 +1,4 @@
-package crash
+package io.github.snd_r.komelia.crash
 
 import android.content.Intent
 import android.os.Bundle

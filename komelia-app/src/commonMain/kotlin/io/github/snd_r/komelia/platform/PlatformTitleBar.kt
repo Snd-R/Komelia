@@ -1,7 +1,12 @@
 package io.github.snd_r.komelia.platform
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -29,20 +34,26 @@ import kotlin.math.max
 @Composable
 expect fun PlatformTitleBar(
     modifier: Modifier = Modifier,
+    applyInsets: Boolean = true,
     content: @Composable TitleBarScope.() -> Unit = {},
 )
 
 @Composable
 fun SimpleTitleBarLayout(
     modifier: Modifier = Modifier,
+    applyInsets: Boolean,
     content: @Composable TitleBarScope.() -> Unit,
 ) {
-    TitleBarLayout(
-        modifier = modifier,
-        applyTitleBar = { _ -> PaddingValues(0.dp) },
-        applyContentWidth = { _, _, _ -> },
-        content = content
-    )
+    Column {
+        if (applyInsets) Spacer(Modifier.windowInsetsTopHeight(WindowInsets.systemBars))
+        TitleBarLayout(
+            modifier = modifier,
+            applyTitleBar = { _ -> PaddingValues(0.dp) },
+            applyContentWidth = { _, _, _ -> },
+            content = content
+        )
+
+    }
 
 }
 
@@ -56,7 +67,12 @@ fun TitleBarLayout(
     Layout(
         content = { TitleBarScopeImpl().content() },
         modifier = modifier.fillMaxWidth(),
-        measurePolicy = remember(applyTitleBar) { TitleBarMeasurePolicy(applyTitleBar, applyContentWidth) }
+        measurePolicy = remember(applyTitleBar) {
+            TitleBarMeasurePolicy(
+                applyTitleBar,
+                applyContentWidth
+            )
+        }
     )
 }
 
@@ -70,7 +86,10 @@ internal class TitleBarMeasurePolicy(
     private val applyContentWidth: (start: Pair<Dp, Dp>?, center: Pair<Dp, Dp>?, end: Pair<Dp, Dp>?) -> Unit,
 ) : MeasurePolicy {
 
-    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
+    override fun MeasureScope.measure(
+        measurables: List<Measurable>,
+        constraints: Constraints
+    ): MeasureResult {
         if (measurables.isEmpty()) {
             applyTitleBar(constraints.minHeight.toDp())
             return layout(width = constraints.minWidth, height = constraints.minHeight) {}
@@ -83,7 +102,8 @@ internal class TitleBarMeasurePolicy(
         val measuredPlaceable = mutableListOf<Pair<Measurable, Placeable>>()
 
         for (it in measurables) {
-            val placeable = it.measure(contentConstraints.offset(horizontal = -occupiedSpaceHorizontally))
+            val placeable =
+                it.measure(contentConstraints.offset(horizontal = -occupiedSpaceHorizontally))
             if (constraints.maxWidth < occupiedSpaceHorizontally + placeable.width) {
                 break
             }

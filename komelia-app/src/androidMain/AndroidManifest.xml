@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-                android:name="crash.CrashActivity"
+                android:name=".crash.CrashActivity"
                 android:exported="false"
                 android:process=":error_handler" />
 

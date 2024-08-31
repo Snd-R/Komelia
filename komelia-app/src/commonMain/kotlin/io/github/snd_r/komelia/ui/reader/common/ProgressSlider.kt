@@ -9,10 +9,14 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -83,17 +87,24 @@ fun PageSpreadProgressSlider(
             .hoverable(interactionSource)
     )) {
         if (show || isHovered.value) {
-            SliderWithLabel(
-                value = currentSpreadIndex.toFloat(),
-                valueRange = 0f..(pageSpreads.size - 1).toFloat(),
-                steps = (pageSpreads.size - 2).coerceAtLeast(0),
-                direction = layoutDirection,
-                onValueChange = { onPageNumberChange(it.roundToInt()) },
-                label = label,
-                labelMinWidth = 40.dp,
-                colors = AppSliderDefaults.colors(),
-                modifier = Modifier.align(Alignment.BottomStart)
-            )
+            Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                SliderWithLabel(
+                    value = currentSpreadIndex.toFloat(),
+                    valueRange = 0f..(pageSpreads.size - 1).toFloat(),
+                    steps = (pageSpreads.size - 2).coerceAtLeast(0),
+                    direction = layoutDirection,
+                    onValueChange = { onPageNumberChange(it.roundToInt()) },
+                    label = label,
+                    labelMinWidth = 40.dp,
+                    colors = AppSliderDefaults.colors(),
+                )
+
+                Spacer(
+                    Modifier.windowInsetsBottomHeight(WindowInsets.systemBars)
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                )
+            }
         }
     }
 }

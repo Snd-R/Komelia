@@ -138,14 +138,20 @@ private fun TransitionPage(page: TransitionPage) {
             is BookEnd -> {
                 Column {
                     Text("Finished:", style = MaterialTheme.typography.bodyMedium)
-                    Text(page.currentBook.metadata.title, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        page.currentBook.metadata.title,
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
                 Spacer(Modifier.size(50.dp))
 
                 if (page.nextBook != null) {
                     Column {
                         Text("Next:", style = MaterialTheme.typography.bodyMedium)
-                        Text(page.nextBook.metadata.title, style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            page.nextBook.metadata.title,
+                            style = MaterialTheme.typography.titleLarge
+                        )
                     }
                 } else {
                     Text("There's no next book")
@@ -157,7 +163,10 @@ private fun TransitionPage(page: TransitionPage) {
                 if (page.previousBook != null) {
                     Column {
                         Text("Previous:", style = MaterialTheme.typography.bodyMedium)
-                        Text(page.previousBook.metadata.title, style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            page.previousBook.metadata.title,
+                            style = MaterialTheme.typography.titleLarge
+                        )
                     }
                 } else {
                     Text("There's no previous book")
@@ -166,7 +175,10 @@ private fun TransitionPage(page: TransitionPage) {
                 Spacer(Modifier.size(50.dp))
                 Column {
                     Text("Current:", style = MaterialTheme.typography.bodyMedium)
-                    Text(page.currentBook.metadata.title, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        page.currentBook.metadata.title,
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
 
             }

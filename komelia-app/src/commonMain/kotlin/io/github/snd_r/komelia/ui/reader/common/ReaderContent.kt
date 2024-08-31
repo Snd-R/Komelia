@@ -41,23 +41,23 @@ fun ReaderContent(
     continuousReaderState: ContinuousReaderState,
     screenScaleState: ScreenScaleState,
 
+    showSettingsMenu: Boolean,
+    onShowSettingsMenuChange: (Boolean) -> Unit,
     onSeriesBackClick: () -> Unit,
     onBookBackClick: () -> Unit,
 ) {
     val book = commonReaderState.booksState.collectAsState().value?.currentBook
-    var showSettingsMenu by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
     LaunchedEffect(Unit) {
         registerCommonKeyboardEvents(
             keyEvents = keyEvents,
             showSettingsMenu = showSettingsMenu,
-            setShowSettingsDialog = { showSettingsMenu = it },
+            setShowSettingsDialog = onShowSettingsMenuChange,
             onShowHelpDialog = { showHelpDialog = !showHelpDialog },
             onClose = onSeriesBackClick
         )
     }
-
     Box(Modifier.fillMaxSize().onSizeChanged { screenScaleState.setAreaSize(it) }) {
         val areaSize = screenScaleState.areaSize.collectAsState()
         if (areaSize.value == IntSize.Zero) {
@@ -70,7 +70,7 @@ fun ReaderContent(
                 showHelpDialog = showHelpDialog,
                 onShowHelpDialogChange = { showHelpDialog = it },
                 showSettingsMenu = showSettingsMenu,
-                onShowSettingsMenuChange = { showSettingsMenu = it },
+                onShowSettingsMenuChange = onShowSettingsMenuChange,
 
                 screenScaleState = screenScaleState,
                 pagedReaderState = pagedReaderState,
@@ -87,7 +87,7 @@ fun ReaderContent(
                 onShowHelpDialogChange = { showHelpDialog = it },
 
                 showSettingsMenu = showSettingsMenu,
-                onShowSettingsMenuChange = { showSettingsMenu = it },
+                onShowSettingsMenuChange = onShowSettingsMenuChange,
 
                 screenScaleState = screenScaleState,
                 continuousReaderState = continuousReaderState,
@@ -127,7 +127,12 @@ fun ReaderControlsOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(contentAreaSize, readingDirection, onSettingsMenuToggle, isSettingsMenuOpen) {
+            .pointerInput(
+                contentAreaSize,
+                readingDirection,
+                onSettingsMenuToggle,
+                isSettingsMenuOpen
+            ) {
                 detectTapGestures { offset ->
                     val actionWidth = contentAreaSize.width.toFloat() / 3
                     when (offset.x) {

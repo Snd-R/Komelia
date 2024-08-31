@@ -3,7 +3,11 @@ package io.github.snd_r.komelia.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.HorizontalDivider
@@ -23,6 +27,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationMenu
 
@@ -41,6 +46,7 @@ class MobileSettingsScreen : Screen {
                 modifier = Modifier.padding(5.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
+                PlatformTitleBar()
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -62,6 +68,8 @@ class MobileSettingsScreen : Screen {
                     onLogout = vm::logout,
                     contentColor = MaterialTheme.colorScheme.surface
                 )
+
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
             }
         }
         BackPressHandler { currentNavigator.pop() }

@@ -33,13 +33,14 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.updates.AndroidAppUpdater
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.UpdateClient
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.cookies.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.http.Url
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +68,7 @@ class AndroidDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,
     override val readerImageLoader: ReaderImageLoader,
     override val imageLoader: ImageLoader,
-    override val imageLoaderContext: PlatformContext,
+    override val platformContext: PlatformContext,
     override val komfClientFactory: KomfClientFactory,
 ) : DependencyContainer {
     override val appNotifications: AppNotifications = AppNotifications()
@@ -137,7 +138,7 @@ class AndroidDependencyContainer(
                 availableDecoders = emptyFlow(),
                 komgaClientFactory = komgaClientFactory,
                 imageLoader = coil,
-                imageLoaderContext = context,
+                platformContext = context,
                 readerImageLoader = readerImageLoader,
                 komfClientFactory = komfClientFactory,
             )

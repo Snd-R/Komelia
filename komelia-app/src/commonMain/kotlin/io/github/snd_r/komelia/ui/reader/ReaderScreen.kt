@@ -59,7 +59,7 @@ class ReaderScreen(
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
 
         Column {
-            PlatformTitleBar(Modifier.zIndex(10f))
+            PlatformTitleBar(Modifier.zIndex(10f), false)
             when (val result = vmState.value) {
                 is Error -> ErrorContent(
                     exception = result.exception,
@@ -89,6 +89,8 @@ class ReaderScreen(
                     )
                 }
             },
+            showSettingsMenu = vm.readerState.showSettingsMenu.collectAsState().value,
+            onShowSettingsMenuChange = vm.readerState::onShowSettingsMenuChange,
             onBookBackClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(

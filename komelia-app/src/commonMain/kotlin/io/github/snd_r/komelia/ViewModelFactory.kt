@@ -95,7 +95,7 @@ interface DependencyContainer {
     val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
     val komgaClientFactory: KomgaClientFactory
     val imageLoader: ImageLoader
-    val imageLoaderContext: PlatformContext
+    val platformContext: PlatformContext
     val appNotifications: AppNotifications
     val readerImageLoader: ReaderImageLoader
     val komfClientFactory: KomfClientFactory
@@ -144,7 +144,11 @@ class ViewModelFactory(
         librariesFlow = libraries
     )
 
-    private val startupUpdateChecker = StartupUpdateChecker(appUpdater, settingsRepository, releases)
+    private val startupUpdateChecker = StartupUpdateChecker(
+        appUpdater,
+        settingsRepository,
+        releases
+    )
 
     fun getLibraryViewModel(
         libraryId: KomgaLibraryId?,
@@ -242,6 +246,7 @@ class ViewModelFactory(
             availableDecoders = availableDecoders,
             appStrings = appStrings,
             markReadProgress = markReadProgress,
+            context = dependencies.platformContext
         )
     }
 
@@ -298,14 +303,16 @@ class ViewModelFactory(
             notifications = appNotifications,
         )
 
-    fun getCollectionEditDialogViewModel(collection: KomgaCollection, onDismissRequest: () -> Unit) =
-        CollectionEditDialogViewModel(
-            collection = collection,
-            onDialogDismiss = onDismissRequest,
-            collectionClient = komgaClientFactory.collectionClient(),
-            notifications = appNotifications,
-            cardWidth = settingsRepository.getCardWidth(),
-        )
+    fun getCollectionEditDialogViewModel(
+        collection: KomgaCollection,
+        onDismissRequest: () -> Unit
+    ) = CollectionEditDialogViewModel(
+        collection = collection,
+        onDialogDismiss = onDismissRequest,
+        collectionClient = komgaClientFactory.collectionClient(),
+        notifications = appNotifications,
+        cardWidth = settingsRepository.getCardWidth(),
+    )
 
     fun getReadListEditDialogViewModel(readList: KomgaReadList, onDismissRequest: () -> Unit) =
         ReadListEditDialogViewModel(
@@ -351,7 +358,11 @@ class ViewModelFactory(
     }
 
     fun getAuthenticationActivityViewModel(forMe: Boolean): AuthenticationActivityViewModel {
-        return AuthenticationActivityViewModel(forMe, komgaClientFactory.userClient(), appNotifications)
+        return AuthenticationActivityViewModel(
+            forMe,
+            komgaClientFactory.userClient(),
+            appNotifications
+        )
     }
 
     fun getUsersViewModel(): UsersViewModel {
@@ -374,7 +385,12 @@ class ViewModelFactory(
 
     fun getUserEditDialogViewModel(user: KomgaUser): UserEditDialogViewModel {
         val libraries = requireNotNull(libraries.value)
-        return UserEditDialogViewModel(appNotifications, user, libraries, komgaClientFactory.userClient())
+        return UserEditDialogViewModel(
+            appNotifications,
+            user,
+            libraries,
+            komgaClientFactory.userClient()
+        )
     }
 
     fun getServerSettingsViewModel(): ServerSettingsViewModel {
@@ -526,7 +542,10 @@ class ViewModelFactory(
         )
     }
 
-    fun getKomfIdentifyDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit): KomfIdentifyDialogViewModel {
+    fun getKomfIdentifyDialogViewModel(
+        series: KomgaSeries,
+        onDismissRequest: () -> Unit
+    ): KomfIdentifyDialogViewModel {
         return KomfIdentifyDialogViewModel(
             series = series,
             komfConfig = komfConfigState,
@@ -549,10 +568,21 @@ class ViewModelFactory(
         )
     }
 
-    fun getSeriesBulkActions() = SeriesBulkActions(komgaClientFactory.seriesClient(), appNotifications)
-    fun getCollectionBulkActions() = CollectionBulkActions(komgaClientFactory.collectionClient(), appNotifications)
+    fun getSeriesBulkActions() = SeriesBulkActions(
+        komgaClientFactory.seriesClient(),
+        appNotifications
+    )
+
+    fun getCollectionBulkActions() = CollectionBulkActions(
+        komgaClientFactory.collectionClient(),
+        appNotifications
+    )
+
     fun getBookBulkActions() = BookBulkActions(komgaClientFactory.bookClient(), appNotifications)
-    fun getReadListBulkActions() = ReadListBulkActions(komgaClientFactory.readListClient(), appNotifications)
+    fun getReadListBulkActions() = ReadListBulkActions(
+        komgaClientFactory.readListClient(),
+        appNotifications
+    )
 
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
 

@@ -1,8 +1,8 @@
 package io.github.snd_r.komelia.ui.reader
 
 import androidx.compose.ui.unit.IntSize
-import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
@@ -18,7 +18,7 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.ktor.client.plugins.*
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +44,8 @@ class ReaderState(
     private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
-) : ScreenModel {
+    private val context: PlatformContext
+) {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
 
     val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
@@ -54,8 +55,11 @@ class ReaderState(
     val imageStretchToFit = MutableStateFlow(true)
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
+    val showSettingsMenu = MutableStateFlow(false)
 
     suspend fun initialize(bookId: KomgaBookId) {
+        onImmersiveModeEnable(true, context)
+
         decoderSettings.value = settingsRepository.getDecoderSettings().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
@@ -179,7 +183,10 @@ class ReaderState(
         if (markReadProgress) {
             val currentBook = requireNotNull(booksState.value?.currentBook)
             stateScope.launch {
-                bookClient.markReadProgress(currentBook.id, KomgaBookReadProgressUpdateRequest(page))
+                bookClient.markReadProgress(
+                    currentBook.id,
+                    KomgaBookReadProgressUpdateRequest(page)
+                )
             }
         }
 
@@ -206,6 +213,15 @@ class ReaderState(
     fun onStretchToFitChange(stretch: Boolean) {
         imageStretchToFit.value = stretch
         stateScope.launch { readerSettingsRepository.putStretchToFit(stretch) }
+    }
+
+    fun onShowSettingsMenuChange(show: Boolean) {
+        showSettingsMenu.value = show
+        onImmersiveModeEnable(!show, context)
+    }
+
+    fun onDispose() {
+        onImmersiveModeEnable(false, context)
     }
 }
 
@@ -251,3 +267,5 @@ enum class ReaderType {
     PAGED,
     CONTINUOUS
 }
+
+expect fun onImmersiveModeEnable(enable: Boolean, context: PlatformContext)

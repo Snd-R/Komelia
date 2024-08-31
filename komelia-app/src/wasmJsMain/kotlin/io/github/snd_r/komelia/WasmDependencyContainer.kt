@@ -27,9 +27,9 @@ import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.UpdateProgress
 import io.github.snd_r.komelia.worker.ImageWorker
-import io.ktor.client.*
-import io.ktor.client.engine.js.*
-import io.ktor.client.plugins.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.js.Js
+import io.ktor.client.plugins.defaultRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -51,7 +51,7 @@ class WasmDependencyContainer(
     override val readerImageLoader: ReaderImageLoader,
     override val komfClientFactory: KomfClientFactory,
 ) : DependencyContainer {
-    override val imageLoaderContext: PlatformContext = PlatformContext.INSTANCE
+    override val platformContext: PlatformContext = PlatformContext.INSTANCE
     override val appNotifications: AppNotifications = AppNotifications()
 
     companion object {

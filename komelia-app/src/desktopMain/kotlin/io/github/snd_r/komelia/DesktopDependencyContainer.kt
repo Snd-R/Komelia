@@ -47,13 +47,14 @@ import io.github.snd_r.komelia.updates.DesktopAppUpdater
 import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateClient
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.cookies.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.http.Url
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -98,7 +99,7 @@ class DesktopDependencyContainer private constructor(
     val onnxRuntimeInstaller: OnnxRuntimeInstaller,
     val mangaJaNaiDownloader: MangaJaNaiDownloader
 ) : DependencyContainer {
-    override val imageLoaderContext: PlatformContext = PlatformContext.INSTANCE
+    override val platformContext: PlatformContext = PlatformContext.INSTANCE
 
     companion object {
         suspend fun createInstance(systemScope: CoroutineScope): DesktopDependencyContainer {

@@ -3,6 +3,7 @@ package io.github.snd_r.komelia
 import android.app.Activity
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -12,7 +13,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.window.layout.WindowMetricsCalculator
-import crash.GlobalExceptionHandler
+import io.github.snd_r.komelia.crash.GlobalExceptionHandler
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         GlobalExceptionHandler.initialize(applicationContext)
 
+        enableEdgeToEdge()
         initScope.launch {
             initMutex.withLock {
                 if (dependencies.value == null)
