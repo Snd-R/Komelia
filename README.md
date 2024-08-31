@@ -24,13 +24,13 @@ Available platforms include: `linux-x86_64`, `windows-x86_64`, `android-arm64`, 
 
 Requires jdk 17 or higher
 
-- `./gradlew run` to launch desktop app
-- `./gradlew repackageUberJar` package jar for current OS (output in `composeApp/build/compose/jars`)
-- `./gradlew packageReleaseDeb` package Linux deb file (output in `composeApp/build/compose/binaries`)
-- `./gradlew packageReleaseMsi` (can only be run under Windows) package Windows msi installer (output
-  in `composeApp/build/compose/binaries`)
+- `./gradlew :komelia-app:run` to launch desktop app
+- `./gradlew :komelia-app:repackageUberJar` package jar for current OS (output in `komelia-app/build/compose/jars`)
+- `./gradlew :komelia-app:packageReleaseDeb` package Linux deb file (output in `komelia-app/build/compose/binaries`)
+- `./gradlew :komelia-app:packageReleaseMsi` (can only be run under Windows) package Windows msi installer (output
+  in `komelia-app/build/compose/binaries`)
 
 # Android App Build
 
-- debug apk build:`./gradlew :composeApp:assemble` (output in `composeApp/build/outputs/apk/debug`)
-- unsigned release apk build:`./gradlew :composeApp:assembleRelease` (output in `composeApp/build/outputs/apk/release`)
+- debug apk build:`./gradlew :komelia-app:assemble` (output in `komelia-app/build/outputs/apk/debug`)
+- unsigned release apk build:`./gradlew :komelia-app:assembleRelease` (output in `komelia-app/build/outputs/apk/release`)
