@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -56,9 +57,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import snd.komga.client.sse.KomgaEvent
 
-val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
+val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> {
+    error("ViewModel factory is not set")
+}
 val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }
-val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
+val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> {
+    error("Komga events are not set")
+}
 val LocalKomfIntegration = compositionLocalOf { flowOf(false) }
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key events are not set") }
 val LocalWindowWidth = compositionLocalOf<WindowWidth> { error("Window size is not set") }
@@ -75,9 +80,10 @@ fun MainView(
     platformType: PlatformType,
     keyEvents: SharedFlow<KeyEvent>
 ) {
-    val theme = dependencies?.settingsRepository?.getAppTheme()
-        ?.collectAsState(AppTheme.DARK)?.value
-        ?: AppTheme.DARK
+    var theme by rememberSaveable { mutableStateOf(AppTheme.DARK) }
+    LaunchedEffect(dependencies) {
+        dependencies?.settingsRepository?.getAppTheme()?.collect { theme = it }
+    }
 
     MaterialTheme(colorScheme = theme.colorScheme) {
         ConfigurePlatformTheme(theme)
@@ -147,7 +153,8 @@ fun AppNotifications(
     appNotifications: AppNotifications,
     theme: AppTheme
 ) {
-    val toaster = rememberToasterState(onToastDismissed = { appNotifications.remove(it.id as Long) })
+    val toaster =
+        rememberToasterState(onToastDismissed = { appNotifications.remove(it.id as Long) })
 
     LaunchedEffect(toaster) {
         val toastsFlow = appNotifications.getNotifications()
