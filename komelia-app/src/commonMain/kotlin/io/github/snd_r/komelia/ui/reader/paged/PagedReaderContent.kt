@@ -206,7 +206,8 @@ fun ReaderPages(
         var widthTaken = startPadding
         layout(constraints.maxWidth, constraints.maxHeight) {
             measured.forEach {
-                it.placeRelative(widthTaken, 0)
+                val topPadding = ((constraints.maxHeight - it.height) / 2).coerceAtLeast(0)
+                it.placeRelative(widthTaken, topPadding)
                 widthTaken += it.width
             }
         }
