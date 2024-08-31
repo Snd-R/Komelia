@@ -93,7 +93,7 @@ object OnnxRuntimeSharedLibraries {
                 Linux -> {
                     SharedLibrariesLoader.loadLibrary("komelia_onnxruntime")
                     when (executionProvider) {
-                        CUDA -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_cuda")
+                        CUDA, TENSOR_RT -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_cuda")
                         else -> {}
                     }
                 }
