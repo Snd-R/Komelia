@@ -5,12 +5,7 @@ import io.github.snd_r.komelia.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.hours
 
@@ -36,11 +31,9 @@ class StartupUpdateChecker(
             val latest = releases.first()
             releaseFlow.value = releases
             settings.putLastUpdateCheckTimestamp(Clock.System.now())
-
-            if (AppVersion.current >= latest.version) return null
-
             settings.putLastCheckedReleaseVersion(latest.version)
 
+            if (AppVersion.current >= latest.version) return null
             if (settings.getDismissedVersion().first() == AppVersion.current) return null
 
             return latest
