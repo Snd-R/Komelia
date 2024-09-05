@@ -12,6 +12,7 @@ import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.home.HomeScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
+import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,8 +79,10 @@ class MainScreenViewModel(
 
     private fun onSeriesDeleted(event: SeriesDeleted) {
         val lastScreen = navigator.lastItem
-        if (lastScreen is SeriesScreen && lastScreen.seriesId == event.seriesId)
-            navigator.replaceAll(LibraryScreen(event.libraryId))
+        when {
+            lastScreen is SeriesScreen || lastScreen is OneshotScreen && lastScreen.seriesId == event.seriesId ->
+                navigator.replaceAll(LibraryScreen(event.libraryId))
+        }
     }
 
     private fun onLibraryDeleted(event: LibraryDeleted) {

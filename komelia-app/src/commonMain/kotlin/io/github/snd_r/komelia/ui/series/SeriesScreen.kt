@@ -13,10 +13,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
+import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
@@ -25,6 +26,10 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
 
+fun seriesScreen(series: KomgaSeries): Screen =
+    if (series.oneshot) OneshotScreen(series)
+    else SeriesScreen(series)
+
 class SeriesScreen(
     val seriesId: KomgaSeriesId,
     @Transient
@@ -32,7 +37,12 @@ class SeriesScreen(
     @Transient
     private val startingTab: SeriesTab = SeriesTab.BOOKS
 ) : Screen {
-    constructor(series: KomgaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(series.id, series, startingTab)
+
+    constructor(series: KomgaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(
+        series.id,
+        series,
+        startingTab
+    )
 
     override val key: ScreenKey = seriesId.toString()
 
@@ -44,7 +54,12 @@ class SeriesScreen(
         val vm = rememberScreenModel(seriesId.value) {
             viewModelFactory.getSeriesViewModel(seriesId, series, startingTab)
         }
-        LaunchedEffect(seriesId) { vm.initialize() }
+        LaunchedEffect(seriesId) {
+            vm.initialize()
+            vm.series.value?.let {
+                if (it.oneshot) navigator.replace(OneshotScreen(it))
+            }
+        }
 
         when (val state = vm.state.collectAsState().value) {
             is Error -> ErrorContent(
@@ -67,12 +82,17 @@ class SeriesScreen(
                     onTabChange = vm::onTabChange,
 
                     booksState = vm.booksState,
-                    onBookClick = { navigator push BookScreen(it) },
+                    onBookClick = { navigator push bookScreen(it) },
                     onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
 
                     collectionsState = vm.collectionsState,
                     onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
-                    onSeriesClick = { series -> navigator.push(SeriesScreen(series, vm.currentTab)) },
+                    onSeriesClick = { series ->
+                        navigator.push(
+                            if (series.oneshot) OneshotScreen(series)
+                            else SeriesScreen(series, vm.currentTab)
+                        )
+                    },
 
                     onBackButtonClick = {
                         vm.series.value?.let { onBackPress(navigator, it.libraryId) }

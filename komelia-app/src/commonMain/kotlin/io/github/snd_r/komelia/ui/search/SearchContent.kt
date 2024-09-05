@@ -43,13 +43,13 @@ fun SearchContent(
     bookCurrentPage: Int,
     bookTotalPages: Int,
     onBookPageChange: (Int) -> Unit,
-    onBookClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
 
     seriesResults: List<KomgaSeries>,
     seriesCurrentPage: Int,
     seriesTotalPages: Int,
     onSeriesPageChange: (Int) -> Unit,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
 ) {
     if (query.isNotBlank() && bookResults.isEmpty() && seriesResults.isEmpty()) {
         EmptySearchResults()
@@ -86,7 +86,7 @@ fun SearchContent(
                         items(seriesResults) { series ->
                             SeriesDetailedListCard(
                                 series = series,
-                                onClick = { onSeriesClick(series.id) },
+                                onClick = { onSeriesClick(series) },
                                 modifier = widthModifier
                             )
                         }
@@ -103,7 +103,7 @@ fun SearchContent(
                         items(bookResults) { book ->
                             BookDetailedListCard(
                                 book = book,
-                                onClick = { onBookClick(book.id) },
+                                onClick = { onBookClick(book) },
                                 modifier = widthModifier
                             )
                         }

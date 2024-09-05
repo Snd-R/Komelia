@@ -21,12 +21,11 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.Pagination
 import snd.komga.client.book.KomgaBook
-import snd.komga.client.book.KomgaBookId
 
 @Composable
 fun MediaAnalysisContent(
     books: List<KomgaBook>,
-    onBookClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
     currentPage: Int,
     totalPages: Int,
     onPageChange: (Int) -> Unit
@@ -65,7 +64,7 @@ fun MediaAnalysisContent(
 @Composable
 private fun BookAnalysisCard(
     book: KomgaBook,
-    onBookClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
     modifier: Modifier
 ) {
     val strings = LocalStrings.current
@@ -83,7 +82,10 @@ private fun BookAnalysisCard(
                 book.name,
                 style = MaterialTheme.typography.bodyLarge.copy(textDecoration = TextDecoration.Underline),
                 modifier = Modifier
-                    .clickable(interactionSource = interactionSource, indication = null) { onBookClick(book.id) }
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) { onBookClick(book) }
                     .cursorForHand()
             )
             SelectionContainer {
@@ -92,7 +94,8 @@ private fun BookAnalysisCard(
                 ) {
                     Text(book.url, style = MaterialTheme.typography.bodyMedium)
                     Text("${book.media.mediaType} ${book.size}")
-                    val text = "${book.media.status.name}: ${strings.errorCodes.getMessageForCode(book.media.comment)}"
+                    val text =
+                        "${book.media.status.name}: ${strings.errorCodes.getMessageForCode(book.media.comment)}"
                     Text(text, color = MaterialTheme.colorScheme.tertiary)
                 }
             }

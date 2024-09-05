@@ -13,11 +13,14 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.collection.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookClient
@@ -43,7 +46,8 @@ class SeriesViewModel(
 
     val series = MutableStateFlow(series)
     var currentTab by mutableStateOf(defaultTab)
-    val cardWidth = settingsRepository.getCardWidth().stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
+    val cardWidth = settingsRepository.getCardWidth()
+        .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     val booksState = SeriesBooksState(
         series = this.series,
@@ -66,16 +70,14 @@ class SeriesViewModel(
         cardWidth = cardWidth,
     )
 
-    fun initialize() {
+    suspend fun initialize() {
         if (state.value !is Uninitialized) return
+        if (series.value == null) loadSeries()
+        else mutableState.value = Success(Unit)
 
-        screenModelScope.launch {
-            if (series.value == null) loadSeries()
-            else mutableState.value = Success(Unit)
-        }
-        screenModelScope.launch { booksState.initialize() }
-        screenModelScope.launch { collectionsState.initialize() }
-        screenModelScope.launch { registerEventListener() }
+        booksState.initialize()
+        collectionsState.initialize()
+        registerEventListener()
     }
 
     fun reload() {
@@ -100,19 +102,13 @@ class SeriesViewModel(
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    private suspend fun registerEventListener() {
-        events.collect { event ->
+    private fun registerEventListener() {
+        events.onEach { event ->
             when (event) {
-                is KomgaEvent.SeriesChanged -> onSeriesChanged(event.seriesId)
+                is KomgaEvent.SeriesChanged -> if (event.seriesId == seriesId) loadSeries()
                 else -> {}
             }
-        }
-    }
-
-    private suspend fun onSeriesChanged(eventSeriesId: KomgaSeriesId) {
-        if (eventSeriesId == seriesId) {
-            loadSeries()
-        }
+        }.launchIn(screenModelScope)
     }
 
     enum class SeriesTab {

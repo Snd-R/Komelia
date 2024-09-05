@@ -15,7 +15,7 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import snd.komga.client.readlist.KomgaReadListId
@@ -27,7 +27,8 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(readListId.value) { viewModelFactory.getReadListViewModel(readListId) }
+        val vm =
+            rememberScreenModel(readListId.value) { viewModelFactory.getReadListViewModel(readListId) }
         LaunchedEffect(readListId) { vm.initialize() }
 
         val navigator = LocalNavigator.currentOrThrow
@@ -45,7 +46,7 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
 
                         books = vm.books,
                         bookMenuActions = vm.bookMenuActions(),
-                        onBookClick = { navigator push BookScreen(it.id) },
+                        onBookClick = { navigator push bookScreen(it) },
                         onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
 
                         selectedBooks = vm.selectedBooks,

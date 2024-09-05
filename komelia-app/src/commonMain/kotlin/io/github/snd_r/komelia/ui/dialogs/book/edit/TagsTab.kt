@@ -9,7 +9,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 
 class TagsTab(
-    private val vm: BookEditDialogViewModel
+    private val vm: BookEditMetadataState
 ) : DialogTab {
     override fun options() = TabItem(
         title = "TAGS",

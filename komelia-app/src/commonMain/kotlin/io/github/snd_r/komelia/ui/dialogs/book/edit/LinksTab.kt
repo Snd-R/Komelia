@@ -9,7 +9,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import snd.komga.client.common.KomgaWebLink
 
 class LinksTab(
-    private val vm: BookEditDialogViewModel
+    private val vm: BookEditMetadataState
 ) : DialogTab {
     override fun options() = TabItem(
         title = "LINKS",

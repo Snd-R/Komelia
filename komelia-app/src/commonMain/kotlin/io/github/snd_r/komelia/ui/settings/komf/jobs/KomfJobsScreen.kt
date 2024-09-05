@@ -12,7 +12,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
-import io.github.snd_r.komelia.ui.series.SeriesScreen
+import io.github.snd_r.komelia.ui.series.seriesScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
 class KomfJobsScreen : Screen {
@@ -40,7 +40,7 @@ class KomfJobsScreen : Screen {
                     onSeriesClick = {
                         rootNavigator.pop()
                         rootNavigator.dispose(rootNavigator.lastItem)
-                        rootNavigator.replaceAll(MainScreen(SeriesScreen(it)))
+                        rootNavigator.replaceAll(MainScreen(seriesScreen(it)))
                     },
                     onDeleteAll = vm::onDeleteAll,
                     isLoading = state == LoadState.Loading || state == LoadState.Uninitialized

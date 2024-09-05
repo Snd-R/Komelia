@@ -26,13 +26,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.platform.cursorForHand
 
 @Composable
 fun <T> DescriptionChips(
     label: String,
     chipValue: LabeledEntry<T>,
-    onClick: (T) -> Unit,
-    modifier: Modifier
+    onClick: (T) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     DescriptionChips(
         label = label,
@@ -53,14 +54,11 @@ fun <T> DescriptionChips(
     modifier: Modifier = Modifier,
 ) {
     if (chipValues.isEmpty() && secondaryValues.isNullOrEmpty()) return
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier,
-    ) {
+    Row(modifier = modifier) {
         Text(
             label,
             fontSize = 12.sp,
-            modifier = Modifier.width(150.dp)
+            modifier = Modifier.width(120.dp)
         )
 
         FlowRow(
@@ -74,7 +72,9 @@ fun <T> DescriptionChips(
                 }
             }
             secondaryValues?.filter { it !in chipValues }?.forEach { entry ->
-                NoPaddingChip(borderColor = MaterialTheme.colorScheme.primary, onClick = { onChipClick(entry.value) }) {
+                NoPaddingChip(
+                    borderColor = MaterialTheme.colorScheme.primary,
+                    onClick = { onChipClick(entry.value) }) {
                     Text(entry.label, style = MaterialTheme.typography.labelMedium)
                     icon?.let { Icon(it, null, modifier = Modifier.size(18.dp)) }
                 }
@@ -100,10 +100,14 @@ fun NoPaddingChip(
             .clip(RoundedCornerShape(10.dp))
             .background(color)
             .clickable { onClick() }
-            .padding(10.dp, 5.dp),
+            .padding(10.dp, 5.dp)
+            .cursorForHand(),
         contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
             content()
         }
     }

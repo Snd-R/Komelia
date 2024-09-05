@@ -16,10 +16,10 @@ import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.search.SearchBar
 import io.github.snd_r.komelia.ui.search.SearchResults
 import kotlinx.coroutines.launch
-import snd.komga.client.book.KomgaBookId
+import snd.komga.client.book.KomgaBook
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeriesId
+import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun AppBar(
@@ -30,8 +30,8 @@ fun AppBar(
     onSearchAllClick: (String) -> Unit,
     searchResults: SearchResults,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
-    onBookClick: (KomgaBookId) -> Unit,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
 ) {
     PlatformTitleBar {
         val coroutineScope = rememberCoroutineScope()

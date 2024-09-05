@@ -15,7 +15,7 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.series.SeriesScreen
+import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.collection.KomgaCollectionId
 
 class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
@@ -42,7 +42,7 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
 
                         series = vm.series,
                         seriesActions = vm.seriesMenuActions(),
-                        onSeriesClick = { navigator push SeriesScreen(it.id) },
+                        onSeriesClick = { navigator push seriesScreen(it) },
 
                         selectedSeries = vm.selectedSeries,
                         onSeriesSelect = vm::onSeriesSelect,

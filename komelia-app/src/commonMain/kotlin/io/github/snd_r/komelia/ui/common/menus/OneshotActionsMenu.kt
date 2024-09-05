@@ -15,18 +15,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import io.github.snd_r.komelia.AppNotification
-import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
+import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
+import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialog
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialog
-import kotlinx.coroutines.CoroutineScope
 import snd.komga.client.book.KomgaBook
-import snd.komga.client.book.KomgaBookClient
-import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.komga.client.series.KomgaSeries
 
 @Composable
-fun BookActionsMenu(
+fun OneshotActionsMenu(
+    series: KomgaSeries,
     book: KomgaBook,
     actions: BookMenuActions,
     expanded: Boolean,
@@ -51,14 +50,6 @@ fun BookActionsMenu(
         )
     }
 
-    var showEditDialog by remember { mutableStateOf(false) }
-    if (showEditDialog) {
-        BookEditDialog(book, onDismissRequest = {
-            showEditDialog = false
-            onDismissRequest()
-        })
-    }
-
     var showAddToReadListDialog by remember { mutableStateOf(false) }
     if (showAddToReadListDialog) {
         AddToReadListDialog(
@@ -68,8 +59,45 @@ fun BookActionsMenu(
                 onDismissRequest()
             })
     }
+    var showAddToCollectionDialog by remember { mutableStateOf(false) }
+    if (showAddToCollectionDialog) {
+        AddToCollectionDialog(
+            series = listOf(series),
+            onDismissRequest = {
+                showAddToCollectionDialog = false
+                onDismissRequest()
+            })
+    }
+    var showKomfDialog by remember { mutableStateOf(false) }
+    if (showKomfDialog) {
+        KomfIdentifyDialog(
+            series = series,
+            onDismissRequest = {
+                showKomfDialog = false
+                onDismissRequest()
+            }
+        )
+    }
+    var showKomfResetDialog by remember { mutableStateOf(false) }
+    if (showKomfResetDialog) {
+        KomfResetMetadataDialog(
+            series = series,
+            onDismissRequest = {
+                showKomfResetDialog = false
+                onDismissRequest()
+            }
+        )
+    }
 
-    val showDropdown = derivedStateOf { expanded && !showDeleteDialog && !showEditDialog }
+    val showDropdown = derivedStateOf {
+        expanded &&
+                !showDeleteDialog &&
+                !showKomfDialog &&
+                !showKomfResetDialog &&
+                !showAddToCollectionDialog &&
+                !showAddToReadListDialog
+    }
+
     DropdownMenu(
         expanded = showDropdown.value,
         onDismissRequest = onDismissRequest
@@ -93,6 +121,10 @@ fun BookActionsMenu(
         DropdownMenuItem(
             text = { Text("Add to read list") },
             onClick = { showAddToReadListDialog = true },
+        )
+        DropdownMenuItem(
+            text = { Text("Add to collection") },
+            onClick = { showAddToCollectionDialog = true },
         )
 
         val isRead = remember { book.readProgress?.completed ?: false }
@@ -118,12 +150,6 @@ fun BookActionsMenu(
             )
         }
 
-        if (actions.editDialog)
-            DropdownMenuItem(
-                text = { Text("Edit") },
-                onClick = { showEditDialog = true },
-            )
-
         val deleteInteractionSource = remember { MutableInteractionSource() }
         val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
         val deleteColor =
@@ -138,48 +164,5 @@ fun BookActionsMenu(
                 .hoverable(deleteInteractionSource)
                 .then(deleteColor)
         )
-
     }
-}
-
-data class BookMenuActions(
-    val analyze: (KomgaBook) -> Unit,
-    val refreshMetadata: (KomgaBook) -> Unit,
-    val markAsRead: (KomgaBook) -> Unit,
-    val markAsUnread: (KomgaBook) -> Unit,
-    val delete: (KomgaBook) -> Unit,
-    val editDialog: Boolean = true,
-) {
-    constructor(
-        bookClient: KomgaBookClient,
-        notifications: AppNotifications,
-        scope: CoroutineScope,
-    ) : this(
-        analyze = {
-            notifications.runCatchingToNotifications(scope) {
-                bookClient.analyze(it.id)
-                notifications.add(AppNotification.Normal("Launched book analysis"))
-            }
-        },
-        refreshMetadata = {
-            notifications.runCatchingToNotifications(scope) {
-                bookClient.refreshMetadata(it.id)
-                notifications.add(AppNotification.Normal("Launched book metadata refresh"))
-            }
-        },
-        markAsRead = { book ->
-            notifications.runCatchingToNotifications(scope) {
-                bookClient.markReadProgress(
-                    book.id,
-                    KomgaBookReadProgressUpdateRequest(completed = true)
-                )
-            }
-        },
-        markAsUnread = {
-            notifications.runCatchingToNotifications(scope) { bookClient.deleteReadProgress(it.id) }
-        },
-        delete = {
-            notifications.runCatchingToNotifications(scope) { bookClient.deleteBook(it.id) }
-        },
-    )
 }

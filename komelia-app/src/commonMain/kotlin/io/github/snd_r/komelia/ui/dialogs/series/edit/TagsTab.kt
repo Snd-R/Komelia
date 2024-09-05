@@ -12,7 +12,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 
 internal class TagsTab(
-    private val vm: SeriesEditDialogViewModel,
+    private val vm: SeriesEditMetadataState,
 ) : DialogTab {
 
     override fun options() = TabItem(
@@ -39,7 +39,6 @@ private fun TagsContent(
     genresLock: StateHolder<Boolean>,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-
         LockableChipTextField(tags, "Tags", tagsLock)
         LockableChipTextField(genres, "Genres", genresLock)
     }

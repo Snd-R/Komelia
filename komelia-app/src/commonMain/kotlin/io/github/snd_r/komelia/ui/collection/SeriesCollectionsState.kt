@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.series
+package io.github.snd_r.komelia.ui.collection
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

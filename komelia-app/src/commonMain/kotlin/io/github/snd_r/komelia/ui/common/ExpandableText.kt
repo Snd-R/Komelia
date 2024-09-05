@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -40,13 +41,15 @@ fun ExpandableText(
         modifier = Modifier.animateContentSize(spring(stiffness = Spring.StiffnessLow))
             .then(modifier)
     ) {
-        Text(
-            text = text,
-            maxLines = if (isExpanded) Int.MAX_VALUE else 10,
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { textLayoutResult = it },
-            style = style
-        )
+        SelectionContainer {
+            Text(
+                text = text,
+                maxLines = if (isExpanded) Int.MAX_VALUE else 10,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { textLayoutResult = it },
+                style = style
+            )
+        }
 
         if (isButtonShown) {
 

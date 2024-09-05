@@ -20,7 +20,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 
 class GeneralTab(
-    private val vm: BookEditDialogViewModel
+    private val vm: BookEditMetadataState
 ) : DialogTab {
     override fun options() = TabItem(
         title = "GENERAL",
@@ -61,7 +61,9 @@ private fun GeneralTabContent(
     isbn: StateHolder<String>,
     isbnLock: StateHolder<Boolean>,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         LockableTextField(
             text = title.value,
             onTextChange = title.setValue,
@@ -70,7 +72,7 @@ private fun GeneralTabContent(
             lock = titleLock,
             modifier = Modifier.fillMaxWidth()
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
 
             LockableTextField(
                 text = number.value,
@@ -116,7 +118,7 @@ private fun GeneralTabContent(
             textFieldModifier = Modifier
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             LockableTextField(
                 text = releaseDate.value,
                 onTextChange = { releaseDate.setValue(it) },

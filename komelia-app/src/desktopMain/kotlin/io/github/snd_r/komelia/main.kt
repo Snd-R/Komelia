@@ -68,7 +68,6 @@ import org.slf4j.LoggerFactory
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import java.nio.file.Path
-import java.util.*
 import kotlin.system.exitProcess
 import kotlin.time.measureTime
 
@@ -91,8 +90,6 @@ val projectDirectories: ProjectDirectories = ProjectDirectories.from("io.github.
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    Locale.getISOLanguages()
-
     configureLogging()
     measureTime {
         try {
@@ -322,7 +319,6 @@ private fun configureLogging() {
     val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
     val rootLogger = loggerContext.getLogger(ROOT_LOGGER_NAME)
     rootLogger.level = Level.INFO
-    (LoggerFactory.getLogger("org.freedesktop") as ch.qos.logback.classic.Logger).level = Level.WARN
 
     val logEncoder = PatternLayoutEncoder()
     logEncoder.pattern = "%date %level [%thread] %logger{10} [%file:%line] %msg%n"

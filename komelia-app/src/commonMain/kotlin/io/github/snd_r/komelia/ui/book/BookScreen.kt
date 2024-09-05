@@ -11,6 +11,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
@@ -18,6 +19,8 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
+
+fun bookScreen(book: KomgaBook) = if (book.oneshot) OneshotScreen(book) else BookScreen(book)
 
 class BookScreen(
     val bookId: KomgaBookId,
@@ -31,23 +34,34 @@ class BookScreen(
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(bookId.value) { viewModelFactory.getBookViewModel(bookId, book) }
+        val vm =
+            rememberScreenModel(bookId.value) { viewModelFactory.getBookViewModel(bookId, book) }
 
         val navigator = LocalNavigator.currentOrThrow
 
-        LaunchedEffect(Unit) { vm.initialize() }
+        LaunchedEffect(Unit) {
+            vm.initialize()
+            vm.book.value?.let { if (it.oneshot) navigator.replace(OneshotScreen(it)) }
+        }
         val book = vm.book.collectAsState().value
 
-        BookContent(
+        BookScreenContent(
             library = vm.library,
             book = book,
-            bookMenuActions = vm.bookMenuActions(),
+            bookMenuActions = vm.bookMenuActions,
             onBackButtonClick = { onBackPress(navigator, book?.seriesId) },
-            onBookReadPress = { markReadProgress -> navigator.parent?.replace(ReaderScreen(bookId, markReadProgress)) },
+            onBookReadPress = { markReadProgress ->
+                navigator.parent?.replace(
+                    ReaderScreen(
+                        bookId,
+                        markReadProgress
+                    )
+                )
+            },
 
             readLists = vm.readListsState.readLists,
             onReadListClick = { navigator.push(ReadListScreen(it.id)) },
-            onBookClick = { navigator.push(BookScreen(it)) },
+            onBookClick = { navigator.push(bookScreen(it)) },
             cardWidth = vm.cardWidth.collectAsState().value
         )
 

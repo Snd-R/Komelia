@@ -69,6 +69,16 @@ val EnStrings = Strings(
         authors = "Authors",
         tags = "Filter Tags",
     ),
+    seriesView = SeriesViewStrings(
+        statusEnded = "Ended",
+        statusOngoing = "Ongoing",
+        statusAbandoned = "Abandoned",
+        statusHiatus = "Hiatus",
+        readingDirectionLeftToRight = "Left to right",
+        readingDirectionRightToLeft = "Right to left",
+        readingDirectionVertical = "Vertical",
+        readingDirectionWebtoon = "Webtoon",
+    ),
     seriesEdit = SeriesEditStrings(
         title = "Title",
         sortTitle = "Sort title",
@@ -89,6 +99,14 @@ val EnStrings = Strings(
         publisher = "Publisher",
         ageRating = "Age rating",
         totalBookCount = "Total book count"
+    ),
+    bookEdit = BookEditStrings(
+        title = "Title",
+        number = "Number",
+        sortNumber = "Sort Number",
+        summary = "Summary",
+        releaseDate = "Release date",
+        isbn = "ISBN"
     ),
     libraryEdit = LibraryEditStrings(
         emptyTrashAfterScan = "Empty trash automatically after every scan",

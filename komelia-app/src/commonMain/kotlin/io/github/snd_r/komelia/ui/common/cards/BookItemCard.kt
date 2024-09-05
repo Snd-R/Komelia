@@ -10,7 +10,6 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,17 +18,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -56,6 +50,7 @@ import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.common.BookReadButton
 import io.github.snd_r.komelia.ui.common.NoPaddingChip
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
@@ -87,7 +82,11 @@ fun BookImageCard(
                 isSelected = isSelected,
             ) {
                 BookImageOverlay(book) {
-                    BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    BookThumbnail(
+                        book.id,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
                 }
             }
         }
@@ -105,7 +104,11 @@ fun BookSimpleImageCard(
         onClick = onBookClick,
         image = {
             BookImageOverlay(book, false) {
-                BookThumbnail(book.id, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                BookThumbnail(
+                    book.id,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     )
@@ -234,7 +237,7 @@ private fun BookHoverOverlay(
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
-                        ReadButton(onBookReadClick)
+                        BookReadButton(onBookReadClick)
                     }
 
                     Spacer(Modifier.weight(1f))
@@ -284,7 +287,11 @@ fun BookDetailedListCard(
                 .heightIn(max = 220.dp)
                 .fillMaxWidth()
                 .then(
-                    if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondary.copy(alpha = .3f))
+                    if (isSelected) Modifier.background(
+                        MaterialTheme.colorScheme.secondary.copy(
+                            alpha = .3f
+                        )
+                    )
                     else Modifier
                 )
                 .padding(10.dp),
@@ -334,13 +341,22 @@ private fun BookDetailedListDetails(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            item { Text("${book.media.pagesCount} pages", style = MaterialTheme.typography.bodySmall) }
+            item {
+                Text(
+                    "${book.media.pagesCount} pages",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             items(book.metadata.tags) {
                 NoPaddingChip(
                     borderColor = MaterialTheme.colorScheme.surface,
                     color = MaterialTheme.colorScheme.surface
                 ) {
-                    Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -359,7 +375,7 @@ private fun BookDetailedListDetails(
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.Start) {
             if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
-                ReadButton(onBookReadClick)
+                BookReadButton(onBookReadClick)
             }
             if (bookMenuActions != null) {
                 Box {
@@ -381,29 +397,6 @@ private fun BookDetailedListDetails(
         }
 
     }
-}
-
-
-@Composable
-private fun ReadButton(onClick: () -> Unit) {
-
-    FilledTonalButton(
-        modifier = Modifier.padding(horizontal = 5.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiary
-        ),
-        onClick = onClick,
-        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 15.dp)
-
-    ) {
-        Icon(Icons.AutoMirrored.Rounded.MenuBook, null)
-        Spacer(Modifier.width(10.dp))
-
-        Text("Read")
-    }
-
 }
 
 @Composable

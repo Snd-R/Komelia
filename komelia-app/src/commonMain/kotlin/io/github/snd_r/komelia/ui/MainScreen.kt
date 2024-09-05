@@ -53,14 +53,14 @@ import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.home.HomeScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.navigation.AppBar
 import io.github.snd_r.komelia.ui.navigation.LibrariesNavBarContent
 import io.github.snd_r.komelia.ui.navigation.NavBarContent
 import io.github.snd_r.komelia.ui.search.SearchScreen
-import io.github.snd_r.komelia.ui.series.SeriesScreen
+import io.github.snd_r.komelia.ui.series.seriesScreen
 import io.github.snd_r.komelia.ui.settings.MobileSettingsScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreen
 import kotlinx.coroutines.flow.SharedFlow
@@ -120,8 +120,10 @@ class MainScreen(
                 onSearchAllClick = { navigator.push(SearchScreen(it)) },
                 searchResults = vm.searchBarState.searchResults(),
                 libraryById = vm.searchBarState::getLibraryById,
-                onBookClick = { navigator.replaceAll(BookScreen(it)) },
-                onSeriesClick = { navigator.replaceAll(SeriesScreen(it)) },
+                onBookClick = { navigator.replaceAll(bookScreen(it)) },
+                onSeriesClick = {
+                    navigator.replaceAll(seriesScreen(it))
+                },
             )
 
             when (width) {

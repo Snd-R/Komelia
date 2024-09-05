@@ -26,6 +26,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,11 +52,9 @@ import io.github.snd_r.komelia.ui.common.NoPaddingTextField
 import io.github.snd_r.komelia.ui.common.cards.BookSimpleImageCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesSimpleImageCard
 import snd.komga.client.book.KomgaBook
-import snd.komga.client.book.KomgaBookId
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
-import snd.komga.client.series.KomgaSeriesId
 
 val expandedSearchBarWidth = 600.dp
 
@@ -69,8 +68,8 @@ fun SearchBar(
     onQueryChange: (String) -> Unit,
     onSearchAllClick: (String) -> Unit,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
-    onBookClick: (KomgaBookId) -> Unit,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
@@ -103,7 +102,7 @@ fun SearchBar(
                 onDone = onSearchAllClick,
                 onDismiss = { onQueryChange("") },
                 interactionSource = interactionSource,
-                modifier = Modifier.menuAnchor()
+                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable)
             )
             DropdownMenu(
                 expanded = isExpanded.value,
@@ -136,8 +135,8 @@ private fun ColumnScope.SearchResultsDropDownBox(
     isLoading: Boolean,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onSearchAllClick: (String) -> Unit,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
-    onBookClick: (KomgaBookId) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
     onDismiss: () -> Unit,
 ) {
     if (currentQuery.isBlank()) return
@@ -173,7 +172,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
                     series = it,
                     library = libraryById(it.libraryId),
                     onSeriesClick = {
-                        onSeriesClick(it.id)
+                        onSeriesClick(it)
                         onDismiss()
                     }
                 )
@@ -190,7 +189,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
                     book = it,
                     library = libraryById(it.libraryId),
                     onBookClick = {
-                        onBookClick(it.id)
+                        onBookClick(it)
                         onDismiss()
                     }
                 )

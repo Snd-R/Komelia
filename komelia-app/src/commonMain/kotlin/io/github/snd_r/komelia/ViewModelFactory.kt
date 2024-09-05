@@ -28,6 +28,7 @@ import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.oneshot.OneshotEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.readlistedit.ReadListEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialogViewModel
@@ -41,6 +42,7 @@ import io.github.snd_r.komelia.ui.library.LibraryReadListsViewModel
 import io.github.snd_r.komelia.ui.library.LibraryViewModel
 import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
+import io.github.snd_r.komelia.ui.oneshot.OneshotViewModel
 import io.github.snd_r.komelia.ui.reader.ReaderViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
@@ -219,6 +221,24 @@ class ViewModelFactory(
         )
     }
 
+    fun getOneshotViewModel(
+        seriesId: KomgaSeriesId,
+        series: KomgaSeries? = null,
+        book: KomgaBook? = null,
+    ) = OneshotViewModel(
+        series = series,
+        book = book,
+        seriesId = seriesId,
+        seriesClient = komgaClientFactory.seriesClient(),
+        bookClient = komgaClientFactory.bookClient(),
+        events = komgaEventSource.events,
+        notifications = appNotifications,
+        libraries = libraries,
+        settingsRepository = settingsRepository,
+        readListClient = komgaClientFactory.readListClient(),
+        collectionClient = komgaClientFactory.collectionClient(),
+    )
+
     fun getSeriesBrowseViewModel(
         libraryId: KomgaLibraryId?,
         sort: SeriesSort = SeriesSort.TITLE_ASC,
@@ -293,6 +313,22 @@ class ViewModelFactory(
             notifications = appNotifications,
             cardWidth = settingsRepository.getCardWidth(),
         )
+
+    fun getOneshotEditDialogViewModel(
+        seriesId: KomgaSeriesId,
+        series: KomgaSeries?,
+        book: KomgaBook?,
+        onDismissRequest: () -> Unit
+    ) = OneshotEditDialogViewModel(
+        seriesId = seriesId,
+        series = series,
+        book = book,
+        onDialogDismiss = onDismissRequest,
+        bookClient = komgaClientFactory.bookClient(),
+        seriesClient = komgaClientFactory.seriesClient(),
+        notifications = appNotifications,
+        cardWidth = settingsRepository.getCardWidth(),
+    )
 
     fun getBookBulkEditDialogViewModel(books: List<KomgaBook>, onDismissRequest: () -> Unit) =
         BookBulkEditDialogViewModel(

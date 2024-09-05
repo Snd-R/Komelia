@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +25,7 @@ import snd.komga.client.common.KomgaReadingDirection
 import snd.komga.client.series.KomgaSeriesStatus
 
 internal class GeneralTab(
-    private val vm: SeriesEditDialogViewModel,
+    private val vm: SeriesEditMetadataState,
 ) : DialogTab {
 
     override fun options() = TabItem(
@@ -50,7 +51,10 @@ internal class GeneralTab(
                 KomgaReadingDirection.entries,
                 vm::readingDirection::set
             ),
-            readingDirectionLock = StateHolder(vm.readingDirectionLock, vm::readingDirectionLock::set),
+            readingDirectionLock = StateHolder(
+                vm.readingDirectionLock,
+                vm::readingDirectionLock::set
+            ),
             publisher = StateHolder(vm.publisher, vm::publisher::set),
             publisherLock = StateHolder(vm.publisherLock, vm::publisherLock::set),
             ageRating = StateHolder(vm.ageRating, vm::ageRating::set),
@@ -85,9 +89,8 @@ private fun GeneralTabContent(
     val strings = LocalStrings.current.seriesEdit
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-
         LockableTextField(
             text = title.value,
             onTextChange = title.setValue,
@@ -111,11 +114,16 @@ private fun GeneralTabContent(
             textFieldModifier = Modifier
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
 
             LockableDropDown(
                 selectedOption = LabeledEntry(status.value, strings.forSeriesStatus(status.value)),
-                options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forSeriesStatus(it)) },
+                options = KomgaSeriesStatus.entries.map {
+                    LabeledEntry(
+                        it,
+                        strings.forSeriesStatus(it)
+                    )
+                },
                 onOptionChange = { status.onValueChange(it.value) },
                 label = { Text(strings.status) },
                 lock = statusLock,
@@ -134,18 +142,28 @@ private fun GeneralTabContent(
         }
 
         LockableDropDown(
-            selectedOption = readingDirection.value?.let { LabeledEntry(it, strings.forReadingDirection(it)) }
+            selectedOption = readingDirection.value?.let {
+                LabeledEntry(
+                    it,
+                    strings.forReadingDirection(it)
+                )
+            }
                 ?: LabeledEntry(null, ""),
-            options = KomgaReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) },
+            options = KomgaReadingDirection.entries.map {
+                LabeledEntry(
+                    it,
+                    strings.forReadingDirection(it)
+                )
+            },
             onOptionChange = { readingDirection.onValueChange(it.value) },
             label = { Text(strings.readingDirection) },
             lock = readingDirectionLock,
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
-            inputFieldModifier = Modifier.fillMaxWidth()
+            inputFieldModifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
         )
 
 
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             LockableTextField(
                 text = publisher.value,
                 onTextChange = publisher.setValue,
@@ -175,7 +193,6 @@ private fun GeneralTabContent(
         }
 
         Row {
-
             LockableTextField(
                 text = totalBookCount.value?.toString() ?: "",
                 onTextChange = {

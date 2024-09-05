@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.series.view
+package io.github.snd_r.komelia.ui.collection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,31 +8,31 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.common.itemlist.ItemCardsSlider
-import io.github.snd_r.komelia.ui.series.SeriesCollectionsState
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesCollectionsContent(
-    state: SeriesCollectionsState,
+    collections: Map<KomgaCollection, List<KomgaSeries>>,
     onCollectionClick: (KomgaCollection) -> Unit,
     onSeriesClick: (KomgaSeries) -> Unit,
+    cardWidth: Dp
 ) {
     Column(
         modifier = Modifier.padding(top = 10.dp, bottom = 30.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        state.collections.forEach { (collection, series) ->
+        collections.forEach { (collection, series) ->
             ItemCardsSlider(
                 onClick = { onCollectionClick(collection) },
                 label = { CollectionLabel(collection) }
@@ -41,7 +41,7 @@ fun SeriesCollectionsContent(
                     SeriesImageCard(
                         series = series,
                         onSeriesClick = { onSeriesClick(series) },
-                        modifier = Modifier.width(state.cardWidth.collectAsState().value)
+                        modifier = Modifier.width(cardWidth)
                     )
                 }
 

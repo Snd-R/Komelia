@@ -9,10 +9,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
-import io.github.snd_r.komelia.ui.series.SeriesScreen
+import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.library.KomgaLibraryId
 
 class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
@@ -43,10 +43,10 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
                     onFilterChange = vm::onFilterChange,
 
                     cardWidth = vm.cardWidth.collectAsState().value,
-                    onSeriesClick = { navigator push SeriesScreen(it) },
+                    onSeriesClick = { navigator push seriesScreen(it) },
                     seriesMenuActions = vm.seriesMenuActions(),
                     bookMenuActions = vm.bookMenuActions(),
-                    onBookClick = { navigator push BookScreen(it) },
+                    onBookClick = { navigator push bookScreen(it) },
                     onBookReadClick = { navigator.parent?.replace(ReaderScreen(it)) },
                 )
             }

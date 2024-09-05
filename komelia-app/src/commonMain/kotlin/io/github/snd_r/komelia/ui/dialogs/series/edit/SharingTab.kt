@@ -9,7 +9,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 
 internal class SharingTab(
-    private val vm: SeriesEditDialogViewModel,
+    private val vm: SeriesEditMetadataState,
 ) : DialogTab {
 
     override fun options() = TabItem(

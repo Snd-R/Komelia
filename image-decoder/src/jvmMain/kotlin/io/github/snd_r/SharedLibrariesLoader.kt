@@ -24,7 +24,6 @@ object SharedLibrariesLoader {
 
             if (composeResourcesDir != null) {
                 val filePath = composeResourcesDir.resolve(filename)
-                println(filePath)
                 if (filePath.exists()) {
                     System.load(filePath.absolutePathString())
                     logger.info("loaded bundled native library $filename from resource directory")

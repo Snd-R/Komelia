@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -29,11 +30,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,11 +41,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
@@ -54,9 +52,10 @@ import io.github.snd_r.komelia.platform.WindowWidth.FULL
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.collection.SeriesCollectionsContent
+import io.github.snd_r.komelia.ui.collection.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.DescriptionChips
-import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
@@ -65,15 +64,10 @@ import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.series.SeriesBooksState
-import io.github.snd_r.komelia.ui.series.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.series.KomgaSeries
-import snd.komga.client.series.KomgaSeriesStatus.ABANDONED
-import snd.komga.client.series.KomgaSeriesStatus.ENDED
-import snd.komga.client.series.KomgaSeriesStatus.HIATUS
-import snd.komga.client.series.KomgaSeriesStatus.ONGOING
 
 @Composable
 fun SeriesContent(
@@ -135,9 +129,10 @@ fun SeriesContent(
                     )
 
                     SeriesTab.COLLECTIONS -> SeriesCollectionsContent(
-                        state = collectionsState,
+                        collections = collectionsState.collections,
                         onCollectionClick = onCollectionClick,
-                        onSeriesClick = onSeriesClick
+                        onSeriesClick = onSeriesClick,
+                        cardWidth = collectionsState.cardWidth.collectAsState().value
                     )
                 }
 
@@ -210,7 +205,7 @@ fun Series(
     }
 
     Column {
-        FlowRow {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
             SeriesThumbnail(
                 seriesId = series.id,
                 modifier = Modifier
@@ -220,130 +215,38 @@ fun Series(
                 contentScale = ContentScale.Fit
             )
 
-            SeriesInfo(series, onFilterClick, Modifier.weight(1f, false).widthIn(min = 200.dp))
+            val maxWidth = when (LocalWindowWidth.current) {
+                FULL -> 1200.dp
+                else -> Dp.Unspecified
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f, false)
+                    .widthIn(min = 450.dp, max = maxWidth)
+                    .fillMaxWidth(),
+            ) {
+                SeriesDescriptionRow(
+                    releaseDate = series.booksMetadata.releaseDate,
+                    status = series.metadata.status,
+                    ageRating = series.metadata.ageRating,
+                    language = series.metadata.language,
+                    readingDirection = series.metadata.readingDirection,
+                    deleted = series.deleted,
+                    alternateTitles = series.metadata.alternateTitles,
+                    onFilterClick = onFilterClick,
+                    modifier = Modifier,
+                )
+                HorizontalDivider(Modifier.padding(vertical = 10.dp))
+                SeriesSummary(
+                    seriesSummary = series.metadata.summary,
+                    bookSummary = series.booksMetadata.summary,
+                    bookSummaryNumber = series.booksMetadata.summaryNumber,
+                )
+            }
         }
+
         SeriesInfoLower(series, onFilterClick)
-    }
-}
 
-@Composable
-fun SeriesInfo(
-    series: KomgaSeries,
-    onFilterClick: (SeriesScreenFilter) -> Unit,
-    modifier: Modifier
-) {
-    val contentSize = when (LocalWindowWidth.current) {
-        COMPACT, MEDIUM -> Modifier.padding(10.dp, 0.dp)
-        EXPANDED -> Modifier.padding(10.dp, 0.dp)
-        FULL -> Modifier.padding(30.dp, 0.dp).widthIn(max = 1200.dp)
-    }
-
-    Column(
-        modifier = contentSize.then(modifier),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-
-        val releaseDate = series.booksMetadata.releaseDate
-        if (releaseDate != null)
-            Text("Release Year: ${releaseDate.year}", fontSize = 10.sp)
-
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SuggestionChip(
-                onClick = { onFilterClick(SeriesScreenFilter(publicationStatus = listOf(series.metadata.status))) },
-                label = { Text(series.metadata.status.name) },
-                border = null,
-                colors =
-                when (series.metadata.status) {
-                    ENDED -> SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        labelColor = MaterialTheme.colorScheme.onSecondary
-                    )
-
-                    ONGOING -> SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    ABANDONED -> SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        labelColor = MaterialTheme.colorScheme.onErrorContainer
-                    )
-
-                    HIATUS -> SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                },
-            )
-
-            series.metadata.ageRating?.let { age ->
-                SuggestionChip(
-                    onClick = { onFilterClick(SeriesScreenFilter(ageRating = listOf(age))) },
-                    label = { Text("$age+") }
-                )
-            }
-
-            if (series.metadata.language.isNotBlank())
-                SuggestionChip(
-                    onClick = { onFilterClick(SeriesScreenFilter(language = listOf(series.metadata.language))) },
-                    label = { Text(series.metadata.language) }
-                )
-
-            val readingDirection = series.metadata.readingDirection
-            if (readingDirection != null) {
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text(readingDirection.name) }
-                )
-            }
-
-            if (series.deleted) {
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text("Unavailable") },
-                    border = null,
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
-                )
-            }
-        }
-
-        if (series.metadata.alternateTitles.isNotEmpty()) {
-            Column {
-                Text("Alternative titles", fontWeight = FontWeight.Bold)
-                series.metadata.alternateTitles.forEach {
-                    Row {
-                        Text(
-                            it.label,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.widthIn(min = 100.dp, max = 200.dp)
-                        )
-                        Text(
-                            it.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-            }
-            HorizontalDivider(Modifier.padding(vertical = 10.dp))
-        }
-
-
-        val summary = remember(series) {
-            if (series.metadata.summary.isNotBlank()) {
-                series.metadata.summary
-            } else if (series.booksMetadata.summary.isNotBlank()) {
-                "Summary from book ${series.booksMetadata.summaryNumber}:\n" + series.booksMetadata.summary
-            } else null
-        }
-        if (summary != null) {
-            ExpandableText(
-                text = summary,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
     }
 }
 
@@ -361,21 +264,18 @@ fun SeriesInfoLower(
                 label = "PUBLISHER",
                 chipValue = stringEntry(series.metadata.publisher),
                 onClick = { onFilterClick(SeriesScreenFilter(publisher = listOf(it))) },
-                modifier = Modifier.cursorForHand()
             )
         }
         DescriptionChips(
             label = "GENRES",
             chipValues = series.metadata.genres.map { stringEntry(it) },
             onChipClick = { onFilterClick(SeriesScreenFilter(genres = listOf(it))) },
-            modifier = Modifier.cursorForHand()
         )
         DescriptionChips(
             label = "TAGS",
             chipValues = series.metadata.tags.map { stringEntry(it) },
             secondaryValues = series.booksMetadata.tags.map { stringEntry(it) },
             onChipClick = { onFilterClick(SeriesScreenFilter(tags = listOf(it))) },
-            modifier = Modifier.cursorForHand()
         )
 
         val uriHandler = LocalUriHandler.current
@@ -384,7 +284,6 @@ fun SeriesInfoLower(
             chipValues = series.metadata.links.map { LabeledEntry(it, it.label) },
             onChipClick = { entry -> uriHandler.openUri(entry.url) },
             icon = Icons.Default.Link,
-            modifier = Modifier.cursorForHand()
         )
 
         Spacer(Modifier.height(5.dp))

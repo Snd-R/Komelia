@@ -372,11 +372,19 @@ fun TagFiltersDropdownMenu(
         onExpandedChange = { isExpanded = it },
     ) {
         InputField(
-            value = selectedGenres.plus(selectedTags).joinToString().ifBlank { placeholder ?: strings.anyValue },
+            value = selectedGenres.plus(selectedTags).joinToString()
+                .ifBlank { placeholder ?: strings.anyValue },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(PrimaryNotEditable)
                 .then(inputFieldModifier),
-            label = label?.let { { FilterLabelAndCount(label, selectedGenres.size + selectedTags.size) } },
+            label = label?.let {
+                {
+                    FilterLabelAndCount(
+                        label,
+                        selectedGenres.size + selectedTags.size
+                    )
+                }
+            },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
             color = inputFieldColor,
             contentPadding = contentPadding

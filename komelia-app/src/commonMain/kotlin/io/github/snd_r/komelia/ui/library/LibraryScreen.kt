@@ -56,8 +56,8 @@ import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
 import io.github.snd_r.komelia.ui.library.view.LibraryCollectionsContent
 import io.github.snd_r.komelia.ui.library.view.LibraryReadListsContent
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
-import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.github.snd_r.komelia.ui.series.list.SeriesListContent
+import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
@@ -149,7 +149,7 @@ class LibraryScreen(
                     series = vm.series,
                     seriesActions = vm.seriesMenuActions(),
                     seriesTotalCount = vm.totalSeriesCount,
-                    onSeriesClick = { navigator.push(SeriesScreen(it.id, it)) },
+                    onSeriesClick = { navigator.push(seriesScreen(it)) },
 
                     editMode = vm.isInEditMode,
                     onEditModeChange = vm::onEditModeChange,

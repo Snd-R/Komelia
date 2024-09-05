@@ -195,7 +195,7 @@ fun HttpTextField(
     TextField(
         value = strippedValue,
         onValueChange = {
-            onValueChange(httpText.value + it)
+            onValueChange(httpText.value + it.replace(httpRegex, ""))
         },
         modifier = modifier,
         prefix = {
@@ -236,7 +236,7 @@ fun OutlinedHttpTextField(
     OutlinedTextField(
         value = strippedValue,
         onValueChange = {
-            onValueChange(httpText.value + it)
+            onValueChange(httpText.value + it.replace(httpRegex, ""))
         },
         modifier = modifier,
         prefix = {

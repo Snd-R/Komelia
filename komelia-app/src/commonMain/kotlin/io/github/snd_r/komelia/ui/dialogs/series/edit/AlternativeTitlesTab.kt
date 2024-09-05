@@ -27,7 +27,7 @@ import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import snd.komga.client.series.KomgaAlternativeTitle
 
 internal class AlternativeTitlesTab(
-    private val vm: SeriesEditDialogViewModel,
+    private val vm: SeriesEditMetadataState,
 ) : DialogTab {
 
     override fun options() = TabItem(
@@ -73,7 +73,7 @@ private fun AlternativeTitlesTabContent(
                     modifier = Modifier.weight(.3f).withTextFieldNavigation(onTitleAdd)
                 )
 
-                Spacer(Modifier.size(20.dp))
+                Spacer(Modifier.size(10.dp))
 
                 TextField(
                     value = altTitle.title,

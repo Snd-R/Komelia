@@ -15,9 +15,10 @@ import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
+import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.series.SeriesScreen
-import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -61,7 +62,8 @@ class ReaderState(
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
 
         availableDecoders.onEach { decoders ->
-            currentDecoderDescriptor.value = decoders.first { it.platformType == decoderSettings.value?.platformType }
+            currentDecoderDescriptor.value =
+                decoders.first { it.platformType == decoderSettings.value?.platformType }
         }.launchIn(stateScope)
 
         loadBook(bookId)
@@ -145,7 +147,10 @@ class ReaderState(
                 nextBookPages = nextBookPages
             )
         } else {
-            navigator replace MainScreen(SeriesScreen(booksState.currentBook.seriesId))
+            navigator replace MainScreen(
+                if (booksState.currentBook.oneshot) OneshotScreen(booksState.currentBook)
+                else SeriesScreen(booksState.currentBook.seriesId)
+            )
         }
     }
 
@@ -158,7 +163,8 @@ class ReaderState(
                 if (e.response.status != NotFound) throw e
                 else null
             }
-            val previousBookPages = if (previousBook != null) loadBookPages(previousBook.id) else emptyList()
+            val previousBookPages =
+                if (previousBook != null) loadBookPages(previousBook.id) else emptyList()
 
             readProgressPage.value = booksState.previousBookPages.size
             this.booksState.value = BookState(

@@ -35,6 +35,8 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
+import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.common.ReaderContent
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import kotlinx.coroutines.Dispatchers
@@ -85,22 +87,24 @@ class ReaderScreen(
             onSeriesBackClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(
-                        SeriesScreen(book.seriesId)
+                        if (book.oneshot) OneshotScreen(book)
+                        else SeriesScreen(book.seriesId)
                     )
                 }
             },
             onBookBackClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
-                    navigator replace MainScreen(
-                        BookScreen(book.id)
-                    )
+                    navigator replace MainScreen(bookScreen(book))
                 }
             }
         )
 
         BackPressHandler {
             vm.readerState.booksState.value?.currentBook?.let { book ->
-                navigator replace MainScreen(SeriesScreen(book.seriesId))
+                navigator replace MainScreen(
+                    if (book.oneshot) OneshotScreen(book)
+                    else SeriesScreen(book.seriesId)
+                )
             }
         }
     }

@@ -60,10 +60,12 @@ import snd.komga.client.settings.KomgaThumbnailSize.MEDIUM
 import snd.komga.client.settings.KomgaThumbnailSize.XLARGE
 
 data class Strings(
+    val seriesView: SeriesViewStrings,
     val filters: FilterStrings,
     val seriesFilter: SeriesFilterStrings,
     val booksFilter: BookFilterStrings,
     val seriesEdit: SeriesEditStrings,
+    val bookEdit: BookEditStrings,
     val libraryEdit: LibraryEditStrings,
     val userEdit: UserEditStrings,
     val reader: ReaderStrings,
@@ -109,6 +111,38 @@ data class KomfProviderSettingsStrings(
         }
 }
 
+
+data class SeriesViewStrings(
+    val statusEnded:String,
+    val statusOngoing:String,
+    val statusAbandoned:String,
+    val statusHiatus:String,
+
+    val readingDirectionLeftToRight: String,
+    val readingDirectionRightToLeft: String,
+    val readingDirectionVertical: String,
+    val readingDirectionWebtoon: String,
+) {
+    fun forSeriesStatus(status: KomgaSeriesStatus): String {
+        return when (status) {
+            ENDED -> statusEnded
+            ONGOING -> statusOngoing
+            ABANDONED -> statusAbandoned
+            HIATUS -> statusHiatus
+        }
+    }
+
+    fun forReadingDirection(direction: KomgaReadingDirection): String {
+        return when (direction) {
+            LEFT_TO_RIGHT -> readingDirectionLeftToRight
+            RIGHT_TO_LEFT -> readingDirectionRightToLeft
+            VERTICAL -> readingDirectionVertical
+            WEBTOON -> readingDirectionWebtoon
+        }
+    }
+
+}
+
 data class SeriesEditStrings(
     val title: String,
     val sortTitle: String,
@@ -151,6 +185,15 @@ data class SeriesEditStrings(
     }
 }
 
+data class BookEditStrings(
+    val title: String,
+    val number: String,
+    val sortNumber: String,
+    val summary: String,
+    val releaseDate: String,
+    val isbn: String,
+) {
+}
 
 data class LibraryEditStrings(
     val emptyTrashAfterScan: String,
@@ -476,6 +519,7 @@ data class BookFilterStrings(
 
     }
 }
+
 
 data class ErrorCodes(
     val err1000: String,

@@ -41,11 +41,10 @@ import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_A
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_READ_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_RELEASED_BOOKS
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_UPDATED_SERIES
+import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.series.KomgaSeries
-import snd.komga.client.series.KomgaSeriesId
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomeContent(
@@ -62,10 +61,10 @@ fun HomeContent(
     onFilterChange: (HomeScreenFilter) -> Unit,
 
     cardWidth: Dp,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions,
     bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
     onBookReadClick: (KomgaBookId) -> Unit,
 ) {
     val gridState = rememberLazyGridState()
@@ -238,10 +237,10 @@ private fun MainContent(
     gridState: LazyGridState,
 
     cardWidth: Dp,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions,
     bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
     onBookReadClick: (KomgaBookId) -> Unit,
 ) {
 
@@ -322,7 +321,7 @@ private fun LazyGridScope.BookFilterEntry(
     label: String,
     books: List<KomgaBook>,
     bookMenuActions: BookMenuActions,
-    onBookClick: (KomgaBookId) -> Unit,
+    onBookClick: (KomgaBook) -> Unit,
     onBookReadClick: (KomgaBookId) -> Unit,
 ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
@@ -337,7 +336,7 @@ private fun LazyGridScope.BookFilterEntry(
     items(books) {
         BookImageCard(
             book = it,
-            onBookClick = { onBookClick(it.id) },
+            onBookClick = { onBookClick(it) },
             onBookReadClick = { onBookReadClick(it.id) },
             bookMenuActions = bookMenuActions,
             modifier = Modifier.fillMaxSize()
@@ -348,7 +347,7 @@ private fun LazyGridScope.BookFilterEntry(
 private fun LazyGridScope.SeriesFilterEntries(
     label: String,
     series: List<KomgaSeries>,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
+    onSeriesClick: (KomgaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions,
 ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
@@ -364,7 +363,7 @@ private fun LazyGridScope.SeriesFilterEntries(
     items(series) {
         SeriesImageCard(
             series = it,
-            onSeriesClick = { onSeriesClick(it.id) },
+            onSeriesClick = { onSeriesClick(it) },
             seriesMenuActions = seriesMenuActions,
             modifier = Modifier.fillMaxSize()
         )

@@ -20,10 +20,10 @@ import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.series.SeriesScreen
+import io.github.snd_r.komelia.ui.series.seriesScreen
 
 class SearchScreen(
     private val initialQuery: String?,
@@ -62,13 +62,13 @@ class SearchScreen(
                         seriesCurrentPage = vm.seriesCurrentPage,
                         seriesTotalPages = vm.seriesTotalPages,
                         onSeriesPageChange = vm::loadSeries,
-                        onSeriesClick = { navigator.replaceAll(SeriesScreen(it)) },
+                        onSeriesClick = { navigator.replaceAll(seriesScreen(it)) },
 
                         bookResults = vm.bookResults,
                         bookCurrentPage = vm.bookCurrentPage,
                         bookTotalPages = vm.bookTotalPages,
                         onBookPageChange = vm::loadBooks,
-                        onBookClick = { navigator.replaceAll(BookScreen(it)) },
+                        onBookClick = { navigator.replaceAll(bookScreen(it)) },
                     )
 
                 }

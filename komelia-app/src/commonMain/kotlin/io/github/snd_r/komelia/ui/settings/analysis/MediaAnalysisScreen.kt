@@ -15,7 +15,7 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
-import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
@@ -37,7 +37,7 @@ class MediaAnalysisScreen : Screen {
                     onBookClick = {
                         rootNavigator.pop()
                         rootNavigator.dispose(rootNavigator.lastItem)
-                        rootNavigator.replaceAll(MainScreen(BookScreen(it)))
+                        rootNavigator.replaceAll(MainScreen(bookScreen(it)))
                     },
                     currentPage = vm.currentPage,
                     totalPages = vm.totalPages,
