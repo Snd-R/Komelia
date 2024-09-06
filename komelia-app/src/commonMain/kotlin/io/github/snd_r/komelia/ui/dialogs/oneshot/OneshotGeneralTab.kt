@@ -37,7 +37,10 @@ class OneshotGeneralTab(
         GeneralTabContent(
             title = StateHolder(
                 bookMetadata.title,
-                bookMetadata::title::set
+                {
+                    bookMetadata.title = it
+                    seriesMetadata.title = it
+                }
             ),
             titleLock = StateHolder(
                 seriesMetadata.titleLock,
