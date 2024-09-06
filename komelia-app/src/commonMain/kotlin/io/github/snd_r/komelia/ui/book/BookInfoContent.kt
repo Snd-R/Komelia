@@ -14,11 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateTimeFormat
 import io.github.snd_r.komelia.ui.common.DescriptionChips
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.TagList
+import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -57,13 +60,15 @@ fun BookInfoColumn(
     sizeInMiB: String,
     mediaType: String,
     isbn: String,
-    fileUrl: String
+    fileUrl: String,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (!publisher.isNullOrBlank()) {
             DescriptionChips(
                 label = "Publisher",
                 chipValue = stringEntry(publisher),
+                onClick = { onFilterClick(SeriesScreenFilter(publisher = listOf(it))) },
             )
         }
 
@@ -72,19 +77,22 @@ fun BookInfoColumn(
             DescriptionChips(
                 label = "Genres",
                 chipValues = genreEntries,
+                onChipClick = { onFilterClick(SeriesScreenFilter(genres = listOf(it))) },
             )
         }
 
         TagList(
             tags = tags,
             secondaryTags = null,
-            onTagClick = { },
+            onTagClick = { onFilterClick(SeriesScreenFilter(tags = listOf(it))) },
         )
 
-        val linkEntries = remember(links) { links.map { stringEntry(it.label) } }
+        val uriHandler = LocalUriHandler.current
+        val linkEntries = remember(links) { links.map { LabeledEntry(it, it.label) } }
         DescriptionChips(
             label = "Links",
             chipValues = linkEntries,
+            onChipClick = { entry -> uriHandler.openUri(entry.url) },
             icon = Icons.Default.Link,
         )
 
@@ -93,7 +101,7 @@ fun BookInfoColumn(
             authors
                 .groupBy { it.role }
                 .map { (role, authors) ->
-                    role.replaceFirstChar { it.uppercase() } to authors.map { stringEntry(it.name) }
+                    role.replaceFirstChar { it.uppercase() } to authors.map { LabeledEntry(it, it.name) }
                 }
                 .sortedBy { (role, _) -> authorsOrder.indexOf(role.lowercase()) }
         }
@@ -101,6 +109,7 @@ fun BookInfoColumn(
             DescriptionChips(
                 label = role,
                 chipValues = authors,
+                onChipClick = { onFilterClick(SeriesScreenFilter(authors = listOf(it))) },
             )
         }
 

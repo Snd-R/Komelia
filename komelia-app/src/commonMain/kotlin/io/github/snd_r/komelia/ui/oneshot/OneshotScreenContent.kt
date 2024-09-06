@@ -50,6 +50,7 @@ import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.OneshotActionsMenu
 import io.github.snd_r.komelia.ui.dialogs.oneshot.OneshotEditDialog
+import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.readlist.BookReadListsContent
 import io.github.snd_r.komelia.ui.series.view.SeriesDescriptionRow
 import snd.komga.client.book.KomgaBook
@@ -73,6 +74,7 @@ fun OneshotScreenContent(
     readLists: Map<KomgaReadList, List<KomgaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
     onBookClick: (KomgaBook) -> Unit,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
     cardWidth: Dp
 ) {
     val scrollState: ScrollState = rememberScrollState()
@@ -117,7 +119,8 @@ fun OneshotScreenContent(
                     sizeInMiB = book.size,
                     mediaType = book.media.mediaType,
                     isbn = book.metadata.isbn,
-                    fileUrl = book.url
+                    fileUrl = book.url,
+                    onFilterClick = onFilterClick
                 )
                 BookReadListsContent(
                     readLists = readLists,

@@ -47,6 +47,7 @@ import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditDialog
+import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.readlist.BookReadListsContent
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.library.KomgaLibrary
@@ -64,6 +65,7 @@ fun BookScreenContent(
     readLists: Map<KomgaReadList, List<KomgaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
     onBookClick: (KomgaBook) -> Unit,
+    onFilterClick: (SeriesScreenFilter) -> Unit,
     cardWidth: Dp
 ) {
 
@@ -110,7 +112,8 @@ fun BookScreenContent(
                     sizeInMiB = book.size,
                     mediaType = book.media.mediaType,
                     isbn = book.metadata.isbn,
-                    fileUrl = book.url
+                    fileUrl = book.url,
+                    onFilterClick = onFilterClick,
                 )
                 BookReadListsContent(
                     readLists = readLists,

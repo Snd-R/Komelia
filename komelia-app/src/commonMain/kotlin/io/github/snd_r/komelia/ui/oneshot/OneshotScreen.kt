@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.oneshot
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
@@ -36,6 +37,7 @@ class OneshotScreen(
 
     override val key: ScreenKey = seriesId.toString()
 
+    @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -72,6 +74,11 @@ class OneshotScreen(
                 readLists = vm.readListsState.readLists,
                 onReadListClick = { navigator.push(ReadListScreen(it.id)) },
                 onBookClick = { navigator push bookScreen(it) },
+                onFilterClick = { filter ->
+                    navigator.popUntilRoot()
+                    navigator.dispose(navigator.lastItem)
+                    navigator.replaceAll(LibraryScreen(book.libraryId, filter))
+                },
 
                 cardWidth = vm.cardWidth.collectAsState().value,
             )

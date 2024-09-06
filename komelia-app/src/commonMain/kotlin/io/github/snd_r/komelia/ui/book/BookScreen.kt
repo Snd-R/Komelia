@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.book
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
@@ -11,6 +12,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.ReaderScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
@@ -31,6 +33,7 @@ class BookScreen(
 
     override val key: ScreenKey = bookId.toString()
 
+    @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
@@ -62,6 +65,12 @@ class BookScreen(
             readLists = vm.readListsState.readLists,
             onReadListClick = { navigator.push(ReadListScreen(it.id)) },
             onBookClick = { navigator.push(bookScreen(it)) },
+            onFilterClick = { filter ->
+                val libraryId = requireNotNull(book?.libraryId)
+                navigator.popUntilRoot()
+                navigator.dispose(navigator.lastItem)
+                navigator.replaceAll(LibraryScreen(libraryId, filter))
+            },
             cardWidth = vm.cardWidth.collectAsState().value
         )
 
