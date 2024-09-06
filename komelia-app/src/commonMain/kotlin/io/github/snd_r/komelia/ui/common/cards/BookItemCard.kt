@@ -145,6 +145,7 @@ private fun BookImageOverlay(
                                 blurRadius = 0f
                             ),
                         ),
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 if (book.deleted) {

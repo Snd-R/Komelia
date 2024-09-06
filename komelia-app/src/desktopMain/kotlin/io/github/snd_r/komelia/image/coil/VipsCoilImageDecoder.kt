@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.image.coil
 
-import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
@@ -18,7 +17,6 @@ import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
-@OptIn(ExperimentalCoilApi::class)
 class VipsCoilImageDecoder(
     private val source: ImageSource,
     private val options: Options,

@@ -11,13 +11,14 @@ import io.github.snd_r.komelia.worker.messages.decodeAndGetRequest
 import io.github.snd_r.komelia.worker.messages.dimensionsRequest
 import io.github.snd_r.komelia.worker.messages.initMessage
 import io.github.snd_r.komelia.worker.util.asJsArray
+import io.github.snd_r.komelia.worker.util.workerBufferTransferParam
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.Worker
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-data class VipsImageData(
+data class ImageData(
     val width: Int,
     val height: Int,
     val bands: Int,
@@ -25,7 +26,7 @@ data class VipsImageData(
     val buffer: Uint8Array,
 )
 
-data class VipsImageDimensions(
+data class ImageDimensions(
     val width: Int,
     val height: Int,
     val bands: Int,
@@ -34,8 +35,8 @@ data class VipsImageDimensions(
 class ImageWorker {
     private val worker = Worker("komeliaImageWorker.js")
     private var jobIdCounter = 0
-    private val decodeJobs = mutableMapOf<Int, Continuation<VipsImageData>>()
-    private val dimensionJobs = mutableMapOf<Int, Continuation<VipsImageDimensions>>()
+    private val decodeJobs = mutableMapOf<Int, Continuation<ImageData>>()
+    private val dimensionJobs = mutableMapOf<Int, Continuation<ImageDimensions>>()
     var initialized = false
         private set
 
@@ -61,7 +62,7 @@ class ImageWorker {
         dstWidth: Int?,
         dstHeight: Int?,
         crop: Boolean
-    ): VipsImageData {
+    ): ImageData {
         return suspendCoroutine { continuation ->
             val id = jobIdCounter++
             decodeJobs[id] = continuation
@@ -69,12 +70,12 @@ class ImageWorker {
             val jsArray = bytes.asJsArray()
             worker.postMessage(
                 decodeAndGetRequest(id, dstWidth, dstHeight, crop, jsArray),
-                workerBufferTransfer(jsArray.buffer)
+                workerBufferTransferParam(jsArray.buffer)
             )
         }
     }
 
-    suspend fun getDimensions(bytes: ByteArray): VipsImageDimensions {
+    suspend fun getDimensions(bytes: ByteArray): ImageDimensions {
         return suspendCoroutine { continuation ->
             val id = jobIdCounter++
             dimensionJobs[id] = continuation
@@ -82,7 +83,7 @@ class ImageWorker {
             val jsArray = bytes.asJsArray()
             worker.postMessage(
                 dimensionsRequest(id, jsArray),
-                workerBufferTransfer(jsArray.buffer)
+                workerBufferTransferParam(jsArray.buffer)
             )
         }
     }
@@ -90,7 +91,7 @@ class ImageWorker {
     private fun decodeResponse(message: DecodeAndGetResponse) {
         val continuation = requireNotNull(decodeJobs.remove(message.requestId))
 
-        val response = VipsImageData(
+        val response = ImageData(
             width = message.width,
             height = message.height,
             bands = message.bands,
@@ -106,7 +107,7 @@ class ImageWorker {
 
     private fun dimensionsResponse(message: DimensionsResponse) {
         val continuation = requireNotNull(dimensionJobs.remove(message.requestId))
-        val response = VipsImageDimensions(message.width, message.height, message.bands)
+        val response = ImageDimensions(message.width, message.height, message.bands)
         continuation.resume(response)
     }
 
@@ -116,4 +117,3 @@ class ImageWorker {
         SRGB
     }
 }
-

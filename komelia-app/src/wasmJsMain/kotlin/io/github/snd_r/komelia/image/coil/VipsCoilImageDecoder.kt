@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.image.coil
 
 import coil3.ImageLoader
-import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
@@ -17,7 +16,6 @@ import io.github.snd_r.komelia.worker.ImageWorker
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import okio.use
-import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
@@ -27,36 +25,29 @@ class VipsCoilImageDecoder(
     private val worker: ImageWorker
 ) : Decoder {
 
-    @OptIn(ExperimentalCoilApi::class)
     override suspend fun decode(): DecodeResult {
-        val dataResult = measureTimedValue {
-            try {
-                source.source().use { it.readByteArray() }
-            } catch (e: Throwable) {
-                currentCoroutineContext().ensureActive()
-                throw RuntimeException(e)
-            }
-        }.also { logger.info { "retrieved image bytes in ${it.duration}" } }
+        val dataResult = try {
+            source.source().use { it.readByteArray() }
+        } catch (e: Throwable) {
+            currentCoroutineContext().ensureActive()
+            throw RuntimeException(e)
+        }
 
         val crop = options.scale == Scale.FILL
                 && options.size.width != Dimension.Undefined
                 && options.size.height != Dimension.Undefined
 
         val decoded = worker.decodeAndGet(
-            bytes = dataResult.value,
+            bytes = dataResult,
             dstWidth = options.size.width.pxOrNull(),
             dstHeight = options.size.height.pxOrNull(),
             crop = crop
         )
 
-        val decodeResult = measureTimedValue {
-            DecodeResult(
-                image = decoded.toBitmap().asImage(),
-                isSampled = !options.size.isOriginal
-            )
-        }.also { logger.info { "installed pixels in ${it.duration}" } }
-
-        return decodeResult.value
+        return DecodeResult(
+            image = decoded.toBitmap().asImage(),
+            isSampled = !options.size.isOriginal
+        )
     }
 
     class Factory(

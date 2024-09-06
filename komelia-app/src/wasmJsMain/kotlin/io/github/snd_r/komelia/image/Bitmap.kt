@@ -1,7 +1,7 @@
 package io.github.snd_r.komelia.image
 
+import io.github.snd_r.komelia.worker.ImageData
 import io.github.snd_r.komelia.worker.ImageWorker.Interpretation
-import io.github.snd_r.komelia.worker.VipsImageData
 import io.github.snd_r.komelia.worker.util.asByteArray
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
@@ -10,7 +10,7 @@ import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.ImageInfo
 
-fun VipsImageData.toBitmap(): Bitmap {
+fun ImageData.toBitmap(): Bitmap {
     val colorInfo = when (interpretation) {
         Interpretation.BW -> {
             require(bands == 1) { "Unexpected number of bands  for grayscale image \"${bands}\"" }

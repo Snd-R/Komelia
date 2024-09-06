@@ -42,7 +42,7 @@ kotlin {
                 else -> error("Unsupported arch: $osArch")
             }
 
-            val version = "0.8.10"
+            val version = "0.8.11"
 
             implementation(libs.slf4j.api)
             implementation(libs.directories)
