@@ -85,6 +85,7 @@ data class KomfProviderSettingsStrings(
     val providerBangumi: String,
     val providerBookWalker: String,
     val providerComicVine: String,
+    val providerHentag: String,
     val providerKodansha: String,
     val providerMal: String,
     val providerMangaUpdates: String,
@@ -101,6 +102,7 @@ data class KomfProviderSettingsStrings(
             KomfProviders.BANGUMI -> providerBangumi
             KomfProviders.BOOK_WALKER -> providerBookWalker
             KomfProviders.COMIC_VINE -> providerComicVine
+            KomfProviders.HENTAG -> providerHentag
             KomfProviders.KODANSHA -> providerKodansha
             KomfProviders.MAL -> providerMal
             KomfProviders.MANGA_UPDATES -> providerMangaUpdates

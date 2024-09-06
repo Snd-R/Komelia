@@ -30,6 +30,7 @@ import snd.komf.api.KomfProviders.ANILIST
 import snd.komf.api.KomfProviders.BANGUMI
 import snd.komf.api.KomfProviders.BOOK_WALKER
 import snd.komf.api.KomfProviders.COMIC_VINE
+import snd.komf.api.KomfProviders.HENTAG
 import snd.komf.api.KomfProviders.KODANSHA
 import snd.komf.api.KomfProviders.MAL
 import snd.komf.api.KomfProviders.MANGADEX
@@ -153,6 +154,7 @@ class KomfProvidersSettingsViewModel(
         private val bookWalker =
             GenericProviderConfigState(BOOK_WALKER, config?.bookWalker, this::onProviderConfigUpdate)
         private val comicVine = GenericProviderConfigState(COMIC_VINE, config?.comicVine, this::onProviderConfigUpdate)
+        private val hentag = GenericProviderConfigState(HENTAG, config?.hentag, this::onProviderConfigUpdate)
         private val kodansha = GenericProviderConfigState(KODANSHA, config?.kodansha, this::onProviderConfigUpdate)
         private val mal = GenericProviderConfigState(MAL, config?.mal, this::onProviderConfigUpdate)
         private val mangaUpdates =
@@ -169,6 +171,7 @@ class KomfProvidersSettingsViewModel(
                     if (config.bangumi.enabled) bangumi else null,
                     if (config.bookWalker.enabled) bookWalker else null,
                     if (config.comicVine.enabled) comicVine else null,
+                    if (config.hentag.enabled) hentag else null,
                     if (config.kodansha.enabled) kodansha else null,
                     if (config.mal.enabled) mal else null,
                     if (config.mangaUpdates.enabled) mangaUpdates else null,
@@ -195,6 +198,7 @@ class KomfProvidersSettingsViewModel(
                 BANGUMI -> bangumi
                 BOOK_WALKER -> bookWalker
                 COMIC_VINE -> comicVine
+                HENTAG -> hentag
                 KODANSHA -> kodansha
                 MAL -> mal
                 MANGA_UPDATES -> mangaUpdates
@@ -241,6 +245,7 @@ class KomfProvidersSettingsViewModel(
                 BANGUMI -> ProvidersConfigUpdateRequest(bangumi = Some(config))
                 BOOK_WALKER -> ProvidersConfigUpdateRequest(bookWalker = Some(config))
                 COMIC_VINE -> ProvidersConfigUpdateRequest(comicVine = Some(config))
+                HENTAG -> ProvidersConfigUpdateRequest(hentag = Some(config))
                 KODANSHA -> ProvidersConfigUpdateRequest(kodansha = Some(config))
                 MAL -> ProvidersConfigUpdateRequest(mal = Some(config))
                 MANGA_UPDATES -> ProvidersConfigUpdateRequest(mangaUpdates = Some(config))
@@ -308,7 +313,7 @@ class KomfProvidersSettingsViewModel(
             private set
 
         val isBookMetadataAvailable = when (provider) {
-            ANILIST, MAL, MANGA_UPDATES -> false
+            ANILIST, MAL, MANGA_UPDATES, HENTAG -> false
             else -> true
         }
         val canHaveMultiplePublishers = when (provider) {

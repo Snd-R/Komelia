@@ -247,6 +247,7 @@ val EnStrings = Strings(
             providerBangumi = "Bangumi",
             providerBookWalker = "Bookwalker Global",
             providerComicVine = "ComicVine",
+            providerHentag = "Hentag",
             providerKodansha = "Kodansha US",
             providerMal = "MyAnimeList",
             providerMangaUpdates = "MangaUpdates",
