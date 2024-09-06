@@ -105,7 +105,7 @@ object OnnxRuntimeSharedLibraries {
                             SharedLibrariesLoader.loadLibrary("libkomelia_enumerate_devices_dxgi")
                         }
 
-                        CUDA -> {
+                        CUDA, TENSOR_RT -> {
                             SharedLibrariesLoader.loadLibrary("libkomelia_onnxruntime")
                             SharedLibrariesLoader.loadLibrary("libkomelia_enumerate_devices_cuda")
                         }
