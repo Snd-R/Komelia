@@ -9,12 +9,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.LocalKomfIntegration
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
@@ -147,6 +149,19 @@ fun OneshotActionsMenu(
                     actions.markAsUnread(book)
                     onDismissRequest()
                 },
+            )
+        }
+
+        val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
+        if (komfIntegration.value) {
+            DropdownMenuItem(
+                text = { Text("Identify (Komf)") },
+                onClick = { showKomfDialog = true },
+            )
+
+            DropdownMenuItem(
+                text = { Text("Reset Metadata (Komf)") },
+                onClick = { showKomfResetDialog = true },
             )
         }
 
