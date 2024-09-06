@@ -200,12 +200,8 @@ private fun FlowRowScope.OneshotMainInfo(
     book: KomgaBook,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
 ) {
-    val widthModifier =
-        if (LocalWindowWidth.current == FULL) Modifier.fillMaxWidth(.7f)
-        else Modifier
-
     Column(
-        modifier = Modifier.weight(1f, false).widthIn(min = 450.dp),
+        modifier = Modifier.weight(1f, false).widthIn(min = 450.dp, max = 1200.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         SeriesDescriptionRow(
@@ -220,7 +216,6 @@ private fun FlowRowScope.OneshotMainInfo(
             modifier = Modifier.weight(1f, false).widthIn(min = 200.dp),
         )
         BookInfoRow(
-            modifier = widthModifier,
             seriesTitle = null,
             readProgress = book.readProgress,
             bookPagesCount = book.media.pagesCount,

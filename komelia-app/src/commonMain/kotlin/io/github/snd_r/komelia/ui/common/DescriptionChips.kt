@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.cursorForHand
 
 @Composable
@@ -57,7 +56,7 @@ fun <T> DescriptionChips(
     Row(modifier = modifier) {
         Text(
             label,
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.width(120.dp)
         )
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateTimeFormat
 import io.github.snd_r.komelia.ui.common.DescriptionChips
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
+import io.github.snd_r.komelia.ui.common.TagList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -66,12 +67,6 @@ fun BookInfoColumn(
             )
         }
 
-        val tagEntries = remember(tags) { tags.map { stringEntry(it) } }
-        DescriptionChips(
-            label = "Tags",
-            chipValues = tagEntries,
-        )
-
         val genreEntries = remember(genres) { genres?.map { stringEntry(it) } }
         if (genreEntries != null) {
             DescriptionChips(
@@ -79,6 +74,12 @@ fun BookInfoColumn(
                 chipValues = genreEntries,
             )
         }
+
+        TagList(
+            tags = tags,
+            secondaryTags = null,
+            onTagClick = { },
+        )
 
         val linkEntries = remember(links) { links.map { stringEntry(it.label) } }
         DescriptionChips(
@@ -107,39 +108,39 @@ fun BookInfoColumn(
         Row {
             Text(
                 "Size",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.width(120.dp)
             )
-            SelectionContainer { Text(sizeInMiB, style = MaterialTheme.typography.bodySmall) }
+            SelectionContainer { Text(sizeInMiB, style = MaterialTheme.typography.labelLarge) }
         }
 
         Row {
             Text(
                 "Format",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.width(120.dp)
             )
-            SelectionContainer { Text(mediaType, style = MaterialTheme.typography.bodySmall) }
+            SelectionContainer { Text(mediaType, style = MaterialTheme.typography.labelLarge) }
         }
 
         isbn.ifBlank { null }?.let { isbn ->
             Row {
                 Text(
                     "ISBN",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.width(120.dp)
                 )
-                SelectionContainer { Text(isbn, style = MaterialTheme.typography.bodySmall) }
+                SelectionContainer { Text(isbn, style = MaterialTheme.typography.labelLarge) }
             }
         }
 
         Row {
             Text(
                 "File",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.width(120.dp)
             )
-            SelectionContainer { Text(fileUrl, style = MaterialTheme.typography.bodySmall) }
+            SelectionContainer { Text(fileUrl, style = MaterialTheme.typography.labelLarge) }
         }
     }
 }
