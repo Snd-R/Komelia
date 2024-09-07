@@ -243,7 +243,7 @@ private fun BookHoverOverlay(
                             modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
                             onRead = { onBookReadClick(true) },
                             onIncognitoRead = { onBookReadClick(false) },
-                            onDropdownOpen = { isReadButtonExpanded = it }
+                            onDropdownOpenChange = { isReadButtonExpanded = it }
                         )
                     }
 

@@ -36,7 +36,7 @@ fun BookReadButton(
     modifier: Modifier = Modifier,
     onRead: () -> Unit,
     onIncognitoRead: () -> Unit,
-    onDropdownOpen: (Boolean) -> Unit = {}
+    onDropdownOpenChange: (Boolean) -> Unit = {}
 ) {
     val containerColor = MaterialTheme.colorScheme.tertiaryContainer
     val contentColor = MaterialTheme.colorScheme.onTertiary
@@ -55,7 +55,7 @@ fun BookReadButton(
             IncognitoDropDown(
                 modifier = Modifier.padding(end = 5.dp).fillMaxHeight(),
                 onIncognitoRead = onIncognitoRead,
-                onDropdownOpen = onDropdownOpen
+                onDropdownOpenChange = onDropdownOpenChange
             )
         }
     }
@@ -81,13 +81,13 @@ private fun ReadButton(
 private fun IncognitoDropDown(
     modifier: Modifier,
     onIncognitoRead: () -> Unit,
-    onDropdownOpen: (Boolean) -> Unit = {}
+    onDropdownOpenChange: (Boolean) -> Unit = {}
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = isExpanded,
         onExpandedChange = {
-            onDropdownOpen(it)
+            onDropdownOpenChange(it)
             isExpanded = it
         },
     ) {
@@ -103,7 +103,10 @@ private fun IncognitoDropDown(
         }
         ExposedDropdownMenu(
             expanded = isExpanded,
-            onDismissRequest = { isExpanded = false },
+            onDismissRequest = {
+                onDropdownOpenChange(false)
+                isExpanded = false
+            },
             modifier = Modifier.width(150.dp)
         ) {
             DropdownMenuItem(
