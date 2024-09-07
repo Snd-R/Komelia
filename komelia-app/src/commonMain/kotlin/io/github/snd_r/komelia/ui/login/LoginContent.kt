@@ -100,8 +100,9 @@ fun LoginContent(
             ) {
                 val uriHandler = LocalUriHandler.current
                 Column {
+                    Text("Requires access from the same host as komga")
                     Text(
-                        "Requires adding this host to Komga CORS configuration",
+                        "Requires adding this host and port to Komga CORS configuration",
                         color = MaterialTheme.colorScheme.secondary,
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable {
