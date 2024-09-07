@@ -90,7 +90,7 @@ import kotlin.math.roundToInt
 @Composable
 fun SeriesBooksContent(
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBook) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
     booksState: SeriesBooksState,
     scrollState: ScrollState,
 ) {
@@ -167,7 +167,7 @@ private fun BooksContent(
     books: List<KomgaBook>,
     isLoading: Boolean,
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBook) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
     bookMenuActions: BookMenuActions,
 
     selectionMode: Boolean,

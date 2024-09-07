@@ -81,7 +81,7 @@ fun SeriesContent(
 
     booksState: SeriesBooksState,
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBook) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
 
     collectionsState: SeriesCollectionsState,
     onCollectionClick: (KomgaCollection) -> Unit,

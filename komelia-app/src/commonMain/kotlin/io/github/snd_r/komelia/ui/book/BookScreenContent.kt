@@ -199,7 +199,10 @@ private fun FlowRowScope.BookMainInfo(
             releaseDate = book.metadata.releaseDate
         )
 
-        BookReadButton { onBookReadPress(true) }
+        BookReadButton(
+            onRead = { onBookReadPress(true) },
+            onIncognitoRead = { onBookReadPress(false) },
+        )
         HorizontalDivider()
         ExpandableText(
             text = book.metadata.summary,

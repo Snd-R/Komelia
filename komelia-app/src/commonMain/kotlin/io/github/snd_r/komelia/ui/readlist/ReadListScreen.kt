@@ -47,7 +47,9 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
                         books = vm.books,
                         bookMenuActions = vm.bookMenuActions(),
                         onBookClick = { navigator push bookScreen(it) },
-                        onBookReadClick = { navigator.parent?.replace(ReaderScreen(it.id)) },
+                        onBookReadClick = { book, markProgress ->
+                            navigator.parent?.replace(ReaderScreen(book.id, markProgress))
+                        },
 
                         selectedBooks = vm.selectedBooks,
                         onBookSelect = vm::onBookSelect,

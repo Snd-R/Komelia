@@ -39,7 +39,7 @@ import snd.komga.client.book.KomgaBook
 fun BookLazyCardGrid(
     books: List<KomgaBook>,
     onBookClick: ((KomgaBook) -> Unit)?,
-    onBookReadClick: ((KomgaBook) -> Unit)?,
+    onBookReadClick: ((KomgaBook, Boolean) -> Unit)?,
     bookMenuActions: BookMenuActions?,
 
     selectedBooks: List<KomgaBook> = emptyList(),
@@ -87,7 +87,7 @@ fun BookLazyCardGrid(
                         book = book,
                         onBookClick = onBookClick?.let { { onBookClick(book) } },
                         bookMenuActions = bookMenuActions,
-                        onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
+                        onBookReadClick = onBookReadClick?.let { { onBookReadClick(book, it) } },
                         isSelected = isSelected,
                         onSelect = onBookSelect?.let { { onBookSelect(book) } },
                         modifier = Modifier
@@ -121,7 +121,7 @@ fun BookLazyCardGrid(
 fun BooksGrid(
     books: List<KomgaBook>,
     onBookClick: ((KomgaBook) -> Unit)? = null,
-    onBookReadClick: ((KomgaBook) -> Unit)? = null,
+    onBookReadClick: ((KomgaBook, Boolean) -> Unit)? = null,
     bookMenuActions: BookMenuActions? = null,
 
     selectedBooks: List<KomgaBook> = emptyList(),
@@ -139,7 +139,7 @@ fun BooksGrid(
                 BookImageCard(
                     book = book,
                     onBookClick = onBookClick?.let { { onBookClick(book) } },
-                    onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
+                    onBookReadClick = onBookReadClick?.let { { onBookReadClick(book, it) } },
                     bookMenuActions = bookMenuActions,
                     isSelected = selectedBooks.any { it.id == book.id },
                     onSelect = onBookSelect?.let { { onBookSelect(book) } },
@@ -155,7 +155,7 @@ fun BooksList(
     books: List<KomgaBook>,
     bookMenuActions: BookMenuActions? = null,
     onBookClick: ((KomgaBook) -> Unit)? = null,
-    onBookReadClick: ((KomgaBook) -> Unit)? = null,
+    onBookReadClick: ((KomgaBook, Boolean) -> Unit)? = null,
 
     selectedBooks: List<KomgaBook> = emptyList(),
     onBookSelect: ((KomgaBook) -> Unit)? = null,
@@ -171,7 +171,7 @@ fun BooksList(
                 BookDetailedListCard(
                     book = book,
                     onClick = onBookClick?.let { { onBookClick(book) } },
-                    onBookReadClick = onBookReadClick?.let { { onBookReadClick(book) } },
+                    onBookReadClick = onBookReadClick?.let { { onBookReadClick(book, it) } },
                     bookMenuActions = bookMenuActions,
                     isSelected = selectedBooks.any { it.id == book.id },
                     onSelect = onBookSelect?.let { { onBookSelect(book) } },

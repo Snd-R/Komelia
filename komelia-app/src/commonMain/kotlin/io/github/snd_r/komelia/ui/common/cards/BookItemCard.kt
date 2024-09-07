@@ -63,7 +63,7 @@ fun BookImageCard(
     book: KomgaBook,
     bookMenuActions: BookMenuActions? = null,
     onBookClick: (() -> Unit)? = null,
-    onBookReadClick: (() -> Unit)? = null,
+    onBookReadClick: ((markProgress: Boolean) -> Unit)? = null,
     isSelected: Boolean = false,
     onSelect: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -202,15 +202,16 @@ private fun BookUnreadTick() {
 private fun BookHoverOverlay(
     book: KomgaBook,
     bookMenuActions: BookMenuActions?,
-    onBookReadClick: (() -> Unit)?,
+    onBookReadClick: ((Boolean) -> Unit)?,
     isSelected: Boolean,
     onSelect: (() -> Unit)?,
     content: @Composable () -> Unit
 ) {
     var isActionsMenuExpanded by remember { mutableStateOf(false) }
+    var isReadButtonExpanded by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered = interactionSource.collectIsHoveredAsState()
-    val showOverlay = derivedStateOf { isHovered.value || isActionsMenuExpanded || isSelected }
+    val showOverlay = derivedStateOf { isHovered.value || isActionsMenuExpanded || isReadButtonExpanded || isSelected }
 
     val border = if (showOverlay.value) overlayBorderModifier() else Modifier
 
@@ -238,7 +239,12 @@ private fun BookHoverOverlay(
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
-                        BookReadButton(onBookReadClick)
+                        BookReadButton(
+                            modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
+                            onRead = { onBookReadClick(true) },
+                            onIncognitoRead = { onBookReadClick(false) },
+                            onDropdownOpen = { isReadButtonExpanded = it }
+                        )
                     }
 
                     Spacer(Modifier.weight(1f))
@@ -269,7 +275,7 @@ fun BookDetailedListCard(
     book: KomgaBook,
     onClick: (() -> Unit)? = null,
     bookMenuActions: BookMenuActions? = null,
-    onBookReadClick: (() -> Unit)? = null,
+    onBookReadClick: ((Boolean) -> Unit)? = null,
     isSelected: Boolean = false,
     onSelect: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -320,7 +326,7 @@ fun BookDetailedListCard(
 private fun BookDetailedListDetails(
     book: KomgaBook,
     bookMenuActions: BookMenuActions?,
-    onBookReadClick: (() -> Unit)? = null,
+    onBookReadClick: ((Boolean) -> Unit)? = null,
     isSelected: Boolean,
     onSelect: (() -> Unit)?,
 ) {
@@ -376,7 +382,11 @@ private fun BookDetailedListDetails(
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.Start) {
             if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
-                BookReadButton(onBookReadClick)
+                BookReadButton(
+                    modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
+                    onRead = { onBookReadClick(true) },
+                    onIncognitoRead = { onBookReadClick(false) }
+                )
             }
             if (bookMenuActions != null) {
                 Box {

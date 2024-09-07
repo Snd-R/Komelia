@@ -48,7 +48,7 @@ fun ReadListContent(
     books: List<KomgaBook>,
     bookMenuActions: BookMenuActions,
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBook) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
 
     selectedBooks: List<KomgaBook>,
     onBookSelect: (KomgaBook) -> Unit,
