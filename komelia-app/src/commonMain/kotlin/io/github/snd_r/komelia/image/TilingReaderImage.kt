@@ -18,7 +18,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -60,7 +59,7 @@ abstract class TilingReaderImage(
     protected val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
 
     init {
-        jobFlow.distinctUntilChanged().conflate()
+        jobFlow.conflate()
             .onEach { request ->
                 this.error.value = null
                 try {

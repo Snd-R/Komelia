@@ -18,6 +18,7 @@ import io.github.snd_r.komelia.platform.skiaSamplerMitchell
 import io.github.snd_r.komelia.platform.skiaSamplerNearest
 import io.github.snd_r.komelia.platform.upsamplingFilters
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.skia.Font
@@ -45,7 +46,7 @@ class DesktopTilingReaderImage(
     }
 
     init {
-        upscaleOption.onEach { option ->
+        upscaleOption.drop(1).onEach { option ->
             val samplingMode = when (option) {
                 skiaSamplerMitchell -> SamplingMode.MITCHELL
                 skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
@@ -62,7 +63,7 @@ class DesktopTilingReaderImage(
             }
         }.launchIn(imageScope)
 
-        upscaler?.upscaleMode?.onEach {
+        upscaler?.upscaleMode?.drop(1)?.onEach {
             lastUpdateRequest?.let { lastRequest ->
                 this.painter.value = PlaceholderPainter(lastRequest.displaySize)
                 lastUsedScaleFactor = null
