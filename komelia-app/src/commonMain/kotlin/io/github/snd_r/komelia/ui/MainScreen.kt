@@ -184,47 +184,51 @@ class MainScreen(
         toggleLibrariesDrawer: () -> Unit,
         modifier: Modifier
     ) {
-        Column {
-            HorizontalDivider()
-            Row(
-                modifier = modifier,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CompactNavButton(
-                    text = "Libraries",
-                    icon = Icons.Default.LocalLibrary,
-                    onClick = { toggleLibrariesDrawer() },
-                    isSelected = false,
-                    modifier = Modifier.weight(1f)
-                )
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column {
+                HorizontalDivider()
+                Row(
+                    modifier = modifier,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CompactNavButton(
+                        text = "Libraries",
+                        icon = Icons.Default.LocalLibrary,
+                        onClick = { toggleLibrariesDrawer() },
+                        isSelected = false,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                CompactNavButton(
-                    text = "Home",
-                    icon = Icons.Default.Home,
-                    onClick = { navigator.replaceAll(HomeScreen()) },
-                    isSelected = navigator.lastItem is HomeScreen,
-                    modifier = Modifier.weight(1f)
-                )
+                    CompactNavButton(
+                        text = "Home",
+                        icon = Icons.Default.Home,
+                        onClick = { navigator.replaceAll(HomeScreen()) },
+                        isSelected = navigator.lastItem is HomeScreen,
+                        modifier = Modifier.weight(1f)
+                    )
 
 
-                CompactNavButton(
-                    text = "Search",
-                    icon = Icons.Default.Search,
-                    onClick = { navigator.push(SearchScreen(null)) },
-                    isSelected = navigator.lastItem is SearchScreen,
-                    modifier = Modifier.weight(1f)
-                )
+                    CompactNavButton(
+                        text = "Search",
+                        icon = Icons.Default.Search,
+                        onClick = { navigator.push(SearchScreen(null)) },
+                        isSelected = navigator.lastItem is SearchScreen,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                CompactNavButton(
-                    text = "Settings",
-                    icon = Icons.Default.Settings,
-                    onClick = { navigator.parent!!.push(MobileSettingsScreen()) },
-                    isSelected = navigator.lastItem is SettingsScreen,
-                    modifier = Modifier.weight(1f)
-                )
+                    CompactNavButton(
+                        text = "Settings",
+                        icon = Icons.Default.Settings,
+                        onClick = { navigator.parent!!.push(MobileSettingsScreen()) },
+                        isSelected = navigator.lastItem is SettingsScreen,
+                        modifier = Modifier.weight(1f)
+                    )
 
+                }
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
             }
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
         }
     }
 
@@ -238,7 +242,6 @@ class MainScreen(
     ) {
         Surface(
             modifier = modifier,
-            color = MaterialTheme.colorScheme.surface,
             contentColor =
             if (isSelected) MaterialTheme.colorScheme.secondary
             else contentColorFor(MaterialTheme.colorScheme.surfaceVariant)

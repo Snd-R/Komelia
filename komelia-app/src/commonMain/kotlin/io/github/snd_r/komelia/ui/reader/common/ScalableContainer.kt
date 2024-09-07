@@ -31,7 +31,6 @@ import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -70,37 +69,35 @@ fun ScalableContainer(
                 translationX = currentTransforms.offset.x
                 translationY = currentTransforms.offset.y
             }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragEnd = {
+                        flingScope.launch {
+                            flingInProgress = true
+                            scaleState.performFling(flingSpec)
+                            flingInProgress = false
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        scaleState.addPan(change, dragAmount)
+                    }
+                )
+
+            }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    if (flingInProgress) {
+                        flingScope.coroutineContext.cancelChildren()
+                        flingInProgress = false
+                        down.consume()
+                    }
+                }
+
+            }
             .pointerInput(areaSize) {
-                coroutineScope {
-                    launch {
-                        awaitEachGesture {
-                            val down = awaitFirstDown()
-                            if (flingInProgress) {
-                                flingScope.coroutineContext.cancelChildren()
-                                flingInProgress = false
-                                down.consume()
-                            }
-                        }
-                    }
-                    launch {
-                        detectDragGestures(
-                            onDragEnd = {
-                                flingScope.launch {
-                                    flingInProgress = true
-                                    scaleState.performFling(flingSpec)
-                                    flingInProgress = false
-                                }
-                            },
-                            onDrag = { change, dragAmount ->
-                                scaleState.addPan(change, dragAmount)
-                            }
-                        )
-                    }
-                    launch {
-                        detectTransformGestures { centroid, _, zoom, _ ->
-                            scaleState.multiplyZoom(zoom, centroid - areaCenter)
-                        }
-                    }
+                detectTransformGestures { centroid, _, zoom, _ ->
+                    scaleState.multiplyZoom(zoom, centroid - areaCenter)
                 }
             }
             .onPointerEvent(PointerEventType.Scroll) {
