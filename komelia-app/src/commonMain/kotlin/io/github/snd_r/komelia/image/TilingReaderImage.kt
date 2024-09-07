@@ -45,7 +45,7 @@ abstract class TilingReaderImage(
     private val dimensions by lazy { getDimensions(encoded) }
     final override val width by lazy { dimensions.width }
     final override val height by lazy { dimensions.height }
-    final override val painter by lazy { MutableStateFlow(noopPainter) }
+    final override val painter = MutableStateFlow(noopPainter)
     final override val error = MutableStateFlow<Exception?>(null)
     final override val currentSize = MutableStateFlow<IntSize?>(null)
 
@@ -104,9 +104,6 @@ abstract class TilingReaderImage(
         val dstWidth = displaySize.width * zoomFactor
         val dstHeight = displaySize.height * zoomFactor
 
-        if (painter.value == noopPainter) {
-            painter.value = createPlaceholderPainter(IntSize(dstWidth.roundToInt(), dstHeight.roundToInt()))
-        }
         val displayPixCount = (dstWidth * dstHeight).roundToInt()
         val tileSize = when (displayPixCount) {
             in 0..tileThreshold1 -> null
