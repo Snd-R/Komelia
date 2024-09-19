@@ -218,7 +218,6 @@ compose.desktop {
             packageVersion = "0.9.0"
             description = "Komga media client"
             vendor = "Snd-R"
-            modules("jdk.unsupported", "jdk.security.auth")
             appResourcesRootDir.set(
                 project.parent!!.projectDir.resolve("image-decoder/desktopComposeResources")
             )
@@ -231,6 +230,7 @@ compose.desktop {
 
             linux {
                 iconFile.set(project.file("src/desktopMain/resources/ic_launcher.png"))
+                modules("jdk.security.auth")
             }
         }
 
