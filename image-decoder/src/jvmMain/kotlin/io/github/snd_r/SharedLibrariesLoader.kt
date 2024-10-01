@@ -31,7 +31,7 @@ object SharedLibrariesLoader {
                 }
             }
 
-            val classPathFile = VipsSharedLibraries::class.java.getResource("/${filename}")
+            val classPathFile = SharedLibrariesLoader::class.java.getResource("/${filename}")
             if (classPathFile != null) {
                 val fileBytes = classPathFile.readBytes()
                 val libFile = Files.write(tempDir.resolve(filename), fileBytes, StandardOpenOption.CREATE).toFile()

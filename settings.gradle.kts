@@ -28,6 +28,7 @@ include("komelia-db:sqlite")
 include("komelia-db:wasm")
 include("image-decoder")
 include(":wasm-image-worker")
+include(":webview")
 
 includeBuild("komelia-db/flyway-gradle-plugin") {
     dependencySubstitution { substitute(module("org.flywaydb:flyway")) }

@@ -17,18 +17,18 @@ object VipsSharedLibraries {
 
 
     private val linuxRequiredLibs = listOf(
-        "glib-2.0",
-        "gobject-2.0",
+//        "glib-2.0",
+//        "gobject-2.0",
         "vips",
         "komelia_vips",
     )
     private val linuxLibs = listOf(
         "z",
         "ffi",
-        "glib-2.0",
-        "gmodule-2.0",
-        "gobject-2.0",
-        "gio-2.0",
+//        "glib-2.0",
+//        "gmodule-2.0",
+//        "gobject-2.0",
+//        "gio-2.0",
         "de265",
         "dav1d",
         "expat",

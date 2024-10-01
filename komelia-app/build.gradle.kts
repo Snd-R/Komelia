@@ -60,6 +60,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(project(":komelia-db:sqlite"))
             implementation(project(":image-decoder"))
+            implementation(project(":webview"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
         wasmJsMain.dependencies {
