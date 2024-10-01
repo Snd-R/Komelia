@@ -24,6 +24,7 @@ dependencyResolutionManagement {
 include(":komelia-app")
 include("image-decoder")
 include(":wasm-image-worker")
+include(":webview")
 
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }

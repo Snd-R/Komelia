@@ -44,13 +44,10 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.FileAppender
-import com.jetbrains.JBR
 import dev.dirs.ProjectDirectories
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.VipsSharedLibraries
-import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
-import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
 import io.github.snd_r.komelia.ui.log.LogbackFlowAppender
@@ -65,6 +62,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
+import snd.webview.compose.Webview
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import java.nio.file.Path
@@ -174,9 +172,10 @@ private fun ApplicationScope.MainAppContent(
     val keyEvents = remember { MutableSharedFlow<KeyEvent>() }
     val coroutineScope = rememberCoroutineScope()
     val undecorated = remember {
-        JBR.isAvailable()
-                && DesktopPlatform.Current == DesktopPlatform.Linux
-                && System.getenv("USE_CSD")?.toBoolean() ?: true
+        false
+//        JBR.isAvailable()
+//                && DesktopPlatform.Current == DesktopPlatform.Linux
+//                && System.getenv("USE_CSD")?.toBoolean() ?: true
     }
     Window(
         title = "Komelia",
@@ -235,15 +234,16 @@ private fun ApplicationScope.MainAppContent(
             }
 
             Box(borderModifier.value) {
-                val vmFactory = remember(dependencies) { dependencies?.let { DesktopViewModelFactory(it) } }
-                CompositionLocalProvider(LocalDesktopViewModelFactory provides vmFactory) {
-                    MainView(
-                        dependencies = dependencies,
-                        windowWidth = widthClass,
-                        platformType = PlatformType.DESKTOP,
-                        keyEvents = keyEvents
-                    )
-                }
+                Webview()
+//                val vmFactory = remember(dependencies) { dependencies?.let { DesktopViewModelFactory(it) } }
+//                CompositionLocalProvider(LocalDesktopViewModelFactory provides vmFactory) {
+//                    MainView(
+//                        dependencies = dependencies,
+//                        windowWidth = widthClass,
+//                        platformType = PlatformType.DESKTOP,
+//                        keyEvents = keyEvents
+//                    )
+//                }
             }
             undecoratedWindowResizer.Content()
         }

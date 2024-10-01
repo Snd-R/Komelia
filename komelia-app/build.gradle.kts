@@ -134,6 +134,7 @@ kotlin {
             implementation(libs.secret.service)
             implementation(libs.slf4j.api)
             implementation(project(":image-decoder"))
+            implementation(project(":webview"))
             implementation(files("jbr-api/jbr-api-6.4.2.jar"))
         }
 
