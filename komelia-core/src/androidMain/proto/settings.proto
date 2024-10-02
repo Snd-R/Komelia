@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+option java_package = "io.github.snd_r.komelia.settings";
+option java_multiple_files = true;
+
+import "google/protobuf/wrappers.proto";
+
+
+message AppSettings {
+  ServerSettings server = 1;
+  UserSettings user = 2;
+  AppearanceSettings appearance = 3;
+  ReaderBaseSettings reader = 4;
+  Updates updates = 5;
+  Komf komf = 6;
+}
+
+message ServerSettings{
+  string url = 1;
+}
+
+message UserSettings{
+  string username = 1;
+  optional string rememberMe = 2;
+}
+
+message AppearanceSettings{
+  optional int32 cardWidth = 1;
+  int32 seriesPageLoadSize = 2;
+  int32 bookPageLoadSize = 3;
+  PBBooksLayout bookListLayout = 4;
+  PBAppTheme appTheme = 5;
+
+  enum PBBooksLayout{
+    LIST = 0;
+    GRID = 1;
+  }
+  enum PBAppTheme{
+    DARK = 0;
+    LIGHT = 1;
+  }
+}
+
+message ReaderBaseSettings{
+  PBReaderType readerType = 1;
+  optional bool stretchToFit = 2;
+  PagedReaderSettings pagedReaderSettings = 3;
+  ContinuousReaderSettings continuousReaderSettings = 4;
+
+  enum PBReaderType{
+    PAGED = 0;
+    CONTINUOUS = 1;
+  }
+
+}
+
+message PagedReaderSettings{
+  PBLayoutScaleType scaleType = 1;
+  PBReadingDirection readingDirection = 2;
+  PBPageDisplayLayout pageLayout = 3;
+
+  enum PBLayoutScaleType{
+    SCREEN = 0;
+    FIT_WIDTH = 1;
+    FIT_HEIGHT = 2;
+    ORIGINAL = 3;
+  }
+
+  enum PBReadingDirection{
+    LEFT_TO_RIGHT = 0;
+    RIGHT_TO_LEFT = 1;
+  }
+
+  enum PBPageDisplayLayout{
+    SINGLE_PAGE = 0;
+    DOUBLE_PAGES = 1;
+  }
+}
+
+message ContinuousReaderSettings{
+  PBReadingDirection readingDirection = 1;
+  float padding = 2;
+  int32 pageSpacing = 3;
+
+  enum PBReadingDirection{
+    TOP_TO_BOTTOM = 0;
+    LEFT_TO_RIGHT = 1;
+    RIGHT_TO_LEFT = 2;
+  }
+}
+
+message Updates{
+  optional  bool checkForUpdatesOnStartup = 1;
+  int64 lastUpdateCheckTimestamp = 2;
+  optional string lastCheckedReleaseVersion = 3;
+  optional string dismissedVersion = 4;
+}
+
+message Komf{
+  bool enabled = 1;
+  PBKomfMode mode = 2;
+  string remoteUrl = 3;
+
+  enum PBKomfMode{
+    REMOTE = 0;
+    EMBEDDED = 1;
+  }
+}

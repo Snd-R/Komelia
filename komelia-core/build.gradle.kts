@@ -1,19 +1,17 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.proto
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.parcelize)
     alias(libs.plugins.protobuf)
 }
@@ -59,42 +57,83 @@ kotlin {
     }
 
     sourceSets {
+        all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
         commonMain.dependencies {
-            implementation(project(":komelia-core"))
-
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(compose.materialIconsExtended)
+            implementation(compose.material)
+            implementation(compose.material3)
 
-            implementation(libs.coil)
-            implementation(libs.coil.network.ktor3)
             implementation(libs.kotlin.logging)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.core)
+
+            implementation(libs.cache4k)
+            implementation(libs.coil)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.chiptextfield.core)
+            implementation(libs.chiptextfield.m3)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.compose)
             implementation(libs.komf.client)
             implementation(libs.komga.client)
-
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.encoding)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.lyricist)
+            implementation(libs.markdown)
+            implementation(libs.reorderable)
+            implementation(libs.richEditor.compose)
+            implementation(libs.sonner)
+            implementation(libs.voyager.screenmodel)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.transition)
         }
 
-        androidMain.dependencies {}
-        jvmMain.dependencies {
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation(compose.desktop.common)
-
-            implementation(libs.directories)
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.window)
+            implementation(libs.androidx.datastore)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.logback.android)
+            implementation(libs.okhttp)
+            implementation(libs.okhttp.logging.interceptor)
+            implementation(libs.protobuf.javalite)
+            implementation(libs.protobuf.kotlin.lite)
+            implementation(libs.slf4j.api)
+            implementation(project(":image-decoder"))
+        }
+
+        jvmMain.dependencies {
+            implementation(compose.desktop.common)
+            implementation(compose.desktop.currentOs)
+
+            implementation(libs.kotlinx.coroutines.swing)
+
+            implementation(libs.commons.compress)
+            implementation(libs.directories)
+            implementation(libs.java.keyring)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktoml.core)
+            implementation(libs.ktoml.file)
+            implementation(libs.ktoml.source.jvm)
             implementation(libs.logback.core)
             implementation(libs.logback.classic)
             implementation(libs.okhttp)
             implementation(libs.okhttp.logging.interceptor)
+            implementation(libs.secret.service)
             implementation(libs.slf4j.api)
             implementation(project(":image-decoder"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
+
+        val wasmJsMain by getting
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
             implementation(project(":wasm-image-worker"))
@@ -103,32 +142,11 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.snd_r.komelia"
+    namespace = "io.github.snd_r.core"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-    sourceSets["main"].proto {
-        srcDir("src/androidMain/proto")
-    }
-
     defaultConfig {
-        applicationId = "io.github.snd_r.komelia"
         minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "0.9.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -151,78 +169,5 @@ android {
                 }
             }
         }
-    }
-}
-
-
-compose.desktop {
-    application {
-        mainClass = "io.github.snd_r.komelia.MainKt"
-
-        jvmArgs += listOf(
-            "-Dkotlinx.coroutines.scheduler.max.pool.size=3",
-            "-Dkotlinx.coroutines.scheduler.core.pool.size=3",
-            "-XX:+UnlockExperimentalVMOptions",
-            "-XX:+UseShenandoahGC",
-            "-XX:ShenandoahGCHeuristics=compact",
-            "-XX:ConcGCThreads=1",
-            "-XX:TrimNativeHeapInterval=60000",
-        )
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Komelia"
-            packageVersion = "0.9.0"
-            description = "Komga media client"
-            vendor = "Snd-R"
-            appResourcesRootDir.set(
-                project.parent!!.projectDir.resolve("image-decoder/desktopComposeResources")
-            )
-
-            windows {
-                menu = true
-                upgradeUuid = "40E86376-4E7C-41BF-8E3B-754065032B22"
-                iconFile.set(project.file("src/desktopMain/resources/ic_launcher.ico"))
-            }
-
-            linux {
-                iconFile.set(project.file("src/desktopMain/resources/ic_launcher.png"))
-                modules("jdk.security.auth")
-            }
-        }
-
-        buildTypes.release.proguard {
-            version.set("7.5.0")
-            optimize.set(false)
-            configurationFiles.from(project.file("no_icons.pro"))
-        }
-    }
-}
-
-tasks.register<Zip>("repackageUberJar") {
-    group = "compose desktop"
-    val packageUberJarForCurrentOS = tasks.getByName("packageReleaseUberJarForCurrentOS")
-    dependsOn(packageUberJarForCurrentOS)
-    val file = packageUberJarForCurrentOS.outputs.files.first()
-    val output = File(file.parentFile, "${file.nameWithoutExtension}-repacked.jar")
-    archiveFileName.set(output.absolutePath)
-    destinationDirectory.set(file.parentFile.absoluteFile)
-
-    from(project.zipTree(file)) {
-        exclude("META-INF/*.SF")
-        exclude("META-INF/*.RSA")
-        exclude("META-INF/*.DSA")
-        exclude("META-INF/services/javax.imageio.spi.ImageReaderSpi")
-    }
-
-    // ImageIO plugins include workaround https://github.com/JetBrains/compose-multiplatform/issues/4505
-    from("$projectDir/javax.imageio.spi.ImageReaderSpi") {
-        into("META-INF/services")
-    }
-
-    doLast {
-        delete(file)
-        output.renameTo(file)
-        logger.lifecycle("The repackaged jar is written to ${archiveFile.get().asFile.canonicalPath}")
     }
 }

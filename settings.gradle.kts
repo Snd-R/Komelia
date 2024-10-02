@@ -22,6 +22,7 @@ dependencyResolutionManagement {
 }
 
 include(":komelia-app")
+include(":komelia-core")
 include("image-decoder")
 include(":wasm-image-worker")
 
