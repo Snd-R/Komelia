@@ -33,4 +33,6 @@ object AppDirectories {
     val coilCachePath: Path = cachePath.resolve("coil")
     val readerCachePath: Path = cachePath.resolve("reader")
     val readerUpscaleCachePath: Path = cachePath.resolve("reader_upscale")
+
+    val databaseFile: Path = Path(projectDirectories.dataDir).resolve("komelia.sqlite")
 }

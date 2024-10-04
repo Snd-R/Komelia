@@ -16,36 +16,36 @@ import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.image.coil.VipsCoilImageDecoder
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.settings.AppSettings
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
-import io.github.snd_r.komelia.settings.LocalStorageReaderSettingsRepository
-import io.github.snd_r.komelia.settings.LocalStorageSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.UpdateProgress
 import io.github.snd_r.komelia.worker.ImageWorker
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.js.Js
-import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.*
+import io.ktor.client.engine.js.*
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.stateIn
+import snd.komelia.db.settings.LocalStorageSettingsRepository
+import snd.komelia.db.settings.SettingsActor
+import snd.komelia.db.settings.SharedActorReaderSettingsRepository
+import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
+import snd.settings.CommonSettingsRepository
+import kotlin.time.measureTimedValue
 
 class WasmDependencyContainer(
-    override val settingsRepository: SettingsRepository,
-    override val readerSettingsRepository: ReaderSettingsRepository,
+    override val settingsRepository: CommonSettingsRepository,
+    override val readerSettingsRepository: SharedActorReaderSettingsRepository,
     override val secretsRepository: SecretsRepository,
     override val appUpdater: AppUpdater,
-    override val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
+    override val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>,
     override val komgaClientFactory: KomgaClientFactory,
     override val imageLoader: ImageLoader,
     override val readerImageLoader: ReaderImageLoader,
@@ -64,9 +64,9 @@ class WasmDependencyContainer(
                 delay(50)
             }
 
-            val settings = MutableStateFlow(AppSettings.loadSettings())
-            val settingsRepository = LocalStorageSettingsRepository(settings)
-            val readerSettingsRepository = LocalStorageReaderSettingsRepository(settings)
+            val settingsActor = createSettingsActor()
+            val settingsRepository = SharedActorSettingsRepository(settingsActor)
+            val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
             val secretsRepository = CookieStoreSecretsRepository()
             val baseUrl = settingsRepository.getServerUrl().stateIn(stateFlowScope)
             val komfUrl = settingsRepository.getKomfUrl().stateIn(stateFlowScope)
@@ -97,7 +97,7 @@ class WasmDependencyContainer(
                 readerSettingsRepository = readerSettingsRepository,
                 secretsRepository = secretsRepository,
                 imageLoader = coil,
-                availableDecoders = emptyFlow(),
+                imageDecoderDescriptor = emptyFlow(),
                 komfClientFactory = komfClientFactory,
                 readerImageLoader = readerImageLoader,
             )
@@ -167,6 +167,17 @@ class WasmDependencyContainer(
             )
         }
 
+
+        private fun createSettingsActor(): SettingsActor {
+            val result = measureTimedValue {
+                val repository = LocalStorageSettingsRepository()
+                SettingsActor(
+                    settings = repository.get(),
+                    saveSettings = repository::save
+                )
+            }
+            return result.value
+        }
     }
 }
 

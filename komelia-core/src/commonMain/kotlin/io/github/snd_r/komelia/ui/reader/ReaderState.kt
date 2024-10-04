@@ -11,8 +11,6 @@ import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
@@ -31,6 +29,8 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.settings.CommonSettingsRepository
+import snd.settings.ReaderSettingsRepository
 import kotlin.math.roundToInt
 
 typealias SpreadIndex = Int
@@ -39,9 +39,9 @@ class ReaderState(
     private val bookClient: KomgaBookClient,
     private val navigator: Navigator,
     private val appNotifications: AppNotifications,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: CommonSettingsRepository,
     private val readerSettingsRepository: ReaderSettingsRepository,
-    private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
+    private val decoderDescriptor: Flow<PlatformDecoderDescriptor>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
 ) {
@@ -61,11 +61,7 @@ class ReaderState(
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
 
-        availableDecoders.onEach { decoders ->
-            currentDecoderDescriptor.value =
-                decoders.first { it.platformType == decoderSettings.value?.platformType }
-        }.launchIn(stateScope)
-
+        decoderDescriptor.onEach { currentDecoderDescriptor.value = it }.launchIn(stateScope)
         loadBook(bookId)
     }
 
@@ -181,7 +177,7 @@ class ReaderState(
         return
     }
 
-    suspend fun onProgressChange(page: Int) {
+    fun onProgressChange(page: Int) {
         if (markReadProgress) {
             val currentBook = requireNotNull(booksState.value?.currentBook)
             stateScope.launch {
@@ -193,11 +189,6 @@ class ReaderState(
         }
 
         readProgressPage.value = page
-    }
-
-    fun onDecoderChange(type: PlatformDecoderSettings) {
-        this.decoderSettings.value = type
-        stateScope.launch { settingsRepository.putDecoderSettings(type) }
     }
 
     fun onUpscaleMethodChange(upscaleOption: UpscaleOption) {

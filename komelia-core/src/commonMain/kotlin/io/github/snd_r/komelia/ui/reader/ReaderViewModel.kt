@@ -7,8 +7,6 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.ReaderType.PAGED
@@ -23,6 +21,8 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
+import snd.settings.CommonSettingsRepository
+import snd.settings.ReaderSettingsRepository
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -30,10 +30,10 @@ class ReaderViewModel(
     bookClient: KomgaBookClient,
     navigator: Navigator,
     appNotifications: AppNotifications,
-    settingsRepository: SettingsRepository,
+    settingsRepository: CommonSettingsRepository,
     readerSettingsRepository: ReaderSettingsRepository,
     imageLoader: ReaderImageLoader,
-    availableDecoders: Flow<List<PlatformDecoderDescriptor>>,
+    decoderDescriptor: Flow<PlatformDecoderDescriptor>,
     appStrings: Flow<Strings>,
     markReadProgress: Boolean,
 ) : ScreenModel {
@@ -45,7 +45,7 @@ class ReaderViewModel(
         appNotifications = appNotifications,
         settingsRepository = settingsRepository,
         readerSettingsRepository = readerSettingsRepository,
-        availableDecoders = availableDecoders,
+        decoderDescriptor = decoderDescriptor,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,
     )

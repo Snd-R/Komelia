@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,6 +30,7 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
+import snd.settings.CommonSettingsRepository
 
 class SeriesViewModel(
     series: KomgaSeries?,
@@ -40,13 +41,13 @@ class SeriesViewModel(
     bookClient: KomgaBookClient,
     collectionClient: KomgaCollectionClient,
     referentialClient: KomgaReferentialClient,
-    settingsRepository: SettingsRepository,
+    settingsRepository: CommonSettingsRepository,
     defaultTab: SeriesTab,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val series = MutableStateFlow(series)
     var currentTab by mutableStateOf(defaultTab)
-    val cardWidth = settingsRepository.getCardWidth()
+    val cardWidth = settingsRepository.getCardWidth().map { it.dp }
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     val booksState = SeriesBooksState(

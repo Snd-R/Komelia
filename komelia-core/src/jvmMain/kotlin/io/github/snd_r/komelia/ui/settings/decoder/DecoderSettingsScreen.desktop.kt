@@ -23,19 +23,17 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
 
         SettingsScreenContainer("Image Decoder") {
             val currentDecoderDescriptor = vm.currentDecoderDescriptor.collectAsState().value
-            val decoder = vm.decoderType.collectAsState().value
             val upscale = vm.upscaleOption.collectAsState().value
             val downscale = vm.downscaleOption.collectAsState().value
             val onnxPath = vm.onnxModelsPath.collectAsState().value
             val updateProgress = vm.ortUpdateProgress.collectAsState().value
             val installError = vm.ortInstallError.collectAsState().value
 
-            if (currentDecoderDescriptor == null || decoder == null || upscale == null || downscale == null || onnxPath == null) {
+            if (currentDecoderDescriptor == null || upscale == null || downscale == null || onnxPath == null) {
                 LoadingMaxSizeIndicator()
             } else
                 DecoderSettingsContent(
                     decoderDescriptor = currentDecoderDescriptor,
-                    decoder = decoder,
                     upscaleOption = upscale,
                     onUpscaleOptionChange = vm::onUpscaleOptionChange,
                     downscaleOption = downscale,

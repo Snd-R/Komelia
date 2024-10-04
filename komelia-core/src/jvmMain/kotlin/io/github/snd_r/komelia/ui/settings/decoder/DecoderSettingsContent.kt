@@ -55,7 +55,6 @@ import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.Windows
 import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.formatDecimal
@@ -74,7 +73,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun DecoderSettingsContent(
     decoderDescriptor: PlatformDecoderDescriptor,
-    decoder: PlatformDecoderType,
     upscaleOption: UpscaleOption,
     onUpscaleOptionChange: (UpscaleOption) -> Unit,
     downscaleOption: DownscaleOption,
@@ -132,7 +130,6 @@ fun DecoderSettingsContent(
         if (DesktopPlatform.Current == Linux || DesktopPlatform.Current == Windows) {
             HorizontalDivider(Modifier.padding(vertical = 10.dp))
             OnnxRuntimeContent(
-                decoder = decoder,
                 onnxPath = onnxPath,
                 onOnnxPathChange = onOnnxPathChange,
                 gpuInfo = gpuInfo,
@@ -166,7 +163,6 @@ fun DecoderSettingsContent(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun OnnxRuntimeContent(
-    decoder: PlatformDecoderType,
     onnxPath: String,
     onOnnxPathChange: (String) -> Unit,
     gpuInfo: List<OnnxRuntimeUpscaler.DeviceInfo>,
@@ -213,7 +209,7 @@ private fun OnnxRuntimeContent(
         )
     }
 
-    if (decoder != PlatformDecoderType.VIPS_ONNX) {
+    if (OnnxRuntimeSharedLibraries.isAvailable) {
         Text("ONNX runtime settings")
         FilledTonalButton(
             onClick = { showOrtInstallDialog = true },

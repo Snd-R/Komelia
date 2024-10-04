@@ -7,15 +7,3 @@ val mangaJaNai = UpscaleOption("MangaJaNai")
 val vipsDownscaleLanczos = DownscaleOption("Lanczos")
 
 val upsamplingFilters = listOf(skiaSamplerMitchell, skiaSamplerCatmullRom, skiaSamplerNearest)
-
-actual enum class PlatformDecoderType {
-    VIPS,
-    VIPS_ONNX;
-
-    actual fun getDisplayName(): String {
-        return when (this) {
-            VIPS -> "Vips"
-            VIPS_ONNX -> "Vips/ONNX"
-        }
-    }
-}

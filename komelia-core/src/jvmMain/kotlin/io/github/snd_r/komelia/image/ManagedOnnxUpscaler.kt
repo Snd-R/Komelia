@@ -16,7 +16,6 @@ import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.USER_SPECIF
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.platform.mangaJaNai
 import io.github.snd_r.komelia.platform.upsamplingFilters
-import io.github.snd_r.komelia.settings.DesktopSettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import snd.settings.CommonSettingsRepository
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -38,7 +38,7 @@ import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
 
-class ManagedOnnxUpscaler(private val settingsRepository: DesktopSettingsRepository) {
+class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsRepository) {
     val upscaleMode = MutableStateFlow(NONE)
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mutex = Mutex()
@@ -64,7 +64,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: DesktopSettingsReposit
             scope.launch { path.deleteIfExists() }
         }.build()
 
-    suspend fun initialize() {
+    fun initialize() {
         require(OnnxRuntimeSharedLibraries.isAvailable)
 
         settingsRepository.getOnnxRuntimeDeviceId()
@@ -119,7 +119,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: DesktopSettingsReposit
         }
     }
 
-    private fun mangaJaNaiUpscale(pageId: PageId, image: VipsImage): VipsImage? {
+    private fun mangaJaNaiUpscale(pageId: PageId, image: VipsImage): VipsImage {
         val isGrayscale = if (image.type == ImageFormat.GRAYSCALE_8) true else isRgbaIsGrayscale(image)
 
         val model =

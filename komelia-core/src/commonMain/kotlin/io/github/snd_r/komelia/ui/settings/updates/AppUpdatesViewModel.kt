@@ -3,7 +3,6 @@ package io.github.snd_r.komelia.ui.settings.updates
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.updates.AppRelease
@@ -22,11 +21,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import snd.settings.CommonSettingsRepository
 
 class AppUpdatesViewModel(
     val releases: MutableStateFlow<List<AppRelease>>,
     val updater: AppUpdater,
-    val settings: SettingsRepository,
+    val settings: CommonSettingsRepository,
     val notifications: AppNotifications
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
     val latestVersion = MutableStateFlow<AppVersion?>(null)

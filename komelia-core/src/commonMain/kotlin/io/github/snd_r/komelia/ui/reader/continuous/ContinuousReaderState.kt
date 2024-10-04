@@ -20,7 +20,6 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.PageMetadata
@@ -56,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
+import snd.settings.ReaderSettingsRepository
 import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger("ContinuousReaderState")

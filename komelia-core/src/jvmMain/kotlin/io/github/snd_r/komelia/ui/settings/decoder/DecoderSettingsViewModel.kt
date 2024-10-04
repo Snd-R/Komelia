@@ -13,10 +13,8 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.mangaJaNai
-import io.github.snd_r.komelia.settings.DesktopSettingsRepository
 import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateProgress
@@ -33,17 +31,17 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import snd.settings.CommonSettingsRepository
 
 class DecoderSettingsViewModel(
-    private val settingsRepository: DesktopSettingsRepository,
+    private val settingsRepository: CommonSettingsRepository,
     private val imageLoader: ImageLoader,
     private val onnxRuntimeInstaller: OnnxRuntimeInstaller,
     private val mangaJaNaiDownloader: MangaJaNaiDownloader,
     private val appNotifications: AppNotifications,
-    val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
+    val availableDecoders: Flow<PlatformDecoderDescriptor>
 ) : ScreenModel {
     val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
-    val decoderType = MutableStateFlow<PlatformDecoderType?>(null)
     val upscaleOption = MutableStateFlow<UpscaleOption?>(null)
     val downscaleOption = MutableStateFlow<DownscaleOption?>(null)
     val onnxModelsPath = MutableStateFlow<String?>(null)
@@ -63,15 +61,13 @@ class DecoderSettingsViewModel(
         deviceId.value = settingsRepository.getOnnxRuntimeDeviceId().first()
 
         settingsRepository.getDecoderSettings().onEach { decoder ->
-            decoderType.value = decoder.platformType
             upscaleOption.value = decoder.upscaleOption
             downscaleOption.value = decoder.downscaleOption
         }.launchIn(screenModelScope)
 
-        availableDecoders.onEach { decoders ->
-            val newDescriptor = decoders.firstOrNull { it.platformType == decoderType.value }
-            currentDecoderDescriptor.value = newDescriptor
-            mangaJaNaiIsAvailable.value = newDescriptor?.upscaleOptions?.contains(mangaJaNai) ?: false
+        availableDecoders.onEach { decoder ->
+            currentDecoderDescriptor.value = decoder
+            mangaJaNaiIsAvailable.value = decoder.upscaleOptions.contains(mangaJaNai)
         }.launchIn(screenModelScope)
 
         try {
@@ -79,20 +75,6 @@ class DecoderSettingsViewModel(
                 gpuInfo.value = OnnxRuntimeUpscaler.enumerateDevices()
         } catch (e: Throwable) {
             appNotifications.add(AppNotification.Error(e.message ?: "Failed to get device list"))
-        }
-    }
-
-    fun onDecoderChange(type: PlatformDecoderType) {
-        val descriptor = requireNotNull(currentDecoderDescriptor.value)
-        val newUpscaleOption = descriptor.upscaleOptions.first()
-        val newDownscaleOption = descriptor.downscaleOptions.first()
-
-        screenModelScope.launch {
-            decoderType.value = type
-            currentDecoderDescriptor.value = availableDecoders.first().first { it.platformType == type }
-            upscaleOption.value = newUpscaleOption
-            downscaleOption.value = newDownscaleOption
-            updateDecoderSettings()
         }
     }
 
@@ -169,13 +151,11 @@ class DecoderSettingsViewModel(
     private fun updateDecoderSettings() {
         clearImageCache()
 
-        val currentDecoder = requireNotNull(currentDecoderDescriptor.value)
         val upscaleOption = requireNotNull(upscaleOption.value)
         val downscaleOption = requireNotNull(downscaleOption.value)
         screenModelScope.launch {
             settingsRepository.putDecoderSettings(
                 PlatformDecoderSettings(
-                    platformType = currentDecoder.platformType,
                     upscaleOption = upscaleOption,
                     downscaleOption = downscaleOption
                 )

@@ -1,7 +1,6 @@
 package io.github.snd_r.komelia.updates
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
@@ -12,13 +11,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Clock
+import snd.settings.CommonSettingsRepository
 import kotlin.time.Duration.Companion.hours
 
 private val logger = KotlinLogging.logger {}
 
 class StartupUpdateChecker(
     private val updater: AppUpdater,
-    private val settings: SettingsRepository,
+    private val settings: CommonSettingsRepository,
     private val releaseFlow: MutableStateFlow<List<AppRelease>>,
 ) {
     private val updateScope = CoroutineScope(Dispatchers.Default)

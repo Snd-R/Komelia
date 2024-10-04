@@ -13,7 +13,6 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.BookState
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
@@ -49,6 +48,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
+import snd.settings.ReaderSettingsRepository
 import kotlin.math.max
 import kotlin.math.roundToInt
 

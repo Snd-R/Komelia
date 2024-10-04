@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.BookBulkActions
@@ -37,10 +36,11 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
+import snd.settings.CommonSettingsRepository
 
 class SeriesBooksState(
     val series: StateFlow<KomgaSeries?>,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: CommonSettingsRepository,
     private val notifications: AppNotifications,
     private val seriesClient: KomgaSeriesClient,
     private val bookClient: KomgaBookClient,

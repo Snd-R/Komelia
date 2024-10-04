@@ -68,15 +68,10 @@ import java.nio.file.Path
 import kotlin.system.exitProcess
 import kotlin.time.measureTime
 
-
 private val logger = KotlinLogging.logger {}
-
-
 private var shouldRestart = true
 private var windowLastState: WindowState? = null
-
-private val systemScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
+private val initScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -92,9 +87,9 @@ fun main() {
     val lastError = MutableStateFlow<Throwable?>(null)
     val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)
     val initError = MutableStateFlow<Throwable?>(null)
-    systemScope.launch {
+    initScope.launch {
         try {
-            dependencies.value = initDependencies(systemScope)
+            dependencies.value = initDependencies(initScope)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {

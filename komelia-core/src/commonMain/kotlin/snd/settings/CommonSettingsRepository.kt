@@ -1,6 +1,5 @@
-package io.github.snd_r.komelia.settings
+package snd.settings
 
-import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
@@ -9,17 +8,18 @@ import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
 
-
-interface SettingsRepository {
-
+interface CommonSettingsRepository {
     fun getServerUrl(): Flow<String>
     suspend fun putServerUrl(url: String)
 
-    fun getCardWidth(): Flow<Dp>
-    suspend fun putCardWidth(cardWidth: Dp)
+    fun getCardWidth(): Flow<Int>
+    suspend fun putCardWidth(cardWidth: Int)
 
     fun getCurrentUser(): Flow<String>
     suspend fun putCurrentUser(username: String)
+
+    fun getDecoderSettings(): Flow<PlatformDecoderSettings>
+    suspend fun putDecoderSettings(decoder: PlatformDecoderSettings)
 
     fun getSeriesPageLoadSize(): Flow<Int>
     suspend fun putSeriesPageLoadSize(size: Int)
@@ -29,9 +29,6 @@ interface SettingsRepository {
 
     fun getBookListLayout(): Flow<BooksLayout>
     suspend fun putBookListLayout(layout: BooksLayout)
-
-    fun getDecoderSettings(): Flow<PlatformDecoderSettings>
-    suspend fun putDecoderSettings(decoder: PlatformDecoderSettings)
 
     fun getCheckForUpdatesOnStartup(): Flow<Boolean>
     suspend fun putCheckForUpdatesOnStartup(check: Boolean)
@@ -56,4 +53,13 @@ interface SettingsRepository {
 
     fun getKomfUrl(): Flow<String>
     suspend fun putKomfUrl(url: String)
+
+    fun getOnnxModelsPath(): Flow<String>
+    suspend fun putOnnxModelsPath(path: String)
+
+    fun getOnnxRuntimeDeviceId(): Flow<Int>
+    suspend fun putOnnxRuntimeDeviceId(deviceId: Int)
+
+    fun getOnnxRuntimeTileSize(): Flow<Int>
+    suspend fun putOnnxRuntimeTileSize(tileSize: Int)
 }

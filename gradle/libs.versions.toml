@@ -38,6 +38,7 @@ protobuf-lite = "3.21.11"
 reorderable = "2.4.0-alpha02"
 richEditor = "1.0.0-rc06"
 slf4j = "2.0.16"
+sqldelight = "2.0.2"
 voyager = "1.1.0-beta02"
 
 [libraries]
@@ -89,6 +90,8 @@ richEditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose"
 secret-service = { module = "de.swiesend:secret-service" }
 sonner = { module = "io.github.dokar3:sonner" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-transition = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
@@ -104,3 +107,4 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

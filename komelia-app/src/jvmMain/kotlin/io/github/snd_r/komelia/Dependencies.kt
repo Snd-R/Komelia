@@ -28,18 +28,14 @@ import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.PlatformDecoderType
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.mangaJaNai
+import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
 import io.github.snd_r.komelia.platform.upsamplingFilters
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
 import io.github.snd_r.komelia.secrets.AppKeyring
-import io.github.snd_r.komelia.settings.ActorMessage
-import io.github.snd_r.komelia.settings.DesktopReaderSettingsRepository
-import io.github.snd_r.komelia.settings.DesktopSettingsRepository
-import io.github.snd_r.komelia.settings.FileSystemSettingsActor
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
+import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.error.NonRestartableException
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
 import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
@@ -52,7 +48,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +63,14 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
+import snd.komelia.db.Database
+import snd.komelia.db.DriverFactory
+import snd.komelia.db.createDatabase
+import snd.komelia.db.settings.AppSettings
+import snd.komelia.db.settings.SettingsActor
+import snd.komelia.db.settings.SettingsRepository
+import snd.komelia.db.settings.SharedActorReaderSettingsRepository
+import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import java.nio.file.Files
@@ -82,37 +85,19 @@ import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
-suspend fun initDependencies(systemScope: CoroutineScope): DesktopDependencyContainer {
-    VipsSharedLibraries.loadError?.let {
-        throw NonRestartableException("Failed to load libvips shared libraries. ${it.message}", it)
-    }
-    if (!VipsSharedLibraries.isAvailable)
-        throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
-    VipsBitmapFactory.load()
+suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContainer {
+    checkVipsLibraries()
 
-    val settingsActor = createSettingsActor()
-    val settingsRepository = DesktopSettingsRepository(settingsActor)
-    val readerSettingsRepository = DesktopReaderSettingsRepository(settingsActor)
-
-    val onnxUpscaler = measureTimedValue {
-        try {
-            OnnxRuntimeSharedLibraries.load()
-            ManagedOnnxUpscaler(settingsRepository).also { it.initialize() }
-        } catch (e: UnsatisfiedLinkError) {
-            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-            null
-        } catch (e: OnnxRuntimeUpscaler.OrtException) {
-            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-            null
-        }
-
-    }.also { logger.info { "completed ONNX Runtime load in ${it.duration}" } }
+    val database = createDatabase(DriverFactory(AppDirectories.databaseFile))
+    val settingsActor = createSettingsActor(database)
+    val settingsRepository = SharedActorSettingsRepository(settingsActor)
+    val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
     val secretsRepository = createSecretsRepository()
 
-    val baseUrl = settingsRepository.getServerUrl().stateIn(systemScope)
-    val komfUrl = settingsRepository.getKomfUrl().stateIn(systemScope)
-    val decoderType = settingsRepository.getDecoderSettings().stateIn(systemScope)
+    val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
+    val komfUrl = settingsRepository.getKomfUrl().stateIn(initScope)
+    val decoderSettings = settingsRepository.getDecoderSettings().stateIn(initScope)
 
     val okHttpWithoutCache = createOkHttpClient()
     val okHttpWithCache = okHttpWithoutCache.newBuilder()
@@ -122,17 +107,9 @@ suspend fun initDependencies(systemScope: CoroutineScope): DesktopDependencyCont
                 maxSize = 50L * 1024L * 1024L // 50 MiB
             )
         ).build()
-    val cookiesStorage = RememberMePersistingCookieStore(
-        baseUrl.map { Url(it) }.stateIn(systemScope),
-        secretsRepository
-    )
-
-    measureTime { cookiesStorage.loadRememberMeCookie() }
-        .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
-
     val ktorWithCache = createKtorClient(okHttpWithCache)
     val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
-
+    val cookiesStorage = createCookieStorage(initScope, baseUrl, secretsRepository)
     val komgaClientFactory = createKomgaClientFactory(
         baseUrl = baseUrl,
         ktorClient = ktorWithCache,
@@ -156,23 +133,22 @@ suspend fun initDependencies(systemScope: CoroutineScope): DesktopDependencyCont
         ktorClient = ktorWithoutCache,
         url = baseUrl,
         cookiesStorage = cookiesStorage,
-        decoderState = decoderType,
         tempDir = coilCachePath.createDirectories()
     )
-    SingletonImageLoader.setSafe { coil }
 
+    val onnxUpscaler = createOnnxRuntimeUpscaler(settingsRepository)
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
-        upscaleOption = decoderType.map { it.upscaleOption }.stateIn(systemScope),
-        upscaler = onnxUpscaler.value
+        upscaleOption = decoderSettings.map { it.upscaleOption }.stateIn(initScope),
+        upscaler = onnxUpscaler
     )
 
     val availableDecoders = createAvailableDecodersFlow(
         settingsRepository,
         mangaJaNaiDownloader,
-        systemScope
+        initScope
     )
     val komfClientFactory = KomfClientFactory.Builder()
         .baseUrl { komfUrl.value }
@@ -186,13 +162,39 @@ suspend fun initDependencies(systemScope: CoroutineScope): DesktopDependencyCont
         readerSettingsRepository = readerSettingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
-        availableDecoders = availableDecoders,
+        imageDecoderDescriptor = availableDecoders,
         readerImageLoader = readerImageLoader,
         appNotifications = notifications,
         komfClientFactory = komfClientFactory,
         onnxRuntimeInstaller = onnxRuntimeInstaller,
         mangaJaNaiDownloader = mangaJaNaiDownloader
     )
+}
+
+private fun checkVipsLibraries() {
+    VipsSharedLibraries.loadError?.let {
+        throw NonRestartableException("Failed to load libvips shared libraries. ${it.message}", it)
+    }
+    if (!VipsSharedLibraries.isAvailable)
+        throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
+    VipsBitmapFactory.load()
+}
+
+private fun createOnnxRuntimeUpscaler(settingsRepository: SharedActorSettingsRepository): ManagedOnnxUpscaler? {
+    return measureTimedValue {
+        try {
+            OnnxRuntimeSharedLibraries.load()
+            ManagedOnnxUpscaler(settingsRepository).also { it.initialize() }
+        } catch (e: UnsatisfiedLinkError) {
+            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+            null
+        } catch (e: OnnxRuntimeUpscaler.OrtException) {
+            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+            null
+        }
+
+    }.also { logger.info { "completed ONNX Runtime load in ${it.duration}" } }
+        .value
 }
 
 private fun createOkHttpClient(): OkHttpClient {
@@ -209,6 +211,21 @@ private fun createOkHttpClient(): OkHttpClient {
             .build()
     }.also { logger.info { "created OkHttp client in ${it.duration}" } }
         .value
+}
+
+private suspend fun createCookieStorage(
+    scope: CoroutineScope,
+    baseUrl: Flow<String>,
+    secretsRepository: SecretsRepository
+): CookiesStorage {
+    val cookiesStorage = RememberMePersistingCookieStore(
+        baseUrl.map { Url(it) }.stateIn(scope),
+        secretsRepository
+    )
+    measureTime { cookiesStorage.loadRememberMeCookie() }
+        .also { logger.info { "loaded remember-me cookie from keyring in $it" } }
+
+    return cookiesStorage
 }
 
 private fun createKtorClient(
@@ -231,7 +248,7 @@ private fun createKtorClient(
 private fun createKomgaClientFactory(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
-    cookiesStorage: RememberMePersistingCookieStore,
+    cookiesStorage: CookiesStorage,
 ): KomgaClientFactory {
     return KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -243,7 +260,7 @@ private fun createKomgaClientFactory(
 private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
-    cookiesStorage: RememberMePersistingCookieStore,
+    cookiesStorage: CookiesStorage,
     upscaleOption: StateFlow<UpscaleOption>,
     upscaler: ManagedOnnxUpscaler?
 ): ReaderImageLoader {
@@ -271,20 +288,19 @@ private fun createReaderImageLoader(
 private fun createCoil(
     ktorClient: HttpClient,
     url: StateFlow<String>,
-    cookiesStorage: RememberMePersistingCookieStore,
-    decoderState: StateFlow<PlatformDecoderSettings>,
+    cookiesStorage: CookiesStorage,
     tempDir: Path,
 ): ImageLoader {
-    val coilKtorClient = ktorClient.config {
-        defaultRequest { url(url.value) }
-        install(HttpCookies) { storage = cookiesStorage }
-    }
-    val diskCache = DiskCache.Builder()
-        .directory(tempDir.toOkioPath())
-        .build()
-    diskCache.clear()
+    val timed = measureTimedValue {
+        val coilKtorClient = ktorClient.config {
+            defaultRequest { url(url.value) }
+            install(HttpCookies) { storage = cookiesStorage }
+        }
+        val diskCache = DiskCache.Builder()
+            .directory(tempDir.toOkioPath())
+            .build()
+        diskCache.clear()
 
-    return measureTimedValue {
         ImageLoader.Builder(PlatformContext.INSTANCE)
             .components {
                 add(KomgaBookPageMapper(url))
@@ -294,7 +310,7 @@ private fun createCoil(
                 add(KomgaReadListMapper(url))
                 add(KomgaSeriesThumbnailMapper(url))
                 add(FileMapper())
-                add(DesktopDecoder.Factory(decoderState))
+                add(DesktopDecoder.Factory())
                 add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
             }
             .memoryCache(
@@ -304,17 +320,23 @@ private fun createCoil(
             )
             .diskCache { diskCache }
             .build()
-    }.also { logger.info { "initialized Coil in ${it.duration}" } }.value
+            .also { loader -> SingletonImageLoader.setSafe { loader } }
+    }
+    logger.info { "initialized Coil in ${timed.duration}" }
+    return timed.value
 }
 
-private suspend fun createSettingsActor(): FileSystemSettingsActor {
+private fun createSettingsActor(database: Database): SettingsActor {
     val result = measureTimedValue {
-        val settingsProcessingActor = FileSystemSettingsActor()
-        val ack = CompletableDeferred<Unit>()
-        settingsProcessingActor.send(ActorMessage.Read(ack))
-        ack.await()
-
-        settingsProcessingActor
+        val repository = SettingsRepository(database.appSettingsQueries)
+        SettingsActor(
+            settings = repository.get()
+                ?: AppSettings(
+                    upscaleOption = skiaSamplerCatmullRom.value,
+                    downscaleOption = vipsDownscaleLanczos.value
+                ),
+            saveSettings = repository::save
+        )
     }
     logger.info { "loaded settings in ${result.duration}" }
     return result.value
@@ -327,51 +349,36 @@ private fun createSecretsRepository(): KeyringSecretsRepository {
 }
 
 private suspend fun createAvailableDecodersFlow(
-    settingsRepository: DesktopSettingsRepository,
+    settingsRepository: SharedActorSettingsRepository,
     mangaJaNaiDownloader: MangaJaNaiDownloader,
     scope: CoroutineScope
-): Flow<List<PlatformDecoderDescriptor>> {
-    val decoderFlow: StateFlow<List<PlatformDecoderDescriptor>> =
-        if (VipsSharedLibraries.isAvailable && OnnxRuntimeSharedLibraries.isAvailable) {
+): Flow<PlatformDecoderDescriptor> {
+    val decoderFlow: Flow<PlatformDecoderDescriptor> =
+        if (OnnxRuntimeSharedLibraries.isAvailable) {
             settingsRepository.getOnnxModelsPath()
                 .combine(mangaJaNaiDownloader.downloadCompletionEventFlow) { path, _ -> path }
-                .map { listOf(createVipsOnnxDescriptor(Path.of(it))) }
+                .map { createVipsOrtDescriptor(Path.of(it)) }
                 .stateIn(scope)
         } else {
             MutableStateFlow(
-                listOf(
-                    PlatformDecoderDescriptor(
-                        platformType = PlatformDecoderType.VIPS,
-                        upscaleOptions = upsamplingFilters,
-                        downscaleOptions = listOf(vipsDownscaleLanczos),
-                    )
+                PlatformDecoderDescriptor(
+                    upscaleOptions = upsamplingFilters,
+                    downscaleOptions = listOf(vipsDownscaleLanczos),
                 )
             )
         }
 
-    decoderFlow.onEach { decoders ->
+    decoderFlow.onEach { currentDescriptor ->
         val current = settingsRepository.getDecoderSettings().first()
-        val currentDescriptor = decoders.firstOrNull { it.platformType == current.platformType }
-        if (currentDescriptor == null) {
-            val newDecoder = decoders.first()
-            settingsRepository.putDecoderSettings(
-                PlatformDecoderSettings(
-                    platformType = newDecoder.platformType,
-                    upscaleOption = newDecoder.upscaleOptions.first(),
-                    downscaleOption = newDecoder.downscaleOptions.first()
-                )
-            )
-        } else if (!currentDescriptor.upscaleOptions.contains(current.upscaleOption)) {
-            settingsRepository.putDecoderSettings(
-                current.copy(upscaleOption = currentDescriptor.upscaleOptions.first())
-            )
+        if (!currentDescriptor.upscaleOptions.contains(current.upscaleOption)) {
+            settingsRepository.putDecoderSettings(current.copy(upscaleOption = currentDescriptor.upscaleOptions.first()))
         }
     }.launchIn(scope)
 
     return decoderFlow
 }
 
-private fun createVipsOnnxDescriptor(modelsPath: Path): PlatformDecoderDescriptor {
+private fun createVipsOrtDescriptor(modelsPath: Path): PlatformDecoderDescriptor {
     val mangaJaNaiIsAvailable = AppDirectories.mangaJaNaiInstallPath.exists() &&
             AppDirectories.mangaJaNaiInstallPath.listDirectoryEntries()
                 .map { it.fileName.toString() }
@@ -386,13 +393,11 @@ private fun createVipsOnnxDescriptor(modelsPath: Path): PlatformDecoderDescripto
             .sorted()
             .toList()
         return PlatformDecoderDescriptor(
-            platformType = PlatformDecoderType.VIPS_ONNX,
             upscaleOptions = defaultOptions + models.map { UpscaleOption(it) },
             downscaleOptions = listOf(vipsDownscaleLanczos),
         )
     } catch (e: java.nio.file.NoSuchFileException) {
         return PlatformDecoderDescriptor(
-            platformType = PlatformDecoderType.VIPS_ONNX,
             upscaleOptions = defaultOptions,
             downscaleOptions = listOf(vipsDownscaleLanczos),
         )

@@ -9,7 +9,6 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -50,6 +49,7 @@ import snd.komga.client.sse.KomgaEvent.SeriesAdded
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
 import snd.komga.client.sse.KomgaEvent.SeriesDeleted
 import snd.komga.client.sse.KomgaEvent.SeriesEvent
+import snd.settings.CommonSettingsRepository
 
 private val logger = KotlinLogging.logger {}
 
@@ -58,7 +58,7 @@ class SeriesListViewModel(
     referentialClient: KomgaReferentialClient,
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: CommonSettingsRepository,
     defaultSort: SeriesSort,
     libraryFlow: Flow<KomgaLibrary?>,
     cardWidthFlow: Flow<Dp>,

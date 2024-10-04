@@ -23,6 +23,9 @@ dependencyResolutionManagement {
 
 include(":komelia-app")
 include(":komelia-core")
+include("komelia-db:shared")
+include("komelia-db:sqlite")
+include("komelia-db:wasm")
 include("image-decoder")
 include(":wasm-image-worker")
 

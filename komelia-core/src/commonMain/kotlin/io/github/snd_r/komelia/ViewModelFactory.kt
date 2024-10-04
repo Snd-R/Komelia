@@ -1,5 +1,7 @@
 package io.github.snd_r.komelia
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import cafe.adriel.lyricist.Lyricist
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
@@ -7,9 +9,7 @@ import coil3.PlatformContext
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.strings.Locales
 import io.github.snd_r.komelia.strings.Strings
@@ -88,13 +88,15 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUser
+import snd.settings.CommonSettingsRepository
+import snd.settings.ReaderSettingsRepository
 
 interface DependencyContainer {
-    val settingsRepository: SettingsRepository
+    val settingsRepository: CommonSettingsRepository
     val readerSettingsRepository: ReaderSettingsRepository
     val secretsRepository: SecretsRepository
     val appUpdater: AppUpdater
-    val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
+    val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>
     val komgaClientFactory: KomgaClientFactory
     val imageLoader: ImageLoader
     val platformContext: PlatformContext
@@ -113,7 +115,7 @@ class ViewModelFactory(
         get() = dependencies.komgaClientFactory
     private val appUpdater: AppUpdater
         get() = dependencies.appUpdater
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: CommonSettingsRepository
         get() = dependencies.settingsRepository
     private val readerSettingsRepository: ReaderSettingsRepository
         get() = dependencies.readerSettingsRepository
@@ -121,8 +123,8 @@ class ViewModelFactory(
         get() = dependencies.secretsRepository
     private val imageLoader: ImageLoader
         get() = dependencies.imageLoader
-    private val availableDecoders: Flow<List<PlatformDecoderDescriptor>>
-        get() = dependencies.availableDecoders
+    private val availableDecoders: Flow<PlatformDecoderDescriptor>
+        get() = dependencies.imageDecoderDescriptor
     val appNotifications
         get() = dependencies.appNotifications
     private val appStrings
@@ -171,7 +173,7 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             appNotifications = appNotifications,
             komgaEvents = komgaEventSource.events,
-            cardWidthFlow = settingsRepository.getCardWidth(),
+            cardWidthFlow = getGridCardWidth(),
         )
     }
 
@@ -250,7 +252,7 @@ class ViewModelFactory(
             komgaEvents = komgaEventSource.events,
             settingsRepository = settingsRepository,
             libraryFlow = getLibraryFlow(libraryId),
-            cardWidthFlow = settingsRepository.getCardWidth(),
+            cardWidthFlow = getGridCardWidth(),
             defaultSort = sort
         )
     }
@@ -263,7 +265,7 @@ class ViewModelFactory(
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
             imageLoader = dependencies.readerImageLoader,
-            availableDecoders = availableDecoders,
+            decoderDescriptor = availableDecoders,
             appStrings = appStrings,
             markReadProgress = markReadProgress,
         )
@@ -294,7 +296,7 @@ class ViewModelFactory(
             onDialogDismiss = onDismissRequest,
             seriesClient = komgaClientFactory.seriesClient(),
             notifications = appNotifications,
-            cardWidth = settingsRepository.getCardWidth(),
+            cardWidth = getGridCardWidth(),
         )
 
     fun getSeriesBulkEditDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
@@ -311,7 +313,7 @@ class ViewModelFactory(
             onDialogDismiss = onDismissRequest,
             bookClient = komgaClientFactory.bookClient(),
             notifications = appNotifications,
-            cardWidth = settingsRepository.getCardWidth(),
+            cardWidth = getGridCardWidth(),
         )
 
     fun getOneshotEditDialogViewModel(
@@ -327,7 +329,7 @@ class ViewModelFactory(
         bookClient = komgaClientFactory.bookClient(),
         seriesClient = komgaClientFactory.seriesClient(),
         notifications = appNotifications,
-        cardWidth = settingsRepository.getCardWidth(),
+        cardWidth = getGridCardWidth(),
     )
 
     fun getBookBulkEditDialogViewModel(books: List<KomgaBook>, onDismissRequest: () -> Unit) =
@@ -346,7 +348,7 @@ class ViewModelFactory(
         onDialogDismiss = onDismissRequest,
         collectionClient = komgaClientFactory.collectionClient(),
         notifications = appNotifications,
-        cardWidth = settingsRepository.getCardWidth(),
+        cardWidth = getGridCardWidth(),
     )
 
     fun getReadListEditDialogViewModel(readList: KomgaReadList, onDismissRequest: () -> Unit) =
@@ -355,7 +357,7 @@ class ViewModelFactory(
             onDialogDismiss = onDismissRequest,
             readListClient = komgaClientFactory.readListClient(),
             notifications = appNotifications,
-            cardWidth = settingsRepository.getCardWidth(),
+            cardWidth = getGridCardWidth(),
         )
 
     fun getAddToCollectionDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
@@ -488,7 +490,7 @@ class ViewModelFactory(
             appNotifications = appNotifications,
             events = komgaEventSource.events,
             libraryFlow = libraryId?.let { getLibraryFlow(it) },
-            cardWidthFlow = settingsRepository.getCardWidth(),
+            cardWidthFlow = getGridCardWidth(),
         )
     }
 
@@ -498,7 +500,7 @@ class ViewModelFactory(
             appNotifications = appNotifications,
             komgaEvents = komgaEventSource.events,
             libraryFlow = libraryId?.let { getLibraryFlow(it) },
-            cardWidthFlow = settingsRepository.getCardWidth(),
+            cardWidthFlow = getGridCardWidth(),
         )
 
     }
@@ -510,7 +512,7 @@ class ViewModelFactory(
             notifications = appNotifications,
             seriesClient = komgaClientFactory.seriesClient(),
             komgaEvents = komgaEventSource.events,
-            cardWidthFlow = settingsRepository.getCardWidth()
+            cardWidthFlow = getGridCardWidth()
         )
     }
 
@@ -521,7 +523,7 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             notifications = appNotifications,
             komgaEvents = komgaEventSource.events,
-            cardWidthFlow = settingsRepository.getCardWidth()
+            cardWidthFlow = getGridCardWidth()
         )
     }
 
@@ -626,5 +628,9 @@ class ViewModelFactory(
     private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
         if (id == null) return flowOf(null)
         return libraries.map { libraries -> libraries.firstOrNull { it.id == id } }
+    }
+
+    private fun getGridCardWidth(): Flow<Dp> {
+        return settingsRepository.getCardWidth().map { it.dp }
     }
 }

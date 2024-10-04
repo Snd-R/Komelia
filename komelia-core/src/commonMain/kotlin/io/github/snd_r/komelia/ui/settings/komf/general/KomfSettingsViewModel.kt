@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
@@ -28,11 +27,12 @@ import snd.komf.api.config.KomgaConfigUpdateRequest
 import snd.komf.client.KomfConfigClient
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
+import snd.settings.CommonSettingsRepository
 
 class KomfSettingsViewModel(
     private val komfConfigClient: KomfConfigClient,
     private val appNotifications: AppNotifications,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: CommonSettingsRepository,
     val komfConfig: KomfConfigState,
     val libraries: StateFlow<List<KomgaLibrary>>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {

@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import snd.komga.client.book.KomgaBook
@@ -32,6 +32,7 @@ import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
+import snd.settings.CommonSettingsRepository
 
 class BookViewModel(
     book: KomgaBook?,
@@ -40,7 +41,7 @@ class BookViewModel(
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val libraries: StateFlow<List<KomgaLibrary>>,
-    settingsRepository: SettingsRepository,
+    settingsRepository: CommonSettingsRepository,
     readListClient: KomgaReadListClient,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
@@ -56,7 +57,7 @@ class BookViewModel(
         komgaEvents = komgaEvents,
         stateScope = screenModelScope,
     )
-    val cardWidth = settingsRepository.getCardWidth()
+    val cardWidth = settingsRepository.getCardWidth().map { it.dp }
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     val bookMenuActions = BookMenuActions(bookClient, notifications, screenModelScope)

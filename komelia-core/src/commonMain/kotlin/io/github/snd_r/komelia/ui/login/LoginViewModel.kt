@@ -7,7 +7,6 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.SettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.ktor.client.plugins.*
@@ -21,9 +20,10 @@ import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
 import snd.komga.client.user.KomgaUser
 import snd.komga.client.user.KomgaUserClient
+import snd.settings.CommonSettingsRepository
 
 class LoginViewModel(
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: CommonSettingsRepository,
     private val komgaUserClient: KomgaUserClient,
     private val komgaLibraryClient: KomgaLibraryClient,
     private val authenticatedUserFlow: MutableStateFlow<KomgaUser?>,

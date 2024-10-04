@@ -61,6 +61,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":komelia-core"))
+            implementation(project(":komelia-db:shared"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -94,10 +95,12 @@ kotlin {
             implementation(libs.slf4j.api)
             implementation(project(":image-decoder"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
+            implementation(project(":komelia-db:sqlite"))
         }
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
             implementation(project(":wasm-image-worker"))
+            implementation(project(":komelia-db:wasm"))
         }
     }
 }
