@@ -64,11 +64,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
 import snd.komelia.db.Database
-import snd.komelia.db.DriverFactory
-import snd.komelia.db.createDatabase
 import snd.komelia.db.settings.AppSettings
+import snd.komelia.db.settings.JooqSettingsRepository
 import snd.komelia.db.settings.SettingsActor
-import snd.komelia.db.settings.SettingsRepository
 import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
@@ -88,7 +86,7 @@ private val logger = KotlinLogging.logger {}
 suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContainer {
     checkVipsLibraries()
 
-    val database = createDatabase(DriverFactory(AppDirectories.databaseFile))
+    val database = Database(AppDirectories.databaseFile.toString())
     val settingsActor = createSettingsActor(database)
     val settingsRepository = SharedActorSettingsRepository(settingsActor)
     val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
@@ -328,7 +326,7 @@ private fun createCoil(
 
 private fun createSettingsActor(database: Database): SettingsActor {
     val result = measureTimedValue {
-        val repository = SettingsRepository(database.appSettingsQueries)
+        val repository = JooqSettingsRepository(database.dsl)
         SettingsActor(
             settings = repository.get()
                 ?: AppSettings(

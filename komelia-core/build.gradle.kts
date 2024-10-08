@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import com.google.protobuf.gradle.id
+import com.google.protobuf.gradle.proto
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -36,107 +37,89 @@ kotlin {
     }
 
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        moduleName = "komelia-app"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "komelia-app.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(project.projectDir.path)
-                        add(project.projectDir.path + "/commonMain/")
-                        add(project.projectDir.path + "/wasmJsMain/")
-                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
-                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
+    wasmJs { moduleName = "komelia-core" }
 
     sourceSets {
         all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.material)
-            implementation(compose.material3)
+            api(compose.runtime)
+            api(compose.foundation)
+            api(compose.materialIconsExtended)
+            api(compose.material)
+            api(compose.material3)
 
-            implementation(libs.kotlin.logging)
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.core)
+            api(libs.kotlin.logging)
+            api(libs.kotlinx.datetime)
+            api(libs.kotlinx.coroutines.core)
+            api(libs.kotlinx.serialization.core)
 
-            implementation(libs.cache4k)
-            implementation(libs.coil)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor3)
-            implementation(libs.chiptextfield.core)
-            implementation(libs.chiptextfield.m3)
-            implementation(libs.filekit.core)
-            implementation(libs.filekit.compose)
-            implementation(libs.komf.client)
-            implementation(libs.komga.client)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.encoding)
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.lyricist)
-            implementation(libs.markdown)
-            implementation(libs.reorderable)
-            implementation(libs.richEditor.compose)
-            implementation(libs.sonner)
-            implementation(libs.voyager.screenmodel)
-            implementation(libs.voyager.navigator)
-            implementation(libs.voyager.transition)
+            api(libs.cache4k)
+            api(libs.coil)
+            api(libs.coil.compose)
+            api(libs.coil.network.ktor3)
+            api(libs.chiptextfield.core)
+            api(libs.chiptextfield.m3)
+            api(libs.filekit.core)
+            api(libs.filekit.compose)
+            api(libs.komf.client)
+            api(libs.komga.client)
+            api(libs.ktor.client.core)
+            api(libs.ktor.client.content.negotiation)
+            api(libs.ktor.client.encoding)
+            api(libs.ktor.serialization.kotlinx.json)
+            api(libs.lyricist)
+            api(libs.markdown)
+            api(libs.reorderable)
+            api(libs.richEditor.compose)
+            api(libs.sonner)
+            api(libs.voyager.screenmodel)
+            api(libs.voyager.navigator)
+            api(libs.voyager.transition)
         }
 
         androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.androidx.appcompat)
-            implementation(libs.androidx.core.ktx)
-            implementation(libs.androidx.window)
-            implementation(libs.androidx.datastore)
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.logback.android)
-            implementation(libs.okhttp)
-            implementation(libs.okhttp.logging.interceptor)
-            implementation(libs.protobuf.javalite)
-            implementation(libs.protobuf.kotlin.lite)
-            implementation(libs.slf4j.api)
-            implementation(project(":image-decoder"))
+            api(libs.androidx.activity.compose)
+            api(libs.androidx.appcompat)
+            api(libs.androidx.core.ktx)
+            api(libs.androidx.window)
+            api(libs.androidx.datastore)
+            api(libs.ktor.client.okhttp)
+            api(libs.logback.android)
+            api(libs.okhttp)
+            api(libs.okhttp.logging.interceptor)
+            api(libs.protobuf.javalite)
+            api(libs.protobuf.kotlin.lite)
+            api(libs.slf4j.api)
+            api(project(":image-decoder"))
         }
 
         jvmMain.dependencies {
-            implementation(compose.desktop.common)
-            implementation(compose.desktop.currentOs)
+            api(compose.desktop.common)
+            api(compose.desktop.currentOs)
 
-            implementation(libs.kotlinx.coroutines.swing)
+            api(libs.kotlinx.coroutines.swing)
 
-            implementation(libs.commons.compress)
-            implementation(libs.directories)
-            implementation(libs.java.keyring)
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.ktoml.core)
-            implementation(libs.ktoml.file)
-            implementation(libs.ktoml.source.jvm)
-            implementation(libs.logback.core)
-            implementation(libs.logback.classic)
-            implementation(libs.okhttp)
-            implementation(libs.okhttp.logging.interceptor)
-            implementation(libs.secret.service)
-            implementation(libs.slf4j.api)
-            implementation(project(":image-decoder"))
-            implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
+            api(libs.commons.compress)
+            api(libs.directories)
+            api(libs.java.keyring)
+            api(libs.ktor.client.okhttp)
+            api(libs.ktoml.core)
+            api(libs.ktoml.file)
+            api(libs.ktoml.source.jvm)
+            api(libs.logback.core)
+            api(libs.logback.classic)
+            api(libs.okhttp)
+            api(libs.okhttp.logging.interceptor)
+            api(libs.secret.service)
+            api(libs.slf4j.api)
+            api(project(":image-decoder"))
+            api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
 
         val wasmJsMain by getting
         wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
-            implementation(project(":wasm-image-worker"))
+            api(libs.ktor.client.js)
+            api(project(":wasm-image-worker"))
         }
     }
 }
@@ -144,6 +127,10 @@ kotlin {
 android {
     namespace = "io.github.snd_r.core"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    sourceSets["main"].proto {
+        srcDir("src/androidMain/proto")
+    }
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

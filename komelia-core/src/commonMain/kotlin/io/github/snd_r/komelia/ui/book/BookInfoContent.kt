@@ -58,7 +58,7 @@ fun BookInfoColumn(
     tags: List<String>,
     links: List<KomgaWebLink>,
     sizeInMiB: String,
-    mediaType: String,
+    mediaType: String?,
     isbn: String,
     fileUrl: String,
     onFilterClick: (SeriesScreenFilter) -> Unit,
@@ -129,7 +129,9 @@ fun BookInfoColumn(
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.width(120.dp)
             )
-            SelectionContainer { Text(mediaType, style = MaterialTheme.typography.labelLarge) }
+            if (mediaType != null) {
+                SelectionContainer { Text(mediaType, style = MaterialTheme.typography.labelLarge) }
+            }
         }
 
         isbn.ifBlank { null }?.let { isbn ->

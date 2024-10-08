@@ -29,6 +29,9 @@ include("komelia-db:wasm")
 include("image-decoder")
 include(":wasm-image-worker")
 
+includeBuild("komelia-db/flyway-gradle-plugin") {
+    dependencySubstitution { substitute(module("org.flywaydb:flyway")) }
+}
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
 }

@@ -139,7 +139,7 @@ class LibraryEditDialogViewModel(
     }
 
     private suspend fun addLibrary() {
-        libraryClient.adOne(
+        libraryClient.addOne(
             KomgaLibraryCreateRequest(
                 name = libraryName.value,
                 root = rootFolder.value,

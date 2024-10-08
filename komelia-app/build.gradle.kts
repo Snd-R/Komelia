@@ -1,12 +1,8 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.proto
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -14,8 +10,6 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.parcelize)
-    alias(libs.plugins.protobuf)
 }
 
 group = "io.github.snd-r"
@@ -24,84 +18,52 @@ version = "0.9.0"
 kotlin {
     jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
     androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.addAll(
-                "-P",
-                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=io.github.snd_r.komelia.platform.CommonParcelize"
-            )
-        }
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
     jvm {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        moduleName = "komelia-app"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "komelia-app.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(project.projectDir.path)
-                        add(project.projectDir.path + "/commonMain/")
-                        add(project.projectDir.path + "/wasmJsMain/")
-                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
-                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        moduleName = "komelia-app"
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "komelia-app.js"
+//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+//                    static = (static ?: mutableListOf()).apply {
+//                        // Serve sources to debug inside browser
+//                        add(project.projectDir.path)
+//                        add(project.projectDir.path + "/commonMain/")
+//                        add(project.projectDir.path + "/wasmJsMain/")
+//                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
+//                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
+//                    }
+//                }
+//            }
+//        }
+//        binaries.executable()
+//    }
 
     sourceSets {
         commonMain.dependencies {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-db:shared"))
-
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-
-            implementation(libs.coil)
-            implementation(libs.coil.network.ktor3)
-            implementation(libs.kotlin.logging)
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.core)
-            implementation(libs.komf.client)
-            implementation(libs.komga.client)
-
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.encoding)
-            implementation(libs.ktor.serialization.kotlinx.json)
         }
 
-        androidMain.dependencies {}
-        jvmMain.dependencies {
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation(compose.desktop.common)
-
-            implementation(libs.directories)
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.logback.core)
-            implementation(libs.logback.classic)
-            implementation(libs.okhttp)
-            implementation(libs.okhttp.logging.interceptor)
-            implementation(libs.slf4j.api)
-            implementation(project(":image-decoder"))
-            implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
+        androidMain.dependencies {
             implementation(project(":komelia-db:sqlite"))
         }
-        wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
-            implementation(project(":wasm-image-worker"))
-            implementation(project(":komelia-db:wasm"))
+        jvmMain.dependencies {
+            implementation(project(":komelia-db:sqlite"))
+            implementation(project(":image-decoder"))
+            implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
+//        wasmJsMain.dependencies {
+//            implementation(project(":wasm-image-worker"))
+//            implementation(project(":komelia-db:wasm"))
+//        }
     }
 }
 
@@ -112,9 +74,6 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-    sourceSets["main"].proto {
-        srcDir("src/androidMain/proto")
-    }
 
     defaultConfig {
         applicationId = "io.github.snd_r.komelia"
@@ -125,7 +84,7 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/{AL2.0,LGPL2.1,README.txt}"
         }
     }
     buildTypes {
@@ -136,24 +95,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    protobuf {
-        protoc {
-            artifact = "com.google.protobuf:protoc:3.24.1"
-        }
-        generateProtoTasks {
-            all().forEach { task ->
-                task.builtins {
-                    id("java") {
-                        option("lite")
-                    }
-                    id("kotlin") {
-                        option("lite")
-                    }
-                }
-            }
-        }
     }
 }
 
