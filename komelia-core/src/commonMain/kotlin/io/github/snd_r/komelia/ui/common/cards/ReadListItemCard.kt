@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -115,10 +114,9 @@ private fun ReadListImageOverlay(
         content()
         CardGradientOverlay()
         Column(Modifier.padding(10.dp)) {
-            Text(readlist.name, style = cardTextStyle())
-            Text(
+            CardOutlinedText(readlist.name)
+            CardOutlinedText(
                 if (readlist.bookIds.size == 1) "1 book" else "${readlist.bookIds.size} books",
-                style = cardTextStyle()
             )
         }
     }

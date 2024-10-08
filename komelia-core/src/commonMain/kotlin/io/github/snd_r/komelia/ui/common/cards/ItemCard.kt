@@ -27,14 +27,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalPlatform
+import io.github.snd_r.komelia.ui.common.OutlinedText
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyGridState
 
@@ -99,14 +101,21 @@ fun overlayBorderModifier() =
 
 
 @Composable
-fun cardTextStyle() = MaterialTheme.typography.bodyMedium.copy(
-    color = Color.White,
-    shadow = Shadow(
-        color = Color.Black,
-        offset = Offset(-1f, -1f),
-        blurRadius = 0f
-    ),
-)
+fun CardOutlinedText(
+    text: String,
+    maxLines: Int = Int.MAX_VALUE,
+    style: TextStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+    outlineDrawStyle: Stroke = Stroke(4f),
+) {
+    OutlinedText(
+        text = text,
+        maxLines = maxLines,
+        outlineColor = Color.Black,
+        style = style,
+        overflow = TextOverflow.Ellipsis,
+        outlineDrawStyle = outlineDrawStyle,
+    )
+}
 
 @Composable
 fun SelectionRadioButton(
@@ -127,7 +136,6 @@ fun SelectionRadioButton(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LazyGridItemScope.DraggableImageCard(
     key: String,

@@ -38,10 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,6 +64,7 @@ fun BookImageCard(
     onBookReadClick: ((markProgress: Boolean) -> Unit)? = null,
     isSelected: Boolean = false,
     onSelect: (() -> Unit)? = null,
+    showSeriesTitle: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
 
@@ -81,7 +80,7 @@ fun BookImageCard(
                 onSelect = onSelect,
                 isSelected = isSelected,
             ) {
-                BookImageOverlay(book) {
+                BookImageOverlay(book = book, showSeriesTitle = showSeriesTitle) {
                     BookThumbnail(
                         book.id,
                         modifier = Modifier.fillMaxSize(),
@@ -118,9 +117,10 @@ fun BookSimpleImageCard(
 private fun BookImageOverlay(
     book: KomgaBook,
     showTitle: Boolean = true,
+    showSeriesTitle: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    Box(contentAlignment = Alignment.Center) {
+    Box(contentAlignment = Alignment.TopStart) {
         content()
         if (showTitle)
             CardGradientOverlay()
@@ -133,35 +133,21 @@ private fun BookImageOverlay(
 
             Spacer(modifier = Modifier.weight(1f))
             Column(Modifier.padding(10.dp)) {
+                if (showSeriesTitle) {
+                    CardOutlinedText(
+                        text = book.seriesTitle,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.labelMedium.copy(color = Color(195, 195, 195)),
+                    )
+                }
                 if (showTitle) {
-                    Text(
+                    CardOutlinedText(
                         text = book.metadata.title,
-                        maxLines = 4,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White,
-                            shadow = Shadow(
-                                color = Color.Black,
-                                offset = Offset(-1f, -1f),
-                                blurRadius = 0f
-                            ),
-                        ),
-                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 3
                     )
                 }
                 if (book.deleted) {
-                    Text(
-                        text = "Unavailable",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.error,
-                            shadow = Shadow(
-                                color = Color.Black,
-                                offset = Offset(-1f, -1f),
-                                blurRadius = 0f
-                            ),
-                        ),
-                        overflow = TextOverflow.Ellipsis,
-                    )
-
+                    CardOutlinedText(text = "Unavailable")
                 }
             }
 

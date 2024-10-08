@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -116,11 +115,8 @@ private fun CollectionImageOverlay(
         content()
         CardGradientOverlay()
         Column(Modifier.padding(10.dp)) {
-            Text(collection.name, style = cardTextStyle())
-            Text(
-                "${collection.seriesIds.size} series",
-                style = cardTextStyle()
-            )
+            CardOutlinedText(collection.name)
+            CardOutlinedText("${collection.seriesIds.size} series")
         }
     }
 

@@ -339,6 +339,7 @@ private fun LazyGridScope.BookFilterEntry(
             onBookClick = { onBookClick(book) },
             onBookReadClick = { onBookReadClick(book.id, it) },
             bookMenuActions = bookMenuActions,
+            showSeriesTitle = true,
             modifier = Modifier.fillMaxSize()
         )
     }
