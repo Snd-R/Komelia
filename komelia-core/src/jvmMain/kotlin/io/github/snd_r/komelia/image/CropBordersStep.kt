@@ -10,7 +10,7 @@ class CropBordersStep(
     override suspend fun process(pageId: ReaderImage.PageId, image: VipsImage): PlatformImage? {
         if (!enabled.value) return null
         val trim = image.findTrim()
-        return image.getRegion(trim)
+        return image.extractArea(trim)
     }
 
     override suspend fun addChangeListener(callback: () -> Unit) {

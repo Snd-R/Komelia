@@ -47,7 +47,7 @@ class VipsImage private constructor(
         external fun vipsInit()
     }
 
-    external fun getRegion(rect: ImageRect): VipsImage
+    external fun extractArea(rect: ImageRect): VipsImage
     external fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImage
     external fun getBytes(): ByteArray
     external fun encodeToFile(path: String)

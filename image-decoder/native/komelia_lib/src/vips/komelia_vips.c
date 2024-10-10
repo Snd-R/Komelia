@@ -276,70 +276,23 @@ VipsRect to_vips_rect(JNIEnv *env, jobject jvm_rect) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rect) {
+Java_io_github_snd_1r_VipsImage_extractArea(JNIEnv *env, jobject this, jobject rect) {
     VipsImage *input_image = komelia_from_jvm_handle(env, this);
     if (input_image == NULL) { return NULL; }
 
-    VipsRegion *region = vips_region_new(input_image);
+
     VipsRect vips_rect = to_vips_rect(env, rect);
-
-    int bands = vips_image_get_bands(input_image);
-
-    int prepare_error = vips_region_prepare(region, &vips_rect);
-    if (prepare_error) {
+    VipsImage *extracted_image = NULL;
+    int extract_error = vips_extract_area(input_image, &extracted_image,
+                                          vips_rect.left, vips_rect.top, vips_rect.width, vips_rect.height,
+                                          NULL);
+    if (extract_error) {
         komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
-        g_object_unref(region);
         return NULL;
     }
 
-    size_t region_size = 0;
-    // using region directly sometimes causes image corruption or only loads part of the region
-    // copy entire region instead
-    VipsPel *region_data = vips_region_fetch(region,
-                                             vips_rect.left, vips_rect.top,
-                                             vips_rect.width, vips_rect.height,
-                                             &region_size
-    );
-    VipsImage *memory_image = vips_image_new_from_memory(
-        //                VIPS_REGION_ADDR_TOPLEFT(region),
-        region_data,
-        region_size,
-        vips_rect.width,
-        vips_rect.height,
-        bands,
-        VIPS_FORMAT_UCHAR
-    );
-    if (!memory_image) {
-        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-        vips_error_clear();
-        g_object_unref(region);
-        g_free(region_data);
-        vips_thread_shutdown();
-        return NULL;
-    }
-    VipsImage *region_image = NULL;
-    vips_copy(memory_image, &region_image,
-              "bands", vips_image_get_bands(input_image),
-              "format", vips_image_get_format(input_image),
-              "coding", vips_image_get_coding(input_image),
-              "interpretation", vips_image_get_interpretation(input_image),
-              NULL
-    );
-    if (!region_image) {
-        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-        vips_error_clear();
-        g_object_unref(memory_image);
-        g_object_unref(region);
-        g_free(region_data);
-        vips_thread_shutdown();
-        return NULL;
-    }
-
-    jobject jvm_image = komelia_to_jvm_handle(env, region_image, region_data);
-    g_object_unref(memory_image);
-    g_object_unref(region);
-    vips_thread_shutdown();
+    jobject jvm_image = komelia_to_jvm_handle(env, extracted_image, NULL);
     return jvm_image;
 }
 
@@ -418,7 +371,7 @@ Java_io_github_snd_1r_VipsImage_findTrim(JNIEnv *env, jobject this) {
     if (image == NULL) return NULL;
 
     int left, top, width, height;
-    vips_find_trim(image, &left, &top, &width, &height, "threshold", 50.0, "line_art", 1, NULL);
+    vips_find_trim(image, &left, &top, &width, &height, "threshold", 50.0, "line_art", 0, NULL);
     return jvm_rect(env, left, top, width, height);
 }
 

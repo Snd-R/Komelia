@@ -70,7 +70,7 @@ class AndroidTilingReaderImage(
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData {
-        val region = image.getRegion(imageRegion.toImageRect())
+        val region = image.extractArea(imageRegion.toImageRect())
         val resized = region.resize(scaleWidth, scaleHeight, false)
 
         val bitmap = VipsBitmapFactory.createHardwareBitmap(resized)

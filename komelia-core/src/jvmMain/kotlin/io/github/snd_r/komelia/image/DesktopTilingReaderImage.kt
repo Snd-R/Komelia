@@ -109,7 +109,7 @@ class DesktopTilingReaderImage(
         scaleHeight: Int
     ): ReaderImageData {
 
-        val region = image.getRegion(imageRegion.toImageRect())
+        val region = image.extractArea(imageRegion.toImageRect())
         if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
             return region.toReaderImageData()
         }
