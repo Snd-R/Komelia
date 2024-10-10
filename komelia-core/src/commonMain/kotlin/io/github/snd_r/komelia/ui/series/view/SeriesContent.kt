@@ -225,7 +225,7 @@ fun Series(
             Column(
                 modifier = Modifier
                     .weight(1f, false)
-                    .widthIn(min = 450.dp, max = maxWidth)
+                    .widthIn(min = 350.dp, max = maxWidth)
                     .fillMaxWidth(),
             ) {
                 SeriesDescriptionRow(

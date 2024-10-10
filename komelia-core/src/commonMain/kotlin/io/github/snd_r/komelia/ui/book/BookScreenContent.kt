@@ -188,7 +188,7 @@ private fun FlowRowScope.BookMainInfo(
     }
 
     Column(
-        modifier = Modifier.weight(1f, false).widthIn(min = 450.dp, max = maxWidth),
+        modifier = Modifier.weight(1f, false).widthIn(min = 350.dp, max = maxWidth),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         BookInfoRow(
