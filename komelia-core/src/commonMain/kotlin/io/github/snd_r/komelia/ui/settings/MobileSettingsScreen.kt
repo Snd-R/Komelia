@@ -66,7 +66,8 @@ class MobileSettingsScreen : Screen {
                     komfEnabled = vm.komfEnabledFlow.collectAsState().value,
                     newVersionIsAvailable = vm.newVersionIsAvailable,
                     onLogout = vm::logout,
-                    contentColor = MaterialTheme.colorScheme.surface
+                    contentColor = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.weight(1f, false)
                 )
 
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))

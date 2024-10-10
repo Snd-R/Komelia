@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
@@ -34,7 +36,6 @@ import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.filterNotNull
 import kotlin.math.roundToInt
 
 @Composable
@@ -59,6 +60,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
                 else newValue.toIntOrNull()?.let { state.onPageSpacingChange(it) }
             },
             label = { Text(strings.pageSpacing) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
         )
     }
