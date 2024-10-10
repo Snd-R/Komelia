@@ -7,6 +7,11 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
+import io.github.snd_r.komelia.platform.PlatformType.MOBILE
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
+import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.ktor.client.plugins.*
@@ -24,11 +29,13 @@ import snd.settings.CommonSettingsRepository
 
 class LoginViewModel(
     private val settingsRepository: CommonSettingsRepository,
+    private val secretsRepository: SecretsRepository,
     private val komgaUserClient: KomgaUserClient,
     private val komgaLibraryClient: KomgaLibraryClient,
     private val authenticatedUserFlow: MutableStateFlow<KomgaUser?>,
     private val availableLibrariesFlow: MutableStateFlow<List<KomgaLibrary>>,
     private val notifications: AppNotifications,
+    private val platform: PlatformType
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     var url by mutableStateOf("")
@@ -43,7 +50,17 @@ class LoginViewModel(
         screenModelScope.launch {
             url = settingsRepository.getServerUrl().first()
             user = settingsRepository.getCurrentUser().first()
-            tryAutologin()
+            when (platform) {
+                MOBILE, DESKTOP -> {
+                    if (secretsRepository.getCookie(url) != null) {
+                        tryAutologin()
+                    } else {
+                        mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
+                    }
+                }
+
+                WEB_KOMF -> tryAutologin()
+            }
         }
     }
 

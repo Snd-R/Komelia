@@ -274,11 +274,13 @@ class ViewModelFactory(
     fun getLoginViewModel(): LoginViewModel {
         return LoginViewModel(
             settingsRepository = settingsRepository,
+            secretsRepository = secretsRepository,
             komgaUserClient = komgaClientFactory.userClient(),
             komgaLibraryClient = komgaClientFactory.libraryClient(),
             authenticatedUserFlow = authenticatedUser,
             availableLibrariesFlow = libraries,
             notifications = appNotifications,
+            platform = platformType
         )
     }
 
