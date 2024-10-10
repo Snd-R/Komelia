@@ -305,12 +305,14 @@ class PagedReaderState(
             if (currentSpreadJob.isActive) {
                 currentSpread.value = PageSpread(currentSpreadMetadata.map { Page(it, null) })
                 currentSpreadIndex.value = loadSpreadIndex
+                transitionPage.value = null
             }
         }
 
         val completedPagesJob = currentSpreadJob.await()
         currentSpread.value = completedPagesJob.spread
         currentSpreadIndex.value = loadSpreadIndex
+        transitionPage.value = null
 
         val newScale = completedPagesJob.scale
         screenScaleState.apply(newScale)
