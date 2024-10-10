@@ -28,11 +28,9 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookEnd
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookStart
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
@@ -303,8 +301,11 @@ class PagedReaderState(
         }
 
         if (currentSpreadJob.isActive) {
-            currentSpread.value = PageSpread(currentSpreadMetadata.map { Page(it, null) })
-            currentSpreadIndex.value = loadSpreadIndex
+            delay(10)
+            if (currentSpreadJob.isActive) {
+                currentSpread.value = PageSpread(currentSpreadMetadata.map { Page(it, null) })
+                currentSpreadIndex.value = loadSpreadIndex
+            }
         }
 
         val completedPagesJob = currentSpreadJob.await()
@@ -320,8 +321,7 @@ class PagedReaderState(
         val scale: ScreenScaleState
     )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun launchSpreadLoadJob(pagesMeta: List<PageMetadata>): Deferred<PagesLoadJob> {
+    private fun launchSpreadLoadJob(pagesMeta: List<PageMetadata>): Deferred<PagesLoadJob> {
         val pages = pagesMeta.map { meta ->
             val cacheKey = ImageCacheKey(meta.bookId, meta.pageNumber)
             val cached = imageCache.get(cacheKey)
@@ -332,14 +332,9 @@ class PagedReaderState(
             }.also { imageCache.put(cacheKey, it) }
         }
 
-        if (pages.all { it.isCompleted }) {
-            val completed = pages.map { it.getCompleted() }
-            return CompletableDeferred(completeLoadJob(completed))
-        } else {
-            return pageLoadScope.async {
-                val completed = pages.map { it.await() }
-                completeLoadJob(completed)
-            }
+        return pageLoadScope.async {
+            val completed = pages.map { it.await() }
+            completeLoadJob(completed)
         }
     }
 
