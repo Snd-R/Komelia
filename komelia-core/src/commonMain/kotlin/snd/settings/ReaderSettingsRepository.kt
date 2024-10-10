@@ -12,6 +12,9 @@ interface ReaderSettingsRepository {
     fun getStretchToFit(): Flow<Boolean>
     suspend fun putStretchToFit(stretch: Boolean)
 
+    fun getCropBorders(): Flow<Boolean>
+    suspend fun putCropBorders(trim: Boolean)
+
     fun getPagedReaderScaleType(): Flow<PagedReaderState.LayoutScaleType>
     suspend fun putPagedReaderScaleType(type: PagedReaderState.LayoutScaleType)
 

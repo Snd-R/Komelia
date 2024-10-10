@@ -69,6 +69,7 @@ class LocalStorageSettingsRepository {
 
             upscaleOption = "Default",
             downscaleOption = "Default",
+            cropBorders = false,
         )
     }
 

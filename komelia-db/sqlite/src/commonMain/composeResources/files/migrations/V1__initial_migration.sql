@@ -30,6 +30,7 @@ CREATE TABLE AppSettings
     continuous_reading_direction        TEXT    NOT NULL,
     continuous_padding                  REAL    NOT NULL,
     continuous_page_spacing             INTEGER NOT NULL,
+    crop_borders                          BOOLEAN NOT NULL,
 
     komf_enabled                        BOOLEAN NOT NULL,
     komf_mode                           TEXT    NOT NULL,

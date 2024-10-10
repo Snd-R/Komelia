@@ -34,6 +34,7 @@ import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.reader.PageMetadata
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filterNotNull
 import kotlin.math.roundToInt
 
 @Composable
@@ -105,20 +106,16 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     AnimatedVisibility(showPagesInfo) {
         Column {
             HorizontalDivider(Modifier.padding(vertical = 5.dp))
-            val scaleFactor = state.screenScaleState.transformation.collectAsState().value.scale
-            val stretchToFit = state.imageStretchToFit.collectAsState().value
             visiblePages.forEach { page ->
                 Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
-                val displaySize = remember(scaleFactor, stretchToFit, padding) {
-                    val scaledSize = state.getPageDisplaySize(page)
-                    IntSize(
-                        width = (scaledSize.width * scaleFactor).roundToInt(),
-                        height = (scaledSize.height * scaleFactor).roundToInt()
-                    )
+                var displaySize by remember { mutableStateOf<IntSize?>(null) }
+                LaunchedEffect(Unit) {
+                    state.getPageDisplaySize(page).collect { displaySize = it }
                 }
-
-                Text("${readerStrings.pageDisplaySize} ${displaySize.width} x ${displaySize.height}")
+                displaySize?.let {
+                    Text("${readerStrings.pageDisplaySize} ${it.width} x ${it.height}")
+                }
 
                 if (page.size != null) {
                     Text("${readerStrings.pageOriginalSize}: ${page.size.width} x ${page.size.height}")

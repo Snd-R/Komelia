@@ -12,12 +12,6 @@ import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.datetime.Instant
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 
 data class AppSettings(
     val username: String = "admin@example.org",
@@ -50,19 +44,9 @@ data class AppSettings(
     val continuousPadding: Float = .3f,
     val continuousPageSpacing: Int = 0,
 
+    val cropBorders: Boolean = false,
+
     val komfEnabled: Boolean = false,
     val komfMode: KomfMode = KomfMode.REMOTE,
     val komfRemoteUrl: String = "http://localhost:8085",
 )
-
-object InstantEpochMillisSerializer : KSerializer<Instant> {
-
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("kotlinx.datetime.Instant", PrimitiveKind.LONG)
-
-    override fun deserialize(decoder: Decoder): Instant =
-        Instant.fromEpochMilliseconds(decoder.decodeLong())
-
-    override fun serialize(encoder: Encoder, value: Instant) =
-        encoder.encodeLong(value.toEpochMilliseconds())
-}

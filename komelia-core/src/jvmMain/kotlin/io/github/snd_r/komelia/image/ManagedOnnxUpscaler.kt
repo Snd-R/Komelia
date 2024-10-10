@@ -1,10 +1,7 @@
 package io.github.snd_r.komelia.image
 
+import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.reactivecircus.cache4k.Cache
-import io.github.reactivecircus.cache4k.CacheEvent.Evicted
-import io.github.reactivecircus.cache4k.CacheEvent.Expired
-import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.ImageFormat
 import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.OnnxRuntimeUpscaler
@@ -21,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,12 +26,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import okio.Path.Companion.toOkioPath
 import snd.settings.CommonSettingsRepository
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createTempFile
-import kotlin.io.path.deleteIfExists
 import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
@@ -43,26 +39,10 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mutex = Mutex()
 
-    private val imageCache = Cache.Builder<PageId, VipsImage>().maximumCacheSize(6)
-        .eventListener {
-            val image = when (it) {
-                is Evicted -> it.value
-                is Expired -> it.value
-                is Removed -> it.value
-                else -> null
-            } ?: return@eventListener
-            image.close()
-        }.build()
-    private val imagePathCache = Cache.Builder<PageId, Path>().maximumCacheSize(20)
-        .eventListener {
-            val path = when (it) {
-                is Evicted -> it.value
-                is Expired -> it.value
-                is Removed -> it.value
-                else -> null
-            } ?: return@eventListener
-            scope.launch { path.deleteIfExists() }
-        }.build()
+    private val imageCache = DiskCache.Builder()
+        .directory(AppDirectories.readerUpscaleCachePath.createDirectories().toOkioPath())
+        .maxSizeBytes(500L * 1024 * 1024) // 500mb
+        .build()
 
     fun initialize() {
         require(OnnxRuntimeSharedLibraries.isAvailable)
@@ -79,8 +59,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
             .conflate()
             .onEach { decoderSettings ->
                 mutex.withLock {
-                    imageCache.invalidateAll()
-                    imagePathCache.invalidateAll()
+                    imageCache.clear()
 
                     val option = decoderSettings.upscaleOption
                     when (option) {
@@ -101,21 +80,37 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
             }.launchIn(scope)
     }
 
+    fun asPipelineStep(): ProcessingStep = OnnxRuntimeProcessingStep(this)
+
     suspend fun upscale(pageId: PageId, image: VipsImage): VipsImage? {
         return mutex.withLock {
             withContext(Dispatchers.IO) {
-                val cached = imageCache.get(pageId)
-                    ?: imagePathCache.get(pageId)?.let { VipsImage.decodeFromFile(it.toString()) }
-                if (cached != null) return@withContext cached
+                imageCache.openSnapshot(pageId.toString()).use { snapshot ->
+                    if (snapshot != null) {
+                        return@withContext VipsImage.decodeFromFile(snapshot.data.toString())
+                    }
+                    val upscaled = when (upscaleMode.value) {
+                        USER_SPECIFIED_MODEL -> OnnxRuntimeUpscaler.upscale(image)
+                        MANGAJANAI_PRESET -> mangaJaNaiUpscale(pageId, image)
+                        NONE -> null
+                    }
 
-                val upscaled = when (upscaleMode.value) {
-                    USER_SPECIFIED_MODEL -> OnnxRuntimeUpscaler.upscale(image)
-                    MANGAJANAI_PRESET -> mangaJaNaiUpscale(pageId, image)
-                    NONE -> null
+                    upscaled?.let { image -> writeToDiskCache(pageId, image) }
+
+                    return@withContext upscaled
                 }
-
-                upscaled?.also { addToCache(pageId, it) }
             }
+        }
+    }
+
+    private fun writeToDiskCache(pageId: PageId, image: VipsImage) {
+        val editor = imageCache.openEditor(pageId.toString()) ?: return
+        try {
+            image.encodeToFilePng(editor.data.toString())
+            editor.commit()
+        } catch (e: Exception) {
+            editor.abort()
+            throw e
         }
     }
 
@@ -167,18 +162,15 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
         return (rgbaPixelCount - grayScaleCount) < rgbaPixelCount / 10
     }
 
-    private fun addToCache(pageId: PageId, image: VipsImage) {
-        imageCache.put(pageId, image)
-        AppDirectories.readerUpscaleCachePath.createDirectories()
-        val writePath = createTempFile(AppDirectories.readerUpscaleCachePath, suffix = "_onnxruntime.png")
-        image.encodeToFile(writePath.absolutePathString())
-        imagePathCache.put(pageId, writePath)
-    }
+    private class OnnxRuntimeProcessingStep(
+        private val upscaler: ManagedOnnxUpscaler,
+    ) : ProcessingStep {
+        override suspend fun process(pageId: PageId, image: VipsImage): PlatformImage? {
+            return upscaler.upscale(pageId, image)
+        }
 
-    suspend fun invalidateCache() {
-        mutex.withLock {
-            imageCache.invalidateAll()
-            imagePathCache.invalidateAll()
+        override suspend fun addChangeListener(callback: () -> Unit) {
+            upscaler.upscaleMode.drop(1).collect { callback() }
         }
     }
 

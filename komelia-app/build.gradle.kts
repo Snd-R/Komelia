@@ -2,7 +2,9 @@
 
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -25,26 +27,26 @@ kotlin {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
-//    @OptIn(ExperimentalWasmDsl::class)
-//    wasmJs {
-//        moduleName = "komelia-app"
-//        browser {
-//            commonWebpackConfig {
-//                outputFileName = "komelia-app.js"
-//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-//                    static = (static ?: mutableListOf()).apply {
-//                        // Serve sources to debug inside browser
-//                        add(project.projectDir.path)
-//                        add(project.projectDir.path + "/commonMain/")
-//                        add(project.projectDir.path + "/wasmJsMain/")
-//                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
-//                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
-//                    }
-//                }
-//            }
-//        }
-//        binaries.executable()
-//    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "komelia-app"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "komelia-app.js"
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    static = (static ?: mutableListOf()).apply {
+                        // Serve sources to debug inside browser
+                        add(project.projectDir.path)
+                        add(project.projectDir.path + "/commonMain/")
+                        add(project.projectDir.path + "/wasmJsMain/")
+                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
+                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
+                    }
+                }
+            }
+        }
+        binaries.executable()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -60,10 +62,10 @@ kotlin {
             implementation(project(":image-decoder"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
-//        wasmJsMain.dependencies {
-//            implementation(project(":wasm-image-worker"))
-//            implementation(project(":komelia-db:wasm"))
-//        }
+        wasmJsMain.dependencies {
+            implementation(project(":wasm-image-worker"))
+            implementation(project(":komelia-db:wasm"))
+        }
     }
 }
 

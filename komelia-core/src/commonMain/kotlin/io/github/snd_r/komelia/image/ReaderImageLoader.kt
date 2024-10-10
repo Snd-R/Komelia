@@ -7,7 +7,6 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import okio.FileSystem
-import okio.Path
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 
@@ -31,51 +30,37 @@ class ReaderImageLoader(
 
     private suspend fun doLoad(bookId: KomgaBookId, page: Int): ReaderImage {
         val pageId = PageId(bookId.value, page)
-        if (diskCache != null) {
-            var snapshot = diskCache.openSnapshot(pageId.toString())
-            val fileSystem = diskCache.fileSystem
-            try {
-                if (snapshot != null) {
-                    return decoder.decode(snapshot.data, pageId)
-                }
+        if (diskCache == null) {
+            val bytes: ByteArray = bookClient.getBookPage(bookId, page)
+            return decoder.decode(bytes, pageId)
 
-                val bytes = bookClient.getBookPage(bookId, page)
-                val newSnapshot = writeToDiskCache(
-                    fileSystem = fileSystem,
-                    snapshot = snapshot,
-                    cacheKey = pageId.toString(),
-                    bytes = bytes
-                )
-                snapshot = newSnapshot
-
-                return decoder.decode(bytes, pageId)
-            } catch (e: Throwable) {
-                snapshot?.close()
-                throw e
-            }
         }
+        diskCache.openSnapshot(pageId.toString()).use { snapshot ->
+            val fileSystem = diskCache.fileSystem
+            if (snapshot != null) {
+                return decoder.decode(snapshot.data, pageId)
+            }
 
-        val bytes: ByteArray = bookClient.getBookPage(bookId, page)
-        return decoder.decode(bytes, pageId)
+            val bytes = bookClient.getBookPage(bookId, page)
+            writeToDiskCache(
+                fileSystem = fileSystem,
+                cacheKey = pageId.toString(),
+                bytes = bytes
+            )
+
+            return decoder.decode(bytes, pageId)
+        }
     }
 
     private fun writeToDiskCache(
         fileSystem: FileSystem,
-        snapshot: DiskCache.Snapshot?,
         cacheKey: String,
         bytes: ByteArray,
-    ): DiskCache.Snapshot? {
-        // Open a new editor.
-        val editor = if (snapshot != null) {
-            snapshot.closeAndOpenEditor()
-        } else {
-            diskCache?.openEditor(cacheKey)
-        }
-        if (editor == null) return null
-
+    ) {
+        val editor = diskCache?.openEditor(cacheKey) ?: return
         try {
             fileSystem.write(editor.data) { this.write(bytes) }
-            return editor.commitAndOpenSnapshot()
+            editor.commit()
         } catch (e: Exception) {
             editor.abort()
             throw e
@@ -83,7 +68,3 @@ class ReaderImageLoader(
     }
 }
 
-interface ImageDecoder {
-    suspend fun decode(bytes: ByteArray, pageId: PageId): ReaderImage
-    suspend fun decode(cacheFile: Path, pageId: PageId): ReaderImage
-}

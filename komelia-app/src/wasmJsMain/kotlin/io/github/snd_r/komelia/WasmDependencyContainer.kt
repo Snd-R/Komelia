@@ -87,7 +87,8 @@ class WasmDependencyContainer(
             val readerImageLoader = createReaderImageLoader(
                 baseUrl = baseUrl,
                 ktorClient = ktorClient,
-                imageWorker = imageWorker
+                imageWorker = imageWorker,
+                stretchImages = readerSettingsRepository.getStretchToFit().stateIn(stateFlowScope)
             )
 
             return WasmDependencyContainer(
@@ -153,6 +154,7 @@ class WasmDependencyContainer(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
             imageWorker: ImageWorker,
+            stretchImages: StateFlow<Boolean>,
         ): ReaderImageLoader {
             val bookClient = KomgaClientFactory.Builder()
                 .ktor(ktorClient)
@@ -162,7 +164,10 @@ class WasmDependencyContainer(
 
             return ReaderImageLoader(
                 bookClient = bookClient,
-                decoder = WasmImageDecoder(imageWorker),
+                decoder = WasmImageDecoder(
+                    imageWorker = imageWorker,
+                    stretchImages = stretchImages
+                ),
                 diskCache = null
             )
         }

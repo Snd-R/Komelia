@@ -15,8 +15,17 @@ import io.github.snd_r.komelia.DependencyContainer
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.AndroidImageDecoder
+import io.github.snd_r.komelia.image.CropBordersStep
+import io.github.snd_r.komelia.image.ImageProcessingPipeline
 import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.image.coil.*
+import io.github.snd_r.komelia.image.coil.FileMapper
+import io.github.snd_r.komelia.image.coil.KomgaBookMapper
+import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
+import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
+import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
+import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
+import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.coil.VipsImageDecoder
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
@@ -32,14 +41,22 @@ import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.FileSystem
 import snd.komelia.db.Database
-import snd.komelia.db.settings.*
+import snd.komelia.db.settings.AppSettings
+import snd.komelia.db.settings.JooqSettingsRepository
+import snd.komelia.db.settings.SettingsActor
+import snd.komelia.db.settings.SharedActorReaderSettingsRepository
+import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.settings.CommonSettingsRepository
@@ -65,7 +82,7 @@ class AndroidDependencyContainer(
     override val appNotifications: AppNotifications = AppNotifications()
 
     companion object {
-        suspend fun createInstance(scope: CoroutineScope, context: Context): AndroidDependencyContainer {
+        suspend fun createInstance(initScope: CoroutineScope, context: Context): AndroidDependencyContainer {
             measureTime {
                 try {
                     AndroidSharedLibrariesLoader.load()
@@ -86,8 +103,8 @@ class AndroidDependencyContainer(
             val settingsRepository = SharedActorSettingsRepository(settingsActor)
             val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
-            val baseUrl = settingsRepository.getServerUrl().stateIn(scope)
-            val komfUrl = settingsRepository.getKomfUrl().stateIn(scope)
+            val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
+            val komfUrl = settingsRepository.getKomfUrl().stateIn(initScope)
 
             val okHttpWithoutCache = createOkHttpClient()
             val okHttpWithCache = okHttpWithoutCache.newBuilder()
@@ -97,7 +114,7 @@ class AndroidDependencyContainer(
             val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
 
             val cookiesStorage = RememberMePersistingCookieStore(
-                baseUrl.map { Url(it) }.stateIn(scope),
+                baseUrl.map { Url(it) }.stateIn(initScope),
                 secretsRepository
             )
                 .also { it.loadRememberMeCookie() }
@@ -108,10 +125,17 @@ class AndroidDependencyContainer(
                 cookiesStorage = cookiesStorage,
             )
             val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
+
+            val imagePipeline = createImagePipeline(
+                cropBorders = readerSettingsRepository.getCropBorders().stateIn(initScope)
+            )
+            val stretchImages = readerSettingsRepository.getStretchToFit().stateIn(initScope)
             val readerImageLoader = createReaderImageLoader(
                 baseUrl = baseUrl,
                 ktorClient = ktorWithoutCache,
                 cookiesStorage = cookiesStorage,
+                stretchImages = stretchImages,
+                pipeline = imagePipeline,
             )
 
             val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, context)
@@ -176,6 +200,8 @@ class AndroidDependencyContainer(
             baseUrl: StateFlow<String>,
             ktorClient: HttpClient,
             cookiesStorage: RememberMePersistingCookieStore,
+            stretchImages: StateFlow<Boolean>,
+            pipeline: ImageProcessingPipeline
         ): ReaderImageLoader {
             val bookClient = KomgaClientFactory.Builder()
                 .ktor(ktorClient)
@@ -184,9 +210,12 @@ class AndroidDependencyContainer(
                 .build()
                 .bookClient()
             return ReaderImageLoader(
-                bookClient,
-                AndroidImageDecoder(),
-                DiskCache.Builder()
+                bookClient = bookClient,
+                decoder = AndroidImageDecoder(
+                    stretchImages = stretchImages,
+                    processingPipeline = pipeline
+                ),
+                diskCache = DiskCache.Builder()
                     .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
                     .build()
             )
@@ -253,6 +282,15 @@ class AndroidDependencyContainer(
             }
             logger.info { "loaded settings in ${result.duration}" }
             return result.value
+        }
+
+
+        private fun createImagePipeline(
+            cropBorders: StateFlow<Boolean>,
+        ): ImageProcessingPipeline {
+            val pipeline = ImageProcessingPipeline()
+            pipeline.addStep(CropBordersStep(cropBorders))
+            return pipeline
         }
     }
 }

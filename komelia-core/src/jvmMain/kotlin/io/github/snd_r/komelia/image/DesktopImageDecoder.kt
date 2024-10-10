@@ -7,15 +7,17 @@ import kotlin.io.path.readBytes
 
 class DesktopImageDecoder(
     private val upscaleOptionFlow: StateFlow<UpscaleOption>,
-    private val onnxUpscaler: ManagedOnnxUpscaler?,
+    private val stretchImages: StateFlow<Boolean>,
+    private val processingPipeline: ImageProcessingPipeline,
 ) : ImageDecoder {
 
     override suspend fun decode(bytes: ByteArray, pageId: PageId): ReaderImage {
         return DesktopTilingReaderImage(
             encoded = bytes,
+            processingPipeline = processingPipeline,
             pageId = pageId,
             upscaleOption = upscaleOptionFlow,
-            upscaler = onnxUpscaler,
+            stretchImages = stretchImages
         )
     }
 
@@ -23,9 +25,10 @@ class DesktopImageDecoder(
         val bytes = cacheFile.toNioPath().readBytes()
         return DesktopTilingReaderImage(
             encoded = bytes,
+            processingPipeline = processingPipeline,
             pageId = pageId,
             upscaleOption = upscaleOptionFlow,
-            upscaler = onnxUpscaler,
+            stretchImages = stretchImages
         )
     }
 }

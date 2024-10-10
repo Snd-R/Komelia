@@ -28,8 +28,9 @@ import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
-import io.github.snd_r.komelia.ui.reader.getDisplaySizeFor
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -71,7 +73,6 @@ class ContinuousReaderState(
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val imageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
 
     val lazyListState = LazyListState(0, 0)
@@ -108,6 +109,7 @@ class ContinuousReaderState(
         }
         .build()
     private val imagesInUse: MutableMap<ImageCacheKey, ReaderImage> = HashMap()
+    private val imageDisplayFlow: MutableSharedFlow<ReaderImage> = MutableSharedFlow()
 
     suspend fun initialize() {
 
@@ -161,7 +163,7 @@ class ContinuousReaderState(
                             withContext(Dispatchers.Default) {
                                 pageIntervals.value = listOf(
                                     BookPagesInterval(
-                                        newState.previousBook,
+                                        newState.previousBook!!,
                                         // https://issuetracker.google.com/issues/273025639
                                         // can only prepend 130 elements without losing current items position
                                         newState.previousBookPages.takeLast(100)
@@ -189,7 +191,7 @@ class ContinuousReaderState(
                             withContext(Dispatchers.Default) {
                                 pageIntervals.value = currentIntervals.plus(
                                     BookPagesInterval(
-                                        newState.nextBook,
+                                        newState.nextBook!!,
                                         newState.nextBookPages
                                     )
                                 )
@@ -211,6 +213,7 @@ class ContinuousReaderState(
             .launchIn(stateScope)
 
         snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
+            .combine(screenScaleState.areaSize) { _, _ -> }
             .combine(screenScaleState.targetSize) { _, _ -> }
             .combine(sidePaddingFraction) { _, _ -> }
             .combine(imageStretchToFit) { _, _ -> }
@@ -301,13 +304,11 @@ class ContinuousReaderState(
         val bookStartIndex = intervals.subList(0, currentIntervalIndex)
             .fold(0) { acc, value -> acc + value.pages.size } - 1
 
-        if (hasMissingPages)
-        //FIXME can't properly change scroll position before newly added items are recomposed and registered in layout
-        // as a workaround use animated scroll that will cause recomposition and will keep scrolling until item index is reached
-        // requestScrollToItem() should solve this issue: https://developer.android.com/reference/kotlin/androidx/compose/foundation/lazy/LazyListState#requestScrollToItem(kotlin.Int,kotlin.Int)
-        // waiting until compose multiplatform is updated to use 1.7.0 foundation dependency
-            lazyListState.animateScrollToItem(bookStartIndex + pageNumber + currentIntervalIndex + 1)
-        else lazyListState.scrollToItem(bookStartIndex + pageNumber + currentIntervalIndex + 1)
+        if (hasMissingPages) {
+            lazyListState.requestScrollToItem(bookStartIndex + pageNumber + currentIntervalIndex + 1)
+        } else {
+            lazyListState.scrollToItem(bookStartIndex + pageNumber + currentIntervalIndex + 1)
+        }
     }
 
     suspend fun scrollScreenForward() {
@@ -382,10 +383,11 @@ class ContinuousReaderState(
                 imageLoadScope.launch {
                     val result = launchImageJob(nextPage).await()
                     result.image?.let {
+                        val size = getImageDisplaySize(it)
                         it.requestUpdate(
-                            getImageDisplaySize(it),
                             screenScaleState.areaSize.value.toIntRect(),
-                            screenScaleState.transformation.value.scale
+                            screenScaleState.transformation.value.scale,
+                            size.maxSize
                         )
                     }
 
@@ -409,7 +411,7 @@ class ContinuousReaderState(
         return job
     }
 
-    private fun updateVisibleImages() {
+    private suspend fun updateVisibleImages() {
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
         if (visibleItems.isEmpty()) return
 
@@ -429,34 +431,36 @@ class ContinuousReaderState(
                     TOP_TO_BOTTOM -> IntRect(
                         left = 0,
                         top = firstItemOffset,
-                        right = firstImageSize.width,
-                        bottom = firstImageSize.height
+                        right = firstImageSize.displaySize.width,
+                        bottom = firstImageSize.displaySize.height
                     )
 
                     LEFT_TO_RIGHT -> IntRect(
                         left = firstItemOffset,
                         top = 0,
-                        right = firstImageSize.width,
-                        bottom = firstImageSize.height
+                        right = firstImageSize.displaySize.width,
+                        bottom = firstImageSize.displaySize.height
                     )
 
                     RIGHT_TO_LEFT -> IntRect(
                         left = firstItemOffset,
                         top = 0,
-                        right = firstImageSize.width,
-                        bottom = firstImageSize.height
+                        right = firstImageSize.displaySize.width,
+                        bottom = firstImageSize.displaySize.height
                     )
                 }
                 image.requestUpdate(
-                    firstImageSize,
-                    visibleArea,
-                    scale
+//                    displaySize = firstImageSize.displaySize,
+                    visibleDisplaySize = visibleArea,
+                    zoomFactor = scale,
+                    maxDisplaySize = firstImageSize.maxSize
                 )
             } else {
                 image.requestUpdate(
-                    firstImageSize,
-                    firstImageSize.toIntRect(),
-                    scale
+//                    displaySize = firstImageSize.displaySize,
+                    visibleDisplaySize = firstImageSize.displaySize.toIntRect(),
+                    zoomFactor = scale,
+                    maxDisplaySize = firstImageSize.maxSize
                 )
             }
         }
@@ -466,7 +470,7 @@ class ContinuousReaderState(
             visibleImages.values.drop(1).dropLast(1).filterNotNull()
                 .forEach { image ->
                     val size = getImageDisplaySize(image)
-                    image.requestUpdate(size, size.toIntRect(), scale)
+                    image.requestUpdate(size.displaySize.toIntRect(), scale, size.maxSize)
                 }
         }
 
@@ -478,7 +482,7 @@ class ContinuousReaderState(
             TOP_TO_BOTTOM -> IntRect(
                 left = 0,
                 top = 0,
-                right = lastImageSize.width,
+                right = lastImageSize.displaySize.width,
                 bottom = containerSize.height - lastItem.offset
             )
 
@@ -497,60 +501,72 @@ class ContinuousReaderState(
             )
         }
         lastImage.requestUpdate(
-            lastImageSize,
-            lastImageVisibleArea,
-            scale
+            visibleDisplaySize = lastImageVisibleArea,
+            zoomFactor = scale,
+            maxDisplaySize = lastImageSize.maxSize
         )
     }
 
-    private fun getImageDisplaySize(image: ReaderImage): IntSize {
+    data class ImageDisplaySize(
+        val displaySize: IntSize,
+        val maxSize: IntSize,
+    )
+
+    private suspend fun getImageDisplaySize(image: ReaderImage): ImageDisplaySize {
         val containerSize = screenScaleState.areaSize.value
         return when (readingDirection.value) {
             TOP_TO_BOTTOM -> {
                 val width = containerSize.width - (sidePaddingPx.value * 2)
-                val displayWidth =
-                    if (!readerState.imageStretchToFit.value) width.coerceAtMost(image.width)
-                    else width
-
-                image.getDisplaySizeFor(
-                    IntSize(
-                        displayWidth,
-                        Int.MAX_VALUE
-                    )
+                val maxSize = IntSize(width, Int.MAX_VALUE)
+                ImageDisplaySize(
+                    displaySize = image.calculateSizeForArea(maxSize, readerState.imageStretchToFit.value),
+                    maxSize = maxSize
                 )
             }
 
             else -> {
                 val height = containerSize.height - (sidePaddingPx.value * 2)
-                val displayHeight =
-                    if (!readerState.imageStretchToFit.value) height.coerceAtMost(image.height)
-                    else height
-
-                image.getDisplaySizeFor(
-                    IntSize(
-                        Int.MAX_VALUE,
-                        displayHeight
-                    )
+                val maxSize = IntSize(Int.MAX_VALUE, height)
+                ImageDisplaySize(
+                    displaySize = image.calculateSizeForArea(maxSize, readerState.imageStretchToFit.value),
+                    maxSize = maxSize
                 )
             }
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getPageDisplaySize(page: PageMetadata): IntSize {
-        val containerSize = screenScaleState.areaSize.value
+    suspend fun getPageDisplaySize(page: PageMetadata): Flow<IntSize> {
 
         val cached = imageCache.get(ImageCacheKey(page.bookId, page.pageNumber))
-        if (cached != null && cached.isCompleted) {
-            val image = cached.getCompleted().image
-            if (image != null) return getImageDisplaySize(image)
+        return if (cached != null) {
+            if (cached.isCompleted) {
+                when (val result = cached.getCompleted()) {
+                    is Success -> result.image.displaySize.filterNotNull()
+                    is Error -> MutableStateFlow(guessPageDisplaySize(page))
+                }
+            } else {
+                when (val result = cached.await()) {
+                    is Success -> result.image.displaySize.filterNotNull()
+                    is Error -> MutableStateFlow(guessPageDisplaySize(page))
+                }
+            }
+
+        } else {
+            val pageId = page.toPageId()
+            val image = imageDisplayFlow.first { it.pageId == pageId }
+            return image.displaySize.filterNotNull()
         }
+    }
+
+    fun guessPageDisplaySize(page: PageMetadata, pageSize: IntSize? = null): IntSize {
+        val containerSize = screenScaleState.areaSize.value
 
         val displaySize = when (readingDirection.value) {
             TOP_TO_BOTTOM -> {
                 val constrainedWidth = containerSize.width - (sidePaddingPx.value * 2)
                 when {
-                    page.size == null -> {
+                    pageSize == null -> {
                         val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
                         val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
                         val otherPageSize = previousPage?.size ?: nextPage?.size
@@ -565,12 +581,12 @@ class ContinuousReaderState(
                     }
 
                     !readerState.imageStretchToFit.value -> contentSizeForArea(
-                        contentSize = page.size,
-                        maxPageSize = IntSize(constrainedWidth.coerceAtMost(page.size.width), page.size.height)
+                        contentSize = pageSize,
+                        maxPageSize = IntSize(constrainedWidth.coerceAtMost(pageSize.width), pageSize.height)
                     )
 
                     else -> contentSizeForArea(
-                        contentSize = page.size,
+                        contentSize = pageSize,
                         maxPageSize = IntSize(constrainedWidth, Int.MAX_VALUE)
                     )
                 }
@@ -579,7 +595,7 @@ class ContinuousReaderState(
             LEFT_TO_RIGHT, RIGHT_TO_LEFT -> {
                 val constrainedHeight = containerSize.height - (sidePaddingPx.value * 2)
                 when {
-                    page.size == null -> {
+                    pageSize == null -> {
                         val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
                         val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
                         val otherPageSize = previousPage?.size ?: nextPage?.size
@@ -594,12 +610,12 @@ class ContinuousReaderState(
                     }
 
                     !readerState.imageStretchToFit.value -> contentSizeForArea(
-                        contentSize = page.size,
-                        maxPageSize = IntSize(page.size.width, constrainedHeight.coerceAtMost(page.size.height))
+                        contentSize = pageSize,
+                        maxPageSize = IntSize(pageSize.width, constrainedHeight.coerceAtMost(pageSize.height))
                     )
 
                     else -> contentSizeForArea(
-                        contentSize = page.size,
+                        contentSize = pageSize,
                         maxPageSize = IntSize(Int.MAX_VALUE, constrainedHeight)
                     )
                 }
@@ -610,8 +626,9 @@ class ContinuousReaderState(
         return displaySize
     }
 
-    private fun updatePageSize(page: PageMetadata, image: ReaderImage) {
-        val updated = page.copy(size = IntSize(image.width, image.height))
+    private suspend fun updatePageSize(page: PageMetadata, image: ReaderImage) {
+        val imageSize = image.getOriginalSize()
+        val updated = page.copy(size = imageSize)
 
         pageIntervals.update { current ->
             val intervals = pageIntervals.value
@@ -662,9 +679,12 @@ class ContinuousReaderState(
     }
 
     fun onPageDisplay(page: PageMetadata, image: ReaderImage) {
-        imagesInUse[page.toCacheKey()] = image
-        if (page.size == null) updatePageSize(page, image)
-        updateVisibleImages()
+        stateScope.launch {
+            imagesInUse[page.toCacheKey()] = image
+            if (page.size == null) updatePageSize(page, image)
+            updateVisibleImages()
+            imageDisplayFlow.emit(image)
+        }
     }
 
     fun onPageDispose(page: PageMetadata) {

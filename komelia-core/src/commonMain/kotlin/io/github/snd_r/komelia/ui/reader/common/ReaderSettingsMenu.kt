@@ -40,7 +40,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
@@ -59,7 +61,6 @@ fun SettingsMenu(
 
     settingsState: ReaderState,
     screenScaleState: ScreenScaleState,
-
 
     onMenuDismiss: () -> Unit,
     onShowHelpMenu: () -> Unit,
@@ -159,6 +160,13 @@ private fun ColumnScope.SettingsContent(
         label = { Text(strings.stretchToFit) },
     )
 
+    if (LocalPlatform.current != PlatformType.WEB_KOMF) {
+        SwitchWithLabel(
+            settingsState.cropBorders.collectAsState().value,
+            settingsState::onTrimEdgesChange,
+            label = { Text("Crop borders") },
+        )
+    }
 
     HorizontalDivider(Modifier.padding(vertical = 5.dp))
     readerSettingsContent()

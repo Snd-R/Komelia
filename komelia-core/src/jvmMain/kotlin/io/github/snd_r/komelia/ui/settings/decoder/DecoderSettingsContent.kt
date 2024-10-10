@@ -209,7 +209,7 @@ private fun OnnxRuntimeContent(
         )
     }
 
-    if (OnnxRuntimeSharedLibraries.isAvailable) {
+    if (!OnnxRuntimeSharedLibraries.isAvailable) {
         Text("ONNX runtime settings")
         FilledTonalButton(
             onClick = { showOrtInstallDialog = true },

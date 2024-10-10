@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.image.ReaderImage
+import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.platform.CommonParcelable
 import io.github.snd_r.komelia.platform.CommonParcelize
 import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
@@ -31,7 +31,6 @@ import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.settings.CommonSettingsRepository
 import snd.settings.ReaderSettingsRepository
-import kotlin.math.roundToInt
 
 typealias SpreadIndex = Int
 
@@ -52,6 +51,7 @@ class ReaderState(
 
     val readerType = MutableStateFlow(CONTINUOUS)
     val imageStretchToFit = MutableStateFlow(true)
+    val cropBorders = MutableStateFlow(false)
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
 
@@ -60,6 +60,7 @@ class ReaderState(
         decoderSettings.value = settingsRepository.getDecoderSettings().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
+        cropBorders.value = readerSettingsRepository.getCropBorders().first()
 
         decoderDescriptor.onEach { currentDecoderDescriptor.value = it }.launchIn(stateScope)
         loadBook(bookId)
@@ -208,18 +209,13 @@ class ReaderState(
         stateScope.launch { readerSettingsRepository.putStretchToFit(stretch) }
     }
 
+    fun onTrimEdgesChange(trim: Boolean) {
+        cropBorders.value = trim
+        stateScope.launch { readerSettingsRepository.putCropBorders(trim) }
+    }
+
     fun onDispose() {
     }
-}
-
-fun ReaderImage.getDisplaySizeFor(maxDisplaySize: IntSize): IntSize {
-    val widthRatio = maxDisplaySize.width.toDouble() / width
-    val heightRatio = maxDisplaySize.height.toDouble() / height
-    val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
-    return IntSize(
-        (width * displayScaleFactor).roundToInt(),
-        (height * displayScaleFactor).roundToInt()
-    )
 }
 
 @CommonParcelize
@@ -234,6 +230,7 @@ data class PageMetadata(
     }
 
     fun toCacheKey() = ImageCacheKey(bookId, pageNumber)
+    fun toPageId() = PageId(bookId.value, pageNumber)
 }
 
 data class ImageCacheKey(

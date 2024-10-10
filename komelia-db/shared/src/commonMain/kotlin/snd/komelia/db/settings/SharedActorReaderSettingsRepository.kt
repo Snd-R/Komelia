@@ -30,6 +30,14 @@ class SharedActorReaderSettingsRepository(
         actor.transform { it.copy(stretchToFit = stretch) }
     }
 
+    override fun getCropBorders(): Flow<Boolean> {
+        return actor.state.map { it.cropBorders }.distinctUntilChanged()
+    }
+
+    override suspend fun putCropBorders(trim: Boolean) {
+        actor.transform { it.copy(cropBorders = trim) }
+    }
+
     override fun getPagedReaderScaleType(): Flow<LayoutScaleType> {
         return actor.state.map { it.pagedScaleType }.distinctUntilChanged()
     }

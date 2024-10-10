@@ -21,21 +21,29 @@ import kotlin.math.roundToInt
 
 class WasmSimpleReaderImage(
     private val encoded: ByteArray,
-    override val width: Int,
-    override val height: Int,
+    private val width: Int,
+    private val height: Int,
+    private val worker: ImageWorker,
+    private val stretchImages: StateFlow<Boolean>,
     override val pageId: ReaderImage.PageId,
-    private val worker: ImageWorker
 ) : ReaderImage {
     override val painter by lazy { MutableStateFlow(noopPainter) }
     override val error: StateFlow<Exception?> = MutableStateFlow<Exception?>(null)
     override val currentSize = MutableStateFlow<IntSize?>(null)
+    override val originalSize = MutableStateFlow<IntSize?>(null)
+    override val displaySize = MutableStateFlow<IntSize?>(null)
 
     private var currentImage: Image? = null
     private var lastUsedScaleFactor: Double? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    override fun requestUpdate(displaySize: IntSize, visibleDisplaySize: IntRect, zoomFactor: Float) {
+    override fun requestUpdate(
+        visibleDisplaySize: IntRect,
+        zoomFactor: Float,
+        maxDisplaySize: IntSize,
+    ) {
         coroutineScope.launch {
+            val displaySize = calculateSizeForArea(maxDisplaySize, stretchImages.value)
             val widthRatio = displaySize.width.toDouble() / width
             val heightRatio = displaySize.height.toDouble() / height
             val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
@@ -54,7 +62,8 @@ class WasmSimpleReaderImage(
             currentImage = image
             bitmap.close()
 
-            currentSize.value = IntSize(dstWidth, dstHeight)
+            this@WasmSimpleReaderImage.currentSize.value = IntSize(dstWidth, dstHeight)
+            this@WasmSimpleReaderImage.displaySize.value = displaySize
             painter.value = ImagePainter(image, SamplingMode.CATMULL_ROM, actualScaleFactor, displaySize)
             lastUsedScaleFactor = actualScaleFactor
         }
@@ -65,6 +74,9 @@ class WasmSimpleReaderImage(
         currentImage?.close()
     }
 
+    override suspend fun getOriginalSize(): IntSize {
+        return IntSize(width, height)
+    }
 }
 
 private class ImagePainter(
@@ -93,7 +105,5 @@ private class ImagePainter(
             paint = null,
             strict = true
         )
-
-
     }
 }

@@ -15,11 +15,21 @@ import io.github.snd_r.ImageRect
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
+import kotlinx.coroutines.flow.StateFlow
 
 actual typealias RenderImage = Bitmap
-actual typealias PlatformImage = VipsImage
 
-class AndroidTilingReaderImage(encoded: ByteArray, pageId: PageId) : TilingReaderImage(encoded, pageId) {
+class AndroidTilingReaderImage(
+    encoded: ByteArray,
+    processingPipeline: ImageProcessingPipeline,
+    stretchImages: StateFlow<Boolean>,
+    pageId: PageId,
+) : TilingReaderImage(
+    encoded,
+    processingPipeline,
+    stretchImages,
+    pageId
+) {
 
     override fun getDimensions(encoded: ByteArray): IntSize {
         val vipsDimensions = VipsImage.Companion.getDimensions(encoded)
@@ -46,7 +56,7 @@ class AndroidTilingReaderImage(encoded: ByteArray, pageId: PageId) : TilingReade
         return PlaceholderPainter(displaySize)
     }
 
-    override suspend fun resizeImage(image: VipsImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
+    override suspend fun resizeImage(image: PlatformImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
         val resized = image.resize(scaleWidth, scaleHeight, false)
         val bitmap = VipsBitmapFactory.createHardwareBitmap(resized)
         val imageData = ReaderImageData(resized.width, resized.height, bitmap)
@@ -55,7 +65,7 @@ class AndroidTilingReaderImage(encoded: ByteArray, pageId: PageId) : TilingReade
     }
 
     override suspend fun getImageRegion(
-        image: VipsImage,
+        image: PlatformImage,
         imageRegion: IntRect,
         scaleWidth: Int,
         scaleHeight: Int
@@ -70,10 +80,6 @@ class AndroidTilingReaderImage(encoded: ByteArray, pageId: PageId) : TilingReade
         return imageData
     }
 
-    override fun closeImage(image: PlatformImage) {
-        image.close()
-    }
-
     private fun IntRect.toImageRect() =
         ImageRect(left = left, top = top, right = right, bottom = bottom)
 
@@ -86,7 +92,7 @@ class AndroidTilingReaderImage(encoded: ByteArray, pageId: PageId) : TilingReade
             drawContext.canvas.nativeCanvas.drawText(
                 "Loading",
                 drawContext.size.width / 2 - 50f, drawContext.size.height / 2,
-                android.graphics.Paint().apply { textSize = 50f }
+                Paint().apply { textSize = 50f }
             )
         }
     }

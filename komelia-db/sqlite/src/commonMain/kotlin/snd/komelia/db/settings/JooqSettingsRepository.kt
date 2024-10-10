@@ -57,6 +57,7 @@ class JooqSettingsRepository(
             continuousReadingDirection = ContinuousReaderState.ReadingDirection.valueOf(continuousReadingDirection),
             continuousPadding = continuousPadding,
             continuousPageSpacing = continuousPageSpacing,
+            cropBorders = cropBorders,
             komfEnabled = komfEnabled,
             komfMode = KomfMode.valueOf(komfMode),
             komfRemoteUrl = komfRemoteUrl
@@ -90,6 +91,7 @@ class JooqSettingsRepository(
             continuousReadingDirection = continuousReadingDirection.name,
             continuousPadding = continuousPadding,
             continuousPageSpacing = continuousPageSpacing,
+            cropBorders = cropBorders,
             komfEnabled = komfEnabled,
             komfMode = komfMode.name,
             komfRemoteUrl = komfRemoteUrl

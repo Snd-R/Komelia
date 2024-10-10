@@ -51,7 +51,9 @@ class VipsImage private constructor(
     external fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImage
     external fun getBytes(): ByteArray
     external fun encodeToFile(path: String)
+    external fun encodeToFilePng(path: String)
     external fun shrink(factor: Double): VipsImage
+    external fun findTrim(): ImageRect
 
 }
 

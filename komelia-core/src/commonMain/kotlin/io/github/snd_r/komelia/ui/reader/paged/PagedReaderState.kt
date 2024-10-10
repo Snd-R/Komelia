@@ -20,7 +20,6 @@ import io.github.snd_r.komelia.ui.reader.PageMetadata
 import io.github.snd_r.komelia.ui.reader.ReaderState
 import io.github.snd_r.komelia.ui.reader.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.SpreadIndex
-import io.github.snd_r.komelia.ui.reader.getDisplaySizeFor
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
@@ -133,7 +132,7 @@ class PagedReaderState(
         imageCache.invalidateAll()
     }
 
-    private fun updateSpreadImageState(
+    private suspend fun updateSpreadImageState(
         spread: PageSpread,
         screenScaleState: ScreenScaleState,
         readingDirection: ReadingDirection
@@ -150,9 +149,7 @@ class PagedReaderState(
         pages.forEachIndexed { index, result ->
             if (result.imageResult is Success) {
                 val image = result.imageResult.image
-                val imageDisplaySize =
-                    if (stretchToFit) image.getDisplaySizeFor(maxPageSize)
-                    else image.getDisplaySizeFor(maxPageSize).coerceAtMost(IntSize(image.width, image.height))
+                val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit)
 
                 val imageHorizontalVisibleWidth =
                     (imageDisplaySize.width * zoomFactor - areaSize.width) / 2
@@ -199,9 +196,9 @@ class PagedReaderState(
                 )
 
                 image.requestUpdate(
-                    displaySize = imageDisplaySize,
                     visibleDisplaySize = visibleArea,
                     zoomFactor = zoomFactor,
+                    maxDisplaySize = maxPageSize
                 )
                 xOffset += maxPageSize.width
 
@@ -296,20 +293,6 @@ class PagedReaderState(
         pageLoadScope.launch { loadSpread(spreadIndex) }
     }
 
-    private fun IntSize.coerceAtMost(other: IntSize): IntSize {
-        return IntSize(
-            width.coerceAtMost(other.width),
-            height.coerceAtMost(other.height)
-        )
-    }
-
-    private fun IntSize.coerceAtLeast(other: IntSize): IntSize {
-        return IntSize(
-            width.coerceAtLeast(other.width),
-            height.coerceAtLeast(other.height)
-        )
-    }
-
     private suspend fun loadSpread(loadSpreadIndex: Int) {
         val loadRange = getSpreadLoadRange(loadSpreadIndex)
         val currentSpreadMetadata = pageSpreads.value[loadSpreadIndex]
@@ -338,7 +321,7 @@ class PagedReaderState(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun launchSpreadLoadJob(pagesMeta: List<PageMetadata>): Deferred<PagesLoadJob> {
+    private suspend fun launchSpreadLoadJob(pagesMeta: List<PageMetadata>): Deferred<PagesLoadJob> {
         val pages = pagesMeta.map { meta ->
             val cacheKey = ImageCacheKey(meta.bookId, meta.pageNumber)
             val cached = imageCache.get(cacheKey)
@@ -360,7 +343,7 @@ class PagedReaderState(
         }
     }
 
-    private fun completeLoadJob(pages: List<Page>): PagesLoadJob {
+    private suspend fun completeLoadJob(pages: List<Page>): PagesLoadJob {
         val containerSize = screenScaleState.areaSize.value
         val maxPageSize = getMaxPageSize(pages.map { it.metadata }, containerSize)
         val newScale = calculateScreenScale(
@@ -393,7 +376,7 @@ class PagedReaderState(
     }
 
     @Suppress("DeferredResultUnused")
-    private fun enqueueSpreadLoadJob(pagesMeta: List<PageMetadata>) {
+    private suspend fun enqueueSpreadLoadJob(pagesMeta: List<PageMetadata>) {
         launchSpreadLoadJob(pagesMeta)
     }
 
@@ -501,7 +484,7 @@ class PagedReaderState(
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
     }
 
-    private fun calculateScreenScale(
+    private suspend fun calculateScreenScale(
         pages: List<Page>,
         areaSize: IntSize,
         maxPageSize: IntSize,
@@ -514,7 +497,9 @@ class PagedReaderState(
             .map {
                 when (it.imageResult) {
                     is Error, null -> maxPageSize
-                    is Success -> it.imageResult.image.getDisplaySizeFor(maxPageSize)
+                    is Success -> {
+                        it.imageResult.image.calculateSizeForArea(maxPageSize, true)
+                    }
                 }
             }
             .reduce { total, current ->
@@ -528,7 +513,7 @@ class PagedReaderState(
         val actualSpreadSize = pages.map {
             when (val result = it.imageResult) {
                 is Error, null -> maxPageSize
-                is Success -> IntSize(result.image.width, result.image.height)
+                is Success -> result.image.getOriginalSize()
             }
         }.fold(IntSize.Zero) { total, current ->
             IntSize(
@@ -630,6 +615,21 @@ class PagedReaderState(
             val currentBook: KomgaBook,
             val previousBook: KomgaBook?,
         ) : TransitionPage
+    }
+
+
+    private fun IntSize.coerceAtMost(other: IntSize): IntSize {
+        return IntSize(
+            width.coerceAtMost(other.width),
+            height.coerceAtMost(other.height)
+        )
+    }
+
+    private fun IntSize.coerceAtLeast(other: IntSize): IntSize {
+        return IntSize(
+            width.coerceAtLeast(other.width),
+            height.coerceAtLeast(other.height)
+        )
     }
 }
 

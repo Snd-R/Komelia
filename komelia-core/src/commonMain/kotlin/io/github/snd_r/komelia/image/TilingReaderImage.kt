@@ -10,14 +10,20 @@ import io.github.snd_r.komelia.image.ReaderImage.PageId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow.SUSPEND
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -33,19 +39,20 @@ private const val tileThreshold2 = 4096 * 4096
 private const val tileThreshold3 = 5120 * 5120
 
 expect class RenderImage
-expect class PlatformImage
 
 private val logger = KotlinLogging.logger {}
 
 abstract class TilingReaderImage(
     private val encoded: ByteArray,
+    private val processingPipeline: ImageProcessingPipeline,
+    private val stretchImages: StateFlow<Boolean>,
     final override val pageId: PageId
 ) : ReaderImage {
-    private val dimensions by lazy { getDimensions(encoded) }
-    final override val width by lazy { dimensions.width }
-    final override val height by lazy { dimensions.height }
     final override val painter = MutableStateFlow(noopPainter)
-    final override val error = MutableStateFlow<Exception?>(null)
+    final override val error = MutableStateFlow<Throwable?>(null)
+
+    final override val originalSize = MutableStateFlow<IntSize?>(null)
+    final override val displaySize = MutableStateFlow<IntSize?>(null)
     final override val currentSize = MutableStateFlow<IntSize?>(null)
 
     @Volatile
@@ -54,50 +61,105 @@ abstract class TilingReaderImage(
     @Volatile
     protected var lastUsedScaleFactor: Double? = null
 
-    protected val imageScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
-    protected val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
-    protected val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
+    private val imageAwaitScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    protected val processingScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
+
+    private val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
+    private val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
+    protected val image = MutableStateFlow<PlatformImage?>(null)
+
+    data class UpdateRequest(
+        val visibleDisplaySize: IntRect,
+        val zoomFactor: Float,
+        val maxDisplaySize: IntSize,
+    )
 
     init {
         jobFlow.conflate()
             .onEach { request ->
-                this.error.value = null
                 try {
                     doUpdate(request)
-                } catch (e: Exception) {
+                    this.error.value = null
+                } catch (e: Throwable) {
                     currentCoroutineContext().ensureActive()
                     logger.catching(e)
                     this.error.value = e
                 }
 
                 delay(100)
-            }.launchIn(imageScope)
+            }.launchIn(processingScope)
+
+        processingPipeline.changeFlow.onEach {
+            image.value?.close()
+            image.value = null
+            originalSize.value = null
+            currentSize.value = null
+            loadImage()
+            reloadLastRequest()
+        }.launchIn(processingScope)
+
+        stretchImages.drop(1).onEach { reloadLastRequest() }.launchIn(processingScope)
+
+        processingScope.launch { loadImage() }
     }
 
-    data class UpdateRequest(
-        val displaySize: IntSize,
-        val visibleDisplaySize: IntRect,
-        val zoomFactor: Float,
-    )
+    protected suspend fun reloadLastRequest() {
+        lastUpdateRequest?.let { lastRequest ->
+            lastUsedScaleFactor = null
+            jobFlow.emit(lastRequest)
+        }
+    }
+
+    private suspend fun loadImage() {
+        try {
+            val processed = processingPipeline.process(pageId, decode(encoded))
+            image.value = processed
+            originalSize.value = IntSize(processed.width, processed.height)
+        } catch (e: Throwable) {
+            currentCoroutineContext().ensureActive()
+            logger.catching(e)
+            this.error.value = e
+            originalSize.value = IntSize(100, 100)
+            imageAwaitScope.coroutineContext.cancelChildren()
+        }
+    }
+
+    override suspend fun getOriginalSize(): IntSize {
+        return imageAwaitScope.async { originalSize.filterNotNull().first() }.await()
+    }
+
+    private suspend fun getCurrentImage(): PlatformImage {
+        return imageAwaitScope.async { image.filterNotNull().first() }.await()
+    }
 
     override fun requestUpdate(
-        displaySize: IntSize,
         visibleDisplaySize: IntRect,
         zoomFactor: Float,
+        maxDisplaySize: IntSize,
     ) {
-        imageScope.launch { jobFlow.emit(UpdateRequest(displaySize, visibleDisplaySize, zoomFactor)) }
+        processingScope.launch {
+            jobFlow.emit(
+                UpdateRequest(
+                    visibleDisplaySize = visibleDisplaySize,
+                    zoomFactor = zoomFactor,
+                    maxDisplaySize = maxDisplaySize
+                )
+            )
+        }
     }
 
     private suspend fun doUpdate(request: UpdateRequest) {
         lastUpdateRequest = request
 
-        val displaySize = request.displaySize
+        val image = getCurrentImage()
+        val displaySize = calculateSizeForArea(request.maxDisplaySize, stretchImages.value)
+        val widthRatio = displaySize.width.toDouble() / image.width
+        val heightRatio = displaySize.height.toDouble() / image.height
+        val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
+
         val zoomFactor = request.zoomFactor
         val visibleDisplaySize = request.visibleDisplaySize
 
-        val widthRatio = displaySize.width.toDouble() / width
-        val heightRatio = displaySize.height.toDouble() / height
-        val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
         val actualScaleFactor = displayScaleFactor * zoomFactor
 
         val dstWidth = displaySize.width * zoomFactor
@@ -113,12 +175,14 @@ abstract class TilingReaderImage(
 
         if (tileSize == null) {
             doFullResize(
+                image = image,
                 scaleFactor = actualScaleFactor,
                 displayScaleFactor = displayScaleFactor,
                 displayArea = displaySize
             )
         } else {
             doTile(
+                image = image,
                 displayRegion = visibleDisplaySize.toRect(),
                 displayScaleFactor = displayScaleFactor,
                 scaleFactor = actualScaleFactor,
@@ -126,21 +190,22 @@ abstract class TilingReaderImage(
                 tileSize = tileSize
             )
         }
-        currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
+        this.displaySize.value = displaySize
+        this.currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
     }
 
     private suspend fun doFullResize(
+        image: PlatformImage,
         scaleFactor: Double,
         displayScaleFactor: Double,
         displayArea: IntSize
     ) {
         if (lastUsedScaleFactor == scaleFactor) return
         lastUsedScaleFactor = scaleFactor
-        val dstWidth = (width * scaleFactor).roundToInt()
-        val dstHeight = (height * scaleFactor).roundToInt()
+        val dstWidth = (image.width * scaleFactor).roundToInt()
+        val dstHeight = (image.height * scaleFactor).roundToInt()
 
         measureTime {
-            val image = decode(encoded)
             val resizedImage = resizeImage(
                 image,
                 dstWidth,
@@ -153,20 +218,24 @@ abstract class TilingReaderImage(
                     displayRegion = Rect(
                         0f,
                         0f,
-                        round(width * displayScaleFactor).toFloat(),
-                        round(height * displayScaleFactor).toFloat()
+                        round(image.width * displayScaleFactor).toFloat(),
+                        round(image.height * displayScaleFactor).toFloat()
                     ),
                     isVisible = true,
                     renderImage = resizedImage.renderImage
                 )
             )
             closeTileBitmaps(previousTiles)
-            painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
-            closeImage(image)
-        }.also { logger.info { "page ${pageId.pageNumber}: image $width x $height completed full resize to $dstWidth x $dstHeight in $it" } }
+            painter.value = createTilePainter(
+                tiles = tiles.value,
+                displaySize = displayArea,
+                scaleFactor = scaleFactor
+            )
+        }
     }
 
     private suspend fun doTile(
+        image: PlatformImage,
         displayRegion: Rect,
         displayScaleFactor: Double,
         scaleFactor: Double,
@@ -187,17 +256,16 @@ abstract class TilingReaderImage(
         val newTiles = mutableListOf<ReaderImageTile>()
         val unusedTiles = mutableListOf<ReaderImageTile>()
         var addedNewTiles = false
-        var image: PlatformImage? = null
 
         var yTaken = 0
-        while (yTaken != height) {
+        while (yTaken != image.height) {
             var xTaken = 0
-            while (xTaken != width) {
+            while (xTaken != image.width) {
                 val tileRegion = IntRect(
-                    top = yTaken.coerceAtMost(height),
-                    bottom = (yTaken + tileSize).coerceAtMost(height),
-                    left = (xTaken).coerceAtMost(width),
-                    right = (xTaken + tileSize).coerceAtMost(width),
+                    top = yTaken.coerceAtMost(image.height),
+                    bottom = (yTaken + tileSize).coerceAtMost(image.height),
+                    left = (xTaken).coerceAtMost(image.width),
+                    right = (xTaken + tileSize).coerceAtMost(image.width),
                 )
                 val tileDisplayRegion = Rect(
                     (tileRegion.left * displayScaleFactor).toFloat(),
@@ -208,7 +276,7 @@ abstract class TilingReaderImage(
 
                 val existingTile = oldTiles.find { it.displayRegion == tileDisplayRegion }
                 if (!visibilityWindow.overlaps(tileDisplayRegion)) {
-                    xTaken = (xTaken + tileSize).coerceAtMost(width)
+                    xTaken = (xTaken + tileSize).coerceAtMost(image.width)
                     existingTile?.let { unusedTiles.add(it) }
                     continue
                 }
@@ -216,15 +284,11 @@ abstract class TilingReaderImage(
                 if (existingTile != null) {
                     if (scaleFactor == lastUsedScaleFactor && existingTile.renderImage != null) {
                         newTiles.add(existingTile)
-                        xTaken = (xTaken + tileSize).coerceAtMost(width)
+                        xTaken = (xTaken + tileSize).coerceAtMost(image.width)
                         continue
                     } else {
                         unusedTiles.add(existingTile)
                     }
-                }
-
-                if (image == null) {
-                    image = decode(encoded)
                 }
 
                 val tileWidth = tileRegion.right - tileRegion.left
@@ -237,7 +301,6 @@ abstract class TilingReaderImage(
                         ((tileHeight) * scaleFactor).roundToInt()
                     )
                 }
-                logger.info { "page ${pageId.pageNumber}: retrieved tile data in ${scaledTileData.duration}" }
 
                 val tile = ReaderImageTile(
                     size = IntSize(scaledTileData.value.width, scaledTileData.value.height),
@@ -248,28 +311,24 @@ abstract class TilingReaderImage(
 
                 newTiles.add(tile)
                 addedNewTiles = true
-                xTaken = (xTaken + tileSize).coerceAtMost(width)
+                xTaken = (xTaken + tileSize).coerceAtMost(image.width)
             }
-            yTaken = (yTaken + tileSize).coerceAtMost(height)
+            yTaken = (yTaken + tileSize).coerceAtMost(image.height)
         }
 
-        val end = timeSource.markNow()
         if (addedNewTiles) {
             tiles.value = newTiles
             painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
             closeTileBitmaps(unusedTiles)
-
-            val dstWidth = (width * scaleFactor).roundToInt()
-            val dstHeight = (height * scaleFactor).roundToInt()
-            logger.info { "page ${pageId.pageNumber}: image $width x $height; tile size:$tileSize; tiles count: ${tiles.value.size}; resize to $dstWidth x $dstHeight completed in ${end - start}" }
         }
         lastUsedScaleFactor = scaleFactor
-        image?.let { closeImage(it) }
     }
 
     override fun close() {
         closeTileBitmaps(tiles.value)
-        imageScope.cancel()
+        image.value?.close()
+        processingScope.cancel()
+        imageAwaitScope.cancel()
     }
 
     protected abstract fun getDimensions(encoded: ByteArray): IntSize
@@ -297,8 +356,6 @@ abstract class TilingReaderImage(
         scaleHeight: Int
     ): ReaderImageData
 
-    protected abstract fun closeImage(image: PlatformImage)
-
     data class ReaderImageTile(
         val size: IntSize,
         val displayRegion: Rect,
@@ -311,6 +368,4 @@ abstract class TilingReaderImage(
         val height: Int,
         val renderImage: RenderImage,
     )
-
-
 }

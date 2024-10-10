@@ -16,7 +16,9 @@ import io.github.snd_r.komelia.AppDirectories.mangaJaNaiModelFiles
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
+import io.github.snd_r.komelia.image.CropBordersStep
 import io.github.snd_r.komelia.image.DesktopImageDecoder
+import io.github.snd_r.komelia.image.ImageProcessingPipeline
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.image.coil.DesktopDecoder
@@ -135,12 +137,18 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
     )
 
     val onnxUpscaler = createOnnxRuntimeUpscaler(settingsRepository)
+    val imagePipeline = createImagePipeline(
+        upscaler = onnxUpscaler,
+        cropBorders = readerSettingsRepository.getCropBorders().stateIn(initScope)
+    )
+    val stretchImages = readerSettingsRepository.getStretchToFit().stateIn(initScope)
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
         upscaleOption = decoderSettings.map { it.upscaleOption }.stateIn(initScope),
-        upscaler = onnxUpscaler
+        pipeline = imagePipeline,
+        stretchImages = stretchImages,
     )
 
     val availableDecoders = createAvailableDecodersFlow(
@@ -255,12 +263,23 @@ private fun createKomgaClientFactory(
         .build()
 }
 
+private fun createImagePipeline(
+    upscaler: ManagedOnnxUpscaler?,
+    cropBorders: StateFlow<Boolean>,
+): ImageProcessingPipeline {
+    val pipeline = ImageProcessingPipeline()
+    upscaler?.let { pipeline.addStep(it.asPipelineStep()) }
+    pipeline.addStep(CropBordersStep(cropBorders))
+    return pipeline
+}
+
 private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
     cookiesStorage: CookiesStorage,
     upscaleOption: StateFlow<UpscaleOption>,
-    upscaler: ManagedOnnxUpscaler?
+    stretchImages: StateFlow<Boolean>,
+    pipeline: ImageProcessingPipeline
 ): ReaderImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -271,7 +290,8 @@ private fun createReaderImageLoader(
 
     val decoder = DesktopImageDecoder(
         upscaleOptionFlow = upscaleOption,
-        onnxUpscaler = upscaler
+        processingPipeline = pipeline,
+        stretchImages = stretchImages
     )
 
     return ReaderImageLoader(

@@ -192,18 +192,17 @@ private fun VerticalLayout(
     pageIntervals: List<BookPagesInterval>,
     sidePadding: Dp
 ) {
-    val areaSize = state.screenScaleState.areaSize.collectAsState()
-    val targetSize = state.screenScaleState.targetSize.collectAsState()
-    val stretchToFit = state.imageStretchToFit.collectAsState()
     LazyColumn(
         state = state.lazyListState,
         contentPadding = PaddingValues(start = sidePadding, end = sidePadding),
         userScrollEnabled = false,
     ) {
         continuousPagesLayout(pageIntervals) { page ->
-            val height = remember(page.size, areaSize.value, targetSize.value, stretchToFit.value) {
-                state.getPageDisplaySize(page).height
+            var displaySize by remember { mutableStateOf(state.guessPageDisplaySize(page)) }
+            LaunchedEffect(Unit) {
+                state.getPageDisplaySize(page).collect { displaySize = it }
             }
+            val height = displaySize.height
             Column(
                 modifier = Modifier
                     .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))
@@ -231,11 +230,6 @@ private fun HorizontalLayout(
     sidePadding: Dp,
     reversed: Boolean
 ) {
-
-    val areaSize = state.screenScaleState.areaSize.collectAsState()
-    val targetSize = state.screenScaleState.targetSize.collectAsState()
-    val stretchToFit = state.imageStretchToFit.collectAsState()
-
     LazyRow(
         state = state.lazyListState,
         contentPadding = PaddingValues(top = sidePadding, bottom = sidePadding),
@@ -243,14 +237,11 @@ private fun HorizontalLayout(
         reverseLayout = reversed
     ) {
         continuousPagesLayout(pageIntervals) { page ->
-            val width = remember(
-                page.size,
-                areaSize.value,
-                targetSize.value,
-                stretchToFit.value
-            ) {
-                state.getPageDisplaySize(page).width
+            var displaySize by remember { mutableStateOf(state.guessPageDisplaySize(page)) }
+            LaunchedEffect(Unit) {
+                state.getPageDisplaySize(page).collect { displaySize = it }
             }
+            val width = displaySize.width
             Row(
                 Modifier
                     .animateContentSize(spring(stiffness = Spring.StiffnessVeryLow))

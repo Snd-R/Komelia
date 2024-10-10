@@ -8,9 +8,9 @@ JNIEXPORT void JNICALL Java_io_github_snd_1r_VipsImage_vipsInit() {
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_decode(
-        JNIEnv *env,
-        jobject this,
-        jbyteArray encoded
+    JNIEnv *env,
+    jobject this,
+    jbyteArray encoded
 ) {
     jsize input_len = (*env)->GetArrayLength(env, encoded);
     jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, NULL);
@@ -37,9 +37,9 @@ Java_io_github_snd_1r_VipsImage_decode(
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_decodeFromFile(
-        JNIEnv *env,
-        jobject this,
-        jstring path
+    JNIEnv *env,
+    jobject this,
+    jstring path
 ) {
     const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
     VipsImage *decoded = vips_image_new_from_file(path_chars, NULL);
@@ -60,12 +60,12 @@ Java_io_github_snd_1r_VipsImage_decodeFromFile(
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_thumbnail(
-        JNIEnv *env,
-        jobject this,
-        jstring path,
-        jint scaleWidth,
-        jint scaleHeight,
-        jboolean crop
+    JNIEnv *env,
+    jobject this,
+    jstring path,
+    jint scaleWidth,
+    jint scaleHeight,
+    jboolean crop
 ) {
     const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
     VipsImage *thumbnail = NULL;
@@ -95,9 +95,9 @@ Java_io_github_snd_1r_VipsImage_thumbnail(
 
 JNIEXPORT void JNICALL
 Java_io_github_snd_1r_VipsImage_encodeToFile(
-        JNIEnv *env,
-        jobject this,
-        jstring path
+    JNIEnv *env,
+    jobject this,
+    jstring path
 ) {
     VipsImage *image = komelia_from_jvm_handle(env, this);
     if (image == NULL) return;
@@ -116,11 +116,34 @@ Java_io_github_snd_1r_VipsImage_encodeToFile(
     vips_thread_shutdown();
 }
 
+JNIEXPORT void JNICALL
+Java_io_github_snd_1r_VipsImage_encodeToFilePng(
+    JNIEnv *env,
+    jobject this,
+    jstring path
+) {
+    VipsImage *image = komelia_from_jvm_handle(env, this);
+    if (image == NULL) return;
+
+    const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
+    int write_error = vips_pngsave(image, path_chars, NULL);
+    (*env)->ReleaseStringUTFChars(env, path, path_chars);
+
+    if (write_error) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        vips_thread_shutdown();
+        return;
+    }
+
+    vips_thread_shutdown();
+}
+
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_getDimensions(
-        JNIEnv *env,
-        jobject this,
-        jbyteArray encoded
+    JNIEnv *env,
+    jobject this,
+    jbyteArray encoded
 ) {
     jsize input_len = (*env)->GetArrayLength(env, encoded);
     jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, NULL);
@@ -151,9 +174,9 @@ Java_io_github_snd_1r_VipsImage_getDimensions(
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_decodeAndGet(
-        JNIEnv *env,
-        jobject this,
-        jbyteArray encoded
+    JNIEnv *env,
+    jobject this,
+    jbyteArray encoded
 ) {
     jsize inputLen = (*env)->GetArrayLength(env, encoded);
     jbyte *inputBytes = (*env)->GetByteArrayElements(env, encoded, JNI_FALSE);
@@ -178,12 +201,12 @@ Java_io_github_snd_1r_VipsImage_decodeAndGet(
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_decodeResizeAndGet(
-        JNIEnv *env,
-        jobject this,
-        jbyteArray encoded,
-        jint scaleWidth,
-        jint scaleHeight,
-        jboolean crop
+    JNIEnv *env,
+    jobject this,
+    jbyteArray encoded,
+    jint scaleWidth,
+    jint scaleHeight,
+    jboolean crop
 ) {
     jsize inputLen = (*env)->GetArrayLength(env, encoded);
     jbyte *inputBytes = (*env)->GetByteArrayElements(env, encoded, 0);
@@ -252,7 +275,6 @@ VipsRect to_vips_rect(JNIEnv *env, jobject jvm_rect) {
     return vipsRect;
 }
 
-
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rect) {
     VipsImage *input_image = komelia_from_jvm_handle(env, this);
@@ -280,13 +302,13 @@ Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rec
                                              &region_size
     );
     VipsImage *memory_image = vips_image_new_from_memory(
-//                VIPS_REGION_ADDR_TOPLEFT(region),
-            region_data,
-            region_size,
-            vips_rect.width,
-            vips_rect.height,
-            bands,
-            VIPS_FORMAT_UCHAR
+        //                VIPS_REGION_ADDR_TOPLEFT(region),
+        region_data,
+        region_size,
+        vips_rect.width,
+        vips_rect.height,
+        bands,
+        VIPS_FORMAT_UCHAR
     );
     if (!memory_image) {
         komelia_throw_jvm_vips_exception(env, vips_error_buffer());
@@ -323,11 +345,11 @@ Java_io_github_snd_1r_VipsImage_getRegion(JNIEnv *env, jobject this, jobject rec
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_resize(
-        JNIEnv *env,
-        jobject this,
-        jint scaleWidth,
-        jint scaleHeight,
-        jboolean crop
+    JNIEnv *env,
+    jobject this,
+    jint scaleWidth,
+    jint scaleHeight,
+    jboolean crop
 ) {
     VipsImage *image = komelia_from_jvm_handle(env, this);
     if (image == NULL) return NULL;
@@ -363,9 +385,9 @@ Java_io_github_snd_1r_VipsImage_resize(
 
 JNIEXPORT jobject JNICALL
 Java_io_github_snd_1r_VipsImage_shrink(
-        JNIEnv *env,
-        jobject this,
-        jdouble factor
+    JNIEnv *env,
+    jobject this,
+    jdouble factor
 ) {
     VipsImage *image = komelia_from_jvm_handle(env, this);
     if (image == NULL) return NULL;
@@ -382,6 +404,22 @@ Java_io_github_snd_1r_VipsImage_shrink(
     if (jvm_image == NULL) { g_object_unref(resized); }
     vips_thread_shutdown();
     return jvm_image;
+}
+
+jobject jvm_rect(JNIEnv *env, int left, int top, int width, int height) {
+    jclass jvm_vips_class = (*env)->FindClass(env, "io/github/snd_r/ImageRect");
+    jmethodID constructor = (*env)->GetMethodID(env, jvm_vips_class, "<init>", "(IIII)V");
+    return (*env)->NewObject(env, jvm_vips_class, constructor, left, top, width + left, height + top);
+}
+
+JNIEXPORT jobject JNICALL
+Java_io_github_snd_1r_VipsImage_findTrim(JNIEnv *env, jobject this) {
+    VipsImage *image = komelia_from_jvm_handle(env, this);
+    if (image == NULL) return NULL;
+
+    int left, top, width, height;
+    vips_find_trim(image, &left, &top, &width, &height, "threshold", 50.0, "line_art", 1, NULL);
+    return jvm_rect(env, left, top, width, height);
 }
 
 JNIEXPORT void JNICALL

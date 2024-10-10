@@ -83,6 +83,7 @@ fun ColumnScope.PagedReaderSettingsContent(
         val currentSpread = pageState.currentSpread.collectAsState()
         currentSpread.value.pages.forEach { page ->
             val pageImage = page.imageResult?.image
+            val pageSize = pageImage?.originalSize?.collectAsState()?.value
             if (pageImage != null) {
                 val currentSize = pageImage.currentSize.collectAsState().value
                 Text("${readerStrings.pageNumber} ${page.metadata.pageNumber}")
@@ -91,7 +92,9 @@ fun ColumnScope.PagedReaderSettingsContent(
                     Text("${readerStrings.pageDisplaySize} ${currentSize.width} x ${currentSize.height}")
                 }
 
-                Text("${readerStrings.pageOriginalSize}: ${pageImage.width} x ${pageImage.height}")
+                if (pageSize != null) {
+                    Text("${readerStrings.pageOriginalSize}: ${pageSize.width} x ${pageSize.height}")
+                }
             }
 
             HorizontalDivider(Modifier.padding(vertical = 5.dp))
