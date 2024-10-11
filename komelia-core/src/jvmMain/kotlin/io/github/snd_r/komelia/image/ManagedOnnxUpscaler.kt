@@ -7,6 +7,7 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries
 import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsImage
 import io.github.snd_r.komelia.AppDirectories
+import io.github.snd_r.komelia.AppDirectories.mangaJaNaiInstallPath
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.MANGAJANAI_PRESET
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.NONE
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.USER_SPECIFIED_MODEL
@@ -30,6 +31,8 @@ import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.name
 import kotlin.math.ceil
 import kotlin.time.TimeSource
 
@@ -126,9 +129,9 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
     private fun mangaJaNaiUpscale(pageId: PageId, image: VipsImage): VipsImage {
         val isGrayscale = if (image.type == ImageFormat.GRAYSCALE_8) true else isRgbaIsGrayscale(image)
 
-        val model =
+        val modelPath =
             if (isGrayscale) {
-                when (image.height) {
+                val model = when (image.height) {
                     in 0..1250 -> "2x_MangaJaNai_1200p_V1_ESRGAN_70k.onnx"
                     in 1251..1350 -> "2x_MangaJaNai_1300p_V1_ESRGAN_75k.onnx"
                     in 1351..1450 -> "2x_MangaJaNai_1400p_V1_ESRGAN_70k.onnx"
@@ -137,12 +140,17 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
                     in 1761..1984 -> "2x_MangaJaNai_1920p_V1_ESRGAN_70k.onnx"
                     else -> "2x_MangaJaNai_2048p_V1_ESRGAN_95k.onnx"
                 }
+                mangaJaNaiInstallPath.resolve(model)
             } else {
-                "4x_IllustrationJaNai_V1_ESRGAN_135k.onnx"
-            }
-        logger.info { "page ${pageId.pageNumber}: using model $model" }
+                val illustration2x = mangaJaNaiInstallPath.resolve("2x_IllustrationJaNai_V1_ESRGAN_120k.onnx")
+                val illustration4x = mangaJaNaiInstallPath.resolve("4x_IllustrationJaNai_V1_ESRGAN_135k.onnx")
+                if (illustration2x.exists()) illustration2x
+                else illustration4x
 
-        OnnxRuntimeUpscaler.setModelPath(AppDirectories.mangaJaNaiInstallPath.resolve(model).toString())
+            }
+        logger.info { "page ${pageId.pageNumber}: using model ${modelPath.name}" }
+
+        OnnxRuntimeUpscaler.setModelPath(modelPath.toString())
         val upscaled = OnnxRuntimeUpscaler.upscale(image)
         return upscaled
     }

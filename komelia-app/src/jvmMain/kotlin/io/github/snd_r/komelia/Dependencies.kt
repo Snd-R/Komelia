@@ -12,7 +12,6 @@ import io.github.snd_r.OnnxRuntimeUpscaler
 import io.github.snd_r.VipsBitmapFactory
 import io.github.snd_r.VipsSharedLibraries
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
-import io.github.snd_r.komelia.AppDirectories.mangaJaNaiModelFiles
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
@@ -77,9 +76,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.createDirectories
-import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
@@ -397,11 +394,10 @@ private suspend fun createAvailableDecodersFlow(
 }
 
 private fun createVipsOrtDescriptor(modelsPath: Path): PlatformDecoderDescriptor {
-    val mangaJaNaiIsAvailable = AppDirectories.mangaJaNaiInstallPath.exists() &&
-            AppDirectories.mangaJaNaiInstallPath.listDirectoryEntries()
-                .map { it.fileName.toString() }
-                .containsAll(mangaJaNaiModelFiles)
-    val defaultOptions = if (mangaJaNaiIsAvailable) upsamplingFilters + mangaJaNai else upsamplingFilters
+    val defaultOptions =
+        if (AppDirectories.containsMangaJaNaiModels())
+            upsamplingFilters + mangaJaNai
+        else upsamplingFilters
 
     try {
         val models = Files.list(modelsPath)
