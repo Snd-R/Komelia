@@ -124,6 +124,7 @@ compose.desktop {
             appResourcesRootDir.set(
                 project.parent!!.projectDir.resolve("image-decoder/desktopComposeResources")
             )
+            modules("jdk.security.auth", "java.sql")
 
             windows {
                 menu = true
@@ -133,7 +134,6 @@ compose.desktop {
 
             linux {
                 iconFile.set(project.file("src/jvmMain/resources/ic_launcher.png"))
-                modules("jdk.security.auth")
             }
         }
 
