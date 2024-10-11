@@ -9,6 +9,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,7 +17,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.LocalKomfIntegration
+import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
+import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialog
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
 import kotlinx.coroutines.CoroutineScope
 import snd.komga.client.library.KomgaLibrary
@@ -26,12 +30,9 @@ import snd.komga.client.library.KomgaLibraryClient
 fun LibraryActionsMenu(
     library: KomgaLibrary,
     actions: LibraryMenuActions,
-//    onShowEditDialog: () -> Unit,
     expanded: Boolean,
     onDismissRequest: () -> Unit
 ) {
-//    val coroutineScope = rememberCoroutineScope()
-
     var showLibraryEditDialog by remember { mutableStateOf(false) }
     if (showLibraryEditDialog) {
         LibraryEditDialogs(
@@ -77,6 +78,17 @@ fun LibraryActionsMenu(
             onDialogDismiss = { deleteLibraryDialog = false },
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
+
+    var showKomfResetDialog by remember { mutableStateOf(false) }
+    if (showKomfResetDialog) {
+        KomfResetMetadataDialog(
+            library = library,
+            onDismissRequest = {
+                showKomfResetDialog = false
+                onDismissRequest()
+            }
+        )
+    }
 
     DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
         DropdownMenuItem(
@@ -131,6 +143,26 @@ fun LibraryActionsMenu(
                 onDismissRequest()
             }
         )
+
+        val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
+        if (komfIntegration.value) {
+            val vmFactory = LocalViewModelFactory.current
+            val autoIdentifyVm = remember(library) {
+                vmFactory.getKomfLibraryIdentifyViewModel(library)
+            }
+            DropdownMenuItem(
+                text = { Text("Auto-Identify (Komf)") },
+                onClick = {
+                    autoIdentifyVm.autoIdentify()
+                    onDismissRequest()
+                },
+            )
+
+            DropdownMenuItem(
+                text = { Text("Reset Metadata (Komf)") },
+                onClick = { showKomfResetDialog = true },
+            )
+        }
 
         val deleteScanInteractionSource = remember { MutableInteractionSource() }
         val deleteScanIsHovered = deleteScanInteractionSource.collectIsHoveredAsState()

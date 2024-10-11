@@ -26,6 +26,7 @@ import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialogVie
 import io.github.snd_r.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfLibraryIdentifyViewmodel
 import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.oneshot.OneshotEditDialogViewModel
@@ -596,14 +597,22 @@ class ViewModelFactory(
     }
 
     fun getKomfResetMetadataDialogViewModel(
-        series: KomgaSeries,
         onDismissRequest: () -> Unit
     ): KomfResetMetadataDialogViewModel {
         return KomfResetMetadataDialogViewModel(
-            series = series,
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
             appNotifications = appNotifications,
             onDismiss = onDismissRequest,
+        )
+    }
+
+    fun getKomfLibraryIdentifyViewModel(
+        library: KomgaLibrary
+    ): KomfLibraryIdentifyViewmodel {
+        return KomfLibraryIdentifyViewmodel(
+            library = library,
+            komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
+            appNotifications = appNotifications,
         )
     }
 
