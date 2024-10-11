@@ -11,7 +11,7 @@ import java.io.InputStreamReader
 import java.io.Reader
 
 @OptIn(ExperimentalResourceApi::class)
-class AndroidResourcesProvider : ResourceProvider, ClassProvider<JavaMigration> {
+class MigrationResourcesProvider : ResourceProvider, ClassProvider<JavaMigration> {
     private val migrations = listOf(
         "V1__initial_migration.sql",
     )

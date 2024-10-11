@@ -1,5 +1,6 @@
 package snd.komelia.db
 
+import org.flywaydb.core.Flyway
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
@@ -24,4 +25,13 @@ class Database(private val filePath: String) {
     }
 }
 
-internal expect fun flywayMigrate(filePath: String)
+private fun flywayMigrate(filePath: String) {
+    val resourcesProvider = MigrationResourcesProvider()
+    Flyway(
+        Flyway.configure()
+            .loggers("slf4j")
+            .dataSource("jdbc:sqlite:${filePath}", null, null)
+            .resourceProvider(resourcesProvider)
+            .javaMigrationClassProvider(resourcesProvider)
+    ).migrate()
+}
