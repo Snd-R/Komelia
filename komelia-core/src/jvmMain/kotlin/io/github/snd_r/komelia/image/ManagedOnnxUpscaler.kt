@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.USER_SPECIF
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.platform.mangaJaNai
 import io.github.snd_r.komelia.platform.upsamplingFilters
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,10 +28,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.math.ceil
+import kotlin.time.TimeSource
 
 private val logger = KotlinLogging.logger {}
 
@@ -83,7 +84,10 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
     fun asPipelineStep(): ProcessingStep = OnnxRuntimeProcessingStep(this)
 
     suspend fun upscale(pageId: PageId, image: VipsImage): VipsImage? {
-        return mutex.withLock {
+        val timeSource = TimeSource.Monotonic
+        val start = timeSource.markNow()
+
+        val result = mutex.withLock {
             withContext(Dispatchers.IO) {
                 imageCache.openSnapshot(pageId.toString()).use { snapshot ->
                     if (snapshot != null) {
@@ -101,6 +105,11 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
                 }
             }
         }
+        if (result != null) {
+            val end = timeSource.markNow()
+            logger.info { "page ${pageId.pageNumber} completed ORT upscaling in ${end - start}" }
+        }
+        return result
     }
 
     private fun writeToDiskCache(pageId: PageId, image: VipsImage) {

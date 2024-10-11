@@ -112,9 +112,11 @@ abstract class TilingReaderImage(
 
     private suspend fun loadImage() {
         try {
-            val processed = processingPipeline.process(pageId, decode(encoded))
-            image.value = processed
-            originalSize.value = IntSize(processed.width, processed.height)
+            measureTime {
+                val processed = processingPipeline.process(pageId, decode(encoded))
+                image.value = processed
+                originalSize.value = IntSize(processed.width, processed.height)
+            }.also { logger.info { "page ${pageId.pageNumber} completed load in $it" } }
         } catch (e: Throwable) {
             currentCoroutineContext().ensureActive()
             logger.catching(e)
@@ -231,7 +233,8 @@ abstract class TilingReaderImage(
                 displaySize = displayArea,
                 scaleFactor = scaleFactor
             )
-        }
+        }.also { logger.info { "page ${pageId.pageNumber} completed full resize to $dstWidth x $dstHeight in $it" } }
+
     }
 
     private suspend fun doTile(
@@ -320,8 +323,12 @@ abstract class TilingReaderImage(
             tiles.value = newTiles
             painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
             closeTileBitmaps(unusedTiles)
+
+            val end = timeSource.markNow()
+            logger.info { "page ${pageId.pageNumber} completed tiled resize in ${end - start};  ${tiles.value.size} tiles" }
         }
         lastUsedScaleFactor = scaleFactor
+
     }
 
     override fun close() {
