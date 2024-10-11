@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "io.github.snd-r"
-version = "0.9.0"
+version = "0.10.0"
 
 kotlin {
     jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
@@ -82,7 +82,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "0.9.0"
+        versionName = "0.10.0"
     }
     packaging {
         resources {
@@ -118,7 +118,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Komelia"
-            packageVersion = "0.9.0"
+            packageVersion = "0.10.0"
             description = "Komga media client"
             vendor = "Snd-R"
             appResourcesRootDir.set(
@@ -128,11 +128,11 @@ compose.desktop {
             windows {
                 menu = true
                 upgradeUuid = "40E86376-4E7C-41BF-8E3B-754065032B22"
-                iconFile.set(project.file("src/desktopMain/resources/ic_launcher.ico"))
+                iconFile.set(project.file("src/jvmMain/resources/ic_launcher.ico"))
             }
 
             linux {
-                iconFile.set(project.file("src/desktopMain/resources/ic_launcher.png"))
+                iconFile.set(project.file("src/jvmMain/resources/ic_launcher.png"))
                 modules("jdk.security.auth")
             }
         }
