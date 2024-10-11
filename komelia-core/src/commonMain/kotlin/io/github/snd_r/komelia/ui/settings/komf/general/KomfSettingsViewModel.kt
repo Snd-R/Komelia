@@ -27,7 +27,7 @@ import snd.komf.api.config.KomgaConfigUpdateRequest
 import snd.komf.client.KomfConfigClient
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class KomfSettingsViewModel(
     private val komfConfigClient: KomfConfigClient,

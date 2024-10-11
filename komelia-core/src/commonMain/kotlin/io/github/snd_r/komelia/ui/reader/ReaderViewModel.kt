@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
-import snd.settings.CommonSettingsRepository
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 

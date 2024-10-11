@@ -37,7 +37,7 @@ import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import kotlin.time.measureTimedValue
 
 class WasmDependencyContainer(

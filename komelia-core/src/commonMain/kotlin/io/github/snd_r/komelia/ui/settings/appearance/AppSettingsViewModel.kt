@@ -13,7 +13,7 @@ import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class AppSettingsViewModel(
     private val settingsRepository: CommonSettingsRepository,

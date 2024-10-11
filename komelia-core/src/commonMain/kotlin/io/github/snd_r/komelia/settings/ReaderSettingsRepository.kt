@@ -1,4 +1,4 @@
-package snd.settings
+package io.github.snd_r.komelia.settings
 
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState

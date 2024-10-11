@@ -30,7 +30,7 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class SeriesViewModel(
     series: KomgaSeries?,

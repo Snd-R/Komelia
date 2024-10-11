@@ -25,7 +25,7 @@ import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
 import snd.komga.client.user.KomgaUser
 import snd.komga.client.user.KomgaUserClient
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class LoginViewModel(
     private val settingsRepository: CommonSettingsRepository,

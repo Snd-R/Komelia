@@ -1,4 +1,4 @@
-package snd.settings
+package io.github.snd_r.komelia.settings
 
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.ui.common.AppTheme

@@ -32,7 +32,7 @@ import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class BookViewModel(
     book: KomgaBook?,

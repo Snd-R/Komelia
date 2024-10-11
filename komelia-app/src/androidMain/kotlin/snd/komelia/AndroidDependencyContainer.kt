@@ -59,8 +59,8 @@ import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
-import snd.settings.CommonSettingsRepository
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import java.util.concurrent.TimeUnit
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue

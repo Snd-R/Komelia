@@ -49,7 +49,7 @@ import snd.komga.client.sse.KomgaEvent.SeriesAdded
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
 import snd.komga.client.sse.KomgaEvent.SeriesDeleted
 import snd.komga.client.sse.KomgaEvent.SeriesEvent
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 private val logger = KotlinLogging.logger {}
 

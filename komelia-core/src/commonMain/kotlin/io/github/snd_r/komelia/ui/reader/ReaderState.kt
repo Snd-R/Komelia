@@ -29,8 +29,8 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
-import snd.settings.CommonSettingsRepository
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 typealias SpreadIndex = Int
 

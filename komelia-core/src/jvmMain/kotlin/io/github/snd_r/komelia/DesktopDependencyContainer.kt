@@ -12,8 +12,8 @@ import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.Flow
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
-import snd.settings.CommonSettingsRepository
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 class DesktopDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,

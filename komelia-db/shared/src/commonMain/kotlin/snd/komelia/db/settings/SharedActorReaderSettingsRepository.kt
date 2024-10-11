@@ -8,7 +8,7 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayou
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 class SharedActorReaderSettingsRepository(
     private val actor: SettingsActor,

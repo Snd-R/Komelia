@@ -38,7 +38,7 @@ import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class OneshotViewModel(
     series: KomgaSeries?,

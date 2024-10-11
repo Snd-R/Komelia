@@ -27,7 +27,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
-import snd.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.math.ceil

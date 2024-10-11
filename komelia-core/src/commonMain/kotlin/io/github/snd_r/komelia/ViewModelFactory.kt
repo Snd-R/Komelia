@@ -89,8 +89,8 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUser
-import snd.settings.CommonSettingsRepository
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 interface DependencyContainer {
     val settingsRepository: CommonSettingsRepository

@@ -45,7 +45,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import kotlin.math.max
 import kotlin.math.roundToInt
 

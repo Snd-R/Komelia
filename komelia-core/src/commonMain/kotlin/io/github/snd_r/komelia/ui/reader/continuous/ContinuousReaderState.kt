@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
-import snd.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger("ContinuousReaderState")
