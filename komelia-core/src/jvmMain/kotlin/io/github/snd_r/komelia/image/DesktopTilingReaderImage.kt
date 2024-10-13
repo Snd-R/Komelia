@@ -108,16 +108,20 @@ class DesktopTilingReaderImage(
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData {
-
-        val region = image.extractArea(imageRegion.toImageRect())
-        if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
-            return region.toReaderImageData()
+        var region: VipsImage? = null
+        var resized: VipsImage? = null
+        try {
+            region = image.extractArea(imageRegion.toImageRect())
+            if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
+                val regionData = region.toReaderImageData()
+                return regionData
+            }
+            resized = region.resize(scaleWidth, scaleHeight, false)
+            return resized.toReaderImageData()
+        } finally {
+            region?.close()
+            resized?.close()
         }
-        val downscaled = region.resize(scaleWidth, scaleHeight, false)
-        val imageData = downscaled.toReaderImageData()
-        downscaled.close()
-        region.close()
-        return imageData
     }
 
     private fun VipsImage.toReaderImageData(): ReaderImageData {
