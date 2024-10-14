@@ -91,28 +91,37 @@ abstract class VipsPointer(
     var isClosed = false
         private set
 
-    @Synchronized
-    override fun close() {
-//        cleanable.clean()
+    private val cleanable: Cleanable
 
-        if (_ptr != 0L) gObjectUnref(_ptr)
-        if (_bytes != 0L) free(_bytes)
-        _ptr = 0
-        _bytes = 0
-        isClosed = true
+    private class CleanerThunk(private var vipsPtr: Long, private var bytesPtr: Long) : Runnable {
+        override fun run() {
+            if (vipsPtr != 0L) gObjectUnref(vipsPtr)
+            if (bytesPtr != 0L) free(bytesPtr)
+        }
     }
 
-//    companion object {
-//        private val cleaner: Cleaner = Cleaner.create()
-//    }
+    init {
+        @Suppress("LeakingThis")
+        cleanable = CLEANER.register(this, CleanerThunk(vipsPtr, bytesPtr))
+    }
 
-//    @Suppress("LeakingThis")
-//    private val cleanable: Cleaner.Cleanable = cleaner.register(this) {
-//        if (vipsPtr != 0L) gObjectUnref(vipsPtr)
-//        if (bytesPtr != 0L) free(bytesPtr)
-//
-//    }
+    @Synchronized
+    override fun close() {
+        if (!isClosed) {
+            cleanable.clean()
+            _ptr = 0
+            _bytes = 0
+            isClosed = true
+        }
+    }
 
-    private external fun gObjectUnref(pointer: NativePointer)
-    private external fun free(pointer: NativePointer)
+    companion object {
+        private val CLEANER = Cleaner()
+
+        @JvmStatic
+        private external fun gObjectUnref(pointer: NativePointer)
+
+        @JvmStatic
+        private external fun free(pointer: NativePointer)
+    }
 }
