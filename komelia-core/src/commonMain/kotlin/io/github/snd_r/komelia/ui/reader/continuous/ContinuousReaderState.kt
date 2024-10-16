@@ -20,6 +20,7 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.PageMetadata
@@ -57,7 +58,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger("ContinuousReaderState")
@@ -559,13 +559,26 @@ class ContinuousReaderState(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun guessPageDisplaySize(page: PageMetadata, pageSize: IntSize? = null): IntSize {
+        val cached = imageCache.get(ImageCacheKey(page.bookId, page.pageNumber))
+        var cachedImageSize: IntSize? = null
+        if (cached != null && cached.isCompleted) {
+            cachedImageSize = cached.getCompleted().image?.originalSize?.value
+        }
         val containerSize = screenScaleState.areaSize.value
 
         val displaySize = when (readingDirection.value) {
             TOP_TO_BOTTOM -> {
                 val constrainedWidth = containerSize.width - (sidePaddingPx.value * 2)
                 when {
+                    cachedImageSize != null -> {
+                        contentSizeForArea(
+                            contentSize = cachedImageSize,
+                            maxPageSize = IntSize(constrainedWidth, Int.MAX_VALUE)
+                        )
+                    }
+
                     pageSize == null -> {
                         val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
                         val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
@@ -595,6 +608,13 @@ class ContinuousReaderState(
             LEFT_TO_RIGHT, RIGHT_TO_LEFT -> {
                 val constrainedHeight = containerSize.height - (sidePaddingPx.value * 2)
                 when {
+                    cachedImageSize != null -> {
+                        contentSizeForArea(
+                            contentSize = cachedImageSize,
+                            maxPageSize = IntSize(Int.MAX_VALUE, constrainedHeight)
+                        )
+                    }
+
                     pageSize == null -> {
                         val previousPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber - 2)
                         val nextPage = getPagesFor(page.bookId)?.getOrNull(page.pageNumber)
