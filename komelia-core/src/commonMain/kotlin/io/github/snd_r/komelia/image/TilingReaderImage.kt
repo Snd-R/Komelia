@@ -167,6 +167,9 @@ abstract class TilingReaderImage(
         val dstWidth = displaySize.width * zoomFactor
         val dstHeight = displaySize.height * zoomFactor
 
+        this.displaySize.value = displaySize
+        this.currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
+
         val displayPixCount = (dstWidth * dstHeight).roundToInt()
         val tileSize = when (displayPixCount) {
             in 0..tileThreshold1 -> null
@@ -192,8 +195,6 @@ abstract class TilingReaderImage(
                 tileSize = tileSize
             )
         }
-        this.displaySize.value = displaySize
-        this.currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
     }
 
     private suspend fun doFullResize(
@@ -203,6 +204,9 @@ abstract class TilingReaderImage(
         displayArea: IntSize
     ) {
         if (lastUsedScaleFactor == scaleFactor) return
+        if (tiles.value.isEmpty()) {
+            painter.value = createPlaceholderPainter(displayArea)
+        }
         lastUsedScaleFactor = scaleFactor
         val dstWidth = (image.width * scaleFactor).roundToInt()
         val dstHeight = (image.height * scaleFactor).roundToInt()
@@ -247,6 +251,9 @@ abstract class TilingReaderImage(
     ) {
         val timeSource = TimeSource.Monotonic
         val start = timeSource.markNow()
+        if (tiles.value.isEmpty()) {
+            painter.value = createPlaceholderPainter(displayArea)
+        }
 
         val visibilityWindow = Rect(
             left = displayRegion.left / 1.5f,

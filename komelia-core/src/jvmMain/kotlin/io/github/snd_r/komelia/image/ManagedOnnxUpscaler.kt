@@ -84,14 +84,12 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
             }.launchIn(scope)
     }
 
-    fun asPipelineStep(): ProcessingStep = OnnxRuntimeProcessingStep(this)
-
     suspend fun upscale(pageId: PageId, image: VipsImage): VipsImage? {
         val timeSource = TimeSource.Monotonic
-        val start = timeSource.markNow()
 
-        val result = mutex.withLock {
-            withContext(Dispatchers.IO) {
+        mutex.withLock {
+            val start = timeSource.markNow()
+            val result = withContext(Dispatchers.IO) {
                 imageCache.openSnapshot(pageId.toString()).use { snapshot ->
                     if (snapshot != null) {
                         return@withContext VipsImage.decodeFromFile(snapshot.data.toString())
@@ -107,12 +105,12 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
                     return@withContext upscaled
                 }
             }
+            if (result != null) {
+                val end = timeSource.markNow()
+                logger.info { "page ${pageId.pageNumber} completed ORT upscaling in ${end - start}" }
+            }
+            return result
         }
-        if (result != null) {
-            val end = timeSource.markNow()
-            logger.info { "page ${pageId.pageNumber} completed ORT upscaling in ${end - start}" }
-        }
-        return result
     }
 
     private fun writeToDiskCache(pageId: PageId, image: VipsImage) {

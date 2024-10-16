@@ -34,6 +34,7 @@ class DesktopTilingReaderImage(
     upscaleOption: StateFlow<UpscaleOption>,
     stretchImages: StateFlow<Boolean>,
     pageId: PageId,
+    private val upscaler: ManagedOnnxUpscaler?,
 ) : TilingReaderImage(
     encoded,
     processingPipeline,
@@ -63,6 +64,14 @@ class DesktopTilingReaderImage(
                 reloadLastRequest()
             }
         }.launchIn(processingScope)
+
+        upscaler?.upscaleMode?.drop(1)?.onEach {
+            lastUpdateRequest?.let { lastRequest ->
+                val displaySize = calculateSizeForArea(lastRequest.maxDisplaySize, stretchImages.value)
+                this.painter.value = PlaceholderPainter(displaySize)
+                reloadLastRequest()
+            }
+        }?.launchIn(processingScope)
     }
 
     override fun getDimensions(encoded: ByteArray): IntSize {
@@ -92,7 +101,7 @@ class DesktopTilingReaderImage(
 
     override suspend fun resizeImage(image: VipsImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
         if (scaleWidth > image.width || scaleHeight > image.height) {
-            return image.toReaderImageData()
+            return upscaleImage(image, scaleWidth, scaleHeight)
         }
 
         val downscaled = image.resize(scaleWidth, scaleHeight, false)
@@ -113,8 +122,7 @@ class DesktopTilingReaderImage(
         try {
             region = image.extractArea(imageRegion.toImageRect())
             if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
-                val regionData = region.toReaderImageData()
-                return regionData
+                return upscaleRegion(image, imageRegion, scaleWidth, scaleHeight)
             }
             resized = region.resize(scaleWidth, scaleHeight, false)
             return resized.toReaderImageData()
@@ -123,6 +131,74 @@ class DesktopTilingReaderImage(
             resized?.close()
         }
     }
+
+    private suspend fun upscaleImage(
+        image: VipsImage,
+        scaleWidth: Int,
+        scaleHeight: Int,
+    ): ReaderImageData {
+        val upscaled = upscaler?.upscale(pageId, image)
+
+        if (upscaled != null) {
+            if (upscaled.width > scaleWidth && upscaled.height > scaleHeight) {
+                val resized = upscaled.resize(scaleWidth, scaleHeight, false)
+                val imageData = resized.toReaderImageData()
+                resized.close()
+                return imageData
+            } else {
+                val imageData = upscaled.toReaderImageData()
+                return imageData
+            }
+        } else {
+            val imageData = image.toReaderImageData()
+            return imageData
+        }
+    }
+
+
+    private suspend fun upscaleRegion(
+        image: VipsImage,
+        imageRegion: IntRect,
+        scaleWidth: Int,
+        scaleHeight: Int
+    ): ReaderImageData {
+        // try to reuse full resized image instead of upscaling individual regions
+        val upscaled = upscaler?.upscale(pageId, image)
+        var region: VipsImage? = null
+        var resized: VipsImage? = null
+
+        try {
+            if (upscaled != null) {
+                // assume upscaling is done by integer fraction (2x, 4x etc.)
+                val scaleRatio = upscaled.width / image.width
+                val targetRegion = ImageRect(
+                    left = imageRegion.left * scaleRatio,
+                    right = imageRegion.right * scaleRatio,
+                    top = imageRegion.top * scaleRatio,
+                    bottom = imageRegion.bottom * scaleRatio
+                )
+                region = upscaled.extractArea(targetRegion)
+
+                // downscale if region is bigger than requested scale
+                if (region.width > scaleWidth || region.height > scaleHeight) {
+                    resized = region.resize(scaleWidth, scaleHeight, false)
+                    return resized.toReaderImageData()
+                    // otherwise do not upsample and return original region size
+                } else {
+                    return region.toReaderImageData()
+                }
+
+                // if onnxruntime upscaling wasn't performed return original region size
+            } else {
+                region = image.extractArea(imageRegion.toImageRect())
+                return region.toReaderImageData()
+            }
+        } finally {
+            resized?.close()
+            region?.close()
+        }
+    }
+
 
     private fun VipsImage.toReaderImageData(): ReaderImageData {
         val skiaBitmap = VipsBitmapFactory.toSkiaBitmap(this)

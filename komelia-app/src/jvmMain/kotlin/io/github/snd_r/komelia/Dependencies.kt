@@ -135,7 +135,6 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
 
     val onnxUpscaler = createOnnxRuntimeUpscaler(settingsRepository)
     val imagePipeline = createImagePipeline(
-        upscaler = onnxUpscaler,
         cropBorders = readerSettingsRepository.getCropBorders().stateIn(initScope)
     )
     val stretchImages = readerSettingsRepository.getStretchToFit().stateIn(initScope)
@@ -146,6 +145,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
         upscaleOption = decoderSettings.map { it.upscaleOption }.stateIn(initScope),
         pipeline = imagePipeline,
         stretchImages = stretchImages,
+        onnxUpscaler = onnxUpscaler,
     )
 
     val availableDecoders = createAvailableDecodersFlow(
@@ -261,11 +261,9 @@ private fun createKomgaClientFactory(
 }
 
 private fun createImagePipeline(
-    upscaler: ManagedOnnxUpscaler?,
     cropBorders: StateFlow<Boolean>,
 ): ImageProcessingPipeline {
     val pipeline = ImageProcessingPipeline()
-    upscaler?.let { pipeline.addStep(it.asPipelineStep()) }
     pipeline.addStep(CropBordersStep(cropBorders))
     return pipeline
 }
@@ -276,7 +274,8 @@ private fun createReaderImageLoader(
     cookiesStorage: CookiesStorage,
     upscaleOption: StateFlow<UpscaleOption>,
     stretchImages: StateFlow<Boolean>,
-    pipeline: ImageProcessingPipeline
+    pipeline: ImageProcessingPipeline,
+    onnxUpscaler: ManagedOnnxUpscaler?,
 ): ReaderImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -288,7 +287,8 @@ private fun createReaderImageLoader(
     val decoder = DesktopImageDecoder(
         upscaleOptionFlow = upscaleOption,
         processingPipeline = pipeline,
-        stretchImages = stretchImages
+        stretchImages = stretchImages,
+        onnxUpscaler = onnxUpscaler,
     )
 
     return ReaderImageLoader(
