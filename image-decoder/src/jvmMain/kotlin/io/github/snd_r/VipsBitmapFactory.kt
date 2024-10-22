@@ -1,9 +1,9 @@
 package io.github.snd_r
 
-import io.github.snd_r.DesktopPlatform.Linux
-import io.github.snd_r.DesktopPlatform.MacOS
-import io.github.snd_r.DesktopPlatform.Unknown
-import io.github.snd_r.DesktopPlatform.Windows
+import snd.jni.DesktopPlatform.Linux
+import snd.jni.DesktopPlatform.MacOS
+import snd.jni.DesktopPlatform.Unknown
+import snd.jni.DesktopPlatform.Windows
 import io.github.snd_r.ImageFormat.GRAYSCALE_8
 import io.github.snd_r.ImageFormat.RGBA_8888
 import org.jetbrains.skia.Bitmap
@@ -12,6 +12,8 @@ import org.jetbrains.skia.ColorInfo
 import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.ImageInfo
+import snd.jni.DesktopPlatform
+import snd.jni.SharedLibrariesLoader
 import java.util.concurrent.atomic.AtomicBoolean
 
 object VipsBitmapFactory {

@@ -3,6 +3,7 @@ package snd.komelia.db.settings
 import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import kotlinx.serialization.json.JsonObject
 
 class SharedActorSettingsRepository(
     private val actor: SettingsActor,
@@ -169,5 +170,13 @@ class SharedActorSettingsRepository(
 
     override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
         actor.transform { it.copy(onnxRuntimeTileSize = tileSize) }
+    }
+
+    override fun getKomgaWebuiEpubReaderSettings(): Flow<JsonObject> {
+        return actor.state.map { it.komgaWebuiEpubReader }.distinctUntilChanged()
+    }
+
+    override suspend fun putKomgaWebuiEpubReaderSettings(settings: JsonObject) {
+        actor.transform { it.copy(komgaWebuiEpubReader = settings) }
     }
 }

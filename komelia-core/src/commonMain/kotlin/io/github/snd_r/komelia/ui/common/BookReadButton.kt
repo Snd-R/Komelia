@@ -29,7 +29,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalPlatform
+import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.MediaProfile.DIVINA
+import snd.komga.client.book.MediaProfile.EPUB
+import snd.komga.client.book.MediaProfile.PDF
+
+@Composable
+fun readIsSupported(book: KomgaBook) =
+    LocalPlatform.current == PlatformType.DESKTOP || book.media.mediaProfile != EPUB
 
 @Composable
 fun BookReadButton(

@@ -17,7 +17,7 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.reader.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.readerScreen
 import snd.komga.client.readlist.KomgaReadListId
 
 class ReadListScreen(val readListId: KomgaReadListId) : Screen {
@@ -48,7 +48,7 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
                         bookMenuActions = vm.bookMenuActions(),
                         onBookClick = { navigator push bookScreen(it) },
                         onBookReadClick = { book, markProgress ->
-                            navigator.parent?.replace(ReaderScreen(book.id, markProgress))
+                            navigator.parent?.replace(readerScreen(book, markProgress))
                         },
 
                         selectedBooks = vm.selectedBooks,

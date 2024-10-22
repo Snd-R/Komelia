@@ -14,7 +14,8 @@ import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
-import io.github.snd_r.komelia.ui.reader.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.ImageReaderScreen
+import io.github.snd_r.komelia.ui.reader.readerScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import snd.komga.client.book.KomgaBook
@@ -55,10 +56,8 @@ class BookScreen(
             onBackButtonClick = { onBackPress(navigator, book?.seriesId) },
             onBookReadPress = { markReadProgress ->
                 navigator.parent?.replace(
-                    ReaderScreen(
-                        bookId,
-                        markReadProgress
-                    )
+                    if (book != null) readerScreen(book, markReadProgress)
+                    else ImageReaderScreen(bookId, markReadProgress)
                 )
             },
 

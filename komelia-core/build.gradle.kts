@@ -36,8 +36,8 @@ kotlin {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs { moduleName = "komelia-core" }
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs { moduleName = "komelia-core" }
 
     sourceSets {
         all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
@@ -75,6 +75,8 @@ kotlin {
             api(libs.voyager.screenmodel)
             api(libs.voyager.navigator)
             api(libs.voyager.transition)
+
+            implementation(project(":komelia-epub"))
         }
 
         androidMain.dependencies {
@@ -116,11 +118,11 @@ kotlin {
             api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
 
-        val wasmJsMain by getting
-        wasmJsMain.dependencies {
-            api(libs.ktor.client.js)
-            api(project(":wasm-image-worker"))
-        }
+//        val wasmJsMain by getting
+//        wasmJsMain.dependencies {
+//            api(libs.ktor.client.js)
+//            api(project(":wasm-image-worker"))
+//        }
     }
 }
 

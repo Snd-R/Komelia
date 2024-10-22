@@ -49,6 +49,7 @@ import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.OneshotActionsMenu
+import io.github.snd_r.komelia.ui.common.readIsSupported
 import io.github.snd_r.komelia.ui.dialogs.oneshot.OneshotEditDialog
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.readlist.BookReadListsContent
@@ -226,10 +227,12 @@ private fun FlowRowScope.OneshotMainInfo(
             releaseDate = book.metadata.releaseDate
         )
 
-        BookReadButton(
-            onRead = { onBookReadPress(true) },
-            onIncognitoRead = { onBookReadPress(false) }
-        )
+        if (readIsSupported(book)) {
+            BookReadButton(
+                onRead = { onBookReadPress(true) },
+                onIncognitoRead = { onBookReadPress(false) }
+            )
+        }
         HorizontalDivider()
         ExpandableText(
             text = book.metadata.summary,

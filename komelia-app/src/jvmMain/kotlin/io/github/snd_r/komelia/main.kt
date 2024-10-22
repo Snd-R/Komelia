@@ -62,6 +62,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
+import snd.jni.SharedLibrariesLoader
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import java.nio.file.Path
@@ -76,6 +77,7 @@ private val initScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     configureLogging()
+    SharedLibrariesLoader.loadLibrary("komelia_webview")
     measureTime {
         try {
             VipsSharedLibraries.load()

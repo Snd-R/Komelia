@@ -9,6 +9,8 @@ import snd.komga.client.book.KomgaBookPage
 import snd.komga.client.book.KomgaBookQuery
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.book.KomgaBookThumbnail
+import snd.komga.client.book.R2Progression
+import snd.komga.client.book.WPPublication
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
@@ -79,6 +81,14 @@ class OfflineBookClient: KomgaBookClient {
         TODO("Not yet implemented")
     }
 
+    override suspend fun getReadiumProgression(bookId: KomgaBookId): R2Progression? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getWebPubManifest(bookId: KomgaBookId): WPPublication {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun markReadProgress(bookId: KomgaBookId, request: KomgaBookReadProgressUpdateRequest) {
         TODO("Not yet implemented")
     }
@@ -101,6 +111,10 @@ class OfflineBookClient: KomgaBookClient {
     }
 
     override suspend fun updateMetadata(bookId: KomgaBookId, request: KomgaBookMetadataUpdateRequest) {
+    }
+
+    override suspend fun updateReadiumProgression(bookId: KomgaBookId, progression: R2Progression) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun uploadBookThumbnail(

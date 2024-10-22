@@ -12,6 +12,8 @@ import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 
 data class AppSettings(
     val username: String = "admin@example.org",
@@ -49,4 +51,6 @@ data class AppSettings(
     val komfEnabled: Boolean = false,
     val komfMode: KomfMode = KomfMode.REMOTE,
     val komfRemoteUrl: String = "http://localhost:8085",
+
+    val komgaWebuiEpubReader: JsonObject = buildJsonObject { }
 )

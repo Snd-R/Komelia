@@ -18,13 +18,12 @@ import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
-import io.github.snd_r.komelia.ui.reader.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.readerScreen
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
-import kotlin.jvm.Transient
 
 fun seriesScreen(series: KomgaSeries): Screen =
     if (series.oneshot) OneshotScreen(series)
@@ -84,7 +83,7 @@ class SeriesScreen(
                     booksState = vm.booksState,
                     onBookClick = { navigator push bookScreen(it) },
                     onBookReadClick = { book, markProgress ->
-                        navigator.parent?.replace(ReaderScreen(book.id, markProgress))
+                        navigator.parent?.replace(readerScreen(book, markProgress))
                     },
 
                     collectionsState = vm.collectionsState,

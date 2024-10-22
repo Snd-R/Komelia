@@ -1,6 +1,8 @@
 package io.github.snd_r
 
-typealias NativePointer = Long
+import snd.jni.Managed
+import snd.jni.NativePointer
+
 
 class VipsImage private constructor(
     val width: Int,
@@ -9,7 +11,14 @@ class VipsImage private constructor(
     val type: ImageFormat,
     internalBuffer: NativePointer,
     vipsPointer: NativePointer,
-) : VipsPointer(internalBuffer, vipsPointer) {
+) : Managed(vipsPointer, VipsFinalizer(internalBuffer, vipsPointer)) {
+
+    private class VipsFinalizer(private var bytesPtr: Long, private var vipsPtr: Long) : Runnable {
+        override fun run() {
+            if (vipsPtr != 0L) gObjectUnref(vipsPtr)
+            if (bytesPtr != 0L) free(bytesPtr)
+        }
+    }
 
     companion object {
         const val DIMENSION_MAX_SIZE = 10_000_000
@@ -45,6 +54,12 @@ class VipsImage private constructor(
 
         @JvmStatic
         external fun vipsInit()
+
+        @JvmStatic
+        private external fun gObjectUnref(pointer: NativePointer)
+
+        @JvmStatic
+        private external fun free(pointer: NativePointer)
     }
 
     external fun extractArea(rect: ImageRect): VipsImage
@@ -54,7 +69,6 @@ class VipsImage private constructor(
     external fun encodeToFilePng(path: String)
     external fun shrink(factor: Double): VipsImage
     external fun findTrim(): ImageRect
-
 }
 
 data class VipsImageDimensions(
@@ -80,48 +94,4 @@ data class ImageRect(
 enum class ImageFormat {
     GRAYSCALE_8,
     RGBA_8888,
-}
-
-abstract class VipsPointer(
-    bytesPtr: NativePointer,
-    vipsPtr: NativePointer,
-) : AutoCloseable {
-    private var _ptr = vipsPtr
-    private var _bytes = bytesPtr
-    var isClosed = false
-        private set
-
-    private val cleanable: Cleanable
-
-    private class CleanerThunk(private var vipsPtr: Long, private var bytesPtr: Long) : Runnable {
-        override fun run() {
-            if (vipsPtr != 0L) gObjectUnref(vipsPtr)
-            if (bytesPtr != 0L) free(bytesPtr)
-        }
-    }
-
-    init {
-        @Suppress("LeakingThis")
-        cleanable = CLEANER.register(this, CleanerThunk(vipsPtr, bytesPtr))
-    }
-
-    @Synchronized
-    override fun close() {
-        if (!isClosed) {
-            cleanable.clean()
-            _ptr = 0
-            _bytes = 0
-            isClosed = true
-        }
-    }
-
-    companion object {
-        private val CLEANER = Cleaner()
-
-        @JvmStatic
-        private external fun gObjectUnref(pointer: NativePointer)
-
-        @JvmStatic
-        private external fun free(pointer: NativePointer)
-    }
 }

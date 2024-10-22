@@ -4,7 +4,9 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
@@ -12,8 +14,6 @@ import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.Flow
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 class DesktopDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,

@@ -18,14 +18,13 @@ import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.library.LibraryScreen
-import io.github.snd_r.komelia.ui.reader.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.readerScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
-import kotlin.jvm.Transient
 
 class OneshotScreen(
     val seriesId: KomgaSeriesId,
@@ -65,7 +64,7 @@ class OneshotScreen(
                     vm.series.value?.let { onBackPress(navigator, it.libraryId) }
                 },
                 onBookReadPress = { markReadProgress ->
-                    navigator.parent?.replace(ReaderScreen(book.id, markReadProgress))
+                    navigator.parent?.replace(readerScreen(book, markReadProgress))
                 },
                 collections = vm.collectionsState.collections,
                 onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },

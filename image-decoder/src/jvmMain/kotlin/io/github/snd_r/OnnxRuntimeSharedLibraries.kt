@@ -1,10 +1,10 @@
 package io.github.snd_r
 
 import dev.dirs.ProjectDirectories
-import io.github.snd_r.DesktopPlatform.Linux
-import io.github.snd_r.DesktopPlatform.MacOS
-import io.github.snd_r.DesktopPlatform.Unknown
-import io.github.snd_r.DesktopPlatform.Windows
+import snd.jni.DesktopPlatform.Linux
+import snd.jni.DesktopPlatform.MacOS
+import snd.jni.DesktopPlatform.Unknown
+import snd.jni.DesktopPlatform.Windows
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
@@ -12,6 +12,8 @@ import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.R
 import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
 import io.github.snd_r.OnnxRuntimeUpscaler.OrtException
 import org.slf4j.LoggerFactory
+import snd.jni.DesktopPlatform
+import snd.jni.SharedLibrariesLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING

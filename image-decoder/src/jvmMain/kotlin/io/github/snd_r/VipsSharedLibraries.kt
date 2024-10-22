@@ -1,10 +1,12 @@
 package io.github.snd_r
 
-import io.github.snd_r.DesktopPlatform.Linux
-import io.github.snd_r.DesktopPlatform.MacOS
-import io.github.snd_r.DesktopPlatform.Unknown
-import io.github.snd_r.DesktopPlatform.Windows
+import snd.jni.DesktopPlatform.Linux
+import snd.jni.DesktopPlatform.MacOS
+import snd.jni.DesktopPlatform.Unknown
+import snd.jni.DesktopPlatform.Windows
 import org.slf4j.LoggerFactory
+import snd.jni.DesktopPlatform
+import snd.jni.SharedLibrariesLoader
 import java.util.concurrent.atomic.AtomicBoolean
 
 object VipsSharedLibraries {

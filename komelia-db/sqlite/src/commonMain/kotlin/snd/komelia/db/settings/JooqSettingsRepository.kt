@@ -9,6 +9,10 @@ import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.datetime.Instant
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import org.jooq.DSLContext
 import snd.komelia.db.jooq.tables.records.AppsettingsRecord
 import snd.komelia.db.jooq.tables.references.APPSETTINGS
@@ -60,7 +64,9 @@ class JooqSettingsRepository(
             cropBorders = cropBorders,
             komfEnabled = komfEnabled,
             komfMode = KomfMode.valueOf(komfMode),
-            komfRemoteUrl = komfRemoteUrl
+            komfRemoteUrl = komfRemoteUrl,
+            komgaWebuiEpubReader = komgaWebuiEpubReaderSettings?.let { Json.decodeFromString<JsonObject>(it) }
+                ?: buildJsonObject { }
         )
     }
 
@@ -94,7 +100,8 @@ class JooqSettingsRepository(
             cropBorders = cropBorders,
             komfEnabled = komfEnabled,
             komfMode = komfMode.name,
-            komfRemoteUrl = komfRemoteUrl
+            komfRemoteUrl = komfRemoteUrl,
+            komgaWebuiEpubReaderSettings = Json.encodeToString(komgaWebuiEpubReader)
         )
     }
 }

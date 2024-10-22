@@ -7,6 +7,7 @@ import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 
 interface CommonSettingsRepository {
     fun getServerUrl(): Flow<String>
@@ -62,4 +63,7 @@ interface CommonSettingsRepository {
 
     fun getOnnxRuntimeTileSize(): Flow<Int>
     suspend fun putOnnxRuntimeTileSize(tileSize: Int)
+
+    fun getKomgaWebuiEpubReaderSettings(): Flow<JsonObject>
+    suspend fun putKomgaWebuiEpubReaderSettings(settings: JsonObject)
 }

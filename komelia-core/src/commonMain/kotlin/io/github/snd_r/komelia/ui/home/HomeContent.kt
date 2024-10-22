@@ -65,7 +65,7 @@ fun HomeContent(
     seriesMenuActions: SeriesMenuActions,
     bookMenuActions: BookMenuActions,
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBookId, Boolean) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
 ) {
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
@@ -241,7 +241,7 @@ private fun MainContent(
     seriesMenuActions: SeriesMenuActions,
     bookMenuActions: BookMenuActions,
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBookId, Boolean) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
 ) {
 
 
@@ -322,7 +322,7 @@ private fun LazyGridScope.BookFilterEntry(
     books: List<KomgaBook>,
     bookMenuActions: BookMenuActions,
     onBookClick: (KomgaBook) -> Unit,
-    onBookReadClick: (KomgaBookId, Boolean) -> Unit,
+    onBookReadClick: (KomgaBook, Boolean) -> Unit,
 ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
         Row(
@@ -337,7 +337,7 @@ private fun LazyGridScope.BookFilterEntry(
         BookImageCard(
             book = book,
             onBookClick = { onBookClick(book) },
-            onBookReadClick = { onBookReadClick(book.id, it) },
+            onBookReadClick = { onBookReadClick(book, it) },
             bookMenuActions = bookMenuActions,
             showSeriesTitle = true,
             modifier = Modifier.fillMaxSize()

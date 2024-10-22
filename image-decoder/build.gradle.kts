@@ -23,7 +23,9 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {}
+        commonMain.dependencies {
+            implementation(project(":komelia-jni"))
+        }
 
         androidMain.dependencies {}
 

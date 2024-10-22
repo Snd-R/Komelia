@@ -27,31 +27,32 @@ kotlin {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        moduleName = "komelia-app"
-        browser {
-            commonWebpackConfig {
-                outputFileName = "komelia-app.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(project.projectDir.path)
-                        add(project.projectDir.path + "/commonMain/")
-                        add(project.projectDir.path + "/wasmJsMain/")
-                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
-                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        moduleName = "komelia-app"
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "komelia-app.js"
+//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+//                    static = (static ?: mutableListOf()).apply {
+//                        // Serve sources to debug inside browser
+//                        add(project.projectDir.path)
+//                        add(project.projectDir.path + "/commonMain/")
+//                        add(project.projectDir.path + "/wasmJsMain/")
+//                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
+//                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
+//                    }
+//                }
+//            }
+//        }
+//        binaries.executable()
+//    }
 
     sourceSets {
         commonMain.dependencies {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-db:shared"))
+            implementation(project(":komelia-epub"))
         }
 
         androidMain.dependencies {
@@ -60,13 +61,12 @@ kotlin {
         jvmMain.dependencies {
             implementation(project(":komelia-db:sqlite"))
             implementation(project(":image-decoder"))
-            implementation(project(":webview"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
-        wasmJsMain.dependencies {
-            implementation(project(":wasm-image-worker"))
-            implementation(project(":komelia-db:wasm"))
-        }
+//        wasmJsMain.dependencies {
+//            implementation(project(":wasm-image-worker"))
+//            implementation(project(":komelia-db:wasm"))
+//        }
     }
 }
 
@@ -148,7 +148,7 @@ compose.desktop {
 
 tasks.register<Zip>("repackageUberJar") {
     group = "compose desktop"
-    val packageUberJarForCurrentOS = tasks.getByName("packageReleaseUberJarForCurrentOS")
+    val packageUberJarForCurrentOS = tasks.getByName("packageUberJarForCurrentOS")
     dependsOn(packageUberJarForCurrentOS)
     val file = packageUberJarForCurrentOS.outputs.files.first()
     val output = File(file.parentFile, "${file.nameWithoutExtension}-repacked.jar")

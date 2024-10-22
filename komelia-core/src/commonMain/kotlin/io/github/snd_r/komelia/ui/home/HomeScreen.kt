@@ -11,7 +11,7 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
-import io.github.snd_r.komelia.ui.reader.ReaderScreen
+import io.github.snd_r.komelia.ui.reader.readerScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.library.KomgaLibraryId
 
@@ -47,8 +47,8 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
                     seriesMenuActions = vm.seriesMenuActions(),
                     bookMenuActions = vm.bookMenuActions(),
                     onBookClick = { navigator push bookScreen(it) },
-                    onBookReadClick = { bookId, markProgress ->
-                        navigator.parent?.replace(ReaderScreen(bookId, markProgress))
+                    onBookReadClick = { book, markProgress ->
+                        navigator.parent?.replace(readerScreen(book, markProgress))
                     },
                 )
             }

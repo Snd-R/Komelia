@@ -44,15 +44,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
 import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.BookReadButton
 import io.github.snd_r.komelia.ui.common.NoPaddingChip
 import io.github.snd_r.komelia.ui.common.images.BookThumbnail
 import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
+import io.github.snd_r.komelia.ui.common.readIsSupported
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.MediaProfile.DIVINA
 
@@ -224,7 +227,7 @@ private fun BookHoverOverlay(
                     modifier = Modifier.padding(vertical = 5.dp).fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
                 ) {
-                    if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
+                    if (onBookReadClick != null && readIsSupported(book)) {
                         BookReadButton(
                             modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
                             onRead = { onBookReadClick(true) },
@@ -367,7 +370,7 @@ private fun BookDetailedListDetails(
 
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.Start) {
-            if (onBookReadClick != null && book.media.mediaProfile == DIVINA) {
+            if (onBookReadClick != null && readIsSupported(book)) {
                 BookReadButton(
                     modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
                     onRead = { onBookReadClick(true) },
@@ -419,3 +422,4 @@ private fun BookMenuActionsDropdown(
         )
     }
 }
+

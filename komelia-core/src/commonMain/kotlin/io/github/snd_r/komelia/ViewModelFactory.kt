@@ -9,6 +9,8 @@ import coil3.PlatformContext
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.strings.Locales
@@ -45,6 +47,7 @@ import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.oneshot.OneshotViewModel
 import io.github.snd_r.komelia.ui.reader.ReaderViewModel
+import io.github.snd_r.komelia.ui.reader.epub.EpubViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
@@ -89,8 +92,6 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUser
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 interface DependencyContainer {
     val settingsRepository: CommonSettingsRepository
@@ -613,6 +614,20 @@ class ViewModelFactory(
             library = library,
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
             appNotifications = appNotifications,
+        )
+    }
+
+    fun getEpubViewModel(bookId: KomgaBookId, navigator: Navigator, book: KomgaBook? = null): EpubViewModel {
+        return EpubViewModel(
+            bookId = bookId,
+            book = book,
+            navigator = navigator,
+            settingsRepository = settingsRepository,
+            bookClient = komgaClientFactory.bookClient(),
+            seriesClient = komgaClientFactory.seriesClient(),
+            readListClient = komgaClientFactory.readListClient(),
+            notifications = appNotifications,
+            ktor = komgaClientFactory.ktor(),
         )
     }
 

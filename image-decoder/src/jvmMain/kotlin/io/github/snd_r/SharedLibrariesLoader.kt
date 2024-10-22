@@ -1,6 +1,7 @@
 package io.github.snd_r
 
 import org.slf4j.LoggerFactory
+import snd.jni.SharedLibrariesLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
