@@ -15,3 +15,4 @@ build/
 .cxx
 /output
 /.kotlin
+/cmake/build*

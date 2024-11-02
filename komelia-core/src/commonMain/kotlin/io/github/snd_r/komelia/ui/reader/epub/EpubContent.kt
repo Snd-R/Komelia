@@ -5,6 +5,6 @@ import snd.webview.Webview
 import snd.webview.compose.Webview
 
 @Composable
-fun EpubContent(webview: Webview) {
-    Webview(webview)
+fun EpubContent(onWebviewCreated: (Webview) -> Unit) {
+    Webview(onWebviewCreated)
 }

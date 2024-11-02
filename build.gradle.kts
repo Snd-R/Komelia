@@ -1,3 +1,6 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
@@ -16,4 +19,198 @@ plugins {
 tasks.wrapper {
     gradleVersion = "8.10"
     distributionType = Wrapper.DistributionType.ALL
+}
+
+val linuxBuildDir = "$projectDir/cmake/build"
+val windowsBuildDir = "$projectDir/cmake/build-w64"
+val androidArm64BuildDir = "$projectDir/cmake/build-android-arm64"
+val androidx8664BuildDir = "$projectDir/cmake/build-android-x86_64"
+
+val resourcesDir = "$projectDir/komelia-jni/src/jvmMain/resources/"
+val androidJniLibsDir = "$projectDir/komelia-jni/src/androidMain/jniLibs"
+
+val composeDistroResourcesDir = "$projectDir/komelia-app/desktopUnpackedResources"
+val composeDesktopResourcesDir = "$projectDir/komelia-core/desktopResources"
+
+val linuxCommonLibs = setOf(
+    "libintl.so",
+    "libbrotlicommon.so",
+    "libbrotlidec.so",
+    "libbrotlienc.so",
+    "libde265.so",
+    "libdav1d.so",
+    "libexpat.so",
+    "libffi.so",
+    "libgio-2.0.so",
+    "libglib-2.0.so",
+    "libgmodule-2.0.so",
+    "libgobject-2.0.so",
+    "libheif.so",
+    "libhwy.so",
+    "libjpeg.so",
+    "libjxl.so",
+    "libjxl_cms.so",
+    "libjxl_threads.so",
+    "libsharpyuv.so",
+    "libspng.so",
+    "libtiff.so",
+    "libturbojpeg.so",
+    "libvips.so",
+    "libwebp.so",
+    "libwebpdecoder.so",
+    "libwebpdemux.so",
+    "libwebpmux.so",
+    "libz.so",
+    "libkomelia_vips.so",
+)
+val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
+val desktopLinuxLibs = linuxCommonLibs + setOf(
+    "libkomelia_onnxruntime.so",
+    "libkomelia_enumerate_devices_cuda.so",
+    "libkomelia_skia.so",
+    "libkomelia_webview.so",
+    "libkomelia_webkit_extension.so",
+)
+val windowsLibs = setOf(
+    "libbrotlicommon.dll",
+    "libbrotlidec.dll",
+    "libbrotlienc.dll",
+    "libde265.dll",
+    "libdav1d.dll",
+    "libexpat-1.dll",
+    "libffi-8.dll",
+    "libgio-2.0-0.dll",
+    "libglib-2.0-0.dll",
+    "libgmodule-2.0-0.dll",
+    "libgobject-2.0-0.dll",
+    "libheif.dll",
+    "libhwy.dll",
+    "libintl-8.dll",
+    "libjpeg-62.dll",
+    "libjxl.dll",
+    "libjxl_cms.dll",
+    "libjxl_threads.dll",
+    "libsharpyuv.dll",
+    "libspng.dll",
+    "libtiff.dll",
+    "libvips-42.dll",
+    "libwebp.dll",
+    "libwebpdecoder.dll",
+    "libwebpdemux.dll",
+    "libwebpmux.dll",
+    "libz1.dll",
+    "libstdc++-6.dll",
+    "libwinpthread-1.dll",
+    "libgcc_s_seh-1.dll",
+    "libgomp-1.dll",
+    "libkomelia_vips.dll",
+    "libkomelia_onnxruntime.dll",
+    "libkomelia_onnxruntime_dml.dll",
+    "libkomelia_enumerate_devices_dxgi.dll",
+    "libkomelia_enumerate_devices_cuda.dll",
+    "libkomelia_webview.dll",
+)
+
+tasks.register<Sync>("linux-x86_64_copyJniLibs") {
+    group = "jni"
+    from("$linuxBuildDir/sysroot/lib/")
+    into(resourcesDir)
+    include { it.name in desktopLinuxLibs }
+}
+
+tasks.register<Sync>("android-arm64_copyJniLibs") {
+    group = "jni"
+
+    from("$androidArm64BuildDir/sysroot/lib/")
+    into("$androidJniLibsDir/arm64-v8a/")
+    include { it.name in androidLibs }
+}
+
+tasks.register<Sync>("android-x86_64_copyJniLibs") {
+    group = "jni"
+    from("$androidx8664BuildDir/sysroot/lib/")
+    into("$androidJniLibsDir/x86_64/")
+    include { it.name in androidLibs }
+}
+
+tasks.register<Delete>("cleanJni") {
+    group = "jni"
+    delete(linuxBuildDir)
+    delete(windowsBuildDir)
+    delete(fileTree(resourcesDir))
+}
+
+tasks.register<Sync>("windows-x86_64_copyJniLibs") {
+    group = "jni"
+
+    duplicatesStrategy = EXCLUDE
+    from("$windowsBuildDir/sysroot/bin/")
+    into(resourcesDir)
+    include { it.name in windowsLibs }
+
+    // include mingw dlls if compiled using system toolchain
+    from("/usr/x86_64-w64-mingw32/bin/")
+    include("libstdc++-6.dll")
+    include("libwinpthread-1.dll")
+    include("libgcc_s_seh-1.dll")
+    include("libgomp-1.dll")
+    into(resourcesDir)
+}
+
+tasks.register<Sync>("windows-x86_64_copyJniLibsComposeResources") {
+    group = "jni"
+
+    duplicatesStrategy = EXCLUDE
+    from("$windowsBuildDir/sysroot/bin/")
+    into("$composeDistroResourcesDir/windows")
+    include { it.name in windowsLibs }
+
+    // include mingw dlls if compiled using system toolchain
+    from("/usr/x86_64-w64-mingw32/bin/")
+    include("libstdc++-6.dll")
+    include("libwinpthread-1.dll")
+    include("libgcc_s_seh-1.dll")
+    include("libgomp-1.dll")
+    into("$composeDistroResourcesDir/windows")
+}
+
+val webui = "$rootDir/komga-webui"
+
+tasks.register<Exec>("npmInstall") {
+    group = "web"
+    workingDir(webui)
+    inputs.file("$webui/package.json")
+    outputs.dir("$webui/node_modules")
+    commandLine(
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            "npm.cmd"
+        } else {
+            "npm"
+        },
+        "install",
+    )
+}
+
+tasks.register<Exec>("npmBuild") {
+    group = "web"
+    dependsOn("npmInstall")
+    workingDir(webui)
+    inputs.dir(webui)
+    outputs.dir("$webui/dist")
+    commandLine(
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            "npm.cmd"
+        } else {
+            "npm"
+        },
+        "run",
+        "build",
+    )
+}
+
+tasks.register<Sync>("CopyWebui") {
+    group = "web"
+    dependsOn("npmBuild")
+    from("$webui/dist/")
+    into("$composeDesktopResourcesDir/files")
 }

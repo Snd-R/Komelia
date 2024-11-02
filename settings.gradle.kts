@@ -26,9 +26,9 @@ include(":komelia-core")
 include(":komelia-db:shared")
 include(":komelia-db:sqlite")
 include(":komelia-db:wasm")
-include(":komelia-epub")
 include(":komelia-jni")
-include("image-decoder")
+include(":komelia-webview")
+include(":komelia-image-decoder")
 include(":wasm-image-worker")
 
 includeBuild("komelia-db/flyway-gradle-plugin") {

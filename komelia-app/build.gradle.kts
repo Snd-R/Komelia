@@ -52,7 +52,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-db:shared"))
-            implementation(project(":komelia-epub"))
+            implementation(project(":komelia-webview"))
         }
 
         androidMain.dependencies {
@@ -60,7 +60,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(project(":komelia-db:sqlite"))
-            implementation(project(":image-decoder"))
+            implementation(project(":komelia-image-decoder"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
 //        wasmJsMain.dependencies {
@@ -123,7 +123,7 @@ compose.desktop {
             description = "Komga media client"
             vendor = "Snd-R"
             appResourcesRootDir.set(
-                project.parent!!.projectDir.resolve("image-decoder/desktopComposeResources")
+                project.projectDir.resolve("desktopUnpackedResources")
             )
             modules("jdk.security.auth", "java.sql")
 
@@ -140,6 +140,7 @@ compose.desktop {
 
         buildTypes.release.proguard {
             version.set("7.5.0")
+            isEnabled.set(false)
             optimize.set(false)
             configurationFiles.from(project.file("no_icons.pro"))
         }

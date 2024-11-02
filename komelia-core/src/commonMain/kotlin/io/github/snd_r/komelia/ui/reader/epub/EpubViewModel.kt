@@ -1,7 +1,9 @@
 package io.github.snd_r.komelia.ui.reader.epub
 
 import cafe.adriel.voyager.core.model.StateScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
@@ -9,30 +11,31 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
+import io.github.snd_r.komelia_core.generated.resources.Res
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.R2Progression
-import snd.komga.client.book.WPPublication
 import snd.komga.client.readlist.KomgaReadListClient
 import snd.komga.client.readlist.KomgaReadListId
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.webview.ResourceLoadResult
 import snd.webview.Webview
-import snd.webview.createWebview
 
-private val resourceBaseUriRegex = "^komelia://.*/resource/".toRegex()
-private val httpSchemeRegex = "https?://".toRegex()
+private val logger = KotlinLogging.logger {}
+private val resourceBaseUriRegex = "^http(s)?://.*/resource/".toRegex()
 
 class EpubViewModel(
     bookId: KomgaBookId,
@@ -48,8 +51,7 @@ class EpubViewModel(
 
     val bookId = MutableStateFlow(bookId)
     val book = MutableStateFlow(book)
-    val webview = MutableStateFlow<Webview?>(null)
-    private val serverBaseUrl = settingsRepository.getServerUrl()
+    private val webview = MutableStateFlow<Webview?>(null)
 
     suspend fun initialize() {
         if (state.value !is Uninitialized) return
@@ -57,17 +59,20 @@ class EpubViewModel(
         mutableState.value = LoadState.Loading
         notifications.runCatchingToNotifications {
             book.value = bookClient.getBook(bookId.value)
-            val webview = createWebview()
-            this.webview.value = webview
-            loadEpub(webview)
             mutableState.value = LoadState.Success(Unit)
-
         }.onFailure {
             mutableState.value = LoadState.Error(it)
         }
     }
 
+    fun onWebviewCreated(webview: Webview) {
+        this.webview.value = webview
+        screenModelScope.launch {
+            loadEpub(webview)
+        }
+    }
 
+    @OptIn(ExperimentalResourceApi::class)
     private fun loadEpub(webview: Webview) {
         webview.bind<Unit, String>("bookId") {
             bookId.value.value
@@ -76,9 +81,8 @@ class EpubViewModel(
             bookClient.getBook(bookId)
         }
         webview.bind("bookGetProgression") { bookId: KomgaBookId ->
-            bookClient.getReadiumProgression(bookId)?.let {
-                progressionToWebview(it)
-            }
+            bookClient.getReadiumProgression(bookId)
+                ?.let { progressionToWebview(it) }
         }
 
         @Serializable
@@ -115,8 +119,7 @@ class EpubViewModel(
         }
 
         webview.bind("getPublication") { bookId: KomgaBookId ->
-            val manifest = bookClient.getWebPubManifest(bookId)
-            replaceManifestLinks(manifest)
+            bookClient.getWebPubManifest(bookId)
         }
 
         webview.bind<Unit, Unit>("closeBook") {
@@ -124,37 +127,48 @@ class EpubViewModel(
             navigator replace MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value))
         }
 
+        webview.bind<Unit, String>("getServerUrl") {
+            settingsRepository.getServerUrl().first()
+        }
+
         webview.bind<Unit, JsonObject>("getSettings") {
             settingsRepository.getKomgaWebuiEpubReaderSettings().first()
         }
 
         webview.bind<JsonObject, Unit>("saveSettings") { newSettings ->
-            println("save settings $newSettings")
             settingsRepository.putKomgaWebuiEpubReaderSettings(newSettings)
         }
 
-        webview.registerResourceLoadHandler("komelia") { path ->
+        webview.registerRequestInterceptor { uri ->
             runCatching {
-                runBlocking {
-                    val bytes = ktor.get(path).bodyAsBytes()
-                    ResourceLoadResult(data = bytes, contentType = null)
+                when (uri) {
+                    "https://komelia/index.html" -> {
+                        runBlocking {
+                            val bytes = Res.readBytes("files/index.html")
+                            ResourceLoadResult(data = bytes, contentType = "text/html")
+                        }
+                    }
+
+                    else -> runBlocking {
+                        val bytes = ktor.get(uri).bodyAsBytes()
+                        ResourceLoadResult(data = bytes, contentType = null)
+                    }
+
                 }
-            }
-                .onFailure { it.printStackTrace() }
-                .getOrNull()
+            }.onFailure { logger.catching(it) }.getOrNull()
         }
 
-        webview.loadUri("file:////home/den/tmp/komga-webui/index.html")
+        webview.navigate("https://komelia/index.html")
+        webview.start()
     }
 
     private suspend fun progressionToWebview(progress: R2Progression): R2Progression {
-        val baseUrl = serverBaseUrl.first()
-        val targetHref = buildString {
-            append(baseUrl.replace(httpSchemeRegex, "komelia://"))
-            append("/api/v1/books/0HM0KE8NNT7TF/resource/")
-            append(progress.locator.href)
-        }
-        return progress.copy(locator = progress.locator.copy(href = targetHref))
+        val baseUrl = settingsRepository.getServerUrl().first()
+        return progress.copy(
+            locator = progress.locator.copy(
+                href = "$baseUrl/api/v1/books/${bookId.value}/resource/${progress.locator.href}"
+            )
+        )
     }
 
     private fun progressionFromWebview(progress: R2Progression): R2Progression {
@@ -165,24 +179,8 @@ class EpubViewModel(
         )
     }
 
-    private fun replaceManifestLinks(manifest: WPPublication): WPPublication {
-        return manifest.copy(
-            readingOrder = manifest.readingOrder.map { order -> order.copy(href = order.href?.replaceScheme()) },
-            resources = manifest.resources.map { resource -> resource.copy(href = resource.href?.replaceScheme()) },
-            toc = manifest.toc.map { toc -> toc.copy(href = toc.href?.replaceScheme()) },
-            landmarks = manifest.landmarks.map { landmark -> landmark.copy(href = landmark.href?.replaceScheme()) },
-            pageList = manifest.pageList.map { page -> page.copy(href = page.href?.replaceScheme()) },
-            links = manifest.links.map { link -> link.copy(href = link.href?.replaceScheme()) },
-        )
-    }
-
-    private fun String.replaceScheme() = this.replace(httpSchemeRegex, "komelia://")
-
     private suspend fun proxyRequest(url: String): String? {
         val urlPath = parseUrl(url)?.fullPath ?: return null
-
-        return ktor.get(urlPath) {
-            accept(ContentType.Any)
-        }.bodyAsText()
+        return ktor.get(urlPath) { accept(ContentType.Any) }.bodyAsText()
     }
 }

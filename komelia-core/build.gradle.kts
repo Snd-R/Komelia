@@ -47,6 +47,7 @@ kotlin {
             api(compose.materialIconsExtended)
             api(compose.material)
             api(compose.material3)
+            api(compose.components.resources)
 
             api(libs.kotlin.logging)
             api(libs.kotlinx.datetime)
@@ -76,7 +77,7 @@ kotlin {
             api(libs.voyager.navigator)
             api(libs.voyager.transition)
 
-            implementation(project(":komelia-epub"))
+            implementation(project(":komelia-webview"))
         }
 
         androidMain.dependencies {
@@ -92,7 +93,7 @@ kotlin {
             api(libs.protobuf.javalite)
             api(libs.protobuf.kotlin.lite)
             api(libs.slf4j.api)
-            api(project(":image-decoder"))
+            api(project(":komelia-image-decoder"))
         }
 
         jvmMain.dependencies {
@@ -114,7 +115,7 @@ kotlin {
             api(libs.okhttp.logging.interceptor)
             api(libs.secret.service)
             api(libs.slf4j.api)
-            api(project(":image-decoder"))
+            api(project(":komelia-image-decoder"))
             api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
 
@@ -159,4 +160,11 @@ android {
             }
         }
     }
+}
+
+compose.resources {
+    customDirectory(
+        sourceSetName = "jvmMain",
+        directoryProvider = provider { layout.projectDirectory.dir("desktopResources") }
+    )
 }

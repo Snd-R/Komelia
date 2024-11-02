@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -43,7 +41,6 @@ class EpubScreen(
         }
         LaunchedEffect(bookId) {
             vm.initialize()
-
             val book = vm.book.value
             if (book != null && book.media.mediaProfile != EPUB) {
                 navigator.replace(readerScreen(book, markReadProgress))
@@ -51,22 +48,11 @@ class EpubScreen(
         }
 
         Column {
-            PlatformTitleBar(Modifier.zIndex(10f), false)
-
+            PlatformTitleBar()
             when (val result = vm.state.collectAsState().value) {
                 Loading, Uninitialized -> LoadingMaxSizeIndicator()
-                is Error -> ErrorContent(
-                    result.exception.message
-                        ?: result.exception.stackTraceToString()
-                )
-
-                is Success -> {
-                    val webview = vm.webview.collectAsState().value
-                    if (webview != null) {
-                        EpubContent(webview)
-                    }
-                }
-
+                is Error -> ErrorContent(result.exception.message ?: result.exception.stackTraceToString())
+                is Success -> EpubContent(vm::onWebviewCreated)
             }
 
         }

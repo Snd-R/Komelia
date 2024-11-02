@@ -72,6 +72,7 @@ import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
+import snd.webview.WebviewSharedLibraries
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -82,7 +83,31 @@ import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
+fun loadWebviewLibraries() {
+    measureTime {
+        try {
+            WebviewSharedLibraries.load()
+        } catch (e: UnsatisfiedLinkError) {
+            logger.error(e) { "Couldn't load webview library. Epub reader will not work" }
+        }
+    }.also { logger.info { "Completed Webview library load in $it" } }
+}
+
+fun loadVipsLibraries() {
+    measureTime {
+        try {
+            VipsSharedLibraries.load()
+        } catch (e: UnsatisfiedLinkError) {
+            logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
+        }
+    }.also { logger.info { "completed vips load in $it" } }
+}
+
 suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContainer {
+    if (DesktopPlatform.Current != DesktopPlatform.Linux) {
+        loadWebviewLibraries()
+        loadVipsLibraries()
+    }
     checkVipsLibraries()
 
     val database = Database(AppDirectories.databaseFile.toString())

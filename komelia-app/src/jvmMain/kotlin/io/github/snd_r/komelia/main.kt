@@ -44,7 +44,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.FileAppender
 import com.jetbrains.JBR
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.VipsSharedLibraries
 import io.github.snd_r.komelia.AppDirectories.projectDirectories
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
@@ -62,12 +61,10 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
-import snd.jni.SharedLibrariesLoader
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import java.nio.file.Path
 import kotlin.system.exitProcess
-import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
 private var shouldRestart = true
@@ -77,14 +74,12 @@ private val initScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     configureLogging()
-    SharedLibrariesLoader.loadLibrary("komelia_webview")
-    measureTime {
-        try {
-            VipsSharedLibraries.load()
-        } catch (e: UnsatisfiedLinkError) {
-            logger.error(e) { "Couldn't load libvips. Vips decoder will not work" }
-        }
-    }.also { logger.info { "completed vips load in $it" } }
+    if (DesktopPlatform.Current == DesktopPlatform.Linux) {
+        // try to load system glib2 and gtk libraries by loading webkit2gtk first
+        // loading in this order should prevent conflict between system gtk and bundled glib2 version
+        loadWebviewLibraries()
+        loadVipsLibraries()
+    }
 
     val lastError = MutableStateFlow<Throwable?>(null)
     val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)
