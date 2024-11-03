@@ -11,7 +11,7 @@ import coil3.request.Options
 import coil3.size.Scale
 import coil3.size.isOriginal
 import coil3.size.pxOrElse
-import io.github.snd_r.VipsBitmapFactory
+import io.github.snd_r.VipsBitmapFactory.toBitmap
 import io.github.snd_r.VipsImage
 import io.github.snd_r.VipsImage.Companion.DIMENSION_MAX_SIZE
 
@@ -25,7 +25,7 @@ class VipsImageDecoder(
     override suspend fun decode(): DecodeResult {
         return vipsDecode().use { vipsImage ->
             DecodeResult(
-                image = VipsBitmapFactory.createHardwareBitmap(vipsImage).asImage(),
+                image = vipsImage.toBitmap().asImage(),
                 isSampled = !options.size.isOriginal
             )
         }

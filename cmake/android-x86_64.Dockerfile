@@ -11,6 +11,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     texinfo \
     pkg-config \
     libglib2.0-dev \
+    libgtest-dev \
     unzip \
     wget \
     git
@@ -24,4 +25,4 @@ RUN wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -
 USER 1000:1000
 WORKDIR build
 ENV NDK_PATH=/ndk/
-ENTRYPOINT ["./cmake/build-android-x86_64.sh"]
+ENTRYPOINT ["./cmake/android-x86_64-build.sh"]

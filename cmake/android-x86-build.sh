@@ -9,9 +9,9 @@ fi
 
 TOOLCHAIN_PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/
 
-rm -rf ./cmake/build-android-x86_64
-mkdir -p ./cmake/build-android-x86_64/sysroot
-cd ./cmake/build-android-x86_64
+rm -rf ./cmake/build-android-x86
+mkdir -p ./cmake/build-android-x86/sysroot
+cd ./cmake/build-android-x86
 
 
 SYSROOT="$(readlink -f .)/sysroot"
@@ -22,18 +22,18 @@ export PKG_CONFIG_PATH_CUSTOM="${SYSROOT}/lib/pkgconfig"
 
 export ANDROID_PLATFORM=26
 export AR=$TOOLCHAIN_PATH/bin/llvm-ar
-export CC=$TOOLCHAIN_PATH/bin/x86_64-linux-android26-clang
+export CC=$TOOLCHAIN_PATH/bin/i686-linux-android26-clang
 export AS=$CC
-export CXX=$TOOLCHAIN_PATH/bin/x86_64-linux-android26-clang++
+export CXX=$TOOLCHAIN_PATH/bin/i686-linux-android26-clang++
 export LD=$TOOLCHAIN_PATH/bin/ld
 export RANLIB=$TOOLCHAIN_PATH/bin/llvm-ranlib
 export STRIP=$TOOLCHAIN_PATH/bin/llvm-strip
 
-cat << EOF > "android-x86_64-cross_file.txt"
+cat << EOF > "android-x86-cross_file.txt"
 [host_machine]
 system = 'android'
-cpu_family = 'x86_64'
-cpu = 'x86_64'
+cpu_family = 'x86'
+cpu = 'x86'
 endian = 'little'
 
 [built-in options]
@@ -43,8 +43,8 @@ c_link_args = ['-L$SYSROOT/lib']
 cpp_link_args = ['-L$SYSROOT/lib']
 
 [binaries]
-c = '$TOOLCHAIN_PATH/bin/x86_64-linux-android26-clang'
-cpp = '$TOOLCHAIN_PATH/bin/x86_64-linux-android26-clang++'
+c = '$TOOLCHAIN_PATH/bin/i686-linux-android26-clang'
+cpp = '$TOOLCHAIN_PATH/bin/i686-linux-android26-clang++'
 ar = '$TOOLCHAIN_PATH/bin/llvm-ar'
 strip = '$TOOLCHAIN_PATH/bin/llvm-strip'
 ranlib = '$TOOLCHAIN_PATH/bin/llvm-ranlib'
@@ -66,14 +66,14 @@ cmake -G Ninja \
     -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF \
     -DCMAKE_PREFIX_PATH="${SYSROOT}" \
     -DCMAKE_FIND_ROOT_PATH="${SYSROOT}" \
-    -DMESON_CROSS_FILE="$(readlink -f ./android-x86_64-cross_file.txt)" \
-    -DANDROID_ABI=x86_64 \
+    -DMESON_CROSS_FILE="$(readlink -f ./android-x86-cross_file.txt)" \
+    -DANDROID_ABI=x86 \
     -DANDROID_PLATFORM=26 \
-    -DHOST_FLAG=--host=x86_64-linux-android \
+    -DHOST_FLAG=--host=i686-linux-android \
     ..
 cmake --build . -j $(nproc)
 
-cp "${TOOLCHAIN_PATH}/lib/clang/17/lib/linux/x86_64/libomp.so" ./sysroot/lib
+cp "${TOOLCHAIN_PATH}/lib/clang/17/lib/linux/i386/libomp.so" ./sysroot/lib
 
 for lib in sysroot/lib/*so; do
     [[ -f $lib && ! -h $lib ]] && "$TOOLCHAIN_PATH"/bin/llvm-strip "$lib"

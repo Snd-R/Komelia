@@ -14,7 +14,8 @@ import java.io.Reader
 class MigrationResourcesProvider : ResourceProvider, ClassProvider<JavaMigration> {
     private val migrations = listOf(
         "V1__initial_migration.sql",
-        "V2__komga_webui_reader_settings.sql"
+        "V2__komga_webui_reader_settings.sql",
+        "V3__exposed_migration.sql",
     )
     private val resources: Map<String, MigrationResource> = runBlocking {
         migrations.associateWith {

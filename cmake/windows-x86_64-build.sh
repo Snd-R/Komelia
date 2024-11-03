@@ -27,6 +27,7 @@ cmake .. -G Ninja \
         -DROCM_GPU_ENUMERATION=OFF \
         -DDXGI_GPU_ENUMERATION=ON \
         -DCUDA_GPU_ENUMERATION=ON \
+        -DWEBVIEW_USE_COMPAT_MINGW=ON \
         -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH"
 
 cmake --build . -j $(nproc)

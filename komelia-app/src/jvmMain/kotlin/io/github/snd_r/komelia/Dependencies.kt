@@ -64,9 +64,9 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
-import snd.komelia.db.Database
+import snd.komelia.db.KomeliaDatabase
 import snd.komelia.db.settings.AppSettings
-import snd.komelia.db.settings.JooqSettingsRepository
+import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.db.settings.SettingsActor
 import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
@@ -110,7 +110,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
     }
     checkVipsLibraries()
 
-    val database = Database(AppDirectories.databaseFile.toString())
+    val database = KomeliaDatabase(AppDirectories.databaseFile.toString())
     val settingsActor = createSettingsActor(database)
     val settingsRepository = SharedActorSettingsRepository(settingsActor)
     val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
@@ -366,9 +366,9 @@ private fun createCoil(
     return timed.value
 }
 
-private fun createSettingsActor(database: Database): SettingsActor {
+private fun createSettingsActor(database: KomeliaDatabase): SettingsActor {
     val result = measureTimedValue {
-        val repository = JooqSettingsRepository(database.dsl)
+        val repository = ExposedSettingsRepository(database.database)
         SettingsActor(
             settings = repository.get()
                 ?: AppSettings(

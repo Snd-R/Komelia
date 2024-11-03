@@ -49,8 +49,12 @@ private class CleanableImpl(managed: Managed, action: Runnable, cleaner: Cleaner
 
     init {
         insert()
-        reachabilityFence(managed)
-        reachabilityFence(cleaner)
+
+        //FIXME no reachabilityFence in jdk8 (Android API 26)
+        // cleaner is stored in static variable and won't be GC'd
+        // should be safe?
+//        reachabilityFence(managed)
+//        reachabilityFence(cleaner)
     }
 
     override fun clean() {

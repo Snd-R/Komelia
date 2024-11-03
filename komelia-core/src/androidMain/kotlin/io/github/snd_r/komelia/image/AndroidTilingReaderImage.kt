@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.snd_r.ImageRect
-import io.github.snd_r.VipsBitmapFactory
+import io.github.snd_r.VipsBitmapFactory.toBitmap
 import io.github.snd_r.VipsImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import kotlinx.coroutines.flow.StateFlow
@@ -58,7 +58,7 @@ class AndroidTilingReaderImage(
 
     override suspend fun resizeImage(image: PlatformImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
         val resized = image.resize(scaleWidth, scaleHeight, false)
-        val bitmap = VipsBitmapFactory.createHardwareBitmap(resized)
+        val bitmap = resized.toBitmap()
         val imageData = ReaderImageData(resized.width, resized.height, bitmap)
         resized.close()
         return imageData
@@ -87,7 +87,7 @@ class AndroidTilingReaderImage(
     }
 
     private fun VipsImage.toReaderImageData(): ReaderImageData {
-        val bitmap = VipsBitmapFactory.createHardwareBitmap(this)
+        val bitmap = this.toBitmap()
         return ReaderImageData(this.width, this.height, bitmap)
     }
 

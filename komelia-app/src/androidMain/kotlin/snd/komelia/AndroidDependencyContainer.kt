@@ -51,9 +51,8 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.FileSystem
-import snd.komelia.db.Database
+import snd.komelia.db.KomeliaDatabase
 import snd.komelia.db.settings.AppSettings
-import snd.komelia.db.settings.JooqSettingsRepository
 import snd.komelia.db.settings.SettingsActor
 import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
@@ -61,6 +60,7 @@ import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import snd.komelia.db.settings.ExposedSettingsRepository
 import java.util.concurrent.TimeUnit
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
@@ -98,7 +98,7 @@ class AndroidDependencyContainer(
             )
             val secretsRepository = AndroidSecretsRepository(datastore)
 
-            val database = Database(context.filesDir.resolve("komelia.sqlite").absolutePath)
+            val database = KomeliaDatabase(context.filesDir.resolve("komelia.sqlite").absolutePath)
             val settingsActor = createSettingsActor(database)
             val settingsRepository = SharedActorSettingsRepository(settingsActor)
             val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
@@ -267,9 +267,9 @@ class AndroidDependencyContainer(
             return AndroidAppUpdater(githubClient, context)
         }
 
-        private fun createSettingsActor(database: Database): SettingsActor {
+        private fun createSettingsActor(database: KomeliaDatabase): SettingsActor {
             val result = measureTimedValue {
-                val repository = JooqSettingsRepository(database.dsl)
+                val repository = ExposedSettingsRepository(database.database)
                 SettingsActor(
                     settings = repository.get()
                         ?: AppSettings(

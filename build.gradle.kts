@@ -25,6 +25,7 @@ val linuxBuildDir = "$projectDir/cmake/build"
 val windowsBuildDir = "$projectDir/cmake/build-w64"
 val androidArm64BuildDir = "$projectDir/cmake/build-android-arm64"
 val androidx8664BuildDir = "$projectDir/cmake/build-android-x86_64"
+val androidx86BuildDir = "$projectDir/cmake/build-android-x86"
 
 val resourcesDir = "$projectDir/komelia-jni/src/jvmMain/resources/"
 val androidJniLibsDir = "$projectDir/komelia-jni/src/androidMain/jniLibs"
@@ -130,6 +131,13 @@ tasks.register<Sync>("android-x86_64_copyJniLibs") {
     group = "jni"
     from("$androidx8664BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/x86_64/")
+    include { it.name in androidLibs }
+}
+
+tasks.register<Sync>("android-x86_copyJniLibs") {
+    group = "jni"
+    from("$androidx86BuildDir/sysroot/lib/")
+    into("$androidJniLibsDir/x86/")
     include { it.name in androidLibs }
 }
 

@@ -14,11 +14,11 @@ kotlin {
     jvm {}
     androidTarget {}
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        moduleName = "komelia-db-shared"
-        binaries.executable()
-    }
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        moduleName = "komelia-db-shared"
+//        binaries.executable()
+//    }
 
     sourceSets {
         commonMain.dependencies {

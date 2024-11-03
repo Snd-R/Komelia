@@ -25,15 +25,12 @@ include(":komelia-app")
 include(":komelia-core")
 include(":komelia-db:shared")
 include(":komelia-db:sqlite")
-include(":komelia-db:wasm")
+//include(":komelia-db:wasm")
 include(":komelia-jni")
 include(":komelia-webview")
 include(":komelia-image-decoder")
 include(":wasm-image-worker")
 
-includeBuild("komelia-db/flyway-gradle-plugin") {
-    dependencySubstitution { substitute(module("org.flywaydb:flyway")) }
-}
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
 }

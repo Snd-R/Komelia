@@ -15,10 +15,10 @@ coil = "3.0.0-alpha10"
 commons-compress = "1.27.1"
 compose-multiplatform = "1.7.0-rc01"
 directories = "26"
+exposed = "0.56.0"
 filekit = "0.8.2"
-flyway = "10.19.0"
+flyway = "9.22.3"
 java-keyring = "1.0.4"
-jooq = "3.19.13"
 komf-client = "1.0.0"
 komga-client = "0.6.0-SNAPSHOT"
 kotlin = "2.0.20"
@@ -57,11 +57,14 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 directories = { module = "dev.dirs:directories", version.ref = "directories" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+exposed-migration = { module = "org.jetbrains.exposed:exposed-migration", version.ref = "exposed" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "java-keyring" }
-jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
 komf-client = { module = "io.github.snd-r.komf:client", version.ref = "komf-client" }
 komga-client = { module = "io.github.snd-r:komga-client", version.ref = "komga-client" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
@@ -103,9 +106,7 @@ voyager-transition = { module = "cafe.adriel.voyager:voyager-transitions", versi
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-flyway = { id = "org.flywaydb.flyway" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
-jooqCodegen = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }
 kotlinAtomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "kotlin-atomicfu" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

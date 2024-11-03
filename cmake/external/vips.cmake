@@ -1,15 +1,19 @@
 include(ExternalProject)
 
-if (MESON_CROSS_FILE)
-    set(MESON_CROSS_FILE_ARG --cross-file=${MESON_CROSS_FILE})
-endif()
-
 ExternalProject_Add(ep_vips
         GIT_REPOSITORY https://github.com/libvips/libvips.git
         GIT_TAG v8.16.0
         DEPENDS ep_expat ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_mozjpeg
         CONFIGURE_COMMAND
-            ${Meson_EXECUTABLE} setup ${MESON_CROSS_FILE_ARG} --default-library shared --prefix=<INSTALL_DIR> --libdir=lib --buildtype=release
+            ${Meson_EXECUTABLE} setup ${EP_MESON_ARGS}
+            -Dhighway=enabled
+            -Djpeg-xl=enabled
+            -Djpeg=enabled
+            -Dcgif=enabled
+            -Dheif=enabled
+            -Dspng=enabled
+            -Dtiff=enabled
+            -Dwebp=enabled
             -Ddeprecated=false
             -Dexamples=false
             -Dcplusplus=false
@@ -19,16 +23,12 @@ ExternalProject_Add(ep_vips
             -Dintrospection=disabled
             -Dvapi=false
             -Dcfitsio=disabled
-            -Dcgif=enabled
             -Dexif=disabled
             -Dfftw=disabled
             -Dfontconfig=disabled
             -Darchive=disabled
-            -Dheif=enabled
             -Dheif-module=disabled
             -Dimagequant=disabled
-            -Djpeg=enabled
-            -Djpeg-xl=enabled
             -Djpeg-xl-module=disabled
             -Dlcms=disabled
             -Dmagick=disabled
@@ -37,7 +37,6 @@ ExternalProject_Add(ep_vips
             -Dopenexr=disabled
             -Dopenjpeg=disabled
             -Dopenslide=disabled
-            -Dhighway=enabled
             -Dorc=disabled
             -Dpangocairo=disabled
             -Dpdfium=disabled
@@ -45,14 +44,9 @@ ExternalProject_Add(ep_vips
             -Dpoppler=disabled
             -Dquantizr=disabled
             -Drsvg=disabled
-            -Dspng=enabled
-            -Dtiff=enabled
-            -Dwebp=enabled
             <BINARY_DIR> <SOURCE_DIR>
-        BUILD_COMMAND
-            ${Ninja_EXECUTABLE} -C <BINARY_DIR>
-        INSTALL_COMMAND
-            ${Ninja_EXECUTABLE} -C <BINARY_DIR> install
+        BUILD_COMMAND ${Ninja_EXECUTABLE} -C <BINARY_DIR>
+        INSTALL_COMMAND ${Ninja_EXECUTABLE} -C <BINARY_DIR> install
         USES_TERMINAL_DOWNLOAD true
         USES_TERMINAL_BUILD true
 )

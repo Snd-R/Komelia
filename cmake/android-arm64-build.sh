@@ -10,9 +10,9 @@ fi
 TOOLCHAIN_PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/
 echo "$NDK_PATH/build/cmake/android.toolchain.cmake"
 
-rm -rf ./build-android-arm64
-mkdir -p ./build-android-arm64/sysroot
-cd ./build-android-arm64
+rm -rf ./cmake/build-android-arm64
+mkdir -p ./cmake/build-android-arm64/sysroot
+cd ./cmake/build-android-arm64
 
 
 SYSROOT="$(readlink -f .)/sysroot"
@@ -78,4 +78,4 @@ cp "${TOOLCHAIN_PATH}/lib/clang/17/lib/linux/aarch64/libomp.so" ./sysroot/lib
 
 for lib in sysroot/lib/*so; do
     [[ -f $lib && ! -h $lib ]] && "$TOOLCHAIN_PATH"/bin/llvm-strip "$lib"
-done
+trone

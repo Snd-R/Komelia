@@ -23,7 +23,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":komelia-jni"))
+            api(project(":komelia-jni"))
         }
 
         androidMain.dependencies {}
