@@ -11,9 +11,11 @@ import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.utils.io.*
@@ -25,7 +27,6 @@ import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
 import snd.komga.client.user.KomgaUser
 import snd.komga.client.user.KomgaUserClient
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class LoginViewModel(
     private val settingsRepository: CommonSettingsRepository,
@@ -80,8 +81,7 @@ class LoginViewModel(
     fun loginWithCredentials() {
         screenModelScope.launch {
             userLoginError = null
-            val withoutTrailingSlashes = url.replace("/+$".toRegex(), "")
-            settingsRepository.putServerUrl(withoutTrailingSlashes)
+            settingsRepository.putServerUrl(url)
             settingsRepository.putCurrentUser(user)
             tryUserLogin(user, password)
         }
@@ -92,6 +92,11 @@ class LoginViewModel(
             tryLogin()
         } catch (e: CancellationException) {
             throw e
+        } catch (e: NoTransformationFoundException) {
+            val message = "Unexpected response for url $url"
+            autoLoginError = message
+            notifications.add(AppNotification.Error(message))
+            mutableState.value = LoadState.Error(e)
         } catch (e: ClientRequestException) {
             if (e.response.status == Unauthorized) {
                 autoLoginError = null
@@ -117,6 +122,10 @@ class LoginViewModel(
             tryLogin(username, password)
         } catch (e: CancellationException) {
             throw e
+        } catch (e: NoTransformationFoundException) {
+            val message = "Unexpected response for url $url"
+            userLoginError = message
+            mutableState.value = LoadState.Error(e)
         } catch (e: ClientRequestException) {
             userLoginError = if (e.response.status == Unauthorized) "Invalid credentials"
             else "Login error ${e::class.simpleName}: ${e.message}"

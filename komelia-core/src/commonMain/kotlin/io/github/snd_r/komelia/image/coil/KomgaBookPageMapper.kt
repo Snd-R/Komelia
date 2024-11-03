@@ -11,6 +11,6 @@ class KomgaBookPageMapper(private val serverUrl: StateFlow<String>) : Mapper<Pag
         data: PageMetadata,
         options: Options
     ): String {
-        return "${serverUrl.value}/api/v1/books/${data.bookId}/pages/${data.pageNumber}"
+        return removeEmptyPathSegments("${serverUrl.value}/api/v1/books/${data.bookId}/pages/${data.pageNumber}")
     }
 }

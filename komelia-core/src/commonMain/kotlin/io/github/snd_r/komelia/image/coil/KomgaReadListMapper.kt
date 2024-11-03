@@ -8,6 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 class KomgaReadListMapper(private val serverUrl: StateFlow<String>) : Mapper<ReadListThumbnailRequest, String> {
 
     override fun map(data: ReadListThumbnailRequest, options: Options): String {
-        return "${serverUrl.value}/api/v1/readlists/${data.readListId}/thumbnail"
+        return removeEmptyPathSegments("${serverUrl.value}/api/v1/readlists/${data.readListId}/thumbnail")
     }
 }
