@@ -5,7 +5,6 @@ import {createI18n} from "vue-i18n";
 import en from './locales/en.json'
 import './external'
 import ExternalFunctions from "@/external";
-// import {mockBook, mockBookId, mockSeries} from "@/mock-values";
 
 export const externalFunctions = new ExternalFunctions()
 

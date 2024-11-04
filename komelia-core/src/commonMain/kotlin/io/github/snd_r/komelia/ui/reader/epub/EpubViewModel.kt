@@ -47,6 +47,7 @@ class EpubViewModel(
     private val settingsRepository: CommonSettingsRepository,
     private val notifications: AppNotifications,
     private val ktor: HttpClient,
+    private val markReadProgress: Boolean,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val bookId = MutableStateFlow(bookId)
@@ -77,8 +78,14 @@ class EpubViewModel(
         webview.bind<Unit, String>("bookId") {
             bookId.value.value
         }
-        webview.bind("bookGet") { bookId: KomgaBookId ->
-            bookClient.getBook(bookId)
+        webview.bind<Unit, Boolean>("incognito") {
+            !markReadProgress
+        }
+        webview.bind<KomgaBookId, KomgaBook>("bookGet") { bookId: KomgaBookId ->
+            val book = bookClient.getBook(bookId)
+            this.book.value = book
+            this.bookId.value = book.id
+            book
         }
         webview.bind("bookGetProgression") { bookId: KomgaBookId ->
             bookClient.getReadiumProgression(bookId)

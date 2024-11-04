@@ -7,6 +7,5 @@
 </template>
 
 <script setup lang="ts">
-  //
 import EpubReader from "@/components/EpubReader.vue";
 </script>

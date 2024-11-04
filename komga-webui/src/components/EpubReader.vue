@@ -330,8 +330,6 @@ import {useI18n} from 'vue-i18n'
 import {computed, ComputedRef, onBeforeUnmount, onMounted, onUnmounted, reactive, Ref, ref} from 'vue'
 import D2Reader, {Locator, ReadingPosition} from '@d-i-t-a/reader'
 import {Locations} from "@d-i-t-a/reader/dist/types/model/Locator";
-import {bookPositionsUrl} from '@/functions/urls'
-// import {debounce} from '@/functions/util'
 import {BookDto} from '@/types/komga-books'
 import {getBookTitleCompact} from '@/functions/book-title'
 import {SeriesDto} from '@/types/komga-series'
@@ -358,11 +356,9 @@ const fullscreenIcon = ref('mdi-fullscreen')
 const d2Reader = ref({} as D2Reader)
 const book = ref(undefined as unknown as BookDto)
 const series = ref(undefined as unknown as SeriesDto)
-const siblingPrevious = ref({} as BookDto)
-const siblingNext = ref({} as BookDto)
+const siblingPrevious: Ref<undefined | BookDto> = ref(undefined)
+const siblingNext: Ref<undefined | BookDto> = ref(undefined)
 const incognito = ref(false)
-// const context = ref({} as Context)
-// const contextName = ref('')
 const showSettings = ref(false)
 const showToolbars = ref(false)
 const showToc = ref(false)
@@ -577,24 +573,21 @@ const shortcutsHelp = computed(() => {
   let nav = []
   if (effectiveDirection.value === 'rtl') nav.push(
       Object.entries(shortcutsD2ReaderRTL)
-          .map(([key, value], i) => value)
+          .map(([, value],) => value)
   )
   else nav.push(
       Object.entries(shortcutsD2ReaderLTR)
-          .map(([key, value], i) => value)
+          .map(([, value],) => value)
   )
   nav.push(
-      Object.entries(shortcutsD2Reader)
-          .map(([key, value], i) => value)
-      // .reduce((acc, curr, index) => curr. acc.push() = curr, [])
+      Object.entries(shortcutsD2Reader).map(([, value],) => value)
   )
 
-  let obj = {
+  return {
     [t('bookreader.shortcuts.reader_navigation')]: nav.flat(),
-    [t('bookreader.shortcuts.settings')]: Object.entries(epubShortcutsSettings).map(([key, value], i) => value),
-    [t('bookreader.shortcuts.menus')]: Object.entries(epubShortcutsMenus).map(([key, value], i) => value),
+    [t('bookreader.shortcuts.settings')]: Object.entries(epubShortcutsSettings).map(([, value],) => value),
+    [t('bookreader.shortcuts.menus')]: Object.entries(epubShortcutsMenus).map(([, value],) => value),
   }
-  return obj
 })
 
 const progressionTotalPercentage = computed(() => {
@@ -745,45 +738,28 @@ onUnmounted(() => {
 })
 
 onMounted(async () => {
-  bookId.value = await externalFunctions.bookId()
+  let bookId = await externalFunctions.getInitialBookId()
   let externalSettings = await externalFunctions.getReaderSettings()
   Object.assign(settings, externalSettings)
-  await setupState(bookId.value)
+  await setupState(bookId)
 })
 
-// beforeRouteUpdate(to, from, next) {
-//   if (to.params.bookId !== from.params.bookId) {
-//     // route update means either:
-//     // - going to previous/next book, in this case the query.page is not set, so it will default to first page
-//     // - pressing the back button of the browser and navigating to the previous book, in this case the query.page is set, so we honor it
-//     this.d2Reader.stop()
-//     this.setup(to.params.bookId, Number(to.query.page))
-//   }
-//   next()
-// }
-
 function previousBook() {
-  // if (!this.$_.isEmpty(this.siblingPrevious)) {
-  //   this.jumpToPreviousBook = false
-  //   this.$router.push({
-  //     name: getBookReadRouteFromMedia(this.siblingPrevious.media),
-  //     params: {bookId: this.siblingPrevious.id.toString()},
-  //     query: {context: this.context.origin, contextId: this.context.id, incognito: this.incognito.toString()},
-  //   })
-  // }
+  if (siblingPrevious.value == undefined) {
+    closeBook()
+  } else {
+    d2Reader.value.stop()
+    setupState(siblingPrevious.value.id)
+  }
 }
 
 function nextBook() {
-  // if (this.$_.isEmpty(this.siblingNext)) {
-  //   this.closeBook()
-  // } else {
-  //   this.jumpToNextBook = false
-  //   this.$router.push({
-  //     name: getBookReadRouteFromMedia(this.siblingNext.media),
-  //     params: {bookId: this.siblingNext.id.toString()},
-  //     query: {context: this.context.origin, contextId: this.context.id, incognito: this.incognito.toString()},
-  //   })
-  // }
+  if (siblingNext.value == undefined) {
+    closeBook()
+  } else {
+    d2Reader.value.stop()
+    setupState(siblingNext.value.id)
+  }
 }
 
 function enterFullscreen() {
@@ -844,6 +820,7 @@ function clickThrough(e: MouseEvent) {
 }
 
 function singleClick(x: number, y: number) {
+  console.log("single click")
   if (verticalScroll.value) {
     if (settings.navigationClick) {
       if (y < height.value / 4) return d2Reader.value.previousPage()
@@ -859,15 +836,12 @@ function singleClick(x: number, y: number) {
 }
 
 async function setupState(currentBookId: string) {
+  bookId.value = currentBookId
   book.value = await externalFunctions.bookGet(currentBookId)
   series.value = await externalFunctions.getOneSeries(book.value.seriesId)
 
   const progression = await externalFunctions.bookGetProgression(currentBookId)
-  const publication = await externalFunctions.getPublication(currentBookId)
   const serverUrl = await externalFunctions.getServerUrl()
-  console.log(progression)
-  console.log(publication)
-  console.log(serverUrl)
   let initialLocation: ReadingPosition | undefined = undefined
   if (progression != undefined) {
     initialLocation = r2ProgressionToReadingPosition(currentBookId, progression)
@@ -889,21 +863,14 @@ async function setupState(currentBookId: string) {
   document.title = `Komga - ${getBookTitleCompact(book.value.metadata.title, series.value.metadata.title)}`
 // }
 
-// parse query params to get incognito mode
-  incognito.value = false
-// !!(this.$route.query.incognito && this.$route.query.incognito.toString().toLowerCase() === 'true')
-
-  console.log(`${serverUrl}/api/v1/books/${currentBookId}/manifest`)
+  incognito.value = await externalFunctions.isIncognito()
   d2Reader.value = await D2Reader.load({
-    publication: publication,
     url: new URL(`${serverUrl}/api/v1/books/${currentBookId}/manifest`),
 
     userSettings: settings,
     storageType: 'memory',
     lastReadingPosition: initialLocation,
     injectables: [
-      // webpack will process the new URL (https://webpack.js.org/guides/asset-modules/#url-assets)
-      // we use a different extension so that the css-loader rule is not used (see vue.config.js)
       {
         type: 'style',
         url: new URL('../styles/readium/ReadiumCSS-before.css', import.meta.url).toString(),
@@ -950,7 +917,7 @@ async function setupState(currentBookId: string) {
       enableConsumption: false,
     },
     services: {
-      positions: new URL(bookPositionsUrl(currentBookId)),
+      positions: new URL(`${serverUrl}/api/v1/books/${currentBookId}/positions`),
     },
     api: {
       getContent: externalFunctions.d2ReaderGetContent,
@@ -979,7 +946,6 @@ async function setupState(currentBookId: string) {
     siblingNext.value = await externalFunctions.bookGetBookSiblingNext(currentBookId)
     // }
   } catch (e) {
-    siblingNext.value = {} as BookDto
   }
   try {
     // if (this?.context.origin === ContextOrigin.READLIST) {
@@ -988,7 +954,6 @@ async function setupState(currentBookId: string) {
     siblingPrevious.value = await externalFunctions.bookGetBookSiblingPrevious(currentBookId)
     // }
   } catch (e) {
-    siblingPrevious.value = {} as BookDto
   }
 }
 
@@ -1071,12 +1036,6 @@ function closeDialog() {
 
 async function closeBook() {
   await externalFunctions.closeBook()
-  // this.$router.push(
-  //   {
-  //     name: this.book.oneshot ? 'browse-oneshot' : 'browse-book',
-  //     params: {bookId: this.bookId.toString(), seriesId: this.book.seriesId},
-  //     query: {context: this.context.origin, contextId: this.context.id},
-  //   })
 }
 
 function cycleViewingTheme() {

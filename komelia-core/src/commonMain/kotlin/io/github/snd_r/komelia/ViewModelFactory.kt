@@ -617,7 +617,12 @@ class ViewModelFactory(
         )
     }
 
-    fun getEpubViewModel(bookId: KomgaBookId, navigator: Navigator, book: KomgaBook? = null): EpubViewModel {
+    fun getEpubViewModel(
+        bookId: KomgaBookId,
+        navigator: Navigator,
+        book: KomgaBook? = null,
+        markReadProgress: Boolean = true
+    ): EpubViewModel {
         return EpubViewModel(
             bookId = bookId,
             book = book,
@@ -628,6 +633,7 @@ class ViewModelFactory(
             readListClient = komgaClientFactory.readListClient(),
             notifications = appNotifications,
             ktor = komgaClientFactory.ktor(),
+            markReadProgress = markReadProgress
         )
     }
 

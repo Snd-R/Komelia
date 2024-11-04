@@ -36,7 +36,8 @@ class EpubScreen(
             viewModelFactory.getEpubViewModel(
                 bookId = bookId,
                 navigator = navigator,
-                book = book
+                book = book,
+                markReadProgress = markReadProgress
             )
         }
         LaunchedEffect(bookId) {

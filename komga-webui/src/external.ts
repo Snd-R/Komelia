@@ -10,7 +10,7 @@ declare global {
         resourceBaseUrl: string,
 
         bookId: () => Promise<CallbackResponse<string>>
-        //books
+        incognito: () => Promise<CallbackResponse<boolean>>
         bookGet: (bookId: string) => Promise<CallbackResponse<BookDto>>
         bookGetProgression: (bookId: string) => Promise<CallbackResponse<R2Progression | undefined>>
         bookUpdateProgression: (type: {
@@ -19,9 +19,8 @@ declare global {
         }) => Promise<CallbackResponse<undefined>>
         bookGetBookSiblingNext: (bookId: string) => Promise<CallbackResponse<BookDto>>
         bookGetBookSiblingPrevious: (bookId: string) => Promise<CallbackResponse<BookDto>>
-        //series
         getOneSeries: (seriesId: string) => Promise<CallbackResponse<SeriesDto>>
-        //readlist
+
         readListGetOne: (readListId: string) => Promise<CallbackResponse<ReadListDto>>
         // readListGetBookSiblingNext: (readListId: string, bookId: string) => Promise<BookDto>
         // readListGetBookSiblingPrevious: (readListId: string, bookId: string) => Promise<BookDto>
@@ -49,38 +48,35 @@ export interface CallbackResponse<T> {
 }
 
 export default class ExternalFunctions {
-    async bookId(): Promise<string> {
-        // return new Promise((resolve) => resolve(mockBookId))
+    async getInitialBookId(): Promise<string> {
         return this.callbackResult(window.bookId())
     }
 
+    async isIncognito(): Promise<boolean> {
+        return this.callbackResult(window.incognito())
+    }
+
     async bookGet(bookId: string): Promise<BookDto> {
-        // return new Promise((resolve) => resolve(mockBook))
         return this.callbackResult(window.bookGet(bookId))
     }
 
     async bookGetProgression(bookId: string): Promise<R2Progression | undefined> {
-        // return new Promise((resolve) => resolve(undefined))
         return this.callbackResult(window.bookGetProgression(bookId))
     }
 
     async bookUpdateProgression(bookId: string, progression: R2Progression): Promise<undefined> {
-        // return new Promise((resolve) => resolve(undefined))
         return this.callbackResult(window.bookUpdateProgression({bookId: bookId, progression: progression}))
     }
 
     async bookGetBookSiblingNext(bookId: string): Promise<BookDto> {
-        // return new Promise((resolve, reject) => reject(undefined))
         return this.callbackResult(window.bookGetBookSiblingNext(bookId))
     }
 
     async bookGetBookSiblingPrevious(bookId: string): Promise<BookDto> {
-        // return new Promise((resolve, reject) => reject(undefined))
         return this.callbackResult(window.bookGetBookSiblingPrevious(bookId))
     }
 
     async getOneSeries(seriesId: string): Promise<SeriesDto> {
-        // return new Promise((resolve) => resolve(mockSeries))
         return this.callbackResult(window.getOneSeries(seriesId))
     }
 
@@ -121,7 +117,7 @@ export default class ExternalFunctions {
         return window.getServerUrl().then((value) => value.result)
     }
 
-    callbackResult<T>(promise: Promise<CallbackResponse<T>>): Promise<T> {
+    async callbackResult<T>(promise: Promise<CallbackResponse<T>>): Promise<T> {
         return promise
             .then((value) => value.result)
     }

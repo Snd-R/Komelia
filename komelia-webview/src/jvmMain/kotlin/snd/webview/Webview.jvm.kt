@@ -71,7 +71,7 @@ actual class Webview private constructor(
                         bindReturn(id, json)
                     }
                 }.onFailure { error ->
-                    logger.catching(error)
+                    logger.error(error) { "Encountered error during execution of bind function \"$name\"; js params: $jsRequest" }
                     if (!isClosed) {
                         val message = Json.encodeToString<CallbackResponse<String>>(
                             CallbackResponse(error.message ?: error.stackTraceToString())

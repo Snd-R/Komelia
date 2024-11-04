@@ -1,7 +1,6 @@
 import {Locator, ReadingPosition} from '@d-i-t-a/reader'
 import {R2Location, R2Locator, R2Progression} from '@/types/readium'
 import {Locations} from '@d-i-t-a/reader/dist/types/model/Locator'
-import urls from '@/functions/urls'
 
 export function createR2Progression(locator: Locator): R2Progression {
   return {
@@ -16,7 +15,7 @@ export function createR2Progression(locator: Locator): R2Progression {
 
 function locatorToR2Locator(locator: Locator): R2Locator {
   return {
-    href: locator.href.startsWith(urls.originNoSlash) ? locator.href.replace(/(.*\/resource\/)/, '') : locator.href,
+    href:  locator.href,
     type: locator.type || 'application/octet-stream',
     title: locator.title,
     locations: locationsToR2Location(locator.locations),
