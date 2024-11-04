@@ -15,6 +15,7 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.SCREEN
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
@@ -115,10 +116,10 @@ data class KomfProviderSettingsStrings(
 
 
 data class SeriesViewStrings(
-    val statusEnded:String,
-    val statusOngoing:String,
-    val statusAbandoned:String,
-    val statusHiatus:String,
+    val statusEnded: String,
+    val statusOngoing: String,
+    val statusAbandoned: String,
+    val statusHiatus: String,
 
     val readingDirectionLeftToRight: String,
     val readingDirectionRightToLeft: String,
@@ -301,6 +302,7 @@ data class PagedReaderStrings(
     val layout: String,
     val layoutSinglePage: String,
     val layoutDoublePages: String,
+    val layoutDoublePagesNoCover: String,
     val offsetPages: String,
 ) {
     fun forScaleType(type: LayoutScaleType): String {
@@ -323,6 +325,7 @@ data class PagedReaderStrings(
         return when (layout) {
             SINGLE_PAGE -> layoutSinglePage
             DOUBLE_PAGES -> layoutDoublePages
+            DOUBLE_PAGES_NO_COVER -> layoutDoublePagesNoCover
         }
     }
 }

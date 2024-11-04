@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.BookState
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
@@ -23,6 +24,7 @@ import io.github.snd_r.komelia.ui.reader.SpreadIndex
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
+import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
@@ -45,7 +47,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -387,40 +388,71 @@ class PagedReaderState(
     private fun buildSpreadMap(pages: List<PageMetadata>, layout: PageDisplayLayout): List<List<PageMetadata>> {
         return when (layout) {
             SINGLE_PAGE -> pages.map { listOf(it) }
-            DOUBLE_PAGES -> buildSpreadMapForDoublePages(pages, layoutOffset.value)
+            DOUBLE_PAGES -> buildSpreadMapForDoublePages(
+                pages = pages,
+                withCover = true,
+                offset = layoutOffset.value
+            )
+
+            DOUBLE_PAGES_NO_COVER -> buildSpreadMapForDoublePages(
+                pages = pages,
+                withCover = false,
+                offset = layoutOffset.value
+            )
         }
     }
 
-    private fun buildSpreadMapForDoublePages(pages: List<PageMetadata>, offset: Boolean): List<List<PageMetadata>> {
-        val rawSpreads: List<List<PageMetadata>> = if (offset) {
-            buildList {
-                add(listOf(pages.first()))
-                addAll(pages.drop(1).chunked(2))
-            }
-        } else pages.chunked(2)
+    data class DoublePageSegment(
+        val singlePages: List<PageMetadata>,
+        val landscapePage: PageMetadata?
+    )
 
-        val processedSpreads = ArrayList<List<PageMetadata>>()
-        for (rawSpread in rawSpreads) {
-            var currentSpread = emptyList<PageMetadata>()
+    private fun buildSpreadMapForDoublePages(
+        pages: List<PageMetadata>,
+        withCover: Boolean,
+        offset: Boolean
+    ): List<List<PageMetadata>> {
+        val segments = constructDoublePageSegments(pages, withCover)
 
-            for (page in rawSpread) {
+        val processedSpreads = mutableListOf<List<PageMetadata>>()
+        for (segment in segments) {
+            val segmentPages = segment.singlePages
 
-                if (page.isLandscape()) {
-                    // if landscape is the second page - add both as separate spreads
-                    if (currentSpread.isNotEmpty()) {
-                        processedSpreads.add(currentSpread)
-                    }
+            if (offset) {
+                segmentPages.firstOrNull()?.let { processedSpreads.add(listOf(it)) }
+                processedSpreads.addAll(segmentPages.drop(1).chunked(2))
+            } else processedSpreads.addAll(segmentPages.chunked(2))
 
-                    processedSpreads.add(listOf(page))
-                    currentSpread = emptyList()
-                } else {
-                    currentSpread = currentSpread + page
-                }
-            }
+            segment.landscapePage?.let { processedSpreads.add(listOf(it)) }
 
-            if (currentSpread.isNotEmpty()) processedSpreads.add(currentSpread)
         }
+
         return processedSpreads
+    }
+
+    private fun constructDoublePageSegments(
+        pages: List<PageMetadata>,
+        withCover: Boolean,
+    ): List<DoublePageSegment> {
+        val independentSegments = mutableListOf<DoublePageSegment>()
+
+        val pagesToProcess = if (withCover) {
+            independentSegments.add(DoublePageSegment(listOf(pages.first()), null))
+            pages.drop(1)
+        } else pages
+
+        var segmentPages: MutableList<PageMetadata> = mutableListOf()
+        for (page in pagesToProcess) {
+            if (page.isLandscape()) {
+                independentSegments.add(DoublePageSegment(segmentPages, page))
+                segmentPages = mutableListOf()
+            } else {
+                segmentPages.add(page)
+            }
+        }
+        if (segmentPages.isNotEmpty()) independentSegments.add(DoublePageSegment(segmentPages, null))
+
+        return independentSegments
     }
 
     private fun spreadIndexOf(page: PageMetadata): SpreadIndex {
@@ -453,7 +485,7 @@ class PagedReaderState(
 
     fun onLayoutOffsetChange(offset: Boolean) {
         val currentLayout = layout.value
-        if (currentLayout != DOUBLE_PAGES) return
+        if (currentLayout == SINGLE_PAGE) return
         this.layoutOffset.value = offset
 
         val pages = readerState.booksState.value?.currentBookPages ?: return
@@ -572,6 +604,7 @@ class PagedReaderState(
     enum class PageDisplayLayout {
         SINGLE_PAGE,
         DOUBLE_PAGES,
+        DOUBLE_PAGES_NO_COVER,
     }
 
     enum class LayoutScaleType {

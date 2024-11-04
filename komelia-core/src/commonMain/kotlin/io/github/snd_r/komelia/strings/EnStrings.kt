@@ -169,6 +169,7 @@ val EnStrings = Strings(
         layout = "Page layout",
         layoutSinglePage = "Single page",
         layoutDoublePages = "Double pages",
+        layoutDoublePagesNoCover = "Double pages (no cover)",
         offsetPages = "Offset pages",
     ),
     continuousReader = ContinuousReaderStrings(

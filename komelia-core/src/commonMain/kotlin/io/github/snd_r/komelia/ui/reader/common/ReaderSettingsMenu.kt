@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -98,7 +99,7 @@ fun SettingsMenu(
                 readerSettingsContent = readerSettingsContent
             )
 
-            Spacer(Modifier.height(30.dp))
+            Spacer(Modifier.height(60.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
         }
     }
@@ -157,16 +158,18 @@ private fun ColumnScope.SettingsContent(
     }
 
     SwitchWithLabel(
-        settingsState.imageStretchToFit.collectAsState().value,
-        settingsState::onStretchToFitChange,
+        checked = settingsState.imageStretchToFit.collectAsState().value,
+        onCheckedChange = settingsState::onStretchToFitChange,
         label = { Text(strings.stretchToFit) },
+        contentPadding = PaddingValues(horizontal = 10.dp)
     )
 
     if (LocalPlatform.current != PlatformType.WEB_KOMF) {
         SwitchWithLabel(
-            settingsState.cropBorders.collectAsState().value,
-            settingsState::onTrimEdgesChange,
+            checked = settingsState.cropBorders.collectAsState().value,
+            onCheckedChange = settingsState::onTrimEdgesChange,
             label = { Text("Crop borders") },
+            contentPadding = PaddingValues(horizontal = 10.dp)
         )
     }
 

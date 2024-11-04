@@ -2,8 +2,10 @@ package io.github.snd_r.komelia.ui.common
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 
 @Composable
@@ -24,7 +27,8 @@ fun SwitchWithLabel(
     supportingText: @Composable () -> Unit = {},
     supportingTextColor: Color = LocalContentColor.current.copy(alpha = 0.6f),
     enabled: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val contentColor = if (enabled) LocalContentColor.current else LocalContentColor.current.copy(alpha = .4f)
     val actualSupportingTextColor = if (enabled) supportingTextColor else LocalContentColor.current.copy(alpha = .4f)
@@ -37,7 +41,7 @@ fun SwitchWithLabel(
             modifier = modifier.clickable(
                 enabled = enabled,
                 onClick = { onCheckedChange(!checked) }
-            ).cursorForHand(),
+            ).cursorForHand().padding(contentPadding),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 label()
