@@ -115,7 +115,7 @@ class ContinuousReaderState(
 
         readingDirection.value = settingsRepository.getContinuousReaderReadingDirection().first()
         sidePaddingFraction.value = settingsRepository.getContinuousReaderPadding().first()
-        pageSpacing.value = settingsRepository.getContinuousReaderPageSpacing().first()
+        pageSpacing.value = settingsRepository.getContinuousReaderPageSpacing().first().coerceAtMost(99999)
 
         screenScaleState.setScrollState(lazyListState)
         when (readingDirection.value) {
@@ -694,8 +694,9 @@ class ContinuousReaderState(
     }
 
     fun onPageSpacingChange(distance: Int) {
-        this.pageSpacing.value = distance
-        stateScope.launch { settingsRepository.putContinuousReaderPageSpacing(distance) }
+        val newDistance = distance.coerceAtMost(99999)
+        this.pageSpacing.value = newDistance
+        stateScope.launch { settingsRepository.putContinuousReaderPageSpacing(newDistance) }
     }
 
     fun onPageDisplay(page: PageMetadata, image: ReaderImage) {

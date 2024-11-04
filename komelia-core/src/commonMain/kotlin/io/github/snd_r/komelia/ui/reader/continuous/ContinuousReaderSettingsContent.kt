@@ -56,6 +56,7 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
         TextField(
             value = if (spacing == 0) "" else spacing.toString(),
             onValueChange = { newValue ->
+                if (newValue.length > 5) return@TextField
                 if (newValue.isBlank()) state.onPageSpacingChange(0)
                 else newValue.toIntOrNull()?.let { state.onPageSpacingChange(it) }
             },
