@@ -1,47 +1,47 @@
 [versions]
-agp = "8.5.0"
+agp = "8.5.2"
 android-compileSdk = "34"
 android-minSdk = "26"
 android-targetSdk = "34"
-androidx-activityCompose = "1.9.2"
+androidx-activityCompose = "1.9.3"
 
 androidx-appcompat = "1.7.0"
-androidx-core-ktx = "1.13.1"
+androidx-core-ktx = "1.15.0"
 androidx-datastore = "1.1.1"
 androidx-window = "1.3.0"
 
 cache4k = "0.13.0"
-coil = "3.0.0-alpha10"
+coil = "3.0.0"
 commons-compress = "1.27.1"
-compose-multiplatform = "1.7.0-rc01"
+compose-multiplatform = "1.7.0"
 directories = "26"
 exposed = "0.56.0"
 filekit = "0.8.2"
 flyway = "9.22.3"
 java-keyring = "1.0.4"
 komf-client = "1.0.0"
-komga-client = "0.6.0-SNAPSHOT"
-kotlin = "2.0.20"
-kotlin-atomicfu = "0.25.0"
+komga-client = "0.6.0"
+kotlin = "2.0.21"
 kotlin-logging = "7.0.0"
+kotlinx-atomicfu = "0.26.0"
 kotlinx-coroutines = "1.9.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.7.3"
 kotlinx-io = "0.5.4"
-ktor = "3.0.0-rc-2"
+ktor = "3.0.1"
 ktoml = "0.5.2"
-logback = "1.5.8"
+logback = "1.5.12"
 logback-android = "3.0.0"
 lyricist = "1.7.0"
 markdown = "0.7.3"
 okhttp = "4.12.0"
 protobuf-plugin = "0.9.4"
 protobuf-lite = "3.21.11"
-reorderable = "2.4.0-alpha02"
-richEditor = "1.0.0-rc06"
+reorderable = "2.4.0"
+richEditor = "1.0.0-rc09"
 slf4j = "2.0.16"
 sqlite-jdbc = "3.46.1.3"
-voyager = "1.1.0-beta02"
+voyager = "1.1.0-beta03"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
@@ -107,7 +107,7 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
-kotlinAtomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "kotlin-atomicfu" }
+kotlinAtomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "kotlinx-atomicfu" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
