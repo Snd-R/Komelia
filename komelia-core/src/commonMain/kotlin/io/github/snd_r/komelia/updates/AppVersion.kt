@@ -17,7 +17,7 @@ data class AppVersion(
 ) : Comparable<AppVersion> {
 
     companion object {
-        val current = AppVersion(0, 10, 1)
+        val current = AppVersion(0, 11, 0)
 
         fun fromString(value: String): AppVersion {
             val version = value.split(".")
