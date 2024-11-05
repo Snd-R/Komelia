@@ -1,11 +1,11 @@
 package io.github.snd_r
 
+import org.slf4j.LoggerFactory
+import snd.jni.DesktopPlatform
 import snd.jni.DesktopPlatform.Linux
 import snd.jni.DesktopPlatform.MacOS
 import snd.jni.DesktopPlatform.Unknown
 import snd.jni.DesktopPlatform.Windows
-import org.slf4j.LoggerFactory
-import snd.jni.DesktopPlatform
 import snd.jni.SharedLibrariesLoader
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -17,13 +17,6 @@ object VipsSharedLibraries {
     var loadError: Throwable? = null
         private set
 
-
-    private val linuxRequiredLibs = listOf(
-        "glib-2.0",
-        "gobject-2.0",
-        "vips",
-        "komelia_vips",
-    )
     private val linuxLibs = listOf(
         "z",
         "ffi",
@@ -105,20 +98,30 @@ object VipsSharedLibraries {
         isAvailable = true
     }
 
-    private fun loadLinuxLibs() {
-        try {
-            loadLibs(linuxLibs)
-            isAvailable = true
-        } catch (e: UnsatisfiedLinkError) {
-            loadLibs(linuxRequiredLibs)
-            isAvailable = true
-        }
-    }
-
     private fun loadLibs(libs: List<String>) {
         logger.info("libraries search path: ${System.getProperty("java.library.path")}")
         for (libName in libs) {
             SharedLibrariesLoader.loadLibrary(libName)
         }
+    }
+
+    private fun loadLinuxLibs() {
+        try {
+            loadLibs(linuxLibs)
+            isAvailable = true
+        } catch (e: UnsatisfiedLinkError) {
+            loadRequiredLinuxLibs()
+            isAvailable = true
+        }
+    }
+
+    private fun loadRequiredLinuxLibs() {
+        logger.info("Attempting to load only required libraries")
+        try {
+            SharedLibrariesLoader.loadLibrary("vips")
+        } catch (e: UnsatisfiedLinkError) {
+            SharedLibrariesLoader.findAndLoadFile("libvips.so.42")
+        }
+        SharedLibrariesLoader.loadLibrary("komelia_vips")
     }
 }

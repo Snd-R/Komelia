@@ -13,11 +13,9 @@ run `build-(target-paltform).sh` script for your target paltform
 To build with docker container, replace <*platform*> placeholder with your target platform\
 Available platforms include: `linux-x86_64`, `windows-x86_64`, `android-arm64`, `android-x86_64`
 
-- `cd ./image-decoder/native`
-- `docker build -t komelia-build-<platfrom> . -f <paltform>.Dockerfile `
+- `docker build -t komelia-build-<platfrom> . -f ./cmake/<paltform>.Dockerfile `
 - `docker run -v .:/build komelia-build-<paltform>`
-- `cd ../../`
-- `./gradlew :image-decoder:<platform>_copyJniLibs` - copy built shared libraries to resource directory that will be
+- `./gradlew <platform>_copyJniLibs` - copy built shared libraries to resource directory that will be
   bundled with the app
 
 # Desktop App Build

@@ -140,7 +140,6 @@ compose.desktop {
 
         buildTypes.release.proguard {
             version.set("7.5.0")
-            isEnabled.set(false)
             optimize.set(false)
             configurationFiles.from(project.file("no_icons.pro"))
         }
@@ -149,7 +148,7 @@ compose.desktop {
 
 tasks.register<Zip>("repackageUberJar") {
     group = "compose desktop"
-    val packageUberJarForCurrentOS = tasks.getByName("packageUberJarForCurrentOS")
+    val packageUberJarForCurrentOS = tasks.getByName("packageReleaseUberJarForCurrentOS")
     dependsOn(packageUberJarForCurrentOS)
     val file = packageUberJarForCurrentOS.outputs.files.first()
     val output = File(file.parentFile, "${file.nameWithoutExtension}-repacked.jar")

@@ -8,6 +8,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 
 object SharedLibrariesLoader {
     private val logger = LoggerFactory.getLogger(SharedLibrariesLoader::class.java)
@@ -17,10 +19,25 @@ object SharedLibrariesLoader {
         .resolve("libs")
         .createDirectories()
 
+
+    @Suppress("UnsafeDynamicallyLoadedCode")
+    fun findAndLoadFile(filename: String) {
+        val filePath = System.getProperty("java.library.path")
+            .split(":").asSequence()
+            .map { Path(it) }
+            .filter { it.exists() }
+            .flatMap { it.listDirectoryEntries() }
+            .firstOrNull { it.name == filename }
+
+        if (filePath == null) throw UnsatisfiedLinkError("Failed to find library $filename")
+
+        System.load(filePath.absolutePathString())
+    }
+
     @Suppress("UnsafeDynamicallyLoadedCode")
     fun loadLibrary(libName: String) {
+        val filename = System.mapLibraryName(libName)
         try {
-            val filename = System.mapLibraryName(libName)
 
             if (composeResourcesDir != null) {
                 val filePath = composeResourcesDir.resolve(filename)
@@ -44,7 +61,7 @@ object SharedLibrariesLoader {
             logger.warn("$filename is not found in bundled libraries. attempting to load system library")
             System.loadLibrary(libName)
         } catch (e: UnsatisfiedLinkError) {
-            logger.error("failed to load native library $libName")
+            logger.error("failed to load native library $filename", e)
             throw e
         }
     }

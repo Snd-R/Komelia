@@ -11,7 +11,7 @@ import snd.webview.WebviewPanel
 
 @Composable
 actual fun Webview(
-    onCreated: (Webview) -> Unit
+    onCreated: (Webview) -> Unit,
 ) {
     val webviewComponent = remember { WebviewPanel(onCreated = onCreated) }
 

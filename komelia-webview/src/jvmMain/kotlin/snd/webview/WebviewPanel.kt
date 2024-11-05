@@ -31,13 +31,11 @@ class WebviewPanel(
                     }
                 }
 
-                override fun ancestorRemoved(event: AncestorEvent) {
-                }
+                override fun ancestorRemoved(event: AncestorEvent) {}
 
                 override fun ancestorMoved(event: AncestorEvent) {}
             }
         )
-
         addComponentListener(object : ComponentAdapter() {
             override fun componentResized(e: ComponentEvent) {
                 webview?.updateSize(e.component.width, e.component.height)

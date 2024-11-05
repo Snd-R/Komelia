@@ -95,8 +95,6 @@ actual class Webview private constructor(
 
     external fun bindReject(id: String, message: String)
 
-    external fun setParentWindow(component: Component)
-
     private external fun runMainLoop(startCallback: Runnable)
 
     companion object {
