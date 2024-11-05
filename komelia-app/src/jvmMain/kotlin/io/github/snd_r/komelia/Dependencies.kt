@@ -105,8 +105,8 @@ fun loadVipsLibraries() {
 
 suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContainer {
     if (DesktopPlatform.Current != DesktopPlatform.Linux) {
-        loadWebviewLibraries()
         loadVipsLibraries()
+        loadWebviewLibraries()
     }
     checkVipsLibraries()
 
