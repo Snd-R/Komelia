@@ -12,8 +12,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 object VipsSharedLibraries {
     private val logger = LoggerFactory.getLogger(VipsSharedLibraries::class.java)
     private val loaded = AtomicBoolean(false)
+
+    @Volatile
     var isAvailable = false
         private set
+
+    @Volatile
     var loadError: Throwable? = null
         private set
 

@@ -247,6 +247,8 @@ tasks.register<Exec>("cmakeSystemDepsConfigure") {
 tasks.register<Exec>("cmakeSystemDepsBuild") {
     group = "jni"
     dependsOn("cmakeSystemDepsConfigure")
+    outputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
+    outputs.dir("$projectDir/cmake-build/komelia-webview/native")
     commandLine(
         "cmake",
         "--build",
@@ -255,19 +257,19 @@ tasks.register<Exec>("cmakeSystemDepsBuild") {
     )
 }
 
-tasks.register("cmakeSystemDepsCopyJniLibs") {
+tasks.register<Sync>("cmakeSystemDepsCopyJniLibs") {
     group = "jni"
     dependsOn("cmakeSystemDepsBuild")
-    copy {
-        from("$projectDir/cmake-build/komelia-image-decoder/native")
-        into(resourcesDir)
-        include { it.name in desktopJniLibs }
-    }
-    copy {
-        from("$projectDir/cmake-build/komelia-webview/native")
-        into(resourcesDir)
-        include { it.name in desktopJniLibs }
-    }
+    inputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
+    inputs.dir("$projectDir/cmake-build/komelia-webview/native")
+    outputs.dir(resourcesDir)
+
+    from(
+        "$projectDir/cmake-build/komelia-image-decoder/native",
+        "$projectDir/cmake-build/komelia-webview/native"
+    )
+    into(resourcesDir)
+    include { it.name in desktopJniLibs }
 }
 
 tasks.register("komeliaBuildNonJvmDependencies") {

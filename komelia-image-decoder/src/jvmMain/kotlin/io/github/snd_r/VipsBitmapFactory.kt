@@ -19,11 +19,20 @@ import java.util.concurrent.atomic.AtomicBoolean
 object VipsBitmapFactory {
     private val loaded = AtomicBoolean(false)
 
+    @Volatile
+    private var skiaIntegrationLibIsLoaded = false
+
     fun load() {
         if (!loaded.compareAndSet(false, true)) return
 
         when (DesktopPlatform.Current) {
-            Linux -> SharedLibrariesLoader.loadLibrary("komelia_skia")
+            Linux -> try {
+                SharedLibrariesLoader.loadLibrary("komelia_skia")
+                skiaIntegrationLibIsLoaded = true
+            } catch (e: UnsatisfiedLinkError) {
+                skiaIntegrationLibIsLoaded = false
+            }
+
             Windows -> {}
             MacOS, Unknown -> error("Unsupported OS")
         }
@@ -31,7 +40,11 @@ object VipsBitmapFactory {
 
     fun toSkiaBitmap(image: VipsImage): Bitmap {
         return when (DesktopPlatform.Current) {
-            Linux -> directCopyToSkiaBitmap(image)
+            Linux -> {
+                if (skiaIntegrationLibIsLoaded) directCopyToSkiaBitmap(image)
+                else jvmDoubleCopyToSkiaBitmap(image)
+            }
+
             Windows -> jvmDoubleCopyToSkiaBitmap(image)
             MacOS, Unknown -> error("Unsupported OS")
         }

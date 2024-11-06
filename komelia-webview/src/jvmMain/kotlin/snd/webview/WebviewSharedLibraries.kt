@@ -34,7 +34,7 @@ object WebviewSharedLibraries {
     private fun loadLinuxLibs() {
         val extensionDir = tempDir.resolve("webkit").createDirectories()
         val classPathFile = SharedLibrariesLoader::class.java.getResource("/libkomelia_webkit_extension.so")
-            ?: error("Failed to find libkomelia_webkit_extension file")
+            ?: throw UnsatisfiedLinkError("Failed to find libkomelia_webkit_extension file")
         val fileBytes = classPathFile.readBytes()
         val libFile = Files.write(
             extensionDir.resolve("libkomelia_webkit_extension.so"),
