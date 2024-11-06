@@ -13,9 +13,8 @@ wget --retry-connrefused --waitretry=1 \
 export PKG_CONFIG_PATH="$(readlink -f .)/sysroot/lib/pkgconfig"
 export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/sysroot/lib/pkgconfig"
 
-cmake .. -G Ninja  \
+cmake ../.. -G Ninja  \
         -DCMAKE_BUILD_TYPE=Release \
-        -DVULKAN_GPU_ENUMERATION=OFF \
         -DROCM_GPU_ENUMERATION=OFF \
         -DDXGI_GPU_ENUMERATION=ON \
         -DCUDA_GPU_ENUMERATION=ON \

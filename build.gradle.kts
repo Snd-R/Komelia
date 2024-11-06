@@ -72,6 +72,15 @@ val desktopLinuxLibs = linuxCommonLibs + setOf(
     "libkomelia_webview.so",
     "libkomelia_webkit_extension.so",
 )
+val desktopJniLibs = setOf(
+    "libkomelia_vips.so",
+    "libkomelia_onnxruntime.so",
+    "libkomelia_enumerate_devices_cuda.so",
+    "libkomelia_skia.so",
+    "libkomelia_webview.so",
+    "libkomelia_webkit_extension.so",
+)
+
 val windowsLibs = setOf(
     "libbrotlicommon.dll",
     "libbrotlidec.dll",
@@ -221,4 +230,47 @@ tasks.register<Sync>("CopyWebui") {
     dependsOn("npmBuild")
     from("$webui/dist/")
     into("$composeDesktopResourcesDir/files")
+}
+
+tasks.register<Exec>("cmakeSystemDepsConfigure") {
+    group = "jni"
+    dependsOn("CopyWebui")
+    commandLine(
+        "cmake",
+        "-B", "cmake-build",
+        "-G", "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DKOMELIA_SUPERBUILD=OFF"
+    )
+}
+
+tasks.register<Exec>("cmakeSystemDepsBuild") {
+    group = "jni"
+    dependsOn("cmakeSystemDepsConfigure")
+    commandLine(
+        "cmake",
+        "--build",
+        "cmake-build",
+        "--parallel"
+    )
+}
+
+tasks.register("cmakeSystemDepsCopyJniLibs") {
+    group = "jni"
+    dependsOn("cmakeSystemDepsBuild")
+    copy {
+        from("$projectDir/cmake-build/komelia-image-decoder/native")
+        into(resourcesDir)
+        include { it.name in desktopJniLibs }
+    }
+    copy {
+        from("$projectDir/cmake-build/komelia-webview/native")
+        into(resourcesDir)
+        include { it.name in desktopJniLibs }
+    }
+}
+
+tasks.register("komeliaBuildNonJvmDependencies") {
+    group = "build"
+    dependsOn("cmakeSystemDepsCopyJniLibs")
 }

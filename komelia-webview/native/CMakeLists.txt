@@ -36,26 +36,30 @@ if (WIN32)
             ${JNI_LIBRARIES}
             PkgConfig::GLIB2
     )
+    install(TARGETS komelia_webview LIBRARY)
 else ()
-    find_package(JNI REQUIRED)
-    pkg_check_modules(WEBKIT_GTK REQUIRED IMPORTED_TARGET webkit2gtk-4.1)
-    add_library(
-            komelia_webview SHARED
-            src/webview_jni.c
-            src/komelia_callbacks.h
-            src/komelia_callbacks.c
-            src/komelia_webview.h
-            src/webkit2gtk/komelia_webview_webkit2gtk.c
-    )
-    add_library(
-            komelia_webkit_extension SHARED
-            src/webkit2gtk/request_interceptor_extension.c
-    )
+    pkg_check_modules(WEBKIT_GTK IMPORTED_TARGET webkit2gtk-4.1)
+    if (WEBKIT_GTK_FOUND)
+        find_package(JNI REQUIRED)
+        add_library(
+                komelia_webview SHARED
+                src/webview_jni.c
+                src/komelia_callbacks.h
+                src/komelia_callbacks.c
+                src/komelia_webview.h
+                src/webkit2gtk/komelia_webview_webkit2gtk.c
+        )
+        add_library(
+                komelia_webkit_extension SHARED
+                src/webkit2gtk/request_interceptor_extension.c
+        )
 
-    target_include_directories(komelia_webview PRIVATE ${JNI_INCLUDE_DIRS})
-    target_link_libraries(komelia_webview PRIVATE webview::core_static ${JNI_LIBRARIES})
-    target_link_libraries(komelia_webkit_extension PRIVATE PkgConfig::WEBKIT_GTK)
-    install(TARGETS komelia_webkit_extension LIBRARY)
+        target_include_directories(komelia_webview PRIVATE ${JNI_INCLUDE_DIRS})
+        target_link_libraries(komelia_webview PRIVATE webview::core_static ${JNI_LIBRARIES})
+        target_link_libraries(komelia_webkit_extension PRIVATE PkgConfig::WEBKIT_GTK)
+
+        install(TARGETS komelia_webview LIBRARY)
+        install(TARGETS komelia_webkit_extension LIBRARY)
+    endif ()
 endif ()
 
-install(TARGETS komelia_webview LIBRARY)

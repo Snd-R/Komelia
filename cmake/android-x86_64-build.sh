@@ -70,7 +70,7 @@ cmake -G Ninja \
     -DANDROID_ABI=x86_64 \
     -DANDROID_PLATFORM=26 \
     -DHOST_FLAG=--host=x86_64-linux-android \
-    ..
+    ../..
 cmake --build . -j $(nproc)
 
 cp "${TOOLCHAIN_PATH}/lib/clang/17/lib/linux/x86_64/libomp.so" ./sysroot/lib
