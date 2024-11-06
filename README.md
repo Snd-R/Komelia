@@ -1,6 +1,8 @@
 # Komelia - Komga media client
 
-### latest version available at https://github.com/Snd-R/Komelia/releases
+### Downloads:
+- Latest prebuilt release is available at https://github.com/Snd-R/Komelia/releases
+- AUR package https://aur.archlinux.org/packages/komelia
 
 ![screenshots](./screenshots/screenshot.jpg)
 
