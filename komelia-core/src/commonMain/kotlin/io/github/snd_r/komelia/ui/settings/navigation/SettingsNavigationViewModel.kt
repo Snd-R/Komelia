@@ -37,6 +37,7 @@ class SettingsNavigationViewModel(
     private val bookClient: KomgaBookClient,
     private val latestVersion: Flow<AppVersion?>,
     private val platformType: PlatformType,
+    val updatesEnabled: Boolean,
     komfEnabled: Flow<Boolean>,
 ) : ScreenModel {
     var hasMediaErrors by mutableStateOf(false)

@@ -107,7 +107,7 @@ private fun errorMessageFromStatusCode(statusCode: HttpStatusCode): String {
     }
 }
 
-sealed class AppNotification(val id: Long = Clock.System.now().epochSeconds) {
+sealed class AppNotification(val id: Long = Clock.System.now().toEpochMilliseconds()) {
     class Success(val message: String) : AppNotification()
     class Normal(val message: String) : AppNotification()
     class Error(val message: String) : AppNotification()

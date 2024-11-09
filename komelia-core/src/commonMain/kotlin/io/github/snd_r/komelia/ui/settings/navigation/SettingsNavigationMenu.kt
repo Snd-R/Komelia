@@ -57,6 +57,7 @@ import io.github.snd_r.komelia.ui.settings.users.UsersScreen
 fun SettingsNavigationMenu(
     hasMediaErrors: Boolean,
     komfEnabled: Boolean,
+    updatesEnabled: Boolean,
     newVersionIsAvailable: Boolean,
     currentScreen: Screen,
     onNavigation: (Screen) -> Unit = {},
@@ -128,14 +129,16 @@ fun SettingsNavigationMenu(
             isSelected = currentScreen is AppSettingsScreen,
             color = contentColor,
         )
-        if (platform == DESKTOP)
+        if (platform == DESKTOP) {
             NavigationButton(
                 label = "Image Decoder",
                 onClick = { onNavigation(getDecoderSettingsScreen()) },
                 isSelected = currentScreen is DecoderSettingsScreen,
                 color = contentColor,
             )
-        if (platform != WEB_KOMF) {
+        }
+
+        if (updatesEnabled) {
             NavigationButton(
                 label = "Updates",
                 onClick = { onNavigation(AppUpdatesScreen()) },

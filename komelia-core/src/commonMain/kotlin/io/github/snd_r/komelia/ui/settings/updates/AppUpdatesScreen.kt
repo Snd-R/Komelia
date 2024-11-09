@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.settings.updates
 
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,26 +16,28 @@ class AppUpdatesScreen : Screen {
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getSettingsUpdatesViewModel() }
-        LaunchedEffect(Unit) {
-            vm.initialize()
-        }
+        LaunchedEffect(Unit) { vm.initialize() }
 
         val state = vm.state.collectAsState().value
         SettingsScreenContainer("App Updates") {
-            AppUpdatesContent(
-                checkForUpdates = vm.checkForUpdatesOnStartup.collectAsState().value,
-                onCheckForUpdatesChange = vm::onCheckForUpdatesOnStartupChange,
-                currentVersion = AppVersion.current,
-                releases = vm.releases.collectAsState().value,
+            when (state) {
+                is LoadState.Error -> Text("Error ${state.exception.message}")
+                LoadState.Loading, LoadState.Uninitialized, is LoadState.Success -> AppUpdatesContent(
+                    checkForUpdates = vm.checkForUpdatesOnStartup.collectAsState().value,
+                    onCheckForUpdatesChange = vm::onCheckForUpdatesOnStartupChange,
+                    currentVersion = AppVersion.current,
+                    releases = vm.releases.collectAsState().value,
 
-                latestVersion = vm.latestVersion.collectAsState().value,
-                lastChecked = vm.lastUpdateCheck.collectAsState().value,
-                onCheckForUpdates = vm::checkForUpdates,
-                versionCheckInProgress = state == LoadState.Loading,
-                onUpdate = vm::onUpdate,
-                onUpdateCancel = vm::onUpdateCancel,
-                downloadProgress = vm.downloadProgress.collectAsState().value
-            )
+                    latestVersion = vm.latestVersion.collectAsState().value,
+                    lastChecked = vm.lastUpdateCheck.collectAsState().value,
+                    onCheckForUpdates = vm::checkForUpdates,
+                    versionCheckInProgress = state == LoadState.Loading,
+                    onUpdate = vm::onUpdate,
+                    onUpdateCancel = vm::onUpdateCancel,
+                    downloadProgress = vm.downloadProgress.collectAsState().value
+                )
+            }
+
         }
     }
 }

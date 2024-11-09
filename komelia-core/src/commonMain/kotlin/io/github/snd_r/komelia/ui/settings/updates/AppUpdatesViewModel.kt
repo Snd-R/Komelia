@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.settings.updates
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.updates.AppRelease
@@ -21,11 +22,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class AppUpdatesViewModel(
     val releases: MutableStateFlow<List<AppRelease>>,
-    val updater: AppUpdater,
+    val updater: AppUpdater?,
     val settings: CommonSettingsRepository,
     val notifications: AppNotifications
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
@@ -38,6 +38,10 @@ class AppUpdatesViewModel(
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return
+        if (updater == null) {
+            mutableState.value = LoadState.Error(IllegalStateException("Updater is not initialized"))
+            return
+        }
 
         latestVersion.value = settings.getLastCheckedReleaseVersion().first()
         checkForUpdatesOnStartup.value = settings.getCheckForUpdatesOnStartup().first()
@@ -45,6 +49,7 @@ class AppUpdatesViewModel(
     }
 
     fun checkForUpdates() {
+        val updater = requireNotNull(updater)
         notifications.runCatchingToNotifications(screenModelScope) {
             mutableState.value = LoadState.Loading
 
@@ -66,6 +71,7 @@ class AppUpdatesViewModel(
     }
 
     fun onUpdate() {
+        val updater = requireNotNull(updater)
         notifications.runCatchingToNotifications(screenModelScope) {
             val cachedRelease = releases.value.firstOrNull()
             val progress = if (cachedRelease != null) updater.updateTo(cachedRelease)

@@ -64,6 +64,7 @@ class MobileSettingsScreen : Screen {
                     onNavigation = { currentNavigator.push(it) },
                     hasMediaErrors = vm.hasMediaErrors,
                     komfEnabled = vm.komfEnabledFlow.collectAsState().value,
+                    updatesEnabled = vm.updatesEnabled,
                     newVersionIsAvailable = vm.newVersionIsAvailable,
                     onLogout = vm::logout,
                     contentColor = MaterialTheme.colorScheme.surface,

@@ -97,7 +97,7 @@ interface DependencyContainer {
     val settingsRepository: CommonSettingsRepository
     val readerSettingsRepository: ReaderSettingsRepository
     val secretsRepository: SecretsRepository
-    val appUpdater: AppUpdater
+    val appUpdater: AppUpdater?
     val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>
     val komgaClientFactory: KomgaClientFactory
     val imageLoader: ImageLoader
@@ -115,7 +115,7 @@ class ViewModelFactory(
 ) {
     private val komgaClientFactory: KomgaClientFactory
         get() = dependencies.komgaClientFactory
-    private val appUpdater: AppUpdater
+    private val appUpdater: AppUpdater?
         get() = dependencies.appUpdater
     private val settingsRepository: CommonSettingsRepository
         get() = dependencies.settingsRepository
@@ -150,11 +150,13 @@ class ViewModelFactory(
         librariesFlow = libraries
     )
 
-    private val startupUpdateChecker = StartupUpdateChecker(
-        appUpdater,
-        settingsRepository,
-        releases
-    )
+    private val startupUpdateChecker = appUpdater?.let { updater ->
+        StartupUpdateChecker(
+            updater,
+            settingsRepository,
+            releases
+        )
+    }
 
     fun getLibraryViewModel(
         libraryId: KomgaLibraryId?,
@@ -471,7 +473,8 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             latestVersion = settingsRepository.getLastCheckedReleaseVersion(),
             komfEnabled = settingsRepository.getKomfEnabled(),
-            platformType = platformType
+            platformType = platformType,
+            updatesEnabled = appUpdater != null
         )
     }
 

@@ -71,7 +71,7 @@ class AndroidDependencyContainer(
     override val settingsRepository: CommonSettingsRepository,
     override val readerSettingsRepository: ReaderSettingsRepository,
     override val secretsRepository: SecretsRepository,
-    override val appUpdater: AppUpdater,
+    override val appUpdater: AppUpdater?,
     override val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>,
     override val komgaClientFactory: KomgaClientFactory,
     override val readerImageLoader: ReaderImageLoader,
@@ -124,7 +124,6 @@ class AndroidDependencyContainer(
                 ktorClient = ktorWithCache,
                 cookiesStorage = cookiesStorage,
             )
-            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
 
             val imagePipeline = createImagePipeline(
                 cropBorders = readerSettingsRepository.getCropBorders().stateIn(initScope)
@@ -146,6 +145,7 @@ class AndroidDependencyContainer(
                 .ktor(ktorWithCache)
                 .build()
 
+            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
             return AndroidDependencyContainer(
                 settingsRepository = settingsRepository,
                 readerSettingsRepository = readerSettingsRepository,

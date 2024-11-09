@@ -135,8 +135,9 @@ fun MainView(
                     AppNotifications(viewModelFactory.appNotifications, theme)
 
                     val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
-
-                    StartupUpdateChecker(updateChecker)
+                    if (updateChecker != null) {
+                        StartupUpdateChecker(updateChecker)
+                    }
 
 
                 }
