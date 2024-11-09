@@ -130,6 +130,7 @@ tasks.register<Sync>("linux-x86_64_copyJniLibs") {
 
 tasks.register<Sync>("android-arm64_copyJniLibs") {
     group = "jni"
+    dependsOn(":komelia-db:sqlite:android-arm64-ExtractSqliteLib")
 
     from("$androidArm64BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/arm64-v8a/")
@@ -138,6 +139,7 @@ tasks.register<Sync>("android-arm64_copyJniLibs") {
 
 tasks.register<Sync>("android-x86_64_copyJniLibs") {
     group = "jni"
+    dependsOn(":komelia-db:sqlite:android-x86_64-ExtractSqliteLib")
     from("$androidx8664BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/x86_64/")
     include { it.name in androidLibs }
@@ -145,6 +147,7 @@ tasks.register<Sync>("android-x86_64_copyJniLibs") {
 
 tasks.register<Sync>("android-x86_copyJniLibs") {
     group = "jni"
+    dependsOn(":komelia-db:sqlite:android-x86-ExtractSqliteLib")
     from("$androidx86BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/x86/")
     include { it.name in androidLibs }

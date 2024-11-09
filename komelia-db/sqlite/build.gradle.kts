@@ -53,3 +53,32 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
+
+val sqliteExtract: Configuration by configurations.creating
+dependencies { sqliteExtract(libs.sqlite.xerial.jdbc) }
+tasks.register<Sync>("android-arm64-ExtractSqliteLib") {
+    val sqliteJar = configurations.getByName("sqliteExtract").first()
+    val file = zipTree(sqliteJar.absolutePath)
+        .matching { include("org/sqlite/native/Linux-Android/aarch64/libsqlitejdbc.so") }
+        .singleFile
+    from(file)
+    into("$projectDir/src/androidMain/jniLibs/arm64-v8a")
+}
+
+tasks.register<Sync>("android-x86_64-ExtractSqliteLib") {
+    val sqliteJar = configurations.getByName("sqliteExtract").first()
+    val file = zipTree(sqliteJar.absolutePath)
+        .matching { include("org/sqlite/native/Linux-Android/x86_64/libsqlitejdbc.so") }
+        .singleFile
+    from(file)
+    into("$projectDir/src/androidMain/jniLibs/x86_64")
+}
+
+tasks.register<Sync>("android-x86-ExtractSqliteLib") {
+    val sqliteJar = configurations.getByName("sqliteExtract").first()
+    val file = zipTree(sqliteJar.absolutePath)
+        .matching { include("org/sqlite/native/Linux-Android/x86/libsqlitejdbc.so") }
+        .singleFile
+    from(file)
+    into("$projectDir/src/androidMain/jniLibs/x86")
+}
