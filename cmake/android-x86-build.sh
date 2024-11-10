@@ -73,6 +73,8 @@ cmake -G Ninja \
     ../..
 cmake --build . -j $(nproc)
 
+cp "${TOOLCHAIN_PATH}/lib/clang/17/lib/linux/aarch64/libomp.so" ./sysroot/lib
+
 for lib in sysroot/lib/*so; do
     [[ -f $lib && ! -h $lib ]] && "$TOOLCHAIN_PATH"/bin/llvm-strip "$lib"
 done
