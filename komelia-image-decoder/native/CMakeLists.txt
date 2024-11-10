@@ -12,12 +12,14 @@ else ()
     find_package(JNI REQUIRED COMPONENTS JVM)
 endif ()
 
-find_package(OpenMP REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(VIPS REQUIRED IMPORTED_TARGET vips)
 find_package(Threads REQUIRED)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+if (NOT ANDROID)
+    find_package(OpenMP REQUIRED)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif ()
 
 add_library(komelia_vips SHARED
         src/vips/vips_common_jni.h
