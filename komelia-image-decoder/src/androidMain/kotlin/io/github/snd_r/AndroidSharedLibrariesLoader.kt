@@ -6,7 +6,6 @@ object AndroidSharedLibrariesLoader {
         "ffi",
         "intl",
         "iconv",
-        "omp",
         "glib-2.0",
         "gmodule-2.0",
         "gobject-2.0",
