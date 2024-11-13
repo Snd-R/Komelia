@@ -65,6 +65,15 @@ tasks.register<Sync>("android-arm64-ExtractSqliteLib") {
     into("$projectDir/src/androidMain/jniLibs/arm64-v8a")
 }
 
+tasks.register<Sync>("android-armv7a-ExtractSqliteLib") {
+    val sqliteJar = configurations.getByName("sqliteExtract").first()
+    val file = zipTree(sqliteJar.absolutePath)
+        .matching { include("org/sqlite/native/Linux-Android/arm/libsqlitejdbc.so") }
+        .singleFile
+    from(file)
+    into("$projectDir/src/androidMain/jniLibs/armeabi-v7a")
+}
+
 tasks.register<Sync>("android-x86_64-ExtractSqliteLib") {
     val sqliteJar = configurations.getByName("sqliteExtract").first()
     val file = zipTree(sqliteJar.absolutePath)

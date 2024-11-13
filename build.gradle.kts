@@ -24,6 +24,7 @@ tasks.wrapper {
 val linuxBuildDir = "$projectDir/cmake/build"
 val windowsBuildDir = "$projectDir/cmake/build-w64"
 val androidArm64BuildDir = "$projectDir/cmake/build-android-arm64"
+val androidArmv7aBuildDir = "$projectDir/cmake/build-android-armv7a"
 val androidx8664BuildDir = "$projectDir/cmake/build-android-x86_64"
 val androidx86BuildDir = "$projectDir/cmake/build-android-x86"
 
@@ -134,6 +135,15 @@ tasks.register<Sync>("android-arm64_copyJniLibs") {
 
     from("$androidArm64BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/arm64-v8a/")
+    include { it.name in androidLibs }
+}
+
+tasks.register<Sync>("android-armv7a_copyJniLibs") {
+    group = "jni"
+    dependsOn(":komelia-db:sqlite:android-armv7a-ExtractSqliteLib")
+
+    from("$androidArmv7aBuildDir/sysroot/lib/")
+    into("$androidJniLibsDir/armeabi-v7a/")
     include { it.name in androidLibs }
 }
 
