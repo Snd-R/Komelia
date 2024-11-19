@@ -246,6 +246,11 @@ Java_io_github_snd_1r_VipsImage_getBytes(JNIEnv *env, jobject this) {
     if (image == NULL) return NULL;
 
     unsigned char *data = (unsigned char *) vips_image_get_data(image);
+    if (data == NULL) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        return NULL;
+    }
 
     int bands = vips_image_get_bands(image);
     int width = vips_image_get_width(image);

@@ -5,10 +5,6 @@
 
 static sk_sp<SkColorSpace> srgbColorspace = SkColorSpace::MakeSRGB();
 
-void unrefVipsImage(void *, void *vipsImage) {
-    g_object_unref(vipsImage);
-}
-
 void freeData(void *data, void *) {
     free(data);
 }
@@ -27,10 +23,12 @@ extern "C" JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsBitmapFactory_dir
     size_t rowBytes = width * bands;
     size_t size = height * rowBytes;
     void *imageData = (void *) vips_image_get_data(image);
+    if (imageData == NULL) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        return NULL;
+    }
 
-//    g_object_ref(image);
-    // VipsImage contains more than just image data.
-    // it's more lightweight to copy data and free VipsImage and not keep it alive for the entire lifecycle of Bitmap
     void *dataCopy = malloc(height * rowBytes);
     memcpy(dataCopy, imageData, size);
 
@@ -49,7 +47,6 @@ extern "C" JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsBitmapFactory_dir
     if (!success) {
         komelia_throw_jvm_vips_exception(env, "failed to allocate bitmap pixels");
         delete bitmap;
-//        g_object_unref(image);
         free(dataCopy);
         return nullptr;
     }
@@ -58,7 +55,6 @@ extern "C" JNIEXPORT jobject JNICALL Java_io_github_snd_1r_VipsBitmapFactory_dir
     if (!success) {
         komelia_throw_jvm_vips_exception(env, "failed to install bitmap pixels");
         delete bitmap;
-//        g_object_unref(image);
         free(dataCopy);
         return nullptr;
     }

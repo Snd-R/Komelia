@@ -26,17 +26,6 @@ jobject get_jvm_enum_type(JNIEnv *env, VipsImage *image) {
     return (*env)->GetStaticObjectField(env, enum_class, enum_field);
 }
 
-jbyteArray get_jvm_byte_array(JNIEnv *env, VipsImage *transformed) {
-    unsigned char *data = (unsigned char *) vips_image_get_data(transformed);
-
-    int size = transformed->Bands * transformed->Xsize * transformed->Ysize;
-
-    jbyteArray java_bytes = (*env)->NewByteArray(env, size);
-    (*env)->SetByteArrayRegion(env, java_bytes, 0, size, (signed char *) data);
-
-    return java_bytes;
-}
-
 int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transformed) {
     // convert to sRGB if not grayscale or if grayscale with alpha
     VipsInterpretation interpretation = vips_image_get_interpretation(in);
@@ -90,9 +79,22 @@ jobject komelia_to_jvm_image_data(JNIEnv *env, VipsImage *decoded) {
         return NULL;
     }
 
-    jbyteArray jvm_bytes = get_jvm_byte_array(env, transformed);
     int height = vips_image_get_height(transformed);
     int width = vips_image_get_width(transformed);
+    int bands = vips_image_get_bands(transformed);
+    int size = bands * width * height;
+
+    unsigned char *data = (unsigned char *) vips_image_get_data(transformed);
+    if (data == NULL) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        g_object_unref(transformed);
+        return NULL;
+    }
+
+    jbyteArray jvm_bytes = (*env)->NewByteArray(env, size);
+    (*env)->SetByteArrayRegion(env, jvm_bytes, 0, size, (signed char *) data);
+
     g_object_unref(transformed);
 
     jclass jvm_vips_class = (*env)->FindClass(env, "io/github/snd_r/VipsImageData");

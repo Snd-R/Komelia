@@ -137,6 +137,12 @@ Java_io_github_snd_1r_VipsBitmapFactory_createSoftwareBitmap(JNIEnv *env, jobjec
     int image_width = vips_image_get_width(processed_image);
     int image_height = vips_image_get_height(processed_image);
     unsigned char *image_data = (unsigned char *) vips_image_get_data(processed_image);
+    if (image_data == NULL) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        g_object_unref(processed_input);
+        return NULL;
+    }
 
     jclass bitmap_class = (*env)->FindClass(env, "android/graphics/Bitmap");
     jclass config_enum_class = (*env)->FindClass(env, "android/graphics/Bitmap$Config");
