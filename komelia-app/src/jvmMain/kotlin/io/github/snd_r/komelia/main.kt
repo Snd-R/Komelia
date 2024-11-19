@@ -79,6 +79,9 @@ fun main() {
         // loading in this order should prevent conflict between system gtk and bundled glib2 version
         loadWebviewLibraries()
         loadVipsLibraries()
+
+        // use xembed enabled canvas for webview embedding
+        System.setProperty("sun.awt.xembedserver", "true")
     }
 
     val lastError = MutableStateFlow<Throwable?>(null)

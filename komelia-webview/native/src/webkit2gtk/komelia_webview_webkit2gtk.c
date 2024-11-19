@@ -1,6 +1,7 @@
 #include "../komelia_webview.h"
 #include "../komelia_callbacks.h"
 #include <gtk/gtk.h>
+#include <gtk/gtkx.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
 #include <jni.h>
@@ -70,9 +71,8 @@ static void komelia_uri_scheme_request_cb(WebKitURISchemeRequest *request, gpoin
     free(result);
 }
 
-void reparent_awt_window(JNIEnv *env, webkit2gtk_data *webview_data, jobject awt_window) {
-    Display *x11_display = NULL;
-    jlong awt_xid = 0;
+GtkWidget *xembed_gtk_plug(JNIEnv *env, jobject awt_component) {
+    Window awt_xwindow = 0;
     JAWT_DrawingSurface *ds;
     JAWT_DrawingSurfaceInfo *dsi;
     jint lock;
@@ -81,20 +81,20 @@ void reparent_awt_window(JNIEnv *env, webkit2gtk_data *webview_data, jobject awt
 
     if (!JAWT_GetAWT(env, &awt)) {
         komelia_throw_jvm_exception(env, "Can't load JAWT");
-        return;
+        return NULL;
     }
 
-    ds = awt.GetDrawingSurface(env, awt_window);
+    ds = awt.GetDrawingSurface(env, awt_component);
     if (ds == NULL) {
         komelia_throw_jvm_exception(env, "Can't get drawing surface");
-        return;
+        return NULL;
     }
 
     lock = ds->Lock(ds);
     if ((lock & JAWT_LOCK_ERROR) != 0) {
         awt.FreeDrawingSurface(ds);
         komelia_throw_jvm_exception(env, "Can't get drawing surface lock");
-        return;
+        return NULL;
     }
 
     dsi = ds->GetDrawingSurfaceInfo(ds);
@@ -103,8 +103,7 @@ void reparent_awt_window(JNIEnv *env, webkit2gtk_data *webview_data, jobject awt
     } else {
         JAWT_X11DrawingSurfaceInfo *xdsi = dsi->platformInfo;
         if (xdsi != NULL) {
-            x11_display = xdsi->display;
-            awt_xid = (long) xdsi->drawable;
+            awt_xwindow = xdsi->drawable;
         } else {
             komelia_throw_jvm_exception(env, "Can't get X11 platform info");
         }
@@ -113,18 +112,11 @@ void reparent_awt_window(JNIEnv *env, webkit2gtk_data *webview_data, jobject awt
     ds->Unlock(ds);
     awt.FreeDrawingSurface(ds);
 
-    if (x11_display == NULL) {
-        komelia_throw_jvm_exception(env, "Can't get X11 display");
+    if (awt_xwindow == 0) {
+        komelia_throw_jvm_exception(env, "Can't get awt X11 window");
+        return NULL;
     }
-    if (awt_xid == 0) {
-        komelia_throw_jvm_exception(env, "Can't get Drawable");
-    }
-
-    XSync(x11_display, false);
-    GdkWindow *gdk_window = gtk_widget_get_window(webview_data->gtk_toplevel);
-    XID gtk_xid = gdk_x11_window_get_xid(gdk_window);
-    XReparentWindow(x11_display, gtk_xid, awt_xid, 0, 0);
-    XSync(x11_display, false);
+    return gtk_plug_new(awt_xwindow);
 }
 
 static void
@@ -182,7 +174,8 @@ komelia_webview_t komelia_webview_create(JNIEnv *env, jobject awt_window) {
                      "initialize-web-extensions",
                      G_CALLBACK (initialize_web_extensions),
                      NULL);
-
+    GtkWidget *gtk_plug = xembed_gtk_plug(env, awt_window);
+    if (gtk_plug == NULL) return NULL;
 
     webkit2gtk_data *webview_data = malloc(sizeof(webkit2gtk_data));
     (*env)->GetJavaVM(env, &webview_data->jvm);
@@ -193,11 +186,10 @@ komelia_webview_t komelia_webview_create(JNIEnv *env, jobject awt_window) {
     webview_data->interceptor = NULL;
 
 
-    webview_data->gtk_toplevel = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_widget_show(webview_data->gtk_toplevel);
+    webview_data->gtk_toplevel = gtk_plug;
 
-    webview_t webview = webview_create(0, webview_data->gtk_toplevel);
-    reparent_awt_window(env, webview_data, awt_window);
+    gtk_widget_show(gtk_plug);
+    webview_t webview = webview_create(0, gtk_plug);
 
     WebKitWebView *webkit_webview = webview_get_native_handle(webview, WEBVIEW_NATIVE_HANDLE_KIND_BROWSER_CONTROLLER);
     WebKitSettings *setting = webkit_web_view_get_settings(webkit_webview);
