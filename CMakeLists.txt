@@ -23,7 +23,7 @@ if (KOMELIA_SUPERBUILD)
 
 
     set(THIRD_PARTY_LIB_PATH ${CMAKE_BINARY_DIR}/sysroot)
-    set(CMAKE_FIND_ROOT_PATH ${THIRD_PARTY_LIB_PATH}/lib;${CMAKE_FIND_ROOT_PATH})
+    set(CMAKE_FIND_ROOT_PATH ${THIRD_PARTY_LIB_PATH};${CMAKE_FIND_ROOT_PATH})
     set_directory_properties(PROPERTIES EP_PREFIX ${THIRD_PARTY_LIB_PATH})
 
     if (MESON_CROSS_FILE)
@@ -95,5 +95,8 @@ if (KOMELIA_SUPERBUILD)
 else ()
     project(komelia C CXX)
     add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-image-decoder/native)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-webview/native)
+
+    if (NOT ANDROID)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-webview/native)
+    endif ()
 endif ()

@@ -12,7 +12,7 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
     if (interpretation != VIPS_INTERPRETATION_sRGB) {
         VipsImage *srgb = NULL;
         if (vips_colourspace(input, &srgb, VIPS_INTERPRETATION_sRGB, NULL)) {
-           komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+            komelia_throw_jvm_vips_exception(env, vips_error_buffer());
             g_object_unref(transformed);
             vips_error_clear();
             return -1;
@@ -33,7 +33,6 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
 
         g_object_unref(transformed);
         transformed = with_alpha;
-
     }
 
     *output = transformed;
@@ -50,6 +49,14 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
     if (conversion_error) { return NULL; }
     int image_width = vips_image_get_width(processed_input);
     int image_height = vips_image_get_height(processed_input);
+
+    unsigned char *image_data = (unsigned char *) vips_image_get_data(processed_input);
+    if (image_data == NULL) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        g_object_unref(processed_input);
+        return NULL;
+    }
 
     AHardwareBuffer *hardware_buffer = NULL;
     AHardwareBuffer_Desc desc;
@@ -68,6 +75,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
     int allocation_error = AHardwareBuffer_allocate(&desc, &hardware_buffer);
     if (allocation_error) {
         komelia_throw_jvm_vips_exception(env, "Could not allocate bitmap hardware buffer");
+        g_object_unref(processed_input);
         return NULL;
     }
 
@@ -84,11 +92,9 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
     if (lock_error) {
         komelia_throw_jvm_vips_exception(env, "Could not acquire created hardware hardware_buffer");
         AHardwareBuffer_release(hardware_buffer);
+        g_object_unref(processed_input);
         return NULL;
     }
-
-    // assume little endian, should be able to interpret as 32bit packed int
-    unsigned char *image_data = (unsigned char *) vips_image_get_data(processed_input);
 
     if (created_desc.stride == image_width) {
         memcpy(write_buffer, image_data, image_width * image_height * 4);
@@ -98,7 +104,6 @@ Java_io_github_snd_1r_VipsBitmapFactory_createHardwareBitmap(JNIEnv *env, jobjec
                    image_data + (image_width * y * 4),
                    image_width * 4
             );
-
         }
     }
     int unlock_error = AHardwareBuffer_unlock(hardware_buffer, NULL);
