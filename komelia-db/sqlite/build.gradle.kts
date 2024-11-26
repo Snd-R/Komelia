@@ -31,6 +31,7 @@ kotlin {
             api(libs.kotlinx.datetime)
             api(libs.exposed.core)
             api(libs.exposed.jdbc)
+            api(libs.exposed.json)
             api(libs.exposed.migration)
             api(libs.exposed.kotlin.datetime)
             implementation(libs.flyway.core)

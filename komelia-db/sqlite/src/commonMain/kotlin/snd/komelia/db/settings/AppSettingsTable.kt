@@ -41,7 +41,5 @@ object AppSettingsTable : Table("AppSettings") {
     val komfMode = text("komf_mode")
     val komfRemoteUrl = text("komf_remote_url")
 
-    val komgaWebuiEpubReaderSettings = text("komga_webui_epub_reader_settings").nullable()
-
     override val primaryKey = PrimaryKey(version)
 }

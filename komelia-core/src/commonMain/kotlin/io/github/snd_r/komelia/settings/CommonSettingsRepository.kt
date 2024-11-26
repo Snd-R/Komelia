@@ -63,7 +63,4 @@ interface CommonSettingsRepository {
 
     fun getOnnxRuntimeTileSize(): Flow<Int>
     suspend fun putOnnxRuntimeTileSize(tileSize: Int)
-
-    fun getKomgaWebuiEpubReaderSettings(): Flow<JsonObject>
-    suspend fun putKomgaWebuiEpubReaderSettings(settings: JsonObject)
 }

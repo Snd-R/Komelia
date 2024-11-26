@@ -171,12 +171,4 @@ class SharedActorSettingsRepository(
     override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
         actor.transform { it.copy(onnxRuntimeTileSize = tileSize) }
     }
-
-    override fun getKomgaWebuiEpubReaderSettings(): Flow<JsonObject> {
-        return actor.state.map { it.komgaWebuiEpubReader }.distinctUntilChanged()
-    }
-
-    override suspend fun putKomgaWebuiEpubReaderSettings(settings: JsonObject) {
-        actor.transform { it.copy(komgaWebuiEpubReader = settings) }
-    }
 }

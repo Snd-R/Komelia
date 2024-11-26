@@ -68,6 +68,7 @@ kotlin {
             api(libs.ktor.client.content.negotiation)
             api(libs.ktor.client.encoding)
             api(libs.ktor.serialization.kotlinx.json)
+            api(libs.ksoup)
             api(libs.lyricist)
             api(libs.markdown)
             api(libs.reorderable)

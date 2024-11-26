@@ -25,6 +25,7 @@ actual class Webview private constructor(
     ptr: NativePointer,
 ) : AutoCloseable, Managed(ptr, WebViewFinalizer(ptr)) {
     val functionCallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    val json = Json { encodeDefaults = true }
 
     @Volatile
     var isRunning = false
@@ -54,7 +55,7 @@ actual class Webview private constructor(
                     val argsClass = typeOf<JsArgs>().classifier as KClass<*>
                     val resultClass = typeOf<Result>().classifier as KClass<*>
 
-                    val arguments = Json.decodeFromString<List<JsArgs>>(jsRequest)
+                    val arguments = json.decodeFromString<List<JsArgs>>(jsRequest)
                     val argument = if (argsClass == Unit::class) {
                         Unit as JsArgs
                     } else {
@@ -65,15 +66,15 @@ actual class Webview private constructor(
                     if (isClosed) return@launch
 
                     if (resultClass == Unit::class) {
-                        bindReturn(id, Json.encodeToString(CallbackResponse("")))
+                        bindReturn(id, json.encodeToString(CallbackResponse("")))
                     } else {
-                        val json = Json.encodeToString<CallbackResponse<Result>>(CallbackResponse(result))
+                        val json = json.encodeToString<CallbackResponse<Result>>(CallbackResponse(result))
                         bindReturn(id, json)
                     }
                 }.onFailure { error ->
                     logger.error(error) { "Encountered error during execution of bind function \"$name\"; js params: $jsRequest" }
                     if (!isClosed) {
-                        val message = Json.encodeToString<CallbackResponse<String>>(
+                        val message = json.encodeToString<CallbackResponse<String>>(
                             CallbackResponse(error.message ?: error.stackTraceToString())
                         )
                         bindReject(id, message)

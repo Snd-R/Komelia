@@ -5,17 +5,16 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.sql.Connection
 
-class KomeliaDatabase(private val filePath: String) {
+class KomeliaDatabase(filePath: String) {
     val database: Database
 
-
     init {
+        flywayMigrate(filePath)
+
         database = Database.connect("jdbc:sqlite:${filePath}")
         TransactionManager.defaultDatabase = database
         // no concurrent writes in sqlite
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-
-        flywayMigrate(filePath)
     }
 }
 

@@ -5,8 +5,8 @@ android-versionCode = "1"
 android-compileSdk = "34"
 android-minSdk = "26"
 android-targetSdk = "34"
-androidx-activityCompose = "1.9.3"
 
+androidx-activityCompose = "1.9.3"
 androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.13.1"
 androidx-datastore = "1.1.1"
@@ -32,6 +32,7 @@ kotlinx-serialization = "1.7.3"
 kotlinx-io = "0.5.4"
 ktor = "3.0.1"
 ktoml = "0.5.2"
+ksoup = "0.2.0"
 logback = "1.5.12"
 logback-android = "3.0.0"
 lyricist = "1.7.0"
@@ -61,6 +62,7 @@ commons-compress = { module = "org.apache.commons:commons-compress", version.ref
 directories = { module = "dev.dirs:directories", version.ref = "directories" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 exposed-migration = { module = "org.jetbrains.exposed:exposed-migration", version.ref = "exposed" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
@@ -85,6 +87,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
 ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 ktoml-source-jvm = { module = "com.akuleshov7:ktoml-source-jvm", version.ref = "ktoml" }
+ksoup = { module = "com.fleeksoft.ksoup:ksoup-lite", version.ref = "ksoup" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback-android" }

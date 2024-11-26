@@ -64,7 +64,6 @@ class ExposedSettingsRepository(
                 it[komfEnabled] = settings.komfEnabled
                 it[komfMode] = settings.komfMode.name
                 it[komfRemoteUrl] = settings.komfRemoteUrl
-                it[komgaWebuiEpubReaderSettings] = Json.encodeToString(settings.komgaWebuiEpubReader)
             }
         }
     }
@@ -101,9 +100,6 @@ class ExposedSettingsRepository(
             komfEnabled = get(AppSettingsTable.komfEnabled),
             komfMode = KomfMode.valueOf(get(AppSettingsTable.komfMode)),
             komfRemoteUrl = get(AppSettingsTable.komfRemoteUrl),
-            komgaWebuiEpubReader = get(AppSettingsTable.komgaWebuiEpubReaderSettings)
-                ?.let { Json.decodeFromString<JsonObject>(it) }
-                ?: buildJsonObject { }
         )
     }
 

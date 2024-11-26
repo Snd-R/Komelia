@@ -5,6 +5,7 @@ import coil3.PlatformContext
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsViewModel
@@ -19,6 +20,7 @@ class DesktopDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,
     override val appUpdater: AppUpdater,
     override val settingsRepository: CommonSettingsRepository,
+    override val epubReaderSettingsRepository: EpubReaderSettingsRepository,
     override val readerSettingsRepository: ReaderSettingsRepository,
     override val secretsRepository: KeyringSecretsRepository,
     override val imageLoader: ImageLoader,

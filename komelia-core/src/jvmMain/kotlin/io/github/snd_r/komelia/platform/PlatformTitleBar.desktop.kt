@@ -33,6 +33,7 @@ import java.awt.event.WindowEvent
 actual fun PlatformTitleBar(
     modifier: Modifier,
     applyInsets: Boolean,
+    fallbackToNonPlatformLayout: Boolean,
     content: @Composable TitleBarScope.() -> Unit,
 ) {
     val window = LocalWindow.current
@@ -90,7 +91,9 @@ actual fun PlatformTitleBar(
 
     val isCsdEnabled = remember { System.getenv("USE_CSD")?.toBoolean() ?: true }
     if (!isCsdEnabled || !JBR.isAvailable() || decoratedWindowState.isFullscreen) {
-        SimpleTitleBarLayout(modifier, applyInsets, content)
+        if (fallbackToNonPlatformLayout) {
+            SimpleTitleBarLayout(modifier, applyInsets, content)
+        }
     } else {
         when (DesktopPlatform.Current) {
             Windows -> TitleBarOnWindows(

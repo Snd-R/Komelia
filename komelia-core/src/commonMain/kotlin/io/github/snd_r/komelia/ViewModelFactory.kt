@@ -10,6 +10,7 @@ import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.EnStrings
@@ -48,6 +49,7 @@ import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.oneshot.OneshotViewModel
 import io.github.snd_r.komelia.ui.reader.ReaderViewModel
 import io.github.snd_r.komelia.ui.reader.epub.EpubViewModel
+import io.github.snd_r.komelia.ui.reader.epub.TtsuEpubViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
@@ -95,6 +97,7 @@ import snd.komga.client.user.KomgaUser
 
 interface DependencyContainer {
     val settingsRepository: CommonSettingsRepository
+    val epubReaderSettingsRepository: EpubReaderSettingsRepository
     val readerSettingsRepository: ReaderSettingsRepository
     val secretsRepository: SecretsRepository
     val appUpdater: AppUpdater?
@@ -631,12 +634,31 @@ class ViewModelFactory(
             book = book,
             navigator = navigator,
             settingsRepository = settingsRepository,
+            epubSettingsRepository = dependencies.epubReaderSettingsRepository,
             bookClient = komgaClientFactory.bookClient(),
             seriesClient = komgaClientFactory.seriesClient(),
             readListClient = komgaClientFactory.readListClient(),
             notifications = appNotifications,
             ktor = komgaClientFactory.ktor(),
             markReadProgress = markReadProgress
+        )
+    }
+
+    fun getTtsuEpubViewModel(
+        bookId: KomgaBookId,
+        navigator: Navigator,
+        book: KomgaBook? = null,
+        markReadProgress: Boolean = true
+    ): TtsuEpubViewModel {
+        return TtsuEpubViewModel(
+            bookId = bookId,
+            book = book,
+            navigator = navigator,
+            settingsRepository = dependencies.epubReaderSettingsRepository,
+            bookClient = komgaClientFactory.bookClient(),
+            notifications = appNotifications,
+            ktor = komgaClientFactory.ktor(),
+            markReadProgress = markReadProgress,
         )
     }
 

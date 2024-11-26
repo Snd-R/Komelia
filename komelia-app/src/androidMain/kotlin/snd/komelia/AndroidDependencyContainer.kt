@@ -29,6 +29,9 @@ import io.github.snd_r.komelia.image.coil.VipsImageDecoder
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.updates.AndroidAppUpdater
 import io.github.snd_r.komelia.updates.AppUpdater
@@ -53,14 +56,13 @@ import okhttp3.logging.HttpLoggingInterceptor
 import okio.FileSystem
 import snd.komelia.db.KomeliaDatabase
 import snd.komelia.db.settings.AppSettings
+import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
+import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.db.settings.SettingsActor
 import snd.komelia.db.settings.SharedActorReaderSettingsRepository
 import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
-import snd.komelia.db.settings.ExposedSettingsRepository
 import java.util.concurrent.TimeUnit
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
@@ -69,6 +71,7 @@ private val logger = KotlinLogging.logger {}
 
 class AndroidDependencyContainer(
     override val settingsRepository: CommonSettingsRepository,
+    override val epubReaderSettingsRepository: EpubReaderSettingsRepository,
     override val readerSettingsRepository: ReaderSettingsRepository,
     override val secretsRepository: SecretsRepository,
     override val appUpdater: AppUpdater?,
@@ -101,6 +104,7 @@ class AndroidDependencyContainer(
             val database = KomeliaDatabase(context.filesDir.resolve("komelia.sqlite").absolutePath)
             val settingsActor = createSettingsActor(database)
             val settingsRepository = SharedActorSettingsRepository(settingsActor)
+            val epubReaderSettingsRepository = ExposedEpubReaderSettingsRepository(database.database)
             val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
@@ -148,6 +152,7 @@ class AndroidDependencyContainer(
             val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
             return AndroidDependencyContainer(
                 settingsRepository = settingsRepository,
+                epubReaderSettingsRepository = epubReaderSettingsRepository,
                 readerSettingsRepository = readerSettingsRepository,
                 secretsRepository = secretsRepository,
                 appUpdater = appUpdater,

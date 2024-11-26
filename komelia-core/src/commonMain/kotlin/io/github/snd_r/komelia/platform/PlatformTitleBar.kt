@@ -35,6 +35,7 @@ import kotlin.math.max
 expect fun PlatformTitleBar(
     modifier: Modifier = Modifier,
     applyInsets: Boolean = true,
+    fallbackToNonPlatformLayout: Boolean = true,
     content: @Composable TitleBarScope.() -> Unit = {},
 )
 

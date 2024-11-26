@@ -6,6 +6,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.MainScreen
@@ -45,6 +46,7 @@ class EpubViewModel(
     private val seriesClient: KomgaSeriesClient,
     private val readListClient: KomgaReadListClient,
     private val settingsRepository: CommonSettingsRepository,
+    private val epubSettingsRepository: EpubReaderSettingsRepository,
     private val notifications: AppNotifications,
     private val ktor: HttpClient,
     private val markReadProgress: Boolean,
@@ -139,11 +141,11 @@ class EpubViewModel(
         }
 
         webview.bind<Unit, JsonObject>("getSettings") {
-            settingsRepository.getKomgaWebuiEpubReaderSettings().first()
+            epubSettingsRepository.getKomgaReaderSettings()
         }
 
         webview.bind<JsonObject, Unit>("saveSettings") { newSettings ->
-            settingsRepository.putKomgaWebuiEpubReaderSettings(newSettings)
+            epubSettingsRepository.putKomgaReaderSettings(newSettings)
         }
 
         webview.registerRequestInterceptor { uri ->

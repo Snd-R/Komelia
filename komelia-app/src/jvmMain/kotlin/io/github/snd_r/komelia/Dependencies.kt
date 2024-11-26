@@ -66,6 +66,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
 import snd.komelia.db.KomeliaDatabase
 import snd.komelia.db.settings.AppSettings
+import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.db.settings.SettingsActor
 import snd.komelia.db.settings.SharedActorReaderSettingsRepository
@@ -113,6 +114,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
     val database = KomeliaDatabase(AppDirectories.databaseFile.toString())
     val settingsActor = createSettingsActor(database)
     val settingsRepository = SharedActorSettingsRepository(settingsActor)
+    val epubReaderSettingsRepository = ExposedEpubReaderSettingsRepository(database.database)
     val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
     val secretsRepository = createSecretsRepository()
@@ -187,6 +189,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
         komgaClientFactory = komgaClientFactory,
         appUpdater = appUpdater,
         settingsRepository = settingsRepository,
+        epubReaderSettingsRepository = epubReaderSettingsRepository,
         readerSettingsRepository = readerSettingsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,

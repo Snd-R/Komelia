@@ -51,6 +51,4 @@ data class AppSettings(
     val komfEnabled: Boolean = false,
     val komfMode: KomfMode = KomfMode.REMOTE,
     val komfRemoteUrl: String = "http://localhost:8085",
-
-    val komgaWebuiEpubReader: JsonObject = buildJsonObject { }
 )
