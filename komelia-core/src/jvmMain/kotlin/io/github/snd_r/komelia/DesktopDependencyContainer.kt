@@ -2,7 +2,9 @@ package io.github.snd_r.komelia
 
 import coil3.ImageLoader
 import coil3.PlatformContext
+import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
@@ -20,6 +22,7 @@ class DesktopDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,
     override val appUpdater: AppUpdater,
     override val settingsRepository: CommonSettingsRepository,
+    override val fontsRepository: UserFontsRepository,
     override val epubReaderSettingsRepository: EpubReaderSettingsRepository,
     override val readerSettingsRepository: ReaderSettingsRepository,
     override val secretsRepository: KeyringSecretsRepository,
@@ -28,6 +31,7 @@ class DesktopDependencyContainer(
     override val readerImageLoader: ReaderImageLoader,
     override val appNotifications: AppNotifications,
     override val komfClientFactory: KomfClientFactory,
+    override val windowState: AppWindowState,
     val onnxRuntimeInstaller: OnnxRuntimeInstaller,
     val mangaJaNaiDownloader: MangaJaNaiDownloader
 ) : DependencyContainer {

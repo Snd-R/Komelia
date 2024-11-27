@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.PlatformTitleBar
@@ -43,6 +44,8 @@ class EpubScreen(
     private val book: KomgaBook? = null,
 ) : Screen {
 
+    override val key: ScreenKey = bookId.value
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -64,9 +67,9 @@ class EpubScreen(
         }
 
         Column {
-            PlatformTitleBar(fallbackToNonPlatformLayout = false) {
+            PlatformTitleBar(fallbackToNonPlatformLayout = false, applyInsets = false) {
                 when (LocalPlatform.current) {
-                    PlatformType.DESKTOP -> TitleBarContent({ vm.closeWebview() })
+                    PlatformType.DESKTOP -> TitleBarControls(onLeaveWebview =  { vm.closeWebview() })
                     else -> {}
                 }
             }
@@ -82,12 +85,13 @@ class EpubScreen(
     }
 
     @Composable
-    private fun TitleBarScope.TitleBarContent(onCloseClick: () -> Unit) {
+    private fun TitleBarScope.TitleBarControls(onLeaveWebview: () -> Unit) {
         Row(
-            Modifier
+            modifier = Modifier
                 .align(Alignment.Start)
-                .clickable(onClick = onCloseClick)
+                .clickable(onClick = onLeaveWebview)
                 .height(32.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,

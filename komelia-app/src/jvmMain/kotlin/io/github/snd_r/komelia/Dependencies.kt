@@ -28,6 +28,7 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.platform.AwtWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.mangaJaNai
@@ -65,6 +66,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
 import snd.komelia.db.KomeliaDatabase
+import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.settings.AppSettings
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
@@ -104,7 +106,10 @@ fun loadVipsLibraries() {
     }.also { logger.info { "completed vips load in $it" } }
 }
 
-suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContainer {
+suspend fun initDependencies(
+    initScope: CoroutineScope,
+    windowState: AwtWindowState,
+): DesktopDependencyContainer {
     if (DesktopPlatform.Current != DesktopPlatform.Linux) {
         loadVipsLibraries()
         loadWebviewLibraries()
@@ -115,6 +120,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
     val settingsActor = createSettingsActor(database)
     val settingsRepository = SharedActorSettingsRepository(settingsActor)
     val epubReaderSettingsRepository = ExposedEpubReaderSettingsRepository(database.database)
+    val fontsRepository = ExposedUserFontsRepository(database.database)
     val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
     val secretsRepository = createSecretsRepository()
@@ -191,6 +197,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
         settingsRepository = settingsRepository,
         epubReaderSettingsRepository = epubReaderSettingsRepository,
         readerSettingsRepository = readerSettingsRepository,
+        fontsRepository = fontsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
         imageDecoderDescriptor = availableDecoders,
@@ -198,6 +205,7 @@ suspend fun initDependencies(initScope: CoroutineScope): DesktopDependencyContai
         appNotifications = notifications,
         komfClientFactory = komfClientFactory,
         onnxRuntimeInstaller = onnxRuntimeInstaller,
+        windowState = windowState,
         mangaJaNaiDownloader = mangaJaNaiDownloader
     )
 }

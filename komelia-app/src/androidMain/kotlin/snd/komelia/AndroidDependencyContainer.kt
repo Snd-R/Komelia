@@ -1,5 +1,6 @@
 package snd.komelia
 
+import android.app.Activity
 import android.content.Context
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
@@ -12,6 +13,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.AndroidSharedLibrariesLoader
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.DependencyContainer
+import io.github.snd_r.komelia.fonts.UserFontsRepository
+import io.github.snd_r.komelia.fonts.fontsDirectory
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.AndroidImageDecoder
@@ -26,6 +29,8 @@ import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
 import io.github.snd_r.komelia.image.coil.VipsImageDecoder
+import io.github.snd_r.komelia.platform.AndroidWindowState
+import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
@@ -49,12 +54,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.FileSystem
 import snd.komelia.db.KomeliaDatabase
+import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.settings.AppSettings
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
@@ -73,6 +80,7 @@ class AndroidDependencyContainer(
     override val settingsRepository: CommonSettingsRepository,
     override val epubReaderSettingsRepository: EpubReaderSettingsRepository,
     override val readerSettingsRepository: ReaderSettingsRepository,
+    override val fontsRepository: UserFontsRepository,
     override val secretsRepository: SecretsRepository,
     override val appUpdater: AppUpdater?,
     override val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>,
@@ -81,11 +89,15 @@ class AndroidDependencyContainer(
     override val imageLoader: ImageLoader,
     override val platformContext: PlatformContext,
     override val komfClientFactory: KomfClientFactory,
+    override val windowState: AppWindowState,
 ) : DependencyContainer {
     override val appNotifications: AppNotifications = AppNotifications()
 
     companion object {
-        suspend fun createInstance(initScope: CoroutineScope, context: Context): AndroidDependencyContainer {
+        suspend fun createInstance(
+            initScope: CoroutineScope,
+            activity: Activity
+        ): AndroidDependencyContainer {
             measureTime {
                 try {
                     AndroidSharedLibrariesLoader.load()
@@ -94,17 +106,20 @@ class AndroidDependencyContainer(
                 }
             }.also { logger.info { "completed vips libraries load in $it" } }
 
+            fontsDirectory = Path(activity.filesDir.resolve("fonts").absolutePath)
+
             val datastore = DataStoreFactory.create(
                 serializer = AppSettingsSerializer,
-                produceFile = { context.dataStoreFile("settings.pb") },
+                produceFile = { activity.dataStoreFile("settings.pb") },
                 corruptionHandler = null,
             )
             val secretsRepository = AndroidSecretsRepository(datastore)
 
-            val database = KomeliaDatabase(context.filesDir.resolve("komelia.sqlite").absolutePath)
+            val database = KomeliaDatabase(activity.filesDir.resolve("komelia.sqlite").absolutePath)
             val settingsActor = createSettingsActor(database)
             val settingsRepository = SharedActorSettingsRepository(settingsActor)
             val epubReaderSettingsRepository = ExposedEpubReaderSettingsRepository(database.database)
+            val fontsRepository = ExposedUserFontsRepository(database.database)
             val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
             val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
@@ -112,7 +127,7 @@ class AndroidDependencyContainer(
 
             val okHttpWithoutCache = createOkHttpClient()
             val okHttpWithCache = okHttpWithoutCache.newBuilder()
-                .cache(Cache(directory = context.cacheDir.resolve("okhttp"), maxSize = 50L * 1024L * 1024L))
+                .cache(Cache(directory = activity.cacheDir.resolve("okhttp"), maxSize = 50L * 1024L * 1024L))
                 .build()
             val ktorWithCache = createKtorClient(okHttpWithCache)
             val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
@@ -141,7 +156,7 @@ class AndroidDependencyContainer(
                 pipeline = imagePipeline,
             )
 
-            val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, context)
+            val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, activity)
             SingletonImageLoader.setSafe { coil }
 
             val komfClientFactory = KomfClientFactory.Builder()
@@ -149,19 +164,21 @@ class AndroidDependencyContainer(
                 .ktor(ktorWithCache)
                 .build()
 
-            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
+            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, activity)
             return AndroidDependencyContainer(
                 settingsRepository = settingsRepository,
                 epubReaderSettingsRepository = epubReaderSettingsRepository,
                 readerSettingsRepository = readerSettingsRepository,
+                fontsRepository = fontsRepository,
                 secretsRepository = secretsRepository,
                 appUpdater = appUpdater,
                 imageDecoderDescriptor = emptyFlow(),
                 komgaClientFactory = komgaClientFactory,
                 imageLoader = coil,
-                platformContext = context,
+                platformContext = activity,
                 readerImageLoader = readerImageLoader,
                 komfClientFactory = komfClientFactory,
+                windowState = AndroidWindowState(activity)
             )
         }
 

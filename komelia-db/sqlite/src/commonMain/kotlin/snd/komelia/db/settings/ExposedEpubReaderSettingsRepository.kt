@@ -11,6 +11,8 @@ import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
+import snd.komelia.db.tables.KomgaReaderSettingsTable
+import snd.komelia.db.tables.TtsuReaderSettingsTable
 
 private const val defaultBookId = "DEFAULT"
 

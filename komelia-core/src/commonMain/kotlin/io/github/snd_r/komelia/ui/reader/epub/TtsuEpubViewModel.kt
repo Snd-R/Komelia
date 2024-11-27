@@ -9,13 +9,21 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.platform.getSystemFontNames
+import io.github.snd_r.komelia.fonts.UserFont
+import io.github.snd_r.komelia.fonts.UserFontsRepository
+import io.github.snd_r.komelia.fonts.getSystemFontNames
+import io.github.snd_r.komelia.platform.AppWindowState
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia_core.generated.resources.Res
+import io.github.vinceglb.filekit.core.FileKit
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.core.PlatformFile
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -24,12 +32,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.io.files.Path
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import snd.komga.client.book.KomgaBook
@@ -40,9 +50,10 @@ import snd.komga.client.book.R2Location
 import snd.komga.client.book.R2Locator
 import snd.komga.client.book.R2LocatorText
 import snd.komga.client.book.R2Progression
+import snd.komga.client.book.WPLink
 import snd.komga.client.book.WPPublication
+import snd.webview.KomeliaWebview
 import snd.webview.ResourceLoadResult
-import snd.webview.Webview
 import java.net.URI
 import kotlin.math.roundToLong
 
@@ -57,14 +68,18 @@ class TtsuEpubViewModel(
     private val notifications: AppNotifications,
     private val ktor: HttpClient,
     private val markReadProgress: Boolean,
-    private val settingsRepository: EpubReaderSettingsRepository
+    private val settingsRepository: EpubReaderSettingsRepository,
+    private val fontsRepository: UserFontsRepository,
+    private val windowState: AppWindowState,
+    private val platformType: PlatformType
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
     val bookId = MutableStateFlow(bookId)
     val book = MutableStateFlow(book)
-    private val webview = MutableStateFlow<Webview?>(null)
+    private val webview = MutableStateFlow<KomeliaWebview?>(null)
     private val epubLoadTask = CompletableDeferred<TtuEpubData>()
     private val availableSystemFonts = MutableStateFlow<List<String>>(emptyList())
+    private val selectedFontFile = MutableStateFlow<PlatformFile?>(null)
 
     suspend fun initialize() {
         if (state.value !is LoadState.Uninitialized) return
@@ -80,7 +95,7 @@ class TtsuEpubViewModel(
         }
     }
 
-    fun onWebviewCreated(webview: Webview) {
+    fun onWebviewCreated(webview: KomeliaWebview) {
         this.webview.value = webview
         screenModelScope.launch {
             loadEpub(webview)
@@ -88,12 +103,14 @@ class TtsuEpubViewModel(
     }
 
     fun closeWebview() {
+        logger.info { "close book" }
         webview.value?.close()
-        navigator replace MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value))
+        if (platformType == PlatformType.MOBILE) windowState.setFullscreen(false)
+        navigator.replaceAll(MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value)))
     }
 
     @OptIn(ExperimentalResourceApi::class)
-    private fun loadEpub(webview: Webview) {
+    private suspend fun loadEpub(webview: KomeliaWebview) {
         webview.bind<Unit, String>("getCurrentBookId") { bookId.value.value }
         webview.bind<Unit, TtuBookData>("getBookData") {
             val data = epubLoadTask.await()
@@ -113,7 +130,9 @@ class TtsuEpubViewModel(
         }
 
         webview.bind<Unit, TtsuReaderSettings>("getSettings") {
-            settingsRepository.getTtsuReaderSettings()
+            val settings = settingsRepository.getTtsuReaderSettings()
+            if (!markReadProgress) settings.copy(autoBookmark = false)
+            else settings
         }
         webview.bind<TtsuReaderSettings, Unit>("putSettings") {
             settingsRepository.putTtsuReaderSettings(it)
@@ -124,21 +143,86 @@ class TtsuEpubViewModel(
         }
 
         webview.bind<Unit, Unit>("closeBook") { closeWebview() }
+
         webview.bind<Unit, List<String>>("getAvailableFonts") {
             availableSystemFonts.value
+        }
+
+        webview.bind<Unit, String?>("openFilePickerForFonts") {
+            val file: PlatformFile? = FileKit.pickFile(
+                type = PickerType.File(listOf("ttf", "otf", "woff2", "woff")),
+                mode = PickerMode.Single
+            )
+            selectedFontFile.value = file
+            file?.name?.substringBeforeLast(".")
+        }
+
+        webview.bind<String, TtsuUserFont>("saveSelectedFont") { name ->
+            val selectedFontPath = Path(requireNotNull(selectedFontFile.value?.path))
+            val userFont = requireNotNull(UserFont.saveFontToAppDirectory(name, selectedFontPath))
+            fontsRepository.putFont(userFont)
+            TtsuUserFont(
+                displayName = userFont.name,
+                familyName = userFont.canonicalName,
+                path = "/userfonts/${userFont.name}".encodeURLPath(),
+                fileName = userFont.path.name
+            )
+        }
+        webview.bind<Unit, List<TtsuUserFont>>("getStoredFonts") {
+            fontsRepository.getAllFonts().map {
+                TtsuUserFont(
+                    displayName = it.name,
+                    familyName = it.canonicalName,
+                    path = "/userfonts/${it.name}".encodeURLPath(),
+                    fileName = it.path.name
+                )
+            }
+        }
+
+        webview.bind<TtsuUserFont, Unit>("removeStoredFont") { font ->
+            fontsRepository.getFont(font.displayName)?.let {
+                it.deleteFontFile()
+                fontsRepository.deleteFont(it)
+            }
+        }
+
+        webview.bind<Unit, Boolean>("isFullscreenAvailable") {
+            platformType == PlatformType.DESKTOP
+        }
+        webview.bind<Unit, Boolean>("isFullscreen") {
+            windowState.isFullscreen.first()
+        }
+        webview.bind<Boolean, Unit>("setFullscreen") {
+            windowState.setFullscreen(it)
         }
 
         webview.registerRequestInterceptor { uri ->
             runCatching {
                 when {
-                    uri == "https://komelia/index.html" -> {
+                    uri == "http://komelia/index.html" -> {
                         runBlocking {
                             val bytes = Res.readBytes("files/index.html")
                             ResourceLoadResult(data = bytes, contentType = "text/html")
                         }
                     }
 
-                    uri.startsWith("https://komelia") -> error("invalid request uri $uri")
+                    uri == "http://komelia/favicon.ico" -> null
+
+
+                    uri.startsWith("http://komelia/userfonts") -> {
+                        val fontName = Url(uri).rawSegments.last()
+                        val font = runBlocking {
+                            fontsRepository.getFont(fontName)?.let {
+                                ResourceLoadResult(
+                                    data = it.getBytes(),
+                                    contentType = null
+                                )
+                            }
+                        }
+                        font
+                    }
+
+                    uri.startsWith("http://komelia") -> error("invalid request uri $uri")
 
                     else -> runBlocking {
                         val bytes = ktor.get(uri).bodyAsBytes()
@@ -149,7 +233,7 @@ class TtsuEpubViewModel(
             }.onFailure { logger.catching(it) }.getOrNull()
         }
 
-        webview.navigate("https://komelia/index.html")
+        webview.navigate("http://komelia/index.html")
         webview.start()
     }
 
@@ -252,9 +336,7 @@ class TtsuEpubViewModel(
 
         var currentCharCount = 0L
         var currentMainChapterIndex: Int? = null
-        val tocEntries = manifest.toc.associate {
-            URLBuilder(requireNotNull(it.href)).apply { fragment = "" }.buildString() to requireNotNull(it.title)
-        }
+        val tocEntries: Map<String, String> = flattenToc(manifest.toc)
         val images = mutableListOf<Url>()
         for (chapter in manifest.readingOrder) {
             val chapterHref = chapter.href ?: continue
@@ -476,6 +558,20 @@ class TtsuEpubViewModel(
         return processedImageUrls
     }
 
+    private fun flattenToc(entries: List<WPLink>): Map<String, String> {
+        val flattened = mutableMapOf<String, String>()
+
+        for (entry in entries) {
+            if (entry.children.isNotEmpty()) {
+                flattened.putAll(flattenToc(entry.children))
+            }
+            entry.href?.let {
+                flattened[it] = requireNotNull(entry.title)
+            }
+        }
+        return flattened
+    }
+
     data class TtuEpubData(
         val element: Element,
         val stylesheet: String,
@@ -515,8 +611,8 @@ class TtsuEpubViewModel(
         val bookId: String,
         val progress: Double?,
         val exploredCharCount: Long? = null,
-        val scrollX: Int? = null,
-        val scrollY: Int? = null,
+        val scrollX: Float? = null,
+        val scrollY: Float? = null,
         val lastBookmarkModified: Long,
         val chapterIndex: Int,
         val chapterReference: String,

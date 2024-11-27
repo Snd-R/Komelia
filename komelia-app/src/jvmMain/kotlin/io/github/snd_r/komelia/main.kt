@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowDecoration.Companion.Undecorated
+import androidx.compose.ui.window.WindowDecoration.SystemDefault
 import androidx.compose.ui.window.WindowExceptionHandler
 import androidx.compose.ui.window.WindowExceptionHandlerFactory
 import androidx.compose.ui.window.WindowPlacement.Floating
@@ -45,19 +48,22 @@ import ch.qos.logback.core.FileAppender
 import com.jetbrains.JBR
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories.projectDirectories
+import io.github.snd_r.komelia.platform.AwtWindowState
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
 import io.github.snd_r.komelia.ui.log.LogbackFlowAppender
-import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
@@ -68,8 +74,10 @@ import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger {}
 private var shouldRestart = true
-private var windowLastState: WindowState? = null
+private var appWindowState = MutableStateFlow<WindowState?>(null)
 private val initScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+private val windowPlacementFlow = MutableStateFlow(Maximized)
+
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -89,16 +97,30 @@ fun main() {
     val initError = MutableStateFlow<Throwable?>(null)
     initScope.launch {
         try {
-            dependencies.value = initDependencies(initScope)
-        } catch (e: CancellationException) {
-            throw e
+            dependencies.value = initDependencies(initScope, AwtWindowState(windowPlacementFlow))
         } catch (e: Throwable) {
+            ensureActive()
             initError.value = e
         }
     }
 
     while (shouldRestart) {
         application(exitProcessOnExit = false) {
+            val windowState = rememberWindowState(placement = Maximized, size = DpSize(1280.dp, 720.dp))
+            LaunchedEffect(windowState) {
+                appWindowState.value = windowState
+
+                snapshotFlow { windowState.placement }
+                    .onEach { windowPlacementFlow.value = it }
+                    .launchIn(this)
+
+                windowPlacementFlow.collect {
+                    if (windowState.placement != it) {
+                        windowState.placement = it
+                    }
+                }
+            }
+
             LaunchedEffect(Unit) {
                 initError.filterNotNull().collect {
                     lastError.value = it
@@ -107,21 +129,15 @@ fun main() {
                 }
             }
 
-            val windowState = windowLastState ?: rememberWindowState(
-                placement = Maximized,
-                size = DpSize(1280.dp, 720.dp),
-            )
 
             CompositionLocalProvider(
                 LocalWindowExceptionHandlerFactory provides WindowExceptionHandlerFactory { window ->
                     WindowExceptionHandler {
                         logger.error(it) { it.message }
                         lastError.value = it
-                        windowLastState = windowState
                         window.dispatchEvent(WindowEvent(window, WindowEvent.WINDOW_CLOSING))
                     }
                 },
-                LocalWindowState provides windowState,
             ) {
 
                 MainAppContent(
@@ -135,7 +151,7 @@ fun main() {
         val error = lastError.value
         if (error != null) {
             errorApp(
-                initialWindowState = windowLastState,
+                initialWindowState = appWindowState.value,
                 error = error,
                 onRestart = {
                     shouldRestart = true
@@ -149,6 +165,7 @@ fun main() {
     exitProcess(0)
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ApplicationScope.MainAppContent(
     windowState: WindowState,
@@ -171,7 +188,7 @@ private fun ApplicationScope.MainAppContent(
         },
         state = windowState,
         icon = BitmapPainter(useResource("ic_launcher.png", ::loadImageBitmap)),
-        undecorated = undecorated,
+        decoration = if (undecorated) Undecorated() else SystemDefault,
         //Loses transparency on secondary monitor. See https://bugs.openjdk.org/browse/JDK-8304900
         // fixed in jdk22
 //        transparent = undecorated,
@@ -195,19 +212,13 @@ private fun ApplicationScope.MainAppContent(
             false
         }
     ) {
-        window.minimumSize = Dimension(800, 540)
-
-        val windowResizerField = window.javaClass.getDeclaredField("undecoratedWindowResizer")
-        windowResizerField.isAccessible = true
-        val windowResizer = windowResizerField.get(window)
-        val setEnabled = windowResizer.javaClass.declaredMethods.first { it.name == "setEnabled" }
-        setEnabled.invoke(windowResizer, false)
-
-        val verticalInsets = window.insets.left + window.insets.right
-        val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
-        val undecoratedWindowResizer = remember {
-            UndecoratedWindowResizer(window).apply { this.enabled = undecorated }
+        LaunchedEffect(Unit) {
+            window.minimumSize = Dimension(800, 540)
         }
+
+        val verticalInsets = remember { window.insets.left + window.insets.right }
+        val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
+
         CompositionLocalProvider(LocalWindow provides window) {
             val borderModifier = derivedStateOf {
                 if (undecorated && windowState.placement == Floating)
@@ -230,7 +241,6 @@ private fun ApplicationScope.MainAppContent(
                     )
                 }
             }
-            undecoratedWindowResizer.Content()
         }
     }
 

@@ -1,4 +1,4 @@
-package snd.komelia.db.settings
+package snd.komelia.db.tables
 
 import io.github.snd_r.komelia.ui.reader.epub.TtsuReaderSettings
 import org.jetbrains.exposed.sql.Table

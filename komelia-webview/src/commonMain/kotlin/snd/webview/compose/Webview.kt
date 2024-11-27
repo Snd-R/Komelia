@@ -1,9 +1,9 @@
 package snd.webview.compose
 
 import androidx.compose.runtime.Composable
-import snd.webview.Webview
+import snd.webview.KomeliaWebview
 
 @Composable
 expect fun Webview(
-    onCreated: (Webview) -> Unit,
+    onCreated: (KomeliaWebview) -> Unit,
 )

@@ -21,11 +21,14 @@ import kotlin.reflect.typeOf
 
 val logger = KotlinLogging.logger {}
 
-actual class Webview private constructor(
+actual class KomeliaWebview private constructor(
     ptr: NativePointer,
 ) : AutoCloseable, Managed(ptr, WebViewFinalizer(ptr)) {
     val functionCallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    val json = Json { encodeDefaults = true }
+    val json = Json {
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+    }
 
     @Volatile
     var isRunning = false
@@ -47,7 +50,10 @@ actual class Webview private constructor(
         future.get()
     }
 
-    actual inline fun <reified JsArgs, reified Result> bind(name: String, function: JsCallback<JsArgs, Result>) {
+    actual suspend inline fun <reified JsArgs, reified Result> bind(
+        name: String,
+        function: JsCallback<JsArgs, Result>
+    ) {
         bind(name) { id, jsRequest ->
             functionCallScope.launch {
                 runCatching {
@@ -101,10 +107,10 @@ actual class Webview private constructor(
     companion object {
         val mainLoopExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
 
-        fun webview(window: Component, onLoad: (Webview) -> Unit) {
+        fun webview(window: Component, onLoad: (KomeliaWebview) -> Unit) {
             mainLoopExecutor.submit(Callable {
                 val ptr = create(window)
-                onLoad(Webview(ptr))
+                onLoad(KomeliaWebview(ptr))
             })
         }
 

@@ -19,7 +19,7 @@ komelia_webview_t *komelia_webview_from_jvm(JNIEnv *env, jobject jvm_webview) {
 
 void webview_dispatch_navigate(webview_t webview, void *uri) { webview_navigate(webview, uri); }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_navigate(JNIEnv *env, jobject this, jstring jvm_uri) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_navigate(JNIEnv *env, jobject this, jstring jvm_uri) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
 
@@ -29,7 +29,7 @@ JNIEXPORT void JNICALL Java_snd_webview_Webview_navigate(JNIEnv *env, jobject th
     webview_dispatch(webview, webview_dispatch_navigate, uri);
 }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_updateSize(JNIEnv *env, jobject this, jint width, jint height) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_updateSize(JNIEnv *env, jobject this, jint width, jint height) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
     webview_set_size(webview, width, height, WEBVIEW_HINT_NONE);
@@ -40,7 +40,7 @@ void webview_dispatch_bind(webview_t webview, void *data) {
     webview_bind(webview, callback->name_chars, komelia_bind_callback_run, callback);
 }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_bind(JNIEnv *env, jobject this, jstring name, jobject jvm_callback) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_bind(JNIEnv *env, jobject this, jstring name, jobject jvm_callback) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
     bind_callback_t *callback = komelia_bind_callback_create(env, name, jvm_callback, webview);
@@ -48,7 +48,7 @@ JNIEXPORT void JNICALL Java_snd_webview_Webview_bind(JNIEnv *env, jobject this, 
     komelia_webview_bind(webview_data, callback);
 }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_bindReturn(JNIEnv *env, jobject this, jstring id, jstring result) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_bindReturn(JNIEnv *env, jobject this, jstring id, jstring result) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
     const char *id_chars = (*env)->GetStringUTFChars(env, id, NULL);
@@ -60,7 +60,7 @@ JNIEXPORT void JNICALL Java_snd_webview_Webview_bindReturn(JNIEnv *env, jobject 
     (*env)->ReleaseStringUTFChars(env, id, result_chars);
 }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_bindReject(JNIEnv *env, jobject this, jstring id, jstring result) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_bindReject(JNIEnv *env, jobject this, jstring id, jstring result) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
 
@@ -72,7 +72,7 @@ JNIEXPORT void JNICALL Java_snd_webview_Webview_bindReject(JNIEnv *env, jobject 
     (*env)->ReleaseStringUTFChars(env, id, message);
 }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_runMainLoop(JNIEnv *env, jobject this, jobject callback) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_runMainLoop(JNIEnv *env, jobject this, jobject callback) {
     komelia_webview_t *komelia_webview = komelia_webview_from_jvm(env, this);
 
     main_started_callback_t *started_callback = malloc(sizeof(main_started_callback_t));
@@ -87,14 +87,14 @@ JNIEXPORT void JNICALL Java_snd_webview_Webview_runMainLoop(JNIEnv *env, jobject
 }
 
 JNIEXPORT jlong JNICALL
-Java_snd_webview_Webview_create(JNIEnv *env, jobject this, jobject awt_window) {
+Java_snd_webview_KomeliaWebview_create(JNIEnv *env, jobject this, jobject awt_window) {
     komelia_webview_t webview = komelia_webview_create(env, awt_window);
     if (webview == NULL) return 0;
     return (int64_t) webview;
 }
 
 JNIEXPORT void JNICALL
-Java_snd_webview_Webview_registerRequestInterceptor(JNIEnv *env, jobject this, jobject jvm_interceptor) {
+Java_snd_webview_KomeliaWebview_registerRequestInterceptor(JNIEnv *env, jobject this, jobject jvm_interceptor) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
 
@@ -102,7 +102,7 @@ Java_snd_webview_Webview_registerRequestInterceptor(JNIEnv *env, jobject this, j
     komelia_register_request_interceptor(webview_data, interceptor);
 }
 
-JNIEXPORT void JNICALL Java_snd_webview_Webview_destroy(JNIEnv *env, jclass this, jlong ptr) {
+JNIEXPORT void JNICALL Java_snd_webview_KomeliaWebview_destroy(JNIEnv *env, jclass this, jlong ptr) {
     komelia_webview_t *webview_data = (komelia_webview_t *) ptr;
     komelia_webview_destroy(webview_data);
 }

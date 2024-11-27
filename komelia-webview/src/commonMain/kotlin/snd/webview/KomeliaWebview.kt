@@ -1,9 +1,9 @@
 package snd.webview
 
 
-expect class Webview : AutoCloseable {
+expect class KomeliaWebview : AutoCloseable {
     // TODO better bind API
-    inline fun <reified JsArgs, reified Result> bind(name: String, function: JsCallback<JsArgs, Result>)
+    suspend inline fun <reified JsArgs, reified Result> bind(name: String, function: JsCallback<JsArgs, Result>)
 
     fun start()
     fun navigate(uri: String)

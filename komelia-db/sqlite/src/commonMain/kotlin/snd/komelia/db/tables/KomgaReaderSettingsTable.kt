@@ -1,4 +1,4 @@
-package snd.komelia.db.settings
+package snd.komelia.db.tables
 
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.sql.Table

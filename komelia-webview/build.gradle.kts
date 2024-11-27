@@ -23,12 +23,17 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
+            implementation(compose.foundation)
             implementation(libs.kotlin.logging)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ksoup)
         }
 
-        androidMain.dependencies {}
+        androidMain.dependencies {
+//            implementation(libs.androidx.webkit)
+
+        }
 
         jvmMain.dependencies {
             implementation(compose.desktop.common)
@@ -48,5 +53,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
-
-

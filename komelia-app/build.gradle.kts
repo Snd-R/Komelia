@@ -57,6 +57,7 @@ kotlin {
 
         androidMain.dependencies {
             implementation(project(":komelia-db:sqlite"))
+            implementation(libs.filekit.core)
         }
         jvmMain.dependencies {
             implementation(project(":komelia-db:sqlite"))

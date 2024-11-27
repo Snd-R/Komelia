@@ -33,7 +33,7 @@ import snd.komga.client.readlist.KomgaReadListId
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.webview.ResourceLoadResult
-import snd.webview.Webview
+import snd.webview.KomeliaWebview
 
 private val logger = KotlinLogging.logger {}
 private val resourceBaseUriRegex = "^http(s)?://.*/resource/".toRegex()
@@ -54,7 +54,7 @@ class EpubViewModel(
 
     val bookId = MutableStateFlow(bookId)
     val book = MutableStateFlow(book)
-    private val webview = MutableStateFlow<Webview?>(null)
+    private val webview = MutableStateFlow<KomeliaWebview?>(null)
 
     suspend fun initialize() {
         if (state.value !is Uninitialized) return
@@ -68,7 +68,7 @@ class EpubViewModel(
         }
     }
 
-    fun onWebviewCreated(webview: Webview) {
+    fun onWebviewCreated(webview: KomeliaWebview) {
         this.webview.value = webview
         screenModelScope.launch {
             loadEpub(webview)
@@ -76,7 +76,7 @@ class EpubViewModel(
     }
 
     @OptIn(ExperimentalResourceApi::class)
-    private fun loadEpub(webview: Webview) {
+    private suspend fun loadEpub(webview: KomeliaWebview) {
         webview.bind<Unit, String>("bookId") {
             bookId.value.value
         }

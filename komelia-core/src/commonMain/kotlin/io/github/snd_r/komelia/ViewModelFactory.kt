@@ -6,7 +6,9 @@ import cafe.adriel.lyricist.Lyricist
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
+import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
@@ -99,6 +101,7 @@ interface DependencyContainer {
     val settingsRepository: CommonSettingsRepository
     val epubReaderSettingsRepository: EpubReaderSettingsRepository
     val readerSettingsRepository: ReaderSettingsRepository
+    val fontsRepository: UserFontsRepository
     val secretsRepository: SecretsRepository
     val appUpdater: AppUpdater?
     val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>
@@ -108,6 +111,7 @@ interface DependencyContainer {
     val appNotifications: AppNotifications
     val readerImageLoader: ReaderImageLoader
     val komfClientFactory: KomfClientFactory
+    val windowState: AppWindowState
     val lyricist: Lyricist<Strings>
         get() = Lyricist(Locales.EN, mapOf(Locales.EN to EnStrings))
 }
@@ -655,10 +659,13 @@ class ViewModelFactory(
             book = book,
             navigator = navigator,
             settingsRepository = dependencies.epubReaderSettingsRepository,
+            fontsRepository = dependencies.fontsRepository,
             bookClient = komgaClientFactory.bookClient(),
             notifications = appNotifications,
             ktor = komgaClientFactory.ktor(),
             markReadProgress = markReadProgress,
+            windowState = dependencies.windowState,
+            platformType = platformType
         )
     }
 

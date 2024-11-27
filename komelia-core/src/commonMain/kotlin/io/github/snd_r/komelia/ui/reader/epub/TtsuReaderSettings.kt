@@ -21,8 +21,14 @@ data class TtsuReaderSettings(
     val theme: String = "light-theme",
     val customThemes: Map<String, TtsuThemeOption> = emptyMap(),
     val multiplier: Int = 20,
-    val fontFamilyGroupOne: String = "",
-    val fontFamilyGroupTwo: String = "",
+    val serifFontFamily: TtsuFont = TtsuFont(
+        displayName = "Noto Sans CJK JP",
+        familyName = "Noto Sans CJK JP"
+    ),
+    val sansFontFamily: TtsuFont = TtsuFont(
+        displayName = "Noto Sans CJK JP",
+        familyName = "Noto Sans CJK JP"
+    ),
     val fontSize: Int = 20,
     val lineHeight: Float = 1.65f,
     val hideSpoilerImage: Boolean = true,
@@ -33,8 +39,8 @@ data class TtsuReaderSettings(
     val enableReaderWakeLock: Boolean = false,
     val showCharacterCounter: Boolean = true,
     val viewMode: TtsuViewMode = TtsuViewMode.Continuous,
-    val secondDimensionMaxValue: Int = 0,
-    val firstDimensionMargin: Int = 0,
+    val secondDimensionMaxValue: Int? = 0,
+    val firstDimensionMargin: Int? = 0,
     val swipeThreshold: Int = 10,
     val disableWheelNavigation: Boolean = false,
     val autoPositionOnResize: Boolean = true,
@@ -48,7 +54,7 @@ data class TtsuReaderSettings(
     val pageColumns: Int = 0,
     val verticalCustomReadingPosition: Int = 100,
     val horizontalCustomReadingPosition: Int = 0,
-    val userFonts: List<TtuUserFont> = emptyList(),
+    val userFonts: List<TtsuUserFont> = emptyList(),
 )
 
 @Serializable
@@ -63,8 +69,15 @@ data class TtsuThemeOption(
 )
 
 @Serializable
-data class TtuUserFont(
-    val name: String,
+data class TtsuFont(
+    val displayName: String,
+    val familyName: String,
+)
+
+@Serializable
+data class TtsuUserFont(
+    val displayName: String,
+    val familyName: String,
     val path: String,
     val fileName: String,
 )

@@ -162,10 +162,3 @@ android {
         }
     }
 }
-
-compose.resources {
-    customDirectory(
-        sourceSetName = "jvmMain",
-        directoryProvider = provider { layout.projectDirectory.dir("desktopResources") }
-    )
-}

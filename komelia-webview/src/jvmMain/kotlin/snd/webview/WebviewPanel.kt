@@ -11,11 +11,11 @@ import javax.swing.event.AncestorEvent
 import javax.swing.event.AncestorListener
 
 class WebviewPanel(
-    onCreated: (Webview) -> Unit
+    onCreated: (KomeliaWebview) -> Unit
 ) : JPanel() {
 
     private val drawSurface: Component = Canvas().apply { background = Color.black }
-    private var webview: Webview? = null
+    private var webview: KomeliaWebview? = null
 
     init {
         background = Color.black
@@ -24,7 +24,7 @@ class WebviewPanel(
         addAncestorListener(
             object : AncestorListener {
                 override fun ancestorAdded(event: AncestorEvent) {
-                    Webview.webview(drawSurface) { webview ->
+                    KomeliaWebview.webview(drawSurface) { webview ->
                         this@WebviewPanel.webview = webview
                         webview.updateSize(event.component.width, event.component.height)
                         onCreated(webview)
