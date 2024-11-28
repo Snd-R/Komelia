@@ -2,6 +2,7 @@
 
 ### Downloads:
 - Latest prebuilt release is available at https://github.com/Snd-R/Komelia/releases
+- F-Droid https://f-droid.org/packages/io.github.snd_r.komelia/
 - AUR package https://aur.archlinux.org/packages/komelia
 
 ![screenshots](./screenshots/screenshot.jpg)
