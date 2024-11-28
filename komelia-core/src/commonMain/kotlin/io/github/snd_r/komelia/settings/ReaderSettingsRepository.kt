@@ -32,4 +32,7 @@ interface ReaderSettingsRepository {
 
     fun getContinuousReaderPageSpacing(): Flow<Int>
     suspend fun putContinuousReaderPageSpacing(spacing: Int)
+
+    fun getShowDebugTileGrid(): Flow<Boolean>
+    suspend fun putShowDebugTileGrid(showGrid: Boolean)
 }

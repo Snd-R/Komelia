@@ -1,6 +1,9 @@
 package io.github.snd_r.komelia.image
 
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
@@ -35,6 +38,7 @@ class DesktopTilingReaderImage(
     stretchImages: StateFlow<Boolean>,
     pageId: PageId,
     private val upscaler: ManagedOnnxUpscaler?,
+    private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
     encoded,
     processingPipeline,
@@ -92,7 +96,13 @@ class DesktopTilingReaderImage(
         displaySize: IntSize,
         scaleFactor: Double
     ): Painter {
-        return TiledImagePainter(tiles, upsamplingMode, scaleFactor, displaySize)
+        return TiledImagePainter(
+            tiles = tiles,
+            showDebugGrid = showDebugGrid.value,
+            samplingMode = upsamplingMode,
+            scaleFactor = scaleFactor,
+            displaySize = displaySize
+        )
     }
 
     override fun createPlaceholderPainter(displaySize: IntSize): Painter {
@@ -226,6 +236,7 @@ class DesktopTilingReaderImage(
 
     private class TiledImagePainter(
         private val tiles: List<ReaderImageTile>,
+        private val showDebugGrid: Boolean,
         samplingMode: SamplingMode,
         scaleFactor: Double,
         displaySize: IntSize,
@@ -249,14 +260,16 @@ class DesktopTilingReaderImage(
                         strict = true
                     )
 
-//                    drawContext.canvas.drawRect(
-//                        tile.displayRegion,
-//                        Paint().apply {
-//                            style = PaintingStyle.Stroke
-//                            color = Color.Green
-//
-//                        }
-//                    )
+                    if (showDebugGrid) {
+                        drawContext.canvas.drawRect(
+                            tile.displayRegion,
+                            Paint().apply {
+                                style = PaintingStyle.Stroke
+                                color = Color.Green
+
+                            }
+                        )
+                    }
                 }
 
             }

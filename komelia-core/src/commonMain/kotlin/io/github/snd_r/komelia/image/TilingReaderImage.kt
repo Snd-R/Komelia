@@ -32,11 +32,13 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
-import kotlin.time.measureTimedValue
 
-private const val tileThreshold1 = 2048 * 2048
-private const val tileThreshold2 = 4096 * 4096
-private const val tileThreshold3 = 5120 * 5120
+private const val tileThreshold = 2048 * 2048
+private const val tileSize1 = 512
+private const val tileSize2 = 1024
+private const val tileSize3 = 2048
+private const val tileSize4 = 4096
+private const val tileSize5 = 8192
 
 expect class RenderImage
 
@@ -164,19 +166,18 @@ abstract class TilingReaderImage(
 
         val actualScaleFactor = displayScaleFactor * zoomFactor
 
-        val dstWidth = displaySize.width * zoomFactor
-        val dstHeight = displaySize.height * zoomFactor
+        val dstWidth = (displaySize.width * zoomFactor).roundToInt()
+        val dstHeight = (displaySize.height * zoomFactor).roundToInt()
+        val dstSize = IntSize(dstWidth, dstHeight)
 
         this.displaySize.value = displaySize
-        this.currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
+        this.currentSize.value = dstSize
 
-        val displayPixCount = (dstWidth * dstHeight).roundToInt()
-        val tileSize = when (displayPixCount) {
-            in 0..tileThreshold1 -> null
-            in tileThreshold1..tileThreshold2 -> 1024
-            in tileThreshold2..tileThreshold3 -> 512
-            else -> 256
-        }
+        val tileSize = getTileSize(
+            request,
+            displayScaleFactor,
+            dstSize,
+        )
 
         if (tileSize == null) {
             doFullResize(
@@ -195,6 +196,34 @@ abstract class TilingReaderImage(
                 tileSize = tileSize
             )
         }
+    }
+
+    private fun getTileSize(
+        request: UpdateRequest,
+        scaleForDisplay: Double,
+        dstSize: IntSize,
+    ): Int? {
+        if (scaleForDisplay >= 1) return null
+        if (dstSize.width * dstSize.height < tileThreshold) return null
+
+        val visibleMinDimension = minOf(request.visibleDisplaySize.width, request.visibleDisplaySize.height)
+        val visibleMaxDimension = maxOf(request.visibleDisplaySize.width, request.visibleDisplaySize.height)
+        val dstMinDimension = minOf(dstSize.width, dstSize.height)
+        val dstMaxDimension = maxOf(dstSize.width, dstSize.height)
+        if (visibleMinDimension == dstMinDimension) return null
+
+        val scaledVisibleDimension = (visibleMinDimension.toFloat() / scaleForDisplay).roundToInt()
+
+        val tileSize = when (scaledVisibleDimension) {
+            in 0..tileSize2 -> tileSize1
+            in tileSize2..tileSize3 -> tileSize2
+            in tileSize3..tileSize4 -> tileSize3
+            in tileSize4..tileSize5 -> tileSize4
+            else -> tileSize5
+        }
+
+        if ((tileSize * scaleForDisplay).roundToInt() + visibleMaxDimension > dstMaxDimension) return null
+        return tileSize
     }
 
     private suspend fun doFullResize(
@@ -256,10 +285,10 @@ abstract class TilingReaderImage(
         }
 
         val visibilityWindow = Rect(
-            left = displayRegion.left / 1.5f,
-            top = displayRegion.top / 1.5f,
-            right = displayRegion.right * 1.5f,
-            bottom = displayRegion.bottom * 1.5f
+            left = displayRegion.left / 1.25f,
+            top = displayRegion.top / 1.25f,
+            right = displayRegion.right * 1.25f,
+            bottom = displayRegion.bottom * 1.25f
         )
 
         val oldTiles = tiles.value
@@ -303,20 +332,18 @@ abstract class TilingReaderImage(
 
                 val tileWidth = tileRegion.right - tileRegion.left
                 val tileHeight = tileRegion.bottom - tileRegion.top
-                val scaledTileData = measureTimedValue {
-                    getImageRegion(
-                        image,
-                        tileRegion,
-                        ((tileWidth) * scaleFactor).roundToInt(),
-                        ((tileHeight) * scaleFactor).roundToInt()
-                    )
-                }
+                val scaledTile = getImageRegion(
+                    image,
+                    tileRegion,
+                    ((tileWidth) * scaleFactor).roundToInt(),
+                    ((tileHeight) * scaleFactor).roundToInt()
+                )
 
                 val tile = ReaderImageTile(
-                    size = IntSize(scaledTileData.value.width, scaledTileData.value.height),
+                    size = IntSize(scaledTile.width, scaledTile.height),
                     displayRegion = tileDisplayRegion,
                     isVisible = true,
-                    renderImage = scaledTileData.value.renderImage
+                    renderImage = scaledTile.renderImage
                 )
 
                 newTiles.add(tile)

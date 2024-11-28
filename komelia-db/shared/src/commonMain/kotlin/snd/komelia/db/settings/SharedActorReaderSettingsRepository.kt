@@ -1,5 +1,6 @@
 package snd.komelia.db.settings
 
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.ReaderType
 import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
@@ -8,7 +9,6 @@ import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayou
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 
 class SharedActorReaderSettingsRepository(
     private val actor: SettingsActor,
@@ -84,5 +84,13 @@ class SharedActorReaderSettingsRepository(
 
     override suspend fun putContinuousReaderPageSpacing(spacing: Int) {
         actor.transform { it.copy(continuousPageSpacing = spacing) }
+    }
+
+    override fun getShowDebugTileGrid(): Flow<Boolean> {
+        return actor.state.map { it.readerDebugTileGrid }.distinctUntilChanged()
+    }
+
+    override suspend fun putShowDebugTileGrid(showGrid: Boolean) {
+        actor.transform { it.copy(readerDebugTileGrid = showGrid) }
     }
 }

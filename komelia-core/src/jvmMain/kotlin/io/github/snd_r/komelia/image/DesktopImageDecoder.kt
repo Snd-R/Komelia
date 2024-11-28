@@ -10,6 +10,7 @@ class DesktopImageDecoder(
     private val stretchImages: StateFlow<Boolean>,
     private val processingPipeline: ImageProcessingPipeline,
     private val onnxUpscaler: ManagedOnnxUpscaler?,
+    private val showDebugGrid: StateFlow<Boolean>,
 ) : ImageDecoder {
 
     override suspend fun decode(bytes: ByteArray, pageId: PageId): ReaderImage {
@@ -20,6 +21,7 @@ class DesktopImageDecoder(
             upscaleOption = upscaleOptionFlow,
             stretchImages = stretchImages,
             upscaler = onnxUpscaler,
+            showDebugGrid = showDebugGrid,
         )
     }
 
@@ -32,6 +34,7 @@ class DesktopImageDecoder(
             upscaleOption = upscaleOptionFlow,
             stretchImages = stretchImages,
             upscaler = onnxUpscaler,
+            showDebugGrid = showDebugGrid,
         )
     }
 }

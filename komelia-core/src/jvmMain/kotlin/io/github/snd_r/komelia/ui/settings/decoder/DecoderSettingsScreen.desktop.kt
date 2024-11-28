@@ -54,8 +54,10 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
                     onCacheClear = vm::onClearImageCache,
 
                     mangaJaNaiIsDownloaded = vm.mangaJaNaiIsAvailable.collectAsState().value,
-                    onMangaJaNaiDownload = vm::onMangaJaNaiDownloadRequest
+                    onMangaJaNaiDownload = vm::onMangaJaNaiDownloadRequest,
 
+                    showDebugGrid = vm.showDebugGrid.collectAsState().value,
+                    onShowDebugGridChange = vm::onShowDebugGrid
                 )
         }
     }

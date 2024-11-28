@@ -15,6 +15,8 @@ import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.mangaJaNai
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ReaderSettingsRepository
 import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateProgress
@@ -31,10 +33,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class DecoderSettingsViewModel(
     private val settingsRepository: CommonSettingsRepository,
+    private val readerSettingsRepository: ReaderSettingsRepository,
     private val imageLoader: ImageLoader,
     private val onnxRuntimeInstaller: OnnxRuntimeInstaller,
     private val mangaJaNaiDownloader: MangaJaNaiDownloader,
@@ -50,6 +52,7 @@ class DecoderSettingsViewModel(
     val gpuInfo = MutableStateFlow<List<DeviceInfo>>(emptyList())
     val tileSize = MutableStateFlow(0)
     val deviceId = MutableStateFlow(0)
+    val showDebugGrid = MutableStateFlow(false)
 
     val mangaJaNaiIsAvailable = MutableStateFlow(false)
 
@@ -76,6 +79,7 @@ class DecoderSettingsViewModel(
         } catch (e: Throwable) {
             appNotifications.add(AppNotification.Error(e.message ?: "Failed to get device list"))
         }
+        showDebugGrid.value = readerSettingsRepository.getShowDebugTileGrid().first()
     }
 
     fun onUpscaleOptionChange(option: UpscaleOption) {
@@ -161,6 +165,10 @@ class DecoderSettingsViewModel(
                 )
             )
         }
+    }
 
+    fun onShowDebugGrid(show: Boolean) {
+        showDebugGrid.value = show
+        screenModelScope.launch { readerSettingsRepository.putShowDebugTileGrid(show) }
     }
 }

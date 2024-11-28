@@ -41,5 +41,7 @@ object AppSettingsTable : Table("AppSettings") {
     val komfMode = text("komf_mode")
     val komfRemoteUrl = text("komf_remote_url")
 
+    val readerDebugTileGrid = bool("reader_debug_tile_grid")
+
     override val primaryKey = PrimaryKey(version)
 }

@@ -18,6 +18,7 @@ class MigrationResourcesProvider : ResourceProvider, ClassProvider<JavaMigration
         "V3__exposed_migration.sql",
         "V4__epub_reader_settings.sql",
         "V5__user_fonts.sql",
+        "V6__reader_image_debug_settings.sql"
     )
     private val resources: Map<String, MigrationResource> = runBlocking {
         migrations.associateWith {

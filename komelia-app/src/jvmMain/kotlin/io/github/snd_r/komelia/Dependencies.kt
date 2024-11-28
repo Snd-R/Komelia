@@ -179,6 +179,7 @@ suspend fun initDependencies(
         pipeline = imagePipeline,
         stretchImages = stretchImages,
         onnxUpscaler = onnxUpscaler,
+        showDebugGrid = readerSettingsRepository.getShowDebugTileGrid().stateIn(initScope)
     )
 
     val availableDecoders = createAvailableDecodersFlow(
@@ -312,6 +313,7 @@ private fun createReaderImageLoader(
     stretchImages: StateFlow<Boolean>,
     pipeline: ImageProcessingPipeline,
     onnxUpscaler: ManagedOnnxUpscaler?,
+    showDebugGrid: StateFlow<Boolean>,
 ): ReaderImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -325,6 +327,7 @@ private fun createReaderImageLoader(
         processingPipeline = pipeline,
         stretchImages = stretchImages,
         onnxUpscaler = onnxUpscaler,
+        showDebugGrid = showDebugGrid
     )
 
     return ReaderImageLoader(

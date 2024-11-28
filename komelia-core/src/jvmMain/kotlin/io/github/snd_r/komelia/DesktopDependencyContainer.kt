@@ -42,6 +42,7 @@ class DesktopViewModelFactory(private val dependencies: DesktopDependencyContain
     fun getDecoderSettingsViewModel(): DecoderSettingsViewModel {
         return DecoderSettingsViewModel(
             settingsRepository = dependencies.settingsRepository,
+            readerSettingsRepository = dependencies.readerSettingsRepository,
             imageLoader = dependencies.imageLoader,
             onnxRuntimeInstaller = dependencies.onnxRuntimeInstaller,
             mangaJaNaiDownloader = dependencies.mangaJaNaiDownloader,

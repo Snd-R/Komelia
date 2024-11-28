@@ -62,6 +62,7 @@ import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
+import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.updates.UpdateProgress
 import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
@@ -95,6 +96,9 @@ fun DecoderSettingsContent(
     onMangaJaNaiDownload: () -> Flow<UpdateProgress>,
 
     onCacheClear: () -> Unit,
+
+    showDebugGrid: Boolean,
+    onShowDebugGridChange: (Boolean) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -126,7 +130,6 @@ fun DecoderSettingsContent(
         } else {
             Text("Upscale method: ${upscaleOption.value}")
         }
-
         if (DesktopPlatform.Current == Linux || DesktopPlatform.Current == Windows) {
             HorizontalDivider(Modifier.padding(vertical = 10.dp))
             OnnxRuntimeContent(
@@ -150,13 +153,17 @@ fun DecoderSettingsContent(
         }
 
         HorizontalDivider()
-        Column {
-            Text("Image cache", style = MaterialTheme.typography.titleLarge)
-            FilledTonalButton(
-                onClick = onCacheClear,
-                shape = RoundedCornerShape(5.dp)
-            ) { Text("Clear image cache") }
-        }
+
+        SwitchWithLabel(
+            checked = showDebugGrid,
+            onCheckedChange = onShowDebugGridChange,
+            label = { Text("Show debug tile grid in image reader") },
+        )
+
+        FilledTonalButton(
+            onClick = onCacheClear,
+            shape = RoundedCornerShape(5.dp)
+        ) { Text("Clear image cache") }
     }
 }
 

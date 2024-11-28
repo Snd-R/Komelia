@@ -61,6 +61,7 @@ class ExposedSettingsRepository(
                 it[komfEnabled] = settings.komfEnabled
                 it[komfMode] = settings.komfMode.name
                 it[komfRemoteUrl] = settings.komfRemoteUrl
+                it[readerDebugTileGrid] = settings.readerDebugTileGrid
             }
         }
     }
@@ -97,6 +98,7 @@ class ExposedSettingsRepository(
             komfEnabled = get(AppSettingsTable.komfEnabled),
             komfMode = KomfMode.valueOf(get(AppSettingsTable.komfMode)),
             komfRemoteUrl = get(AppSettingsTable.komfRemoteUrl),
+            readerDebugTileGrid = get(AppSettingsTable.readerDebugTileGrid),
         )
     }
 
