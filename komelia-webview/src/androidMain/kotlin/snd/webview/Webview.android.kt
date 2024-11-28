@@ -51,13 +51,9 @@ actual class KomeliaWebview(private val webview: WebView) : WebViewClient(), Aut
     init {
         webview.settings.javaScriptEnabled = true
         webview.settings.mixedContentMode = MIXED_CONTENT_ALWAYS_ALLOW
-        webview.settings.domStorageEnabled = true
-        webview.settings.allowFileAccess = true
         webview.settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
         webview.settings.setSupportZoom(true)
-        webview.settings.textZoom = 100
         webview.webViewClient = this
-        logger.info { webview.settings.userAgentString }
 
         //TODO look into WebViewCompat.addWebMessageListener() and WebViewCompat.addDocumentStartJavaScript()
         // should be possible to inject js without modifying original html document

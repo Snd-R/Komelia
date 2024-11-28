@@ -96,7 +96,8 @@ class AndroidDependencyContainer(
     companion object {
         suspend fun createInstance(
             initScope: CoroutineScope,
-            activity: Activity
+            context: Context,
+            mainActivity: StateFlow<Activity?>,
         ): AndroidDependencyContainer {
             measureTime {
                 try {
@@ -106,16 +107,16 @@ class AndroidDependencyContainer(
                 }
             }.also { logger.info { "completed vips libraries load in $it" } }
 
-            fontsDirectory = Path(activity.filesDir.resolve("fonts").absolutePath)
+            fontsDirectory = Path(context.filesDir.resolve("fonts").absolutePath)
 
             val datastore = DataStoreFactory.create(
                 serializer = AppSettingsSerializer,
-                produceFile = { activity.dataStoreFile("settings.pb") },
+                produceFile = { context.dataStoreFile("settings.pb") },
                 corruptionHandler = null,
             )
             val secretsRepository = AndroidSecretsRepository(datastore)
 
-            val database = KomeliaDatabase(activity.filesDir.resolve("komelia.sqlite").absolutePath)
+            val database = KomeliaDatabase(context.filesDir.resolve("komelia.sqlite").absolutePath)
             val settingsActor = createSettingsActor(database)
             val settingsRepository = SharedActorSettingsRepository(settingsActor)
             val epubReaderSettingsRepository = ExposedEpubReaderSettingsRepository(database.database)
@@ -127,7 +128,7 @@ class AndroidDependencyContainer(
 
             val okHttpWithoutCache = createOkHttpClient()
             val okHttpWithCache = okHttpWithoutCache.newBuilder()
-                .cache(Cache(directory = activity.cacheDir.resolve("okhttp"), maxSize = 50L * 1024L * 1024L))
+                .cache(Cache(directory = context.cacheDir.resolve("okhttp"), maxSize = 50L * 1024L * 1024L))
                 .build()
             val ktorWithCache = createKtorClient(okHttpWithCache)
             val ktorWithoutCache = createKtorClient(okHttpWithoutCache)
@@ -156,7 +157,7 @@ class AndroidDependencyContainer(
                 pipeline = imagePipeline,
             )
 
-            val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, activity)
+            val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, context)
             SingletonImageLoader.setSafe { coil }
 
             val komfClientFactory = KomfClientFactory.Builder()
@@ -164,7 +165,7 @@ class AndroidDependencyContainer(
                 .ktor(ktorWithCache)
                 .build()
 
-            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, activity)
+            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
             return AndroidDependencyContainer(
                 settingsRepository = settingsRepository,
                 epubReaderSettingsRepository = epubReaderSettingsRepository,
@@ -175,10 +176,10 @@ class AndroidDependencyContainer(
                 imageDecoderDescriptor = emptyFlow(),
                 komgaClientFactory = komgaClientFactory,
                 imageLoader = coil,
-                platformContext = activity,
+                platformContext = context,
                 readerImageLoader = readerImageLoader,
                 komfClientFactory = komfClientFactory,
-                windowState = AndroidWindowState(activity)
+                windowState = AndroidWindowState(mainActivity)
             )
         }
 

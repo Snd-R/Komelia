@@ -53,13 +53,12 @@ class EpubScreen(
         val vm = rememberScreenModel(bookId.value) {
             viewModelFactory.getTtsuEpubViewModel(
                 bookId = bookId,
-                navigator = navigator,
                 book = book,
                 markReadProgress = markReadProgress
             )
         }
         LaunchedEffect(bookId) {
-            vm.initialize()
+            vm.initialize(navigator)
             val book = vm.book.value
             if (book != null && book.media.mediaProfile != EPUB) {
                 navigator.replace(readerScreen(book, markReadProgress))

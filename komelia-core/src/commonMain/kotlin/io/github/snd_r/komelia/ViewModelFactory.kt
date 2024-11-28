@@ -650,14 +650,12 @@ class ViewModelFactory(
 
     fun getTtsuEpubViewModel(
         bookId: KomgaBookId,
-        navigator: Navigator,
         book: KomgaBook? = null,
         markReadProgress: Boolean = true
     ): TtsuEpubViewModel {
         return TtsuEpubViewModel(
             bookId = bookId,
             book = book,
-            navigator = navigator,
             settingsRepository = dependencies.epubReaderSettingsRepository,
             fontsRepository = dependencies.fontsRepository,
             bookClient = komgaClientFactory.bookClient(),

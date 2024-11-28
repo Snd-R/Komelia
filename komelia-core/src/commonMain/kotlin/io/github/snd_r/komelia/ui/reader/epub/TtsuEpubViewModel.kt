@@ -63,7 +63,6 @@ private val resourceBaseUriRegex = "^http(s)?://.*/resource/".toRegex()
 class TtsuEpubViewModel(
     bookId: KomgaBookId,
     book: KomgaBook?,
-    private val navigator: Navigator,
     private val bookClient: KomgaBookClient,
     private val notifications: AppNotifications,
     private val ktor: HttpClient,
@@ -80,8 +79,11 @@ class TtsuEpubViewModel(
     private val epubLoadTask = CompletableDeferred<TtuEpubData>()
     private val availableSystemFonts = MutableStateFlow<List<String>>(emptyList())
     private val selectedFontFile = MutableStateFlow<PlatformFile?>(null)
+    private val navigator = MutableStateFlow<Navigator?>(null)
 
-    suspend fun initialize() {
+    suspend fun initialize(navigator: Navigator) {
+        this.navigator.value = navigator
+        if (platformType == PlatformType.MOBILE) windowState.setFullscreen(true)
         if (state.value !is LoadState.Uninitialized) return
 
         mutableState.value = LoadState.Loading
@@ -103,10 +105,11 @@ class TtsuEpubViewModel(
     }
 
     fun closeWebview() {
-        logger.info { "close book" }
         webview.value?.close()
         if (platformType == PlatformType.MOBILE) windowState.setFullscreen(false)
-        navigator.replaceAll(MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value)))
+        navigator.value?.replaceAll(
+            MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value))
+        )
     }
 
     @OptIn(ExperimentalResourceApi::class)

@@ -32,6 +32,7 @@ import kotlinx.coroutines.sync.withLock
 private val initScope = CoroutineScope(Dispatchers.Default)
 private val initMutex = Mutex()
 private val dependencies = MutableStateFlow<AndroidDependencyContainer?>(null)
+private val currentActivity = MutableStateFlow<Activity?>(null)
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,6 +40,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         GlobalExceptionHandler.initialize(applicationContext)
         FileKit.init(this)
+        WebView.setWebContentsDebuggingEnabled(true);
+        currentActivity.value = this
+
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
         )
@@ -48,7 +52,11 @@ class MainActivity : AppCompatActivity() {
         initScope.launch {
             initMutex.withLock {
                 if (dependencies.value == null) {
-                    dependencies.value = AndroidDependencyContainer.createInstance(initScope, this@MainActivity)
+                    dependencies.value = AndroidDependencyContainer.createInstance(
+                        initScope = initScope,
+                        context = this@MainActivity,
+                        mainActivity = currentActivity
+                    )
                 }
             }
         }
