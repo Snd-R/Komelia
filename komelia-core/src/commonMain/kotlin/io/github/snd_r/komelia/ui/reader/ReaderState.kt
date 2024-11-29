@@ -30,7 +30,7 @@ import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 
 typealias SpreadIndex = Int
 
@@ -39,7 +39,7 @@ class ReaderState(
     private val navigator: Navigator,
     private val appNotifications: AppNotifications,
     private val settingsRepository: CommonSettingsRepository,
-    private val readerSettingsRepository: ReaderSettingsRepository,
+    private val readerSettingsRepository: ImageReaderSettingsRepository,
     private val decoderDescriptor: Flow<PlatformDecoderDescriptor>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,

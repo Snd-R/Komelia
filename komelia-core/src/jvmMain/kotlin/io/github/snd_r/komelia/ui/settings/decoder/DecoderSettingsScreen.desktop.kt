@@ -21,7 +21,7 @@ class DesktopDecoderSettingsScreen : DecoderSettingsScreen {
         val vm = rememberScreenModel { viewModelFactory.getDecoderSettingsViewModel() }
         LaunchedEffect(Unit) { vm.initialize() }
 
-        SettingsScreenContainer("Image Decoder") {
+        SettingsScreenContainer("Image Reader") {
             val currentDecoderDescriptor = vm.currentDecoderDescriptor.collectAsState().value
             val upscale = vm.upscaleOption.collectAsState().value
             val downscale = vm.downscaleOption.collectAsState().value

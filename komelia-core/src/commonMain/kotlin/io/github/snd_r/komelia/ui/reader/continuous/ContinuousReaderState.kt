@@ -20,7 +20,7 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.PageMetadata
@@ -66,7 +66,7 @@ class ContinuousReaderState(
     private val cleanupScope: CoroutineScope,
     private val readerState: ReaderState,
     private val imageLoader: ReaderImageLoader,
-    private val settingsRepository: ReaderSettingsRepository,
+    private val settingsRepository: ImageReaderSettingsRepository,
     private val notifications: AppNotifications,
     private val appStrings: Flow<Strings>,
     val screenScaleState: ScreenScaleState,

@@ -1,62 +1,39 @@
 package snd.komelia.db.settings
 
-import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
-import io.github.snd_r.komelia.ui.reader.epub.TtsuReaderSettings
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
+import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
-import snd.komelia.db.tables.KomgaReaderSettingsTable
-import snd.komelia.db.tables.TtsuReaderSettingsTable
+import snd.komelia.db.EpubReaderSettings
+import snd.komelia.db.ExposedRepository
+import snd.komelia.db.defaultBookId
+import snd.komelia.db.tables.EpubReaderSettingsTable
 
-private const val defaultBookId = "DEFAULT"
 
-class ExposedEpubReaderSettingsRepository(
-    private val database: Database
-) : EpubReaderSettingsRepository {
-    private suspend fun <T> transactionOnDefaultDispatcher(statement: Transaction.() -> T): T {
-        return withContext(Dispatchers.Default) { transaction(database, statement) }
-    }
+class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepository(database) {
 
-    override suspend fun getKomgaReaderSettings(): JsonObject {
+    suspend fun get(): EpubReaderSettings? {
         return transactionOnDefaultDispatcher {
-            val record = KomgaReaderSettingsTable.selectAll()
-                .where { KomgaReaderSettingsTable.bookId.eq(defaultBookId) }
+            EpubReaderSettingsTable.selectAll()
+                .where { EpubReaderSettingsTable.bookId.eq(defaultBookId) }
                 .firstOrNull()
-
-            record?.get(KomgaReaderSettingsTable.settingsJson) ?: buildJsonObject { }
+                ?.let {
+                    EpubReaderSettings(
+                        readerType = EpubReaderType.valueOf(it[EpubReaderSettingsTable.readerType]),
+                        komgaReaderSettings = it[EpubReaderSettingsTable.komgaSettingsJson],
+                        ttsuReaderSettings = it[EpubReaderSettingsTable.ttsuSettingsJson]
+                    )
+                }
         }
     }
 
-    override suspend fun putKomgaReaderSettings(settings: JsonObject) {
+    suspend fun save(settings: EpubReaderSettings) {
         transactionOnDefaultDispatcher {
-            KomgaReaderSettingsTable.upsert {
+            EpubReaderSettingsTable.upsert {
                 it[bookId] = defaultBookId
-                it[settingsJson] = settings
-            }
-        }
-    }
-
-    override suspend fun getTtsuReaderSettings(): TtsuReaderSettings {
-        return transactionOnDefaultDispatcher {
-            TtsuReaderSettingsTable.selectAll()
-                .where { TtsuReaderSettingsTable.bookId.eq(defaultBookId) }
-                .firstOrNull()
-                ?.get(TtsuReaderSettingsTable.settingsJson)
-                ?: TtsuReaderSettings()
-        }
-    }
-
-    override suspend fun putTtsuReaderSettings(settings: TtsuReaderSettings) {
-        transactionOnDefaultDispatcher {
-            TtsuReaderSettingsTable.upsert {
-                it[bookId] = defaultBookId
-                it[settingsJson] = settings
+                it[readerType] = settings.readerType.name
+                it[komgaSettingsJson] = settings.komgaReaderSettings
+                it[ttsuSettingsJson] = settings.ttsuReaderSettings
             }
         }
     }

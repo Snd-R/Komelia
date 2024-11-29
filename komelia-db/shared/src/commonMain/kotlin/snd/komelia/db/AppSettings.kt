@@ -1,13 +1,6 @@
-package snd.komelia.db.settings
+package snd.komelia.db
 
 import io.github.snd_r.komelia.ui.common.AppTheme
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.SCREEN
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
@@ -35,16 +28,6 @@ data class AppSettings(
     val onnxRuntimeDeviceId: Int = 0,
     val onnxRuntimeTileSize: Int = 512,
 
-    val readerType: ReaderType = ReaderType.PAGED,
-    val stretchToFit: Boolean = true,
-    val pagedScaleType: LayoutScaleType = SCREEN,
-    val pagedReadingDirection: PagedReaderState.ReadingDirection = PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
-    val pagedPageLayout: PageDisplayLayout = SINGLE_PAGE,
-    val continuousReadingDirection: ContinuousReaderState.ReadingDirection = ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM,
-    val continuousPadding: Float = .3f,
-    val continuousPageSpacing: Int = 0,
-
-    val cropBorders: Boolean = false,
 
     val komfEnabled: Boolean = false,
     val komfMode: KomfMode = KomfMode.REMOTE,

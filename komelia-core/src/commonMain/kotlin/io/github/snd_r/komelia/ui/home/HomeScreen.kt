@@ -20,7 +20,7 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getHomeViewModel(null) }
+        val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getHomeViewModel() }
         val navigator = LocalNavigator.currentOrThrow
         LaunchedEffect(Unit) { vm.initialize() }
         when (val state = vm.state.collectAsState().value) {

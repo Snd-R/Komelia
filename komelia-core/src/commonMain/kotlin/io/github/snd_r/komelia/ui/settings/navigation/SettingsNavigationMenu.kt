@@ -44,6 +44,7 @@ import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.decoder.getDecoderSettingsScreen
+import io.github.snd_r.komelia.ui.settings.epub.EpubReaderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsScreen
 import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsScreen
 import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsScreen
@@ -52,6 +53,7 @@ import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsS
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
+import snd.webview.webviewIsAvailable
 
 @Composable
 fun SettingsNavigationMenu(
@@ -131,9 +133,17 @@ fun SettingsNavigationMenu(
         )
         if (platform == DESKTOP) {
             NavigationButton(
-                label = "Image Decoder",
+                label = "Image Reader",
                 onClick = { onNavigation(getDecoderSettingsScreen()) },
                 isSelected = currentScreen is DecoderSettingsScreen,
+                color = contentColor,
+            )
+        }
+        if (webviewIsAvailable()) {
+            NavigationButton(
+                label = "Epub Reader",
+                onClick = { onNavigation(EpubReaderSettingsScreen()) },
+                isSelected = currentScreen is EpubReaderSettingsScreen,
                 color = contentColor,
             )
         }

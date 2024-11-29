@@ -2,22 +2,13 @@ package io.github.snd_r.komelia
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import cafe.adriel.lyricist.Lyricist
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
-import coil3.PlatformContext
-import io.github.snd_r.komelia.fonts.UserFontsRepository
-import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
-import io.github.snd_r.komelia.strings.EnStrings
-import io.github.snd_r.komelia.strings.Locales
-import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
@@ -62,6 +53,7 @@ import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
+import io.github.snd_r.komelia.ui.settings.epub.EpubReaderSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
 import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsViewModel
@@ -82,7 +74,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import snd.komf.api.MediaServer
-import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
@@ -97,25 +88,6 @@ import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUser
 
-interface DependencyContainer {
-    val settingsRepository: CommonSettingsRepository
-    val epubReaderSettingsRepository: EpubReaderSettingsRepository
-    val readerSettingsRepository: ReaderSettingsRepository
-    val fontsRepository: UserFontsRepository
-    val secretsRepository: SecretsRepository
-    val appUpdater: AppUpdater?
-    val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>
-    val komgaClientFactory: KomgaClientFactory
-    val imageLoader: ImageLoader
-    val platformContext: PlatformContext
-    val appNotifications: AppNotifications
-    val readerImageLoader: ReaderImageLoader
-    val komfClientFactory: KomfClientFactory
-    val windowState: AppWindowState
-    val lyricist: Lyricist<Strings>
-        get() = Lyricist(Locales.EN, mapOf(Locales.EN to EnStrings))
-}
-
 class ViewModelFactory(
     private val dependencies: DependencyContainer,
     private val platformType: PlatformType,
@@ -126,16 +98,14 @@ class ViewModelFactory(
         get() = dependencies.appUpdater
     private val settingsRepository: CommonSettingsRepository
         get() = dependencies.settingsRepository
-    private val readerSettingsRepository: ReaderSettingsRepository
-        get() = dependencies.readerSettingsRepository
+    private val readerSettingsRepository: ImageReaderSettingsRepository
+        get() = dependencies.imageReaderSettingsRepository
     private val secretsRepository: SecretsRepository
         get() = dependencies.secretsRepository
     private val imageLoader: ImageLoader
         get() = dependencies.imageLoader
     private val availableDecoders: Flow<PlatformDecoderDescriptor>
         get() = dependencies.imageDecoderDescriptor
-    val appNotifications
-        get() = dependencies.appNotifications
     private val appStrings
         get() = dependencies.lyricist.state.map { it.strings }
 
@@ -145,7 +115,7 @@ class ViewModelFactory(
 
     private val komfConfigState = KomfConfigState(
         dependencies.komfClientFactory.configClient(),
-        appNotifications
+        dependencies.appNotifications,
     )
 
     private val komgaEventSource = ManagedKomgaEvents(
@@ -173,16 +143,16 @@ class ViewModelFactory(
             libraryClient = komgaClientFactory.libraryClient(),
             collectionClient = komgaClientFactory.collectionClient(),
             readListsClient = komgaClientFactory.readListClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
         )
     }
 
-    fun getHomeViewModel(libraryId: KomgaLibraryId?): HomeViewModel {
+    fun getHomeViewModel(): HomeViewModel {
         return HomeViewModel(
             seriesClient = komgaClientFactory.seriesClient(),
             bookClient = komgaClientFactory.bookClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
             cardWidthFlow = getGridCardWidth(),
         )
@@ -191,13 +161,13 @@ class ViewModelFactory(
     fun getNavigationViewModel(navigator: Navigator): MainScreenViewModel {
         return MainScreenViewModel(
             libraryClient = komgaClientFactory.libraryClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             navigator = navigator,
             komgaEvents = komgaEventSource.events,
             searchBarState = SearchBarState(
                 seriesClient = komgaClientFactory.seriesClient(),
                 bookClient = komgaClientFactory.bookClient(),
-                appNotifications = appNotifications,
+                appNotifications = dependencies.appNotifications,
                 libraries = libraries
             ),
             libraries = libraries,
@@ -214,7 +184,7 @@ class ViewModelFactory(
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
         collectionClient = komgaClientFactory.collectionClient(),
-        notifications = appNotifications,
+        notifications = dependencies.appNotifications,
         events = komgaEventSource.events,
         settingsRepository = settingsRepository,
         referentialClient = komgaClientFactory.referentialClient(),
@@ -226,7 +196,7 @@ class ViewModelFactory(
             book = book,
             bookId = bookId,
             bookClient = komgaClientFactory.bookClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
             libraries = libraries,
             settingsRepository = settingsRepository,
@@ -245,7 +215,7 @@ class ViewModelFactory(
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
         events = komgaEventSource.events,
-        notifications = appNotifications,
+        notifications = dependencies.appNotifications,
         libraries = libraries,
         settingsRepository = settingsRepository,
         readListClient = komgaClientFactory.readListClient(),
@@ -259,7 +229,7 @@ class ViewModelFactory(
         return SeriesListViewModel(
             seriesClient = komgaClientFactory.seriesClient(),
             referentialClient = komgaClientFactory.referentialClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
             settingsRepository = settingsRepository,
             libraryFlow = getLibraryFlow(libraryId),
@@ -272,7 +242,7 @@ class ViewModelFactory(
         return ReaderViewModel(
             bookClient = komgaClientFactory.bookClient(),
             navigator = navigator,
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
             imageLoader = dependencies.readerImageLoader,
@@ -290,7 +260,7 @@ class ViewModelFactory(
             komgaLibraryClient = komgaClientFactory.libraryClient(),
             authenticatedUserFlow = authenticatedUser,
             availableLibrariesFlow = libraries,
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             platform = platformType
         )
     }
@@ -300,7 +270,7 @@ class ViewModelFactory(
             library = library,
             onDialogDismiss = onDismissRequest,
             libraryClient = komgaClientFactory.libraryClient(),
-            appNotifications = appNotifications
+            appNotifications = dependencies.appNotifications,
         )
 
     fun getSeriesEditDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit) =
@@ -308,7 +278,7 @@ class ViewModelFactory(
             series = series,
             onDialogDismiss = onDismissRequest,
             seriesClient = komgaClientFactory.seriesClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             cardWidth = getGridCardWidth(),
         )
 
@@ -317,7 +287,7 @@ class ViewModelFactory(
             series = series,
             onDialogDismiss = onDismissRequest,
             seriesClient = komgaClientFactory.seriesClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
         )
 
     fun getBookEditDialogViewModel(book: KomgaBook, onDismissRequest: () -> Unit) =
@@ -325,7 +295,7 @@ class ViewModelFactory(
             book = book,
             onDialogDismiss = onDismissRequest,
             bookClient = komgaClientFactory.bookClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             cardWidth = getGridCardWidth(),
         )
 
@@ -341,7 +311,7 @@ class ViewModelFactory(
         onDialogDismiss = onDismissRequest,
         bookClient = komgaClientFactory.bookClient(),
         seriesClient = komgaClientFactory.seriesClient(),
-        notifications = appNotifications,
+        notifications = dependencies.appNotifications,
         cardWidth = getGridCardWidth(),
     )
 
@@ -350,7 +320,7 @@ class ViewModelFactory(
             books = books,
             onDialogDismiss = onDismissRequest,
             bookClient = komgaClientFactory.bookClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
         )
 
     fun getCollectionEditDialogViewModel(
@@ -360,7 +330,7 @@ class ViewModelFactory(
         collection = collection,
         onDialogDismiss = onDismissRequest,
         collectionClient = komgaClientFactory.collectionClient(),
-        notifications = appNotifications,
+        notifications = dependencies.appNotifications,
         cardWidth = getGridCardWidth(),
     )
 
@@ -369,7 +339,7 @@ class ViewModelFactory(
             readList = readList,
             onDialogDismiss = onDismissRequest,
             readListClient = komgaClientFactory.readListClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             cardWidth = getGridCardWidth(),
         )
 
@@ -378,7 +348,7 @@ class ViewModelFactory(
             series = series,
             onDismissRequest = onDismissRequest,
             collectionClient = komgaClientFactory.collectionClient(),
-            appNotifications = appNotifications
+            appNotifications = dependencies.appNotifications,
         )
 
     fun getAddToReadListDialogViewModel(books: List<KomgaBook>, onDismissRequest: () -> Unit) =
@@ -386,17 +356,17 @@ class ViewModelFactory(
             books = books,
             onDismissRequest = onDismissRequest,
             readListClient = komgaClientFactory.readListClient(),
-            appNotifications = appNotifications
+            appNotifications = dependencies.appNotifications,
         )
 
     fun getFileBrowserDialogViewModel() =
-        FileBrowserDialogViewModel(komgaClientFactory.fileSystemClient(), appNotifications)
+        FileBrowserDialogViewModel(komgaClientFactory.fileSystemClient(), dependencies.appNotifications)
 
 
     fun getSearchViewModel(initialQuery: String?) = SearchViewModel(
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
-        appNotifications = appNotifications,
+        appNotifications = dependencies.appNotifications,
         libraries = libraries,
         initialQuery = initialQuery
     )
@@ -411,24 +381,24 @@ class ViewModelFactory(
         return AuthenticationActivityViewModel(
             forMe,
             komgaClientFactory.userClient(),
-            appNotifications
+            dependencies.appNotifications
         )
     }
 
     fun getUsersViewModel(): UsersViewModel {
         val user = requireNotNull(authenticatedUser.value)
-        return UsersViewModel(appNotifications, komgaClientFactory.userClient(), user)
+        return UsersViewModel(dependencies.appNotifications, komgaClientFactory.userClient(), user)
     }
 
     fun getPasswordChangeDialogViewModel(user: KomgaUser?) = PasswordChangeDialogViewModel(
-        appNotifications,
+        dependencies.appNotifications,
         komgaClientFactory.userClient(),
         user
     )
 
     fun getUserAddDialogViewModel(): UserAddDialogViewModel {
         return UserAddDialogViewModel(
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             userClient = komgaClientFactory.userClient()
         )
     }
@@ -436,7 +406,7 @@ class ViewModelFactory(
     fun getUserEditDialogViewModel(user: KomgaUser): UserEditDialogViewModel {
         val libraries = requireNotNull(libraries.value)
         return UserEditDialogViewModel(
-            appNotifications,
+            dependencies.appNotifications,
             user,
             libraries,
             komgaClientFactory.userClient()
@@ -445,7 +415,7 @@ class ViewModelFactory(
 
     fun getServerSettingsViewModel(): ServerSettingsViewModel {
         return ServerSettingsViewModel(
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             settingsClient = komgaClientFactory.settingsClient(),
             bookClient = komgaClientFactory.bookClient(),
             libraryClient = komgaClientFactory.libraryClient(),
@@ -457,7 +427,7 @@ class ViewModelFactory(
 
     fun getServerManagementViewModel(): ServerManagementViewModel {
         return ServerManagementViewModel(
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             libraryClient = komgaClientFactory.libraryClient(),
             libraries = libraries,
             taskClient = komgaClientFactory.taskClient(),
@@ -466,13 +436,13 @@ class ViewModelFactory(
     }
 
     fun getAnnouncementsViewModel(): AnnouncementsViewModel {
-        return AnnouncementsViewModel(appNotifications, komgaClientFactory.announcementClient())
+        return AnnouncementsViewModel(dependencies.appNotifications, komgaClientFactory.announcementClient())
     }
 
     fun getSettingsNavigationViewModel(rootNavigator: Navigator): SettingsNavigationViewModel {
         return SettingsNavigationViewModel(
             rootNavigator = rootNavigator,
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             userClient = komgaClientFactory.userClient(),
             authenticatedUser = authenticatedUser,
             secretsRepository = secretsRepository,
@@ -494,14 +464,14 @@ class ViewModelFactory(
             releases = releases,
             updater = appUpdater,
             settings = settingsRepository,
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
         )
     }
 
     fun getLibraryCollectionsViewModel(libraryId: KomgaLibraryId?): LibraryCollectionsViewModel {
         return LibraryCollectionsViewModel(
             collectionClient = komgaClientFactory.collectionClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             events = komgaEventSource.events,
             libraryFlow = libraryId?.let { getLibraryFlow(it) },
             cardWidthFlow = getGridCardWidth(),
@@ -511,7 +481,7 @@ class ViewModelFactory(
     fun getLibraryReadListsViewModel(libraryId: KomgaLibraryId?): LibraryReadListsViewModel {
         return LibraryReadListsViewModel(
             readListClient = komgaClientFactory.readListClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
             libraryFlow = libraryId?.let { getLibraryFlow(it) },
             cardWidthFlow = getGridCardWidth(),
@@ -523,7 +493,7 @@ class ViewModelFactory(
         return CollectionViewModel(
             collectionId = collectionId,
             collectionClient = komgaClientFactory.collectionClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             seriesClient = komgaClientFactory.seriesClient(),
             komgaEvents = komgaEventSource.events,
             cardWidthFlow = getGridCardWidth()
@@ -535,7 +505,7 @@ class ViewModelFactory(
             readListId = readListId,
             readListClient = komgaClientFactory.readListClient(),
             bookClient = komgaClientFactory.bookClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
             cardWidthFlow = getGridCardWidth()
         )
@@ -544,14 +514,14 @@ class ViewModelFactory(
     fun getMediaAnalysisViewModel(): MediaAnalysisViewModel {
         return MediaAnalysisViewModel(
             bookClient = komgaClientFactory.bookClient(),
-            appNotifications = appNotifications
+            appNotifications = dependencies.appNotifications,
         )
     }
 
     fun getKomfSettingsViewModel(): KomfSettingsViewModel {
         return KomfSettingsViewModel(
             komfConfigClient = dependencies.komfClientFactory.configClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             settingsRepository = settingsRepository,
             komfConfig = komfConfigState,
             libraries = libraries,
@@ -562,7 +532,7 @@ class ViewModelFactory(
         return KomfNotificationSettingsViewModel(
             komfConfigClient = dependencies.komfClientFactory.configClient(),
             komfNotificationClient = dependencies.komfClientFactory.notificationClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             komfConfig = komfConfigState
         )
     }
@@ -571,7 +541,7 @@ class ViewModelFactory(
         return KomfProcessingSettingsViewModel(
             komfConfigClient = dependencies.komfClientFactory.configClient(),
             libraries = libraries,
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             komfConfig = komfConfigState
         )
     }
@@ -580,7 +550,7 @@ class ViewModelFactory(
         return KomfProvidersSettingsViewModel(
             komfConfigClient = dependencies.komfClientFactory.configClient(),
             libraries = libraries,
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             komfConfig = komfConfigState
         )
     }
@@ -589,7 +559,7 @@ class ViewModelFactory(
         return KomfJobsViewModel(
             jobClient = dependencies.komfClientFactory.jobClient(),
             seriesClient = dependencies.komgaClientFactory.seriesClient(),
-            appNotifications = appNotifications
+            appNotifications = dependencies.appNotifications
         )
     }
 
@@ -602,7 +572,7 @@ class ViewModelFactory(
             komfConfig = komfConfigState,
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
             komfJobClient = dependencies.komfClientFactory.jobClient(),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             onDismiss = onDismissRequest,
         )
     }
@@ -612,7 +582,7 @@ class ViewModelFactory(
     ): KomfResetMetadataDialogViewModel {
         return KomfResetMetadataDialogViewModel(
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
             onDismiss = onDismissRequest,
         )
     }
@@ -623,7 +593,7 @@ class ViewModelFactory(
         return KomfLibraryIdentifyViewmodel(
             library = library,
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(MediaServer.KOMGA),
-            appNotifications = appNotifications,
+            appNotifications = dependencies.appNotifications,
         )
     }
 
@@ -642,7 +612,7 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             seriesClient = komgaClientFactory.seriesClient(),
             readListClient = komgaClientFactory.readListClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             ktor = komgaClientFactory.ktor(),
             markReadProgress = markReadProgress
         )
@@ -659,7 +629,7 @@ class ViewModelFactory(
             settingsRepository = dependencies.epubReaderSettingsRepository,
             fontsRepository = dependencies.fontsRepository,
             bookClient = komgaClientFactory.bookClient(),
-            notifications = appNotifications,
+            notifications = dependencies.appNotifications,
             ktor = komgaClientFactory.ktor(),
             markReadProgress = markReadProgress,
             windowState = dependencies.windowState,
@@ -667,20 +637,25 @@ class ViewModelFactory(
         )
     }
 
+    fun getEpubReaderSettingsViewModel(): EpubReaderSettingsViewModel {
+        return EpubReaderSettingsViewModel(
+        )
+    }
+
     fun getSeriesBulkActions() = SeriesBulkActions(
         komgaClientFactory.seriesClient(),
-        appNotifications
+        dependencies.appNotifications,
     )
 
     fun getCollectionBulkActions() = CollectionBulkActions(
         komgaClientFactory.collectionClient(),
-        appNotifications
+        dependencies.appNotifications,
     )
 
-    fun getBookBulkActions() = BookBulkActions(komgaClientFactory.bookClient(), appNotifications)
+    fun getBookBulkActions() = BookBulkActions(komgaClientFactory.bookClient(), dependencies.appNotifications)
     fun getReadListBulkActions() = ReadListBulkActions(
         komgaClientFactory.readListClient(),
-        appNotifications
+        dependencies.appNotifications,
     )
 
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events

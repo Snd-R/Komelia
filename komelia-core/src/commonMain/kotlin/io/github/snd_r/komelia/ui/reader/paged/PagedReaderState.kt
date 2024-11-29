@@ -13,7 +13,7 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
 import io.github.snd_r.komelia.ui.reader.BookState
 import io.github.snd_r.komelia.ui.reader.ImageCacheKey
@@ -52,7 +52,7 @@ import kotlin.math.roundToInt
 
 class PagedReaderState(
     private val cleanupScope: CoroutineScope,
-    private val settingsRepository: ReaderSettingsRepository,
+    private val settingsRepository: ImageReaderSettingsRepository,
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
     private val imageLoader: ReaderImageLoader,

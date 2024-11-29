@@ -25,23 +25,11 @@ object AppSettingsTable : Table("AppSettings") {
     val onnxRuntimeDeviceId = integer("onnxRuntime_device_id")
     val onnxRuntimeTileSize = integer("onnxRuntime_tile_size")
 
-    val readerType = text("reader_type")
-    val stretchToFit = bool("stretch_to_fit")
-
-    val pagedScaleType = text("paged_scale_type")
-    val pagedReadingDirection = text("paged_reading_direction")
-    val pagedPageLayout = text("paged_page_layout")
-
-    val continuousReadingDirection = text("continuous_reading_direction")
-    val continuousPadding = float("continuous_padding")
-    val continuousPageSpacing = integer("continuous_page_spacing")
-    val cropBorders = bool("crop_borders")
-
     val komfEnabled = bool("komf_enabled")
     val komfMode = text("komf_mode")
     val komfRemoteUrl = text("komf_remote_url")
 
-    val readerDebugTileGrid = bool("reader_debug_tile_grid")
+    val readerDebugTileGrid = bool("image_reader_debug_tile_grid")
 
     override val primaryKey = PrimaryKey(version)
 }

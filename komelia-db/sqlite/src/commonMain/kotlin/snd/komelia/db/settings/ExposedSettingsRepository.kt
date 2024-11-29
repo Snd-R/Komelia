@@ -1,34 +1,29 @@
 package snd.komelia.db.settings
 
 import io.github.snd_r.komelia.ui.common.AppTheme
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
+import snd.komelia.db.AppSettings
+import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.AppSettingsTable
 
-class ExposedSettingsRepository(
-    private val database: Database
-) {
+class ExposedSettingsRepository(database: Database) : ExposedRepository(database) {
 
-    fun get(): AppSettings? {
-        return transaction(database) {
+    suspend fun get(): AppSettings? {
+        return transactionOnDefaultDispatcher {
             AppSettingsTable.selectAll()
                 .firstOrNull()
                 ?.toAppSettings()
         }
     }
 
-    fun save(settings: AppSettings) {
-        transaction(database) {
+    suspend fun save(settings: AppSettings) {
+        transactionOnDefaultDispatcher {
             AppSettingsTable.upsert {
                 it[version] = 1
                 it[username] = settings.username
@@ -49,15 +44,6 @@ class ExposedSettingsRepository(
                 it[onnxModelsPath] = settings.onnxModelsPath
                 it[onnxRuntimeDeviceId] = settings.onnxRuntimeDeviceId
                 it[onnxRuntimeTileSize] = settings.onnxRuntimeTileSize
-                it[readerType] = settings.readerType.name
-                it[stretchToFit] = settings.stretchToFit
-                it[pagedScaleType] = settings.pagedScaleType.name
-                it[pagedReadingDirection] = settings.pagedReadingDirection.name
-                it[pagedPageLayout] = settings.pagedPageLayout.name
-                it[continuousReadingDirection] = settings.continuousReadingDirection.name
-                it[continuousPadding] = settings.continuousPadding
-                it[continuousPageSpacing] = settings.continuousPageSpacing
-                it[cropBorders] = settings.cropBorders
                 it[komfEnabled] = settings.komfEnabled
                 it[komfMode] = settings.komfMode.name
                 it[komfRemoteUrl] = settings.komfRemoteUrl
@@ -86,15 +72,6 @@ class ExposedSettingsRepository(
             onnxModelsPath = get(AppSettingsTable.onnxModelsPath),
             onnxRuntimeDeviceId = get(AppSettingsTable.onnxRuntimeDeviceId),
             onnxRuntimeTileSize = get(AppSettingsTable.onnxRuntimeTileSize),
-            readerType = ReaderType.valueOf(get(AppSettingsTable.readerType)),
-            stretchToFit = get(AppSettingsTable.stretchToFit),
-            pagedScaleType = LayoutScaleType.valueOf(get(AppSettingsTable.pagedScaleType)),
-            pagedReadingDirection = PagedReaderState.ReadingDirection.valueOf(get(AppSettingsTable.pagedReadingDirection)),
-            pagedPageLayout = PagedReaderState.PageDisplayLayout.valueOf(get(AppSettingsTable.pagedPageLayout)),
-            continuousReadingDirection = ContinuousReaderState.ReadingDirection.valueOf(get(AppSettingsTable.continuousReadingDirection)),
-            continuousPadding = get(AppSettingsTable.continuousPadding),
-            continuousPageSpacing = get(AppSettingsTable.continuousPageSpacing),
-            cropBorders = get(AppSettingsTable.cropBorders),
             komfEnabled = get(AppSettingsTable.komfEnabled),
             komfMode = KomfMode.valueOf(get(AppSettingsTable.komfMode)),
             komfRemoteUrl = get(AppSettingsTable.komfRemoteUrl),

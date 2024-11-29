@@ -113,7 +113,7 @@ fun MainView(
                         onBackPressed = null
                     )
 
-                    AppNotifications(viewModelFactory.appNotifications, theme)
+                    AppNotifications(dependencies.appNotifications, theme)
 
                     val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
                     if (updateChecker != null) {

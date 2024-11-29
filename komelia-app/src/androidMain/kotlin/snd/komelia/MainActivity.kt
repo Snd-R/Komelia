@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.window.layout.WindowMetricsCalculator
+import io.github.snd_r.komelia.AndroidDependencyContainer
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.ui.MainView
@@ -52,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         initScope.launch {
             initMutex.withLock {
                 if (dependencies.value == null) {
-                    dependencies.value = AndroidDependencyContainer.createInstance(
+                    dependencies.value = initDependencies(
                         initScope = initScope,
                         context = this@MainActivity,
                         mainActivity = currentActivity

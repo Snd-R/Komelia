@@ -36,6 +36,9 @@ import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
 import io.github.snd_r.komelia.platform.upsamplingFilters
 import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
 import io.github.snd_r.komelia.secrets.AppKeyring
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.error.NonRestartableException
@@ -65,14 +68,18 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okio.Path.Companion.toOkioPath
+import snd.komelia.db.AppSettings
+import snd.komelia.db.EpubReaderSettings
+import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomeliaDatabase
+import snd.komelia.db.SettingsStateActor
 import snd.komelia.db.fonts.ExposedUserFontsRepository
-import snd.komelia.db.settings.AppSettings
+import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
+import snd.komelia.db.repository.ActorReaderSettingsRepository
+import snd.komelia.db.repository.ActorSettingsRepository
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
+import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
-import snd.komelia.db.settings.SettingsActor
-import snd.komelia.db.settings.SharedActorReaderSettingsRepository
-import snd.komelia.db.settings.SharedActorSettingsRepository
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.webview.WebviewSharedLibraries
@@ -117,11 +124,10 @@ suspend fun initDependencies(
     checkVipsLibraries()
 
     val database = KomeliaDatabase(AppDirectories.databaseFile.toString())
-    val settingsActor = createSettingsActor(database)
-    val settingsRepository = SharedActorSettingsRepository(settingsActor)
-    val epubReaderSettingsRepository = ExposedEpubReaderSettingsRepository(database.database)
+    val settingsRepository = createCommonSettingsRepository(database)
+    val imageReadRepository = createImageReaderSettingsRepository(database)
+    val epubReaderSettingsRepository = createEpubReaderSettings(database)
     val fontsRepository = ExposedUserFontsRepository(database.database)
-    val readerSettingsRepository = SharedActorReaderSettingsRepository(settingsActor)
 
     val secretsRepository = createSecretsRepository()
 
@@ -168,9 +174,9 @@ suspend fun initDependencies(
 
     val onnxUpscaler = createOnnxRuntimeUpscaler(settingsRepository)
     val imagePipeline = createImagePipeline(
-        cropBorders = readerSettingsRepository.getCropBorders().stateIn(initScope)
+        cropBorders = imageReadRepository.getCropBorders().stateIn(initScope)
     )
-    val stretchImages = readerSettingsRepository.getStretchToFit().stateIn(initScope)
+    val stretchImages = imageReadRepository.getStretchToFit().stateIn(initScope)
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
@@ -179,7 +185,7 @@ suspend fun initDependencies(
         pipeline = imagePipeline,
         stretchImages = stretchImages,
         onnxUpscaler = onnxUpscaler,
-        showDebugGrid = readerSettingsRepository.getShowDebugTileGrid().stateIn(initScope)
+        showDebugGrid = settingsRepository.getImageReaderShowDebugGrid().stateIn(initScope)
     )
 
     val availableDecoders = createAvailableDecodersFlow(
@@ -197,7 +203,7 @@ suspend fun initDependencies(
         appUpdater = appUpdater,
         settingsRepository = settingsRepository,
         epubReaderSettingsRepository = epubReaderSettingsRepository,
-        readerSettingsRepository = readerSettingsRepository,
+        imageReaderSettingsRepository = imageReadRepository,
         fontsRepository = fontsRepository,
         secretsRepository = secretsRepository,
         imageLoader = coil,
@@ -220,7 +226,7 @@ private fun checkVipsLibraries() {
     VipsBitmapFactory.load()
 }
 
-private fun createOnnxRuntimeUpscaler(settingsRepository: SharedActorSettingsRepository): ManagedOnnxUpscaler? {
+private fun createOnnxRuntimeUpscaler(settingsRepository: CommonSettingsRepository): ManagedOnnxUpscaler? {
     return measureTimedValue {
         try {
             OnnxRuntimeSharedLibraries.load()
@@ -380,22 +386,6 @@ private fun createCoil(
     return timed.value
 }
 
-private fun createSettingsActor(database: KomeliaDatabase): SettingsActor {
-    val result = measureTimedValue {
-        val repository = ExposedSettingsRepository(database.database)
-        SettingsActor(
-            settings = repository.get()
-                ?: AppSettings(
-                    upscaleOption = skiaSamplerCatmullRom.value,
-                    downscaleOption = vipsDownscaleLanczos.value
-                ),
-            saveSettings = repository::save
-        )
-    }
-    logger.info { "loaded settings in ${result.duration}" }
-    return result.value
-}
-
 private fun createSecretsRepository(): KeyringSecretsRepository {
     return measureTimedValue { KeyringSecretsRepository(AppKeyring()) }
         .also { logger.info { "initialized keyring in ${it.duration}" } }
@@ -403,7 +393,7 @@ private fun createSecretsRepository(): KeyringSecretsRepository {
 }
 
 private suspend fun createAvailableDecodersFlow(
-    settingsRepository: SharedActorSettingsRepository,
+    settingsRepository: CommonSettingsRepository,
     mangaJaNaiDownloader: MangaJaNaiDownloader,
     scope: CoroutineScope
 ): Flow<PlatformDecoderDescriptor> {
@@ -455,4 +445,37 @@ private fun createVipsOrtDescriptor(modelsPath: Path): PlatformDecoderDescriptor
             downscaleOptions = listOf(vipsDownscaleLanczos),
         )
     }
+
+}
+
+private suspend fun createCommonSettingsRepository(database: KomeliaDatabase): CommonSettingsRepository {
+    val repository = ExposedSettingsRepository(database.database)
+
+    val stateActor = SettingsStateActor(
+        settings = repository.get()
+            ?: AppSettings(
+                upscaleOption = skiaSamplerCatmullRom.value,
+                downscaleOption = vipsDownscaleLanczos.value
+            ),
+        saveSettings = repository::save
+    )
+    return ActorSettingsRepository(stateActor)
+}
+
+private suspend fun createImageReaderSettingsRepository(database: KomeliaDatabase): ImageReaderSettingsRepository {
+    val repository = ExposedImageReaderSettingsRepository(database.database)
+    val stateActor = SettingsStateActor(
+        settings = repository.get() ?: ImageReaderSettings(),
+        saveSettings = repository::save
+    )
+    return ActorReaderSettingsRepository(stateActor)
+}
+
+private suspend fun createEpubReaderSettings(database: KomeliaDatabase): EpubReaderSettingsRepository {
+    val repository = ExposedEpubReaderSettingsRepository(database.database)
+    val stateActor = SettingsStateActor(
+        settings = repository.get() ?: EpubReaderSettings(),
+        saveSettings = repository::save
+    )
+    return ActorEpubReaderSettingsRepository(stateActor)
 }

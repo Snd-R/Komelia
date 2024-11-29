@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.ReaderSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -31,7 +31,7 @@ class ReaderViewModel(
     navigator: Navigator,
     appNotifications: AppNotifications,
     settingsRepository: CommonSettingsRepository,
-    readerSettingsRepository: ReaderSettingsRepository,
+    readerSettingsRepository: ImageReaderSettingsRepository,
     imageLoader: ReaderImageLoader,
     decoderDescriptor: Flow<PlatformDecoderDescriptor>,
     appStrings: Flow<Strings>,

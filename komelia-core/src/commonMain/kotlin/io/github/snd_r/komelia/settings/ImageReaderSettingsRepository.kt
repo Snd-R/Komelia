@@ -5,7 +5,7 @@ import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
 import kotlinx.coroutines.flow.Flow
 
-interface ReaderSettingsRepository {
+interface ImageReaderSettingsRepository {
     fun getReaderType(): Flow<ReaderType>
     suspend fun putReaderType(type: ReaderType)
 
@@ -32,7 +32,4 @@ interface ReaderSettingsRepository {
 
     fun getContinuousReaderPageSpacing(): Flow<Int>
     suspend fun putContinuousReaderPageSpacing(spacing: Int)
-
-    fun getShowDebugTileGrid(): Flow<Boolean>
-    suspend fun putShowDebugTileGrid(showGrid: Boolean)
 }

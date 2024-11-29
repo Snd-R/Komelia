@@ -1,4 +1,4 @@
-package snd.komelia.db.settings
+package snd.komelia.db.repository
 
 import io.github.snd_r.komelia.platform.DownscaleOption
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
@@ -12,10 +12,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
-import kotlinx.serialization.json.JsonObject
+import snd.komelia.db.AppSettings
+import snd.komelia.db.SettingsStateActor
 
-class SharedActorSettingsRepository(
-    private val actor: SettingsActor,
+class ActorSettingsRepository(
+    private val actor: SettingsStateActor<AppSettings>,
 ) : CommonSettingsRepository {
 
     override fun getServerUrl(): Flow<String> {
@@ -170,5 +171,13 @@ class SharedActorSettingsRepository(
 
     override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
         actor.transform { it.copy(onnxRuntimeTileSize = tileSize) }
+    }
+
+    override fun getImageReaderShowDebugGrid(): Flow<Boolean> {
+        return actor.state.map { it.readerDebugTileGrid }.distinctUntilChanged()
+    }
+
+    override suspend fun putImageReaderShowDebugGrid(showGrid: Boolean) {
+        actor.transform { it.copy(readerDebugTileGrid = showGrid) }
     }
 }
