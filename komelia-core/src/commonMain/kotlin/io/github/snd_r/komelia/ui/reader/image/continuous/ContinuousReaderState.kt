@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.continuous
+package io.github.snd_r.komelia.ui.reader.image.continuous
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -22,16 +22,16 @@ import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.Strings
-import io.github.snd_r.komelia.ui.reader.ImageCacheKey
-import io.github.snd_r.komelia.ui.reader.PageMetadata
-import io.github.snd_r.komelia.ui.reader.ReaderState
-import io.github.snd_r.komelia.ui.reader.ScreenScaleState
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
+import io.github.snd_r.komelia.ui.reader.image.ImageCacheKey
+import io.github.snd_r.komelia.ui.reader.image.PageMetadata
+import io.github.snd_r.komelia.ui.reader.image.ReaderState
+import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Error
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Success
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers

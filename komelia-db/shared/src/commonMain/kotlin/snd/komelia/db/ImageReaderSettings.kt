@@ -1,12 +1,12 @@
 package snd.komelia.db
 
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.SCREEN
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
+import io.github.snd_r.komelia.ui.reader.image.ReaderType
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType.SCREEN
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 
 data class ImageReaderSettings(
     val readerType: ReaderType = ReaderType.PAGED,

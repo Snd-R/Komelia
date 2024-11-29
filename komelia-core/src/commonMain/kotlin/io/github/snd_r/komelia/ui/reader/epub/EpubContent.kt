@@ -5,8 +5,6 @@ import snd.webview.KomeliaWebview
 import snd.webview.compose.Webview
 
 @Composable
-fun EpubContent(
-    onWebviewCreated: (KomeliaWebview) -> Unit,
-) {
+fun EpubContent(onWebviewCreated: (KomeliaWebview) -> Unit) {
     Webview(onWebviewCreated)
 }

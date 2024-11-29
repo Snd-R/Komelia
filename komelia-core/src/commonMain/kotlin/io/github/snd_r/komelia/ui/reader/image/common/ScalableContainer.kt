@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.common
+package io.github.snd_r.komelia.ui.reader.image.common
 
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.gestures.Orientation.Horizontal
@@ -29,7 +29,7 @@ import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.onPointerEvent
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalPlatform
-import io.github.snd_r.komelia.ui.reader.ScreenScaleState
+import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch

@@ -1,15 +1,14 @@
 package snd.komelia.db.repository
 
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
+import io.github.snd_r.komelia.ui.reader.image.ReaderType
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import snd.komelia.db.AppSettings
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.SettingsStateActor
 

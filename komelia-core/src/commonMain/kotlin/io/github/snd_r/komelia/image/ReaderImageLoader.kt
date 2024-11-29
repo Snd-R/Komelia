@@ -3,7 +3,7 @@ package io.github.snd_r.komelia.image
 import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.image.ReaderImage.PageId
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import okio.FileSystem

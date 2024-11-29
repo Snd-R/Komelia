@@ -18,7 +18,7 @@ import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.library.LibraryScreen
-import io.github.snd_r.komelia.ui.reader.readerScreen
+import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.book.KomgaBook

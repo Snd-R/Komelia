@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.common
+package io.github.snd_r.komelia.ui.reader.image.common
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown

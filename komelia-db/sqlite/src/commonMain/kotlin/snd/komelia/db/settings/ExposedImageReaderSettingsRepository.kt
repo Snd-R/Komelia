@@ -1,9 +1,9 @@
 package snd.komelia.db.settings
 
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.image.ReaderType
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.upsert

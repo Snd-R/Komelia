@@ -40,9 +40,8 @@ import io.github.snd_r.komelia.ui.library.LibraryViewModel
 import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.oneshot.OneshotViewModel
-import io.github.snd_r.komelia.ui.reader.ReaderViewModel
-import io.github.snd_r.komelia.ui.reader.epub.EpubViewModel
-import io.github.snd_r.komelia.ui.reader.epub.TtsuEpubViewModel
+import io.github.snd_r.komelia.ui.reader.epub.EpubReaderViewModel
+import io.github.snd_r.komelia.ui.reader.image.ReaderViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
@@ -597,49 +596,30 @@ class ViewModelFactory(
         )
     }
 
-    fun getEpubViewModel(
+    fun getEpubReaderViewModel(
         bookId: KomgaBookId,
-        navigator: Navigator,
         book: KomgaBook? = null,
         markReadProgress: Boolean = true
-    ): EpubViewModel {
-        return EpubViewModel(
+    ): EpubReaderViewModel {
+        return EpubReaderViewModel(
             bookId = bookId,
             book = book,
-            navigator = navigator,
-            settingsRepository = settingsRepository,
-            epubSettingsRepository = dependencies.epubReaderSettingsRepository,
+            markReadProgress = markReadProgress,
             bookClient = komgaClientFactory.bookClient(),
             seriesClient = komgaClientFactory.seriesClient(),
             readListClient = komgaClientFactory.readListClient(),
-            notifications = dependencies.appNotifications,
             ktor = komgaClientFactory.ktor(),
-            markReadProgress = markReadProgress
-        )
-    }
-
-    fun getTtsuEpubViewModel(
-        bookId: KomgaBookId,
-        book: KomgaBook? = null,
-        markReadProgress: Boolean = true
-    ): TtsuEpubViewModel {
-        return TtsuEpubViewModel(
-            bookId = bookId,
-            book = book,
-            settingsRepository = dependencies.epubReaderSettingsRepository,
+            settingsRepository = dependencies.settingsRepository,
+            epubSettingsRepository = dependencies.epubReaderSettingsRepository,
             fontsRepository = dependencies.fontsRepository,
-            bookClient = komgaClientFactory.bookClient(),
             notifications = dependencies.appNotifications,
-            ktor = komgaClientFactory.ktor(),
-            markReadProgress = markReadProgress,
             windowState = dependencies.windowState,
-            platformType = platformType
+            platformType = platformType,
         )
     }
 
     fun getEpubReaderSettingsViewModel(): EpubReaderSettingsViewModel {
-        return EpubReaderSettingsViewModel(
-        )
+        return EpubReaderSettingsViewModel(dependencies.epubReaderSettingsRepository)
     }
 
     fun getSeriesBulkActions() = SeriesBulkActions(

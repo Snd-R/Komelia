@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.paged
+package io.github.snd_r.komelia.ui.reader.image.paged
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,23 +29,23 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.LocalKeyEvents
-import io.github.snd_r.komelia.ui.reader.ReaderState
-import io.github.snd_r.komelia.ui.reader.ScreenScaleState
-import io.github.snd_r.komelia.ui.reader.common.PageSpreadProgressSlider
-import io.github.snd_r.komelia.ui.reader.common.PagedReaderHelpDialog
-import io.github.snd_r.komelia.ui.reader.common.ReaderControlsOverlay
-import io.github.snd_r.komelia.ui.reader.common.ScalableContainer
-import io.github.snd_r.komelia.ui.reader.common.SettingsMenu
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Error
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ImageResult.Success
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.Page
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookEnd
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.TransitionPage.BookStart
+import io.github.snd_r.komelia.ui.reader.image.ReaderState
+import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
+import io.github.snd_r.komelia.ui.reader.image.common.PageSpreadProgressSlider
+import io.github.snd_r.komelia.ui.reader.image.common.PagedReaderHelpDialog
+import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
+import io.github.snd_r.komelia.ui.reader.image.common.ScalableContainer
+import io.github.snd_r.komelia.ui.reader.image.common.SettingsMenu
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Error
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Success
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.Page
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookEnd
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookStart
 import kotlinx.coroutines.flow.SharedFlow
 import snd.komga.client.book.KomgaBook
 

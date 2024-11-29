@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.common
+package io.github.snd_r.komelia.ui.reader.image.common
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.Orientation.Horizontal

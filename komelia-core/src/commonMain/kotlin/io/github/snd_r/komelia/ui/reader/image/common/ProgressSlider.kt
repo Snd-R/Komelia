@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.common
+package io.github.snd_r.komelia.ui.reader.image.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.AppSliderDefaults
-import io.github.snd_r.komelia.ui.reader.PageMetadata
+import io.github.snd_r.komelia.ui.reader.image.PageMetadata
 import kotlin.math.roundToInt
 
 @Composable

@@ -1,8 +1,8 @@
 package io.github.snd_r.komelia.settings
 
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.ReaderType
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import kotlinx.coroutines.flow.Flow
 
 interface ImageReaderSettingsRepository {

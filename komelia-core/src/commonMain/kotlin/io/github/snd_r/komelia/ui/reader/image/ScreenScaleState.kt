@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader
+package io.github.snd_r.komelia.ui.reader.image
 
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.DecayAnimationSpec

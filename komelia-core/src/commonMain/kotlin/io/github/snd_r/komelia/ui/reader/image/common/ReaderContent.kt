@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.common
+package io.github.snd_r.komelia.ui.reader.image.common
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -30,14 +30,14 @@ import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowState
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.reader.ReaderState
-import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
-import io.github.snd_r.komelia.ui.reader.ReaderType.PAGED
-import io.github.snd_r.komelia.ui.reader.ScreenScaleState
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderContent
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderContent
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.ReaderState
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
+import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderContent
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderContent
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable

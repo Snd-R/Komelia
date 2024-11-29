@@ -30,9 +30,12 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.MainScreen
+import io.github.snd_r.komelia.ui.book.BookScreen
+import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.reader.readerScreen
+import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile.EPUB
@@ -51,7 +54,7 @@ class EpubScreen(
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(bookId.value) {
-            viewModelFactory.getTtsuEpubViewModel(
+            viewModelFactory.getEpubReaderViewModel(
                 bookId = bookId,
                 book = book,
                 markReadProgress = markReadProgress
@@ -59,27 +62,31 @@ class EpubScreen(
         }
         LaunchedEffect(bookId) {
             vm.initialize(navigator)
-            val book = vm.book.value
-            if (book != null && book.media.mediaProfile != EPUB) {
-                navigator.replace(readerScreen(book, markReadProgress))
+            val state = vm.state.value
+            if (state is Success) {
+                val book = state.value.book.value
+                if (book != null && book.media.mediaProfile != EPUB) {
+                    navigator.replace(readerScreen(book, markReadProgress))
+                }
             }
         }
 
+        val state = vm.state.collectAsState().value
         Column {
             PlatformTitleBar(fallbackToNonPlatformLayout = false, applyInsets = false) {
-                when (LocalPlatform.current) {
-                    PlatformType.DESKTOP -> TitleBarControls(onLeaveWebview =  { vm.closeWebview() })
-                    else -> {}
+                if (LocalPlatform.current == PlatformType.DESKTOP && state is Success) {
+                    TitleBarControls(onLeaveWebview = { state.value.closeWebview() })
                 }
             }
-            when (val result = vm.state.collectAsState().value) {
+            when (state) {
                 Loading, Uninitialized -> LoadingMaxSizeIndicator()
-                is Error -> ErrorContent(result.exception.message ?: result.exception.stackTraceToString())
-                is Success -> EpubContent(
-                    onWebviewCreated = vm::onWebviewCreated,
+                is Error -> ErrorContent(
+                    message = state.exception.message ?: state.exception.stackTraceToString(),
+                    onExit = { navigator.replaceAll(MainScreen(book?.let { bookScreen(it) } ?: BookScreen(bookId))) }
                 )
-            }
 
+                is Success -> EpubContent(onWebviewCreated = { state.value.onWebviewCreated(it) })
+            }
         }
     }
 

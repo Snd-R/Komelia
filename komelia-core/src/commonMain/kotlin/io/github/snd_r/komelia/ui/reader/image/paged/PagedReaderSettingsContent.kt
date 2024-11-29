@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.paged
+package io.github.snd_r.komelia.ui.reader.image.paged
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -18,8 +18,8 @@ import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
 
 @Composable
 fun ColumnScope.PagedReaderSettingsContent(

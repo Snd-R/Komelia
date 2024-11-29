@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader
+package io.github.snd_r.komelia.ui.reader.image
 
 import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.navigator.Navigator
@@ -14,7 +14,7 @@ import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
-import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound

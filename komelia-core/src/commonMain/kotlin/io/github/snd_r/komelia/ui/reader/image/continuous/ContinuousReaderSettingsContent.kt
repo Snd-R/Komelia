@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.continuous
+package io.github.snd_r.komelia.ui.reader.image.continuous
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -34,7 +34,7 @@ import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
-import io.github.snd_r.komelia.ui.reader.PageMetadata
+import io.github.snd_r.komelia.ui.reader.image.PageMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlin.math.roundToInt
 

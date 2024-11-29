@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader
+package io.github.snd_r.komelia.ui.reader.image
 
 import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
@@ -8,10 +8,10 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.strings.Strings
-import io.github.snd_r.komelia.ui.reader.ReaderType.CONTINUOUS
-import io.github.snd_r.komelia.ui.reader.ReaderType.PAGED
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 
 data class EpubReaderSettings(
-    val readerType: EpubReaderType = EpubReaderType.TTSU,
+    val readerType: EpubReaderType = EpubReaderType.TTSU_EPUB,
     val komgaReaderSettings: JsonObject = buildJsonObject { },
     val ttsuReaderSettings: TtsuReaderSettings = TtsuReaderSettings(),
 )

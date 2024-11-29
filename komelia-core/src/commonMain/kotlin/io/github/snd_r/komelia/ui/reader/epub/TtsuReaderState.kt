@@ -1,7 +1,5 @@
 package io.github.snd_r.komelia.ui.reader.epub
 
-import cafe.adriel.voyager.core.model.StateScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
@@ -29,6 +27,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -45,6 +44,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
+import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.book.R2Device
 import snd.komga.client.book.R2Location
 import snd.komga.client.book.R2Locator
@@ -60,51 +60,51 @@ import kotlin.math.roundToLong
 private val logger = KotlinLogging.logger {}
 private val resourceBaseUriRegex = "^http(s)?://.*/resource/".toRegex()
 
-class TtsuEpubViewModel(
+class TtsuReaderState(
     bookId: KomgaBookId,
     book: KomgaBook?,
     private val bookClient: KomgaBookClient,
     private val notifications: AppNotifications,
     private val ktor: HttpClient,
     private val markReadProgress: Boolean,
-    private val settingsRepository: EpubReaderSettingsRepository,
+    private val epubSettingsRepository: EpubReaderSettingsRepository,
     private val fontsRepository: UserFontsRepository,
     private val windowState: AppWindowState,
-    private val platformType: PlatformType
-) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
+    private val platformType: PlatformType,
+    private val coroutineScope: CoroutineScope,
+) : EpubReaderState {
+    override val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
+    override val book = MutableStateFlow(book)
 
     val bookId = MutableStateFlow(bookId)
-    val book = MutableStateFlow(book)
     private val webview = MutableStateFlow<KomeliaWebview?>(null)
     private val epubLoadTask = CompletableDeferred<TtuEpubData>()
     private val availableSystemFonts = MutableStateFlow<List<String>>(emptyList())
     private val selectedFontFile = MutableStateFlow<PlatformFile?>(null)
     private val navigator = MutableStateFlow<Navigator?>(null)
 
-    suspend fun initialize(navigator: Navigator) {
+    override suspend fun initialize(navigator: Navigator) {
         this.navigator.value = navigator
         if (platformType == PlatformType.MOBILE) windowState.setFullscreen(true)
         if (state.value !is LoadState.Uninitialized) return
 
-        mutableState.value = LoadState.Loading
+        state.value = LoadState.Loading
         notifications.runCatchingToNotifications {
-            book.value = bookClient.getBook(bookId.value)
-            screenModelScope.launch { epubLoadTask.complete(generateEpubHtml(bookId.value)) }
+            if (book.value == null) book.value = bookClient.getBook(bookId.value)
+            coroutineScope.launch { epubLoadTask.complete(generateEpubHtml(bookId.value)) }
             availableSystemFonts.value = getSystemFontNames()
-            mutableState.value = LoadState.Success(Unit)
+            state.value = LoadState.Success(Unit)
         }.onFailure {
-            mutableState.value = LoadState.Error(it)
+            state.value = LoadState.Error(it)
         }
     }
 
-    fun onWebviewCreated(webview: KomeliaWebview) {
+    override fun onWebviewCreated(webview: KomeliaWebview) {
         this.webview.value = webview
-        screenModelScope.launch {
-            loadEpub(webview)
-        }
+        coroutineScope.launch { loadEpub(webview) }
     }
 
-    fun closeWebview() {
+    override fun closeWebview() {
         webview.value?.close()
         if (platformType == PlatformType.MOBILE) windowState.setFullscreen(false)
         navigator.value?.replaceAll(
@@ -133,12 +133,12 @@ class TtsuEpubViewModel(
         }
 
         webview.bind<Unit, TtsuReaderSettings>("getSettings") {
-            val settings = settingsRepository.getTtsuReaderSettings()
+            val settings = epubSettingsRepository.getTtsuReaderSettings()
             if (!markReadProgress) settings.copy(autoBookmark = false)
             else settings
         }
         webview.bind<TtsuReaderSettings, Unit>("putSettings") {
-            settingsRepository.putTtsuReaderSettings(it)
+            epubSettingsRepository.putTtsuReaderSettings(it)
         }
         webview.bind<Unit, TtuBookmarkData>("getBookmark") { getBookmark() }
         webview.bind<TtuBookmarkData, Unit>("putBookmark") {
@@ -199,12 +199,17 @@ class TtsuEpubViewModel(
             windowState.setFullscreen(it)
         }
 
+        webview.bind<Unit, Unit>("completeBook") {
+            bookClient.markReadProgress(bookId.value, KomgaBookReadProgressUpdateRequest(completed = true))
+            closeWebview()
+        }
+
         webview.registerRequestInterceptor { uri ->
             runCatching {
                 when {
-                    uri == "http://komelia/index.html" -> {
+                    uri == "http://komelia/ttsu.html" -> {
                         runBlocking {
-                            val bytes = Res.readBytes("files/index.html")
+                            val bytes = Res.readBytes("files/ttsu.html")
                             ResourceLoadResult(data = bytes, contentType = "text/html")
                         }
                     }
@@ -236,7 +241,7 @@ class TtsuEpubViewModel(
             }.onFailure { logger.catching(it) }.getOrNull()
         }
 
-        webview.navigate("http://komelia/index.html")
+        webview.navigate("http://komelia/ttsu.html")
         webview.start()
     }
 
@@ -372,7 +377,7 @@ class TtsuEpubViewModel(
 
             result.appendChild(childWrapperDiv)
 
-            val chapterCharCount = charCountForElement(childWrapperDiv);
+            val chapterCharCount = charCountForElement(childWrapperDiv)
             val tocTitle = tocEntries[chapterHref]
             if (tocTitle != null) {
                 val startCharacter = currentMainChapterIndex
@@ -569,7 +574,8 @@ class TtsuEpubViewModel(
                 flattened.putAll(flattenToc(entry.children))
             }
             entry.href?.let {
-                flattened[it] = requireNotNull(entry.title)
+                val urlString = URLBuilder(it).apply { fragment = "" }.buildString()
+                flattened[urlString] = requireNotNull(entry.title)
             }
         }
         return flattened

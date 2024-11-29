@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.common
+package io.github.snd_r.komelia.ui.reader.image.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,9 +49,9 @@ import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
-import io.github.snd_r.komelia.ui.reader.ReaderState
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.ScreenScaleState
+import io.github.snd_r.komelia.ui.reader.image.ReaderState
+import io.github.snd_r.komelia.ui.reader.image.ReaderType
+import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import snd.komga.client.book.KomgaBook
 import kotlin.math.roundToInt
 

@@ -5,18 +5,18 @@ import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUDE
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.NONE
-import io.github.snd_r.komelia.ui.reader.ReaderType
-import io.github.snd_r.komelia.ui.reader.continuous.ContinuousReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.FIT_HEIGHT
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.FIT_WIDTH
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.ORIGINAL
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.LayoutScaleType.SCREEN
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
-import io.github.snd_r.komelia.ui.reader.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
+import io.github.snd_r.komelia.ui.reader.image.ReaderType
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType.FIT_HEIGHT
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType.FIT_WIDTH
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType.ORIGINAL
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType.SCREEN
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.DATE_ADDED_ASC
@@ -27,6 +27,7 @@ import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.TIT
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.TITLE_DESC
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.UPDATED_ASC
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort.UPDATED_DESC
+import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType
 import snd.komf.api.KomfProviders
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.book.KomgaReadStatus.IN_PROGRESS
@@ -379,7 +380,10 @@ data class SettingsStrings(
     val appThemeDark: String,
     val appThemeLight: String,
     val imageCardSize: String,
-    val decoder: String
+    val decoder: String,
+
+    val epubReaderTypeKomga: String,
+    val epubReaderTypeTtsu: String,
 ) {
     fun forThumbnailSize(size: KomgaThumbnailSize): String {
         return when (size) {
@@ -394,6 +398,13 @@ data class SettingsStrings(
         return when (theme) {
             AppTheme.DARK -> appThemeDark
             AppTheme.LIGHT -> appThemeLight
+        }
+    }
+
+    fun forEpubReaderType(readerType: EpubReaderType): String {
+        return when (readerType) {
+            EpubReaderType.KOMGA_EPUB -> epubReaderTypeKomga
+            EpubReaderType.TTSU_EPUB -> epubReaderTypeTtsu
         }
     }
 }

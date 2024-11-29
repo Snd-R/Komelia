@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader
+package io.github.snd_r.komelia.ui.reader.image
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,14 +34,13 @@ import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
-import io.github.snd_r.komelia.ui.reader.common.ReaderContent
+import io.github.snd_r.komelia.ui.reader.image.common.ReaderContent
 import io.github.snd_r.komelia.ui.reader.epub.EpubScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
-import snd.komga.client.book.MediaProfile
 import snd.komga.client.book.MediaProfile.DIVINA
 import snd.komga.client.book.MediaProfile.EPUB
 import snd.komga.client.book.MediaProfile.PDF

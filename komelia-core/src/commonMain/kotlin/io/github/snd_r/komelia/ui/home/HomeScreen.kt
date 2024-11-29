@@ -11,7 +11,7 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
-import io.github.snd_r.komelia.ui.reader.readerScreen
+import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.library.KomgaLibraryId
 
