@@ -11,14 +11,14 @@
             icon
             @click="closeBook"
         >
-          <v-icon>mdi-arrow-left</v-icon>
+          <v-icon :icon="mdiArrowLeft"/>
         </v-btn>
 
         <v-btn
             :disabled="!hasToc && !hasLandmarks && !hasPageList"
             icon
             @click="showToc = !showToc">
-          <v-icon>mdi-table-of-contents</v-icon>
+          <v-icon :icon="mdiTableOfContents"/>
         </v-btn>
 
         <v-toolbar-title> {{ bookTitle }}</v-toolbar-title>
@@ -26,22 +26,22 @@
 
         <v-btn
             icon
-            :disabled="!screenfull.isEnabled"
-            @click="screenfull.isFullscreen ? screenfull.exit() : enterFullscreen()">
-          <v-icon>{{ fullscreenIcon }}</v-icon>
+            :disabled="!fullscreenIsAvailable"
+            @click="switchFullscreen()">
+          <v-icon :icon="mdiFullscreen"/>
         </v-btn>
 
         <v-btn
             icon
             @click="showHelp = !showHelp">
-          <v-icon>mdi-help-circle</v-icon>
+          <v-icon :icon="mdiHelpCircle"/>
         </v-btn>
 
         <v-btn
             icon
             @click="toggleSettings"
         >
-          <v-icon>mdi-cog</v-icon>
+          <v-icon :icon="mdiCog"/>
         </v-btn>
       </v-toolbar>
     </v-slide-y-transition>
@@ -57,7 +57,7 @@
           v-if="showToolbars"
       >
         <v-btn icon @click="previousBook">
-          <v-icon>mdi-undo</v-icon>
+          <v-icon :icon="mdiUndo"/>
         </v-btn>
 
         <v-spacer/>
@@ -67,7 +67,7 @@
             :disabled="!historyCanGoBack"
             @click="historyBack"
         >
-          <v-icon>mdi-chevron-left</v-icon>
+          <v-icon :icon="mdiChevronLeft"/>
         </v-btn>
 
         <span v-if="verticalScroll" class="mx-2" style="font-size: 0.85em">
@@ -79,13 +79,13 @@
             :disabled="!historyCanGoForward"
             @click="historyForward"
         >
-          <v-icon>mdi-chevron-right</v-icon>
+          <v-icon :icon="mdiChevronRight"/>
         </v-btn>
 
         <v-spacer/>
 
         <v-btn icon @click="nextBook">
-          <v-icon>mdi-redo</v-icon>
+          <v-icon :icon="mdiRedo"/>
         </v-btn>
       </v-toolbar>
     </v-slide-y-reverse-transition>
@@ -97,13 +97,13 @@
     >
       <v-tabs grow v-model="tab">
         <v-tab value="hasToc" v-if="hasToc">
-          <v-icon>mdi-table-of-contents</v-icon>
+          <v-icon :icon="mdiTableOfContents"/>
         </v-tab>
         <v-tab value="hasLandmarks" v-if="hasLandmarks">
-          <v-icon>mdi-eiffel-tower</v-icon>
+          <v-icon :icon="mdiEiffelTower"/>
         </v-tab>
         <v-tab value="hasPageList" v-if="hasPageList">
-          <v-icon>mdi-numeric</v-icon>
+          <v-icon :icon="mdiNumeric"/>
         </v-tab>
       </v-tabs>
 
@@ -132,12 +132,12 @@
          :style="`top: ${showToolbars ? 48 : 0}px`"
          :class="settings.navigationButtons ? '' : 'hidden'"
       >
-        <v-icon style="left: calc(50% - 12px); position: relative;">mdi-chevron-up</v-icon>
+        <v-icon :icon="mdiChevronUp" style="left: calc(50% - 12px); position: relative;"/>
       </a>
       <a id="next-chapter" rel="next" role="button" aria-labelledby="next-label"
          :class="settings.navigationButtons ? '' : 'hidden'"
          style="bottom: 0;left: 50%;position: fixed;color: #000;height: 24px;background: #d3d3d33b; width: 150px;transform: translate(-50%, 0); display: block">
-        <v-icon style="left: calc(50% - 12px);position: relative;">mdi-chevron-down</v-icon>
+        <v-icon :icon="mdiChevronDown" style="left: calc(50% - 12px);position: relative;"/>
       </a>
     </div>
 
@@ -146,15 +146,14 @@
          style="top: 50%;left:0;position: fixed;height: 100px;background: #d3d3d33b;"
          :class="settings.navigationButtons ? '' : 'hidden'"
       >
-        <v-icon style="top: calc(50% - 12px);
-                        position: relative;">mdi-chevron-left
-        </v-icon>
+        <v-icon :icon="mdiChevronLeft" style="top: calc(50% - 12px);
+                        position: relative;"/>
       </a>
       <a rel="next" class="disabled" role="button" aria-labelledby="next-label"
          style="top: 50%;right:0;position: fixed;height: 100px;background: #d3d3d33b;"
          :class="settings.navigationButtons ? '' : 'hidden'"
       >
-        <v-icon style="top: calc(50% - 12px);position: relative;">mdi-chevron-right</v-icon>
+        <v-icon :icon="mdiChevronRight" style="top: calc(50% - 12px);position: relative;"/>
       </a>
     </footer>
 
@@ -183,7 +182,7 @@
       <v-card>
         <v-toolbar dark color="primary">
           <v-btn icon dark @click="showSettings = false">
-            <v-icon>mdi-close</v-icon>
+            <v-icon :icon="mdiClose"/>
           </v-btn>
           <v-toolbar-title>{{ t('bookreader.reader_settings') }}</v-toolbar-title>
         </v-toolbar>
@@ -200,10 +199,6 @@
                   v-model="readingDirection"
                   :label="t('bookreader.settings.reading_mode')"
               />
-            </v-list-item>
-            <v-list-item>
-              <settings-switch v-model="alwaysFullscreen" :label="t('bookreader.settings.always_fullscreen')"
-                               :disabled="!screenfull.isEnabled"/>
             </v-list-item>
 
             <v-list-item>
@@ -234,7 +229,7 @@
                       class="mx-1"
                       @click="appearance = a.value"
                   >
-                    <v-icon v-if="appearance === a.value">mdi-check</v-icon>
+                    <v-icon :icon="mdiCheck" v-if="appearance === a.value"/>
                   </v-btn>
                 </v-col>
               </v-row>
@@ -272,11 +267,11 @@
 
             <v-list-item class="d-flex justify-center">
               <v-btn depressed @click="fontSize-=10">
-                <v-icon small>mdi-format-title</v-icon>
+                <v-icon :icon="mdiFormatTitle" small/>
               </v-btn>
               <span class="caption mx-8" style="width: 2rem">{{ fontSize }}%</span>
               <v-btn depressed @click="fontSize+=10">
-                <v-icon>mdi-format-title</v-icon>
+                <v-icon :icon="mdiFormatTitle"/>
               </v-btn>
             </v-list-item>
 
@@ -288,7 +283,7 @@
               </v-btn>
               <span class="caption mx-8" style="width: 2rem">{{ Math.round(lineHeight * 100) }}%</span>
               <v-btn depressed @click="lineHeight+=.1">
-                <v-icon>mdi-format-line-spacing</v-icon>
+                <v-icon :icon="mdiFormatLetterSpacing"/>
               </v-btn>
             </v-list-item>
 
@@ -327,24 +322,40 @@
 
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n'
-import {computed, ComputedRef, onBeforeUnmount, onMounted, onUnmounted, reactive, Ref, ref} from 'vue'
+import {computed, ComputedRef, onBeforeUnmount, onMounted, reactive, Ref, ref} from 'vue'
 import D2Reader, {Locator, ReadingPosition} from '@d-i-t-a/reader'
 import {Locations} from "@d-i-t-a/reader/dist/types/model/Locator";
 import {BookDto} from '@/types/komga-books'
 import {getBookTitleCompact} from '@/functions/book-title'
 import {SeriesDto} from '@/types/komga-series'
-import SettingsSwitch from '@/components/SettingsSwitch.vue'
 import {TocEntry} from '@/types/epub'
 import TocList from '@/components/TocList.vue'
 import {flattenToc} from '@/functions/toc'
 import ShortcutHelpDialog from '@/components/ShortcutHelpDialog.vue'
-import screenfull from 'screenfull'
 import SettingsSelect from '@/components/SettingsSelect.vue'
 import {createR2Progression, r2ProgressionToReadingPosition} from '@/functions/readium'
 import {useDisplay, useRtl} from "vuetify";
 import {EpubReaderSettings} from "@/types/epub-reader-settings";
 import {externalFunctions} from "@/main";
 import IconFormatLineSpacingDown from "@/components/IconFormatLineSpacingDown.vue";
+import {
+  mdiArrowLeft,
+  mdiCheck,
+  mdiChevronDown,
+  mdiChevronLeft,
+  mdiChevronRight,
+  mdiChevronUp,
+  mdiClose,
+  mdiCog,
+  mdiEiffelTower,
+  mdiFormatLetterSpacing,
+  mdiFormatTitle, mdiFullscreen,
+  mdiHelpCircle,
+  mdiNumeric,
+  mdiRedo,
+  mdiTableOfContents,
+  mdiUndo
+} from '@mdi/js'
 
 const bookId = ref('')
 const {t} = useI18n()
@@ -352,7 +363,6 @@ const {width, height, smAndUp} = useDisplay()
 const {isRtl} = useRtl()
 isRtl.value = false
 
-const fullscreenIcon = ref('mdi-fullscreen')
 const d2Reader = ref({} as D2Reader)
 const book = ref(undefined as unknown as BookDto)
 const series = ref(undefined as unknown as SeriesDto)
@@ -436,6 +446,9 @@ const navigationOptions = ref(
       {title: t('epubreader.settings.navigation_options.both'), value: 'buttonclick'},
     ]
 )
+
+// const fullscreenIsAvailable = await externalFunctions.isFullscreenAvailable()
+const fullscreenIsAvailable = true
 
 const tocs = reactive({
   toc: undefined as unknown as TocEntry[],
@@ -566,7 +579,7 @@ const shortcuts: ComputedRef<any> = computed(() => {
   if (fixedLayout.value) {
     return shortcuts
   }
-  return Object.assign({}, shortcuts, epubShortcutsSettingsScroll)
+  return Object.assign({}, shortcuts, epubShortcutsSettingsScroll, epubShortcutsSettings, epubShortcutsMenus)
 })
 
 const shortcutsHelp = computed(() => {
@@ -700,17 +713,6 @@ const fontSize = computed({
     externalFunctions.saveReaderSettings(settings)
   },
 })
-const alwaysFullscreen = computed({
-  get(): boolean {
-    return settings.alwaysFullscreen
-  },
-  set(alwaysFullscreen: boolean): void {
-    settings.alwaysFullscreen = alwaysFullscreen
-    externalFunctions.saveReaderSettings(settings)
-    if (alwaysFullscreen) enterFullscreen()
-    else screenfull.isEnabled && screenfull.exit()
-  },
-})
 const navigationMode = computed({
   get(): string {
     let r = settings.navigationButtons ? 'button' : ''
@@ -724,17 +726,9 @@ const navigationMode = computed({
   },
 })
 
-if (screenfull.isEnabled) screenfull.on('change', fullscreenChanged)
 
 onBeforeUnmount(() => {
   d2Reader.value.stop()
-})
-onUnmounted(() => {
-  isRtl.value = (t('common.locale_rtl') === 'true')
-  if (screenfull.isEnabled) {
-    screenfull.off('change', fullscreenChanged)
-    screenfull.exit()
-  }
 })
 
 onMounted(async () => {
@@ -762,17 +756,8 @@ function nextBook() {
   }
 }
 
-function enterFullscreen() {
-  if (screenfull.isEnabled) screenfull.request(document.documentElement, {navigationUI: 'hide'})
-}
-
-function switchFullscreen() {
-  if (screenfull.isEnabled) screenfull.isFullscreen ? screenfull.exit() : enterFullscreen()
-}
-
-function fullscreenChanged() {
-  if (screenfull.isEnabled && screenfull.isFullscreen) fullscreenIcon.value = 'mdi-fullscreen-exit'
-  else fullscreenIcon.value = 'mdi-fullscreen'
+async function switchFullscreen() {
+  await externalFunctions.toggleFullscreen()
 }
 
 function toggleToolbars() {
@@ -936,8 +921,6 @@ async function setupState(currentBookId: string) {
   tocs.toc = d2Reader.value.tableOfContents
   tocs.landmarks = d2Reader.value.landmarks
   tocs.pageList = d2Reader.value.pageList
-
-  if (alwaysFullscreen.value) enterFullscreen()
 
   try {
     // if (this?.context.origin === ContextOrigin.READLIST) {

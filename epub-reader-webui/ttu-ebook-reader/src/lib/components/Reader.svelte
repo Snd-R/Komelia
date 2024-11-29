@@ -409,6 +409,7 @@
     ]);
 
     try {
+      await externalFunctions.completeBook()
       dialogManager.dialogs$.next([]);
 
       merge(fromEvent(document, 'pointerup'), timer(10000))

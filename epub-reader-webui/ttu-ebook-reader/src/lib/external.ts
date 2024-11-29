@@ -40,6 +40,8 @@ export interface ExternalFunctionsWindow extends Window {
   isFullscreen(): Promise<CallbackResponse<boolean>>
 
   setFullscreen(enabled: boolean): Promise<CallbackResponse<undefined>>
+
+  completeBook(): Promise<CallbackResponse<undefined>>
 }
 
 interface CallbackResponse<T> {
@@ -116,6 +118,10 @@ export class ExternalFunctions {
 
   async isFullscreenAvailable(): Promise<boolean> {
     return this.windowFunctions.isFullscreenAvailable().then((result) => result.result)
+  }
+
+  async completeBook(): Promise<undefined> {
+    return this.windowFunctions.completeBook().then((result) => result.result)
   }
 }
 

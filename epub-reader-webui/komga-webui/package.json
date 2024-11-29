@@ -9,15 +9,13 @@
   },
   "dependencies": {
     "@d-i-t-a/reader": "github:gotson/R2D2BC#fork",
-    "@mdi/font": "7.4.47",
-    "roboto-fontface": "*",
-    "screenfull": "^5.2.0",
     "vue": "^3.4.31",
     "vue-i18n": "^10.0.4",
     "vuetify": "^3.6.11"
   },
   "devDependencies": {
     "@babel/types": "^7.24.7",
+    "@mdi/js": "^7.4.47",
     "@types/node": "^20.14.10",
     "@vitejs/plugin-vue": "^5.0.5",
     "sass": "1.77.6",

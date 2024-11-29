@@ -60,7 +60,7 @@
         {#if typeof dialog.component === 'string'}
           {@html dialog.component}
         {:else}
-          <dialog.component {...dialog.component} {...dialog.props} onclose={closeAllDialogs}/>
+          <dialog.component {...dialog.component} {...dialog.props} on:close={closeAllDialogs}/>
         {/if}
       {/each}
     </div>

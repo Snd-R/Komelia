@@ -40,6 +40,9 @@ declare global {
         getServerUrl: () => Promise<CallbackResponse<string>>
         getSettings: () => Promise<CallbackResponse<EpubReaderSettings>>
         saveSettings: (settings: EpubReaderSettings) => Promise<CallbackResponse<undefined>>
+
+        isFullscreenAvailable: () => Promise<CallbackResponse<boolean>>
+        toggleFullscreen: () => Promise<CallbackResponse<undefined>>
     }
 }
 
@@ -96,7 +99,6 @@ export default class ExternalFunctions {
         return window.closeBook().then((value) => value.result)
     }
 
-
     async getReaderSettings(): Promise<EpubReaderSettings> {
         return window.getSettings().then((value) => value.result)
     }
@@ -115,6 +117,14 @@ export default class ExternalFunctions {
 
     async getServerUrl(): Promise<string> {
         return window.getServerUrl().then((value) => value.result)
+    }
+
+    async isFullscreenAvailable(): Promise<boolean> {
+        return window.isFullscreenAvailable().then((value) => value.result)
+    }
+
+    async toggleFullscreen(): Promise<undefined> {
+        return window.toggleFullscreen().then((value) => value.result)
     }
 
     async callbackResult<T>(promise: Promise<CallbackResponse<T>>): Promise<T> {

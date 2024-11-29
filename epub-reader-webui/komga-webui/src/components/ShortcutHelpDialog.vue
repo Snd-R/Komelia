@@ -6,7 +6,7 @@
   >
     <v-card>
       <v-btn icon absolute top right @click="dialog = false">
-        <v-icon>mdi-close</v-icon>
+        <v-icon :icon="mdiClose"/>
       </v-btn>
       <v-card-text>
         <v-row>
@@ -47,6 +47,7 @@
 import {ref, watch} from 'vue'
 import {useDisplay} from 'vuetify'
 import {useI18n} from "vue-i18n";
+import {mdiClose} from "@mdi/js";
 
 const emit = defineEmits(['update:modelValue'])
 const {t} = useI18n()
