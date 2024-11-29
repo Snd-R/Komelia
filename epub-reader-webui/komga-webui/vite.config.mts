@@ -19,14 +19,6 @@ export default defineConfig({
         // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
         Vuetify(),
         Components(),
-        ViteFonts({
-            google: {
-                families: [{
-                    name: 'Roboto',
-                    styles: 'wght@100;300;400;500;700;900',
-                }],
-            },
-        }),
         viteSingleFile({useRecommendedBuildConfig: true}),
     ],
     define: {'process.env': {}},
