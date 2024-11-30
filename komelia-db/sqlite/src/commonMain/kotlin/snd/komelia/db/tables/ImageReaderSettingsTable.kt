@@ -1,7 +1,6 @@
 package snd.komelia.db.tables
 
 import org.jetbrains.exposed.sql.Table
-import snd.komelia.db.tables.AppSettingsTable.version
 
 object ImageReaderSettingsTable: Table("ImageReaderSettings") {
     val bookId = text("book_id")
@@ -18,5 +17,5 @@ object ImageReaderSettingsTable: Table("ImageReaderSettings") {
     val continuousPageSpacing = integer("continuous_page_spacing")
     val cropBorders = bool("crop_borders")
 
-    override val primaryKey = PrimaryKey(version)
+    override val primaryKey = PrimaryKey(bookId)
 }
