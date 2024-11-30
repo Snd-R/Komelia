@@ -62,7 +62,11 @@ class EpubReaderViewModel(
                             coroutineScope = screenModelScope,
                         )
                         komgaState.initialize(navigator)
-                        mutableState.value = LoadState.Success(komgaState)
+                        when (val res = komgaState.state.value) {
+                            is LoadState.Error -> mutableState.value = LoadState.Error(res.exception)
+                            is LoadState.Success<Unit> -> mutableState.value = LoadState.Success(komgaState)
+                            LoadState.Loading, LoadState.Uninitialized -> LoadState.Loading
+                        }
                     }
 
                     TTSU_EPUB -> {
@@ -80,7 +84,11 @@ class EpubReaderViewModel(
                             coroutineScope = screenModelScope,
                         )
                         ttsuState.initialize(navigator)
-                        mutableState.value = LoadState.Success(ttsuState)
+                        when (val res = ttsuState.state.value) {
+                            is LoadState.Error -> mutableState.value = LoadState.Error(res.exception)
+                            is LoadState.Success<Unit> -> mutableState.value = LoadState.Success(ttsuState)
+                            LoadState.Loading, LoadState.Uninitialized -> LoadState.Loading
+                        }
                     }
                 }
             }

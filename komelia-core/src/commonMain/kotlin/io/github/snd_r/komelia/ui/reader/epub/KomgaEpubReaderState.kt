@@ -61,6 +61,7 @@ class KomgaEpubReaderState(
     private val webview = MutableStateFlow<KomeliaWebview?>(null)
     private val navigator = MutableStateFlow<Navigator?>(null)
 
+    @OptIn(ExperimentalResourceApi::class)
     override suspend fun initialize(navigator: Navigator) {
         this.navigator.value = navigator
         if (platformType == PlatformType.MOBILE) windowState.setFullscreen(true)
@@ -68,6 +69,7 @@ class KomgaEpubReaderState(
 
         state.value = LoadState.Loading
         notifications.runCatchingToNotifications {
+            Res.getUri("files/komga.html")
             if (book.value == null) book.value = bookClient.getBook(bookId.value)
             state.value = LoadState.Success(Unit)
         }.onFailure {

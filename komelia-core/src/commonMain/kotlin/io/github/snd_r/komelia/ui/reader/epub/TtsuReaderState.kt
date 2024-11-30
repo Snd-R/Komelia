@@ -83,6 +83,7 @@ class TtsuReaderState(
     private val selectedFontFile = MutableStateFlow<PlatformFile?>(null)
     private val navigator = MutableStateFlow<Navigator?>(null)
 
+    @OptIn(ExperimentalResourceApi::class)
     override suspend fun initialize(navigator: Navigator) {
         this.navigator.value = navigator
         if (platformType == PlatformType.MOBILE) windowState.setFullscreen(true)
@@ -90,6 +91,8 @@ class TtsuReaderState(
 
         state.value = LoadState.Loading
         notifications.runCatchingToNotifications {
+            Res.getUri("files/ttsu.html")
+
             if (book.value == null) book.value = bookClient.getBook(bookId.value)
             coroutineScope.launch { epubLoadTask.complete(generateEpubHtml(bookId.value)) }
             availableSystemFonts.value = getSystemFontNames()
