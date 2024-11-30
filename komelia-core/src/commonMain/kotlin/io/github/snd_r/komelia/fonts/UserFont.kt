@@ -1,5 +1,7 @@
 package io.github.snd_r.komelia.fonts
 
+import io.github.vinceglb.filekit.core.PlatformFile
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.buffered
@@ -38,9 +40,9 @@ class UserFont(
     }
 
     companion object {
-        fun saveFontToAppDirectory(
+        suspend fun saveFontToAppDirectory(
             name: String,
-            file: Path,
+            file: PlatformFile,
         ): UserFont? {
             val fontsDir = userFontsDirectory() ?: return null
             val fileSystem = SystemFileSystem
@@ -52,7 +54,10 @@ class UserFont(
                 if (extension.isNotBlank() && !name.endsWith(extension)) append(".$extension")
             }
             val newFile = Path(fontsDir, newFileName)
-            fileSystem.source(file).buffered().transferTo(fileSystem.sink(newFile))
+            val bytes = file.readBytes()
+            val fileSink = fileSystem.sink(newFile).buffered()
+            fileSink.writeFully(bytes)
+            fileSink.flush()
 
             return UserFont(name, newFile)
         }

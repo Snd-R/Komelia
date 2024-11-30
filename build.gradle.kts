@@ -30,9 +30,8 @@ val androidx86BuildDir = "$projectDir/cmake/build-android-x86"
 
 val resourcesDir = "$projectDir/komelia-jni/src/jvmMain/resources/"
 val androidJniLibsDir = "$projectDir/komelia-jni/src/androidMain/jniLibs"
-
 val composeDistroResourcesDir = "$projectDir/komelia-app/desktopUnpackedResources"
-val composeDesktopResourcesDir = "$projectDir/komelia-core/desktopResources"
+val composeCommonResources = "$projectDir/komelia-core/src/commonMain/composeResources/files"
 
 val linuxCommonLibs = setOf(
     "libintl.so",
@@ -204,13 +203,15 @@ tasks.register<Sync>("windows-x86_64_copyJniLibsComposeResources") {
     into("$composeDistroResourcesDir/windows")
 }
 
-val webui = "$rootDir/komga-webui"
 
-tasks.register<Exec>("npmInstall") {
+val webui = "$rootDir/epub-reader-webui"
+val webuiKomga = "$webui/komga-webui"
+val webuiTtsu = "$webui/ttu-ebook-reader"
+tasks.register<Exec>("komgaNpmInstall") {
     group = "web"
-    workingDir(webui)
-    inputs.file("$webui/package.json")
-    outputs.dir("$webui/node_modules")
+    workingDir(webuiKomga)
+    inputs.file("$webuiKomga/package.json")
+    outputs.dir("$webuiKomga/node_modules")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
@@ -221,12 +222,12 @@ tasks.register<Exec>("npmInstall") {
     )
 }
 
-tasks.register<Exec>("npmBuild") {
+tasks.register<Exec>("komgaNpmBuild") {
     group = "web"
-    dependsOn("npmInstall")
-    workingDir(webui)
-    inputs.dir(webui)
-    outputs.dir("$webui/dist")
+    dependsOn("komgaNpmInstall")
+    workingDir(webuiKomga)
+    inputs.dir(webuiKomga)
+    outputs.dir("$webuiKomga/dist")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
@@ -238,16 +239,50 @@ tasks.register<Exec>("npmBuild") {
     )
 }
 
-tasks.register<Sync>("CopyWebui") {
+tasks.register<Exec>("ttsuNpmInstall") {
     group = "web"
-    dependsOn("npmBuild")
-    from("$webui/dist/")
-    into("$composeDesktopResourcesDir/files")
+    workingDir(webuiTtsu)
+    inputs.file("$webuiTtsu/package.json")
+    outputs.dir("$webuiTtsu/node_modules")
+    commandLine(
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            "npm.cmd"
+        } else {
+            "npm"
+        },
+        "install",
+    )
+}
+
+tasks.register<Exec>("ttsuNpmBuild") {
+    group = "web"
+    dependsOn("ttsuNpmInstall")
+    workingDir(webuiTtsu)
+    inputs.dir(webuiTtsu)
+    outputs.dir("$webuiTtsu/dist")
+    commandLine(
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            "npm.cmd"
+        } else {
+            "npm"
+        },
+        "run",
+        "build",
+    )
+}
+
+tasks.register<Sync>("buildWebui") {
+    group = "web"
+    dependsOn("komgaNpmBuild")
+    dependsOn("ttsuNpmBuild")
+
+    from("$webuiKomga/dist/")
+    from("$webuiTtsu/dist/")
+    into(composeCommonResources)
 }
 
 tasks.register<Exec>("cmakeSystemDepsConfigure") {
     group = "jni"
-    dependsOn("CopyWebui")
     commandLine(
         "cmake",
         "-B", "cmake-build",
@@ -287,5 +322,6 @@ tasks.register<Sync>("cmakeSystemDepsCopyJniLibs") {
 
 tasks.register("komeliaBuildNonJvmDependencies") {
     group = "build"
+    dependsOn("buildWebui")
     dependsOn("cmakeSystemDepsCopyJniLibs")
 }

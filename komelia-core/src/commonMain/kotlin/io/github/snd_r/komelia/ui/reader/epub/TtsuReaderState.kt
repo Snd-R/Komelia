@@ -28,6 +28,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -38,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.io.files.Path
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import snd.komga.client.book.KomgaBook
@@ -161,8 +161,8 @@ class TtsuReaderState(
         }
 
         webview.bind<String, TtsuUserFont>("saveSelectedFont") { name ->
-            val selectedFontPath = Path(requireNotNull(selectedFontFile.value?.path))
-            val userFont = requireNotNull(UserFont.saveFontToAppDirectory(name, selectedFontPath))
+            val selectedFile = requireNotNull(selectedFontFile.value)
+            val userFont = requireNotNull(UserFont.saveFontToAppDirectory(name, selectedFile))
             fontsRepository.putFont(userFont)
             TtsuUserFont(
                 displayName = userFont.name,
@@ -337,6 +337,11 @@ class TtsuReaderState(
         return textNode.text()
     }
 
+    data class Chapter(
+        val href: String,
+        val data: String,
+    )
+
     private suspend fun generateEpubHtml(bookId: KomgaBookId): TtuEpubData {
         val manifest = bookClient.getWebPubManifest(bookId)
         val sectionData: MutableList<TtuSection> = mutableListOf()
@@ -344,13 +349,16 @@ class TtsuReaderState(
 
         var currentCharCount = 0L
         var currentMainChapterIndex: Int? = null
-        val tocEntries: Map<String, String> = flattenToc(manifest.toc)
         val images = mutableListOf<Url>()
-        for (chapter in manifest.readingOrder) {
-            val chapterHref = chapter.href ?: continue
 
-            val chapterData = ktor.get(chapterHref).bodyAsText()
-            val chapterDocument = Ksoup.parse(chapterData)
+        val tocEntries: Map<String, String> = flattenToc(manifest.toc)
+        val chapters = manifest.readingOrder
+            .mapNotNull { it.href }
+            .map { href -> coroutineScope.async { Chapter(href, ktor.get(href).bodyAsText()) } }
+
+        for (deferredChapter in chapters) {
+            val chapter = deferredChapter.await()
+            val chapterDocument = Ksoup.parse(chapter.data)
 
             val chapterBody = chapterDocument.body()
             if (chapterBody.children().isEmpty()) {
@@ -360,7 +368,7 @@ class TtsuReaderState(
             val chapterBodyId = chapterBody.id().ifBlank { null }
             val chapterBodyClass = chapterBody.className()
 
-            images.addAll(scanAndReplaceImagePaths(manifest, URI(chapterHref), chapterBody))
+            images.addAll(scanAndReplaceImagePaths(manifest, URI(chapter.href), chapterBody))
 
             val childBodyDiv = Element("div")
             childBodyDiv.addClass("ttu-book-body-wrapper $chapterBodyClass")
@@ -372,13 +380,13 @@ class TtsuReaderState(
             childHtmlDiv.appendChild(childBodyDiv)
 
             val childWrapperDiv = Element("div")
-            childWrapperDiv.id(chapterHref)
+            childWrapperDiv.id(chapter.href)
             childWrapperDiv.appendChild(childHtmlDiv)
 
             result.appendChild(childWrapperDiv)
 
             val chapterCharCount = charCountForElement(childWrapperDiv)
-            val tocTitle = tocEntries[chapterHref]
+            val tocTitle = tocEntries[chapter.href]
             if (tocTitle != null) {
                 val startCharacter = currentMainChapterIndex
                     ?.let { sectionData[it].startCharacter + sectionData[it].characters }
@@ -386,7 +394,7 @@ class TtsuReaderState(
 
                 sectionData.add(
                     TtuSection(
-                        reference = chapterHref,
+                        reference = chapter.href,
                         charactersWeight = chapterCharCount,
                         label = tocTitle,
                         startCharacter = startCharacter,
@@ -403,7 +411,7 @@ class TtsuReaderState(
                     )
                     sectionData.add(
                         TtuSection(
-                            reference = chapterHref,
+                            reference = chapter.href,
                             charactersWeight = chapterCharCount,
                             startCharacter = currentCharCount,
                             characters = currentCharCount + chapterCharCount,
@@ -414,7 +422,7 @@ class TtsuReaderState(
                 } else {
                     sectionData.add(
                         TtuSection(
-                            reference = chapterHref,
+                            reference = chapter.href,
                             charactersWeight = chapterCharCount,
                             startCharacter = currentCharCount,
                             characters = chapterCharCount,

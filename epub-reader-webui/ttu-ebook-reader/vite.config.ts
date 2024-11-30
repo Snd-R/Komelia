@@ -19,5 +19,12 @@ export default defineConfig({
         api: 'modern-compiler' // or "modern"
       }
     }
-  }
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        app: './ttsu.html',
+      },
+    },
+  },
 })

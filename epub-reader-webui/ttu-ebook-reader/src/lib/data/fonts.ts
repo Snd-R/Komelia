@@ -23,18 +23,18 @@ export function toCanonicalFontFamilyName(name: string): string {
 export async function loadFont(font: UserFont) {
   const fontFile = new FontFace(font.familyName, `url(${font.path})`)
   return fontFile.load()
-    .then((loadedFont) => document.fonts.add(loadedFont))
+      .then((loadedFont) => document.fonts.add(loadedFont))
 }
 
 
 export const defaultSansFont: Font =
-  {
-    displayName: 'Noto Sans CJK JP',
-    familyName: 'Noto Sans CJK JP',
-  }
+    {
+      displayName: 'Noto Sans CJK JP',
+      familyName: 'Noto Sans CJK JP',
+    }
 
 export const defaultSerifFont: Font = defaultSansFont
-  // {
-  //   displayName: 'Noto Serif CJK JP',
-  //   familyName: 'Noto Serif CJK JP'
-  // }
+// {
+//   displayName: 'Noto Serif CJK JP',
+//   familyName: 'Noto Serif CJK JP'
+// }

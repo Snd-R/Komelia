@@ -25,8 +25,8 @@
         <v-spacer></v-spacer>
 
         <v-btn
+            v-if="fullscreenIsAvailable"
             icon
-            :disabled="!fullscreenIsAvailable"
             @click="switchFullscreen()">
           <v-icon :icon="mdiFullscreen"/>
         </v-btn>
@@ -363,6 +363,7 @@ const {width, height, smAndUp} = useDisplay()
 const {isRtl} = useRtl()
 isRtl.value = false
 
+const fullscreenIsAvailable = ref(true)
 const d2Reader = ref({} as D2Reader)
 const book = ref(undefined as unknown as BookDto)
 const series = ref(undefined as unknown as SeriesDto)
@@ -446,9 +447,6 @@ const navigationOptions = ref(
       {title: t('epubreader.settings.navigation_options.both'), value: 'buttonclick'},
     ]
 )
-
-// const fullscreenIsAvailable = await externalFunctions.isFullscreenAvailable()
-const fullscreenIsAvailable = true
 
 const tocs = reactive({
   toc: undefined as unknown as TocEntry[],
@@ -734,6 +732,7 @@ onBeforeUnmount(() => {
 onMounted(async () => {
   let bookId = await externalFunctions.getInitialBookId()
   let externalSettings = await externalFunctions.getReaderSettings()
+  fullscreenIsAvailable.value = await externalFunctions.isFullscreenAvailable()
   Object.assign(settings, externalSettings)
   await setupState(bookId)
 })

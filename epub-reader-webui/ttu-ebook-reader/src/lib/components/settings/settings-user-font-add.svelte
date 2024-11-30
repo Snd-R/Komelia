@@ -32,8 +32,10 @@
       await loadFont(savedFont)
       $userFonts$ = [...$userFonts$, savedFont];
       fontName = '';
-    } catch (error: any) {
-      currentError = error.message;
+    } catch (error: any | DOMException) {
+      console.log(error)
+
+      currentError = error.result || error.message;
     }
 
     isLoading = false;

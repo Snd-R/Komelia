@@ -9,6 +9,7 @@
   import {faSpinner} from "@fortawesome/free-solid-svg-icons";
   import {loadFont} from "$lib/data/fonts";
   import Fa from "svelte-fa";
+  import {logger} from "$lib/data/logger";
 
   let showSettings = $state(false)
 
@@ -22,7 +23,11 @@
     await loadExternalSettings()
     isMobile$.next(isMobile(window));
 
-    await Promise.all($userFonts$.map((font) => loadFont(font)))
+    try {
+      await Promise.all($userFonts$.map((font) => loadFont(font)))
+    } catch (e: any) {
+      logger.error(e.result)
+    }
   }
 
   function closeAllDialogs() {
