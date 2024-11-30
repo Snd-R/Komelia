@@ -140,7 +140,7 @@ Java_io_github_snd_1r_VipsBitmapFactory_createSoftwareBitmap(JNIEnv *env, jobjec
     if (image_data == NULL) {
         komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
-        g_object_unref(processed_input);
+        g_object_unref(processed_image);
         return NULL;
     }
 
