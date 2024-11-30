@@ -283,6 +283,9 @@ tasks.register<Sync>("buildWebui") {
 
 tasks.register<Exec>("cmakeSystemDepsConfigure") {
     group = "jni"
+    delete("$projectDir/cmake-build")
+    inputs.file("$projectDir/komelia-image-decoder/native/CMakeLists.txt")
+    inputs.file("$projectDir/komelia-webview/native/CMakeLists.txt")
     commandLine(
         "cmake",
         "-B", "cmake-build",
@@ -295,6 +298,7 @@ tasks.register<Exec>("cmakeSystemDepsConfigure") {
 tasks.register<Exec>("cmakeSystemDepsBuild") {
     group = "jni"
     dependsOn("cmakeSystemDepsConfigure")
+    inputs.dir("$projectDir/cmake-build")
     outputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
     outputs.dir("$projectDir/cmake-build/komelia-webview/native")
     commandLine(
@@ -308,8 +312,8 @@ tasks.register<Exec>("cmakeSystemDepsBuild") {
 tasks.register<Sync>("cmakeSystemDepsCopyJniLibs") {
     group = "jni"
     dependsOn("cmakeSystemDepsBuild")
-    inputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
     inputs.dir("$projectDir/cmake-build/komelia-webview/native")
+    inputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
     outputs.dir(resourcesDir)
 
     from(

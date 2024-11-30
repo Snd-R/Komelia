@@ -32,8 +32,9 @@ install(TARGETS komelia_vips LIBRARY)
 
 if (NOT ANDROID)
     find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib NO_DEFAULT_PATH)
-    pkg_check_modules(ONNXRUNTIME IMPORTED_TARGET libonnxruntime)
-    if (ONNXRUNTIME_FOUND OR ONNXRUNTIME_LIB)
+    #pkg_check_modules(ONNXRUNTIME IMPORTED_TARGET libonnxruntime)
+    #    if (ONNXRUNTIME_FOUND OR ONNXRUNTIME_LIB)
+    if (ONNXRUNTIME_LIB)
         add_library(komelia_onnxruntime SHARED
                 src/vips/vips_common_jni.h
                 src/vips/vips_common_jni.c
@@ -44,33 +45,33 @@ if (NOT ANDROID)
                 src/onnxruntime/win32_strings.c
         )
 
-        if (${ONNXRUNTIME_FOUND})
-            target_include_directories(komelia_onnxruntime PRIVATE
-                    ${VIPS_INCLUDE_DIRS}
-                    ${JNI_INCLUDE_DIRS}
-                    ${ONNXRUNTIME_INCLUDE_DIRS}
-            )
-            target_link_libraries(komelia_onnxruntime
-                    m
-                    PkgConfig::VIPS
-                    Threads::Threads
-                    OpenMP::OpenMP_C
-                    ${ONNXRUNTIME_LIBRARIES}
-            )
-        else ()
-            target_include_directories(komelia_onnxruntime PRIVATE
-                    ${VIPS_INCLUDE_DIRS}
-                    ${JNI_INCLUDE_DIRS}
-                    ${ONNXRUNTIME_PATH}/include
-            )
-            target_link_libraries(komelia_onnxruntime
-                    m
-                    PkgConfig::VIPS
-                    Threads::Threads
-                    OpenMP::OpenMP_C
-                    ${ONNXRUNTIME_LIB}
-            )
-        endif ()
+        #        if (${ONNXRUNTIME_FOUND})
+        #            target_include_directories(komelia_onnxruntime PRIVATE
+        #                    ${VIPS_INCLUDE_DIRS}
+        #                    ${JNI_INCLUDE_DIRS}
+        #                    ${ONNXRUNTIME_INCLUDE_DIRS}
+        #            )
+        #            target_link_libraries(komelia_onnxruntime
+        #                    m
+        #                    PkgConfig::VIPS
+        #                    Threads::Threads
+        #                    OpenMP::OpenMP_C
+        #                    ${ONNXRUNTIME_LIBRARIES}
+        #            )
+        #        else ()
+        target_include_directories(komelia_onnxruntime PRIVATE
+                ${VIPS_INCLUDE_DIRS}
+                ${JNI_INCLUDE_DIRS}
+                ${ONNXRUNTIME_PATH}/include
+        )
+        target_link_libraries(komelia_onnxruntime
+                m
+                PkgConfig::VIPS
+                Threads::Threads
+                OpenMP::OpenMP_C
+                ${ONNXRUNTIME_LIB}
+        )
+        #        endif ()
         install(TARGETS komelia_onnxruntime LIBRARY)
 
         find_package(CUDAToolkit)
