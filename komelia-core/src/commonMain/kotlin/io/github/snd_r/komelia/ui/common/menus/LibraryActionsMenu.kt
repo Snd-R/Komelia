@@ -63,7 +63,10 @@ fun LibraryActionsMenu(
     if (emptyTrashDialog)
         ConfirmationDialog(
             title = "Empty trash for library",
-            body = "By default hte media server doesn't remove information for media right away. This helps if a drive is temporarily disconnected. When you empty the trash for a library, all information about missing media is deleted.",
+            body = """
+                    By default the media server doesn't remove information for media right away.
+                    This helps if a drive is temporarily disconnected. 
+                    When you empty the trash for a library, all information about missing media is deleted.""".trimIndent(),
             onDialogConfirm = { actions.emptyTrash(library) },
             onDialogDismiss = { emptyTrashDialog = false }
         )
