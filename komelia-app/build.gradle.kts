@@ -83,7 +83,7 @@ android {
         applicationId = "io.github.snd_r.komelia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.android.versionCode.get().toInt()
+        versionCode = 3
         versionName = libs.versions.app.version.get()
     }
     packaging {
