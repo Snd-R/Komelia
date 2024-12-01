@@ -256,10 +256,10 @@ abstract class TilingReaderImage(
         }
 
         val visibilityWindow = Rect(
-            left = displayRegion.left / 1.25f,
-            top = displayRegion.top / 1.25f,
-            right = displayRegion.right * 1.25f,
-            bottom = displayRegion.bottom * 1.25f
+            left = displayRegion.left / 1.5f,
+            top = displayRegion.top / 1.5f,
+            right = displayRegion.right * 1.5f,
+            bottom = displayRegion.bottom * 1.5f
         )
 
         val oldTiles = tiles.value
