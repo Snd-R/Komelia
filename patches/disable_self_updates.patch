@@ -1,35 +1,37 @@
 Subject: [PATCH] disable self updates
 ---
-Index: komelia-app/src/androidMain/kotlin/snd/komelia/AndroidDependencyContainer.kt
+Index: komelia-app/src/androidMain/kotlin/snd/komelia/Dependencies.kt
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
-diff --git a/komelia-app/src/androidMain/kotlin/snd/komelia/AndroidDependencyContainer.kt b/komelia-app/src/androidMain/kotlin/snd/komelia/AndroidDependencyContainer.kt
---- a/komelia-app/src/androidMain/kotlin/snd/komelia/AndroidDependencyContainer.kt	(revision 9ff7b73192ddcdf1731ab8e60f9a00dff73d3924)
-+++ b/komelia-app/src/androidMain/kotlin/snd/komelia/AndroidDependencyContainer.kt	(date 1731157482634)
-@@ -145,12 +145,11 @@
-                 .ktor(ktorWithCache)
-                 .build()
+diff --git a/komelia-app/src/androidMain/kotlin/snd/komelia/Dependencies.kt b/komelia-app/src/androidMain/kotlin/snd/komelia/Dependencies.kt
+--- a/komelia-app/src/androidMain/kotlin/snd/komelia/Dependencies.kt	(revision 0a91d0a0ecd2b26ba5867e358657f04fa476dc0d)
++++ b/komelia-app/src/androidMain/kotlin/snd/komelia/Dependencies.kt	(date 1733033186733)
+@@ -142,14 +142,13 @@
+         .ktor(ktorWithCache)
+         .build()
  
--            val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
-             return AndroidDependencyContainer(
-                 settingsRepository = settingsRepository,
-                 readerSettingsRepository = readerSettingsRepository,
-                 secretsRepository = secretsRepository,
--                appUpdater = appUpdater,
-+                appUpdater = null,
-                 imageDecoderDescriptor = emptyFlow(),
-                 komgaClientFactory = komgaClientFactory,
-                 imageLoader = coil,
+-    val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
+     return AndroidDependencyContainer(
+         settingsRepository = settingsRepository,
+         epubReaderSettingsRepository = epubReaderSettingsRepository,
+         imageReaderSettingsRepository = imageReaderSettingsRepository,
+         fontsRepository = fontsRepository,
+         secretsRepository = secretsRepository,
+-        appUpdater = appUpdater,
++        appUpdater = null,
+         imageDecoderDescriptor = emptyFlow(),
+         komgaClientFactory = komgaClientFactory,
+         imageLoader = coil,
 Index: komelia-app/src/androidMain/AndroidManifest.xml
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
 diff --git a/komelia-app/src/androidMain/AndroidManifest.xml b/komelia-app/src/androidMain/AndroidManifest.xml
---- a/komelia-app/src/androidMain/AndroidManifest.xml	(revision 9ff7b73192ddcdf1731ab8e60f9a00dff73d3924)
-+++ b/komelia-app/src/androidMain/AndroidManifest.xml	(date 1731157482624)
+--- a/komelia-app/src/androidMain/AndroidManifest.xml	(revision 0a91d0a0ecd2b26ba5867e358657f04fa476dc0d)
++++ b/komelia-app/src/androidMain/AndroidManifest.xml	(date 1733033397569)
 @@ -2,7 +2,6 @@
  <manifest xmlns:android="http://schemas.android.com/apk/res/android">
  
