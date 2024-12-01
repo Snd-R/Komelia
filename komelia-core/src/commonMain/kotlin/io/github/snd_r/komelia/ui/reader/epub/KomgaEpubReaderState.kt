@@ -170,7 +170,7 @@ class KomgaEpubReaderState(
         webview.registerRequestInterceptor { uri ->
             runCatching {
                 when (uri) {
-                    "https://komelia/komga.html" -> {
+                    "http://komelia/komga.html" -> {
                         runBlocking {
                             val bytes = Res.readBytes("files/komga.html")
                             ResourceLoadResult(data = bytes, contentType = "text/html")
@@ -186,7 +186,7 @@ class KomgaEpubReaderState(
             }.onFailure { logger.catching(it) }.getOrNull()
         }
 
-        webview.navigate("https://komelia/komga.html")
+        webview.navigate("http://komelia/komga.html")
         webview.start()
     }
 
