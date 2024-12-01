@@ -33,12 +33,9 @@ import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
 
-private const val tileThreshold = 2048 * 2048
-private const val tileSize1 = 512
-private const val tileSize2 = 1024
-private const val tileSize3 = 2048
-private const val tileSize4 = 4096
-private const val tileSize5 = 8192
+private const val tileThreshold1 = 2048 * 2048
+private const val tileThreshold2 = 4096 * 4096
+private const val tileThreshold3 = 6144 * 6144
 
 expect class RenderImage
 
@@ -166,18 +163,20 @@ abstract class TilingReaderImage(
 
         val actualScaleFactor = displayScaleFactor * zoomFactor
 
-        val dstWidth = (displaySize.width * zoomFactor).roundToInt()
-        val dstHeight = (displaySize.height * zoomFactor).roundToInt()
-        val dstSize = IntSize(dstWidth, dstHeight)
+        val dstWidth = displaySize.width * zoomFactor
+        val dstHeight = displaySize.height * zoomFactor
 
         this.displaySize.value = displaySize
-        this.currentSize.value = dstSize
+        this.currentSize.value = IntSize(dstWidth.roundToInt(), dstHeight.roundToInt())
 
-        val tileSize = getTileSize(
-            request,
-            displayScaleFactor,
-            dstSize,
-        )
+        val displayPixCount = (dstWidth * dstHeight).roundToInt()
+        val tileSize = when (displayPixCount) {
+            in 0..tileThreshold1 -> null
+            in tileThreshold1..tileThreshold2 -> 1024
+            in tileThreshold2..tileThreshold3 -> 512
+            else -> 256
+        }
+
 
         if (tileSize == null) {
             doFullResize(
@@ -196,34 +195,6 @@ abstract class TilingReaderImage(
                 tileSize = tileSize
             )
         }
-    }
-
-    private fun getTileSize(
-        request: UpdateRequest,
-        scaleForDisplay: Double,
-        dstSize: IntSize,
-    ): Int? {
-        if (scaleForDisplay >= 1) return null
-        if (dstSize.width * dstSize.height < tileThreshold) return null
-
-        val visibleMinDimension = minOf(request.visibleDisplaySize.width, request.visibleDisplaySize.height)
-        val visibleMaxDimension = maxOf(request.visibleDisplaySize.width, request.visibleDisplaySize.height)
-        val dstMinDimension = minOf(dstSize.width, dstSize.height)
-        val dstMaxDimension = maxOf(dstSize.width, dstSize.height)
-        if (visibleMinDimension == dstMinDimension) return null
-
-        val scaledVisibleDimension = (visibleMinDimension.toFloat() / scaleForDisplay).roundToInt()
-
-        val tileSize = when (scaledVisibleDimension) {
-            in 0..tileSize2 -> tileSize1
-            in tileSize2..tileSize3 -> tileSize2
-            in tileSize3..tileSize4 -> tileSize3
-            in tileSize4..tileSize5 -> tileSize4
-            else -> tileSize5
-        }
-
-        if ((tileSize * scaleForDisplay).roundToInt() + visibleMaxDimension > dstMaxDimension) return null
-        return tileSize
     }
 
     private suspend fun doFullResize(
