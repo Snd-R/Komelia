@@ -7,8 +7,9 @@ import androidx.compose.ui.Modifier
 actual fun PlatformTitleBar(
     modifier: Modifier,
     applyInsets: Boolean,
-    fallbackToNonPlatformLayout: Boolean,
     content: @Composable TitleBarScope.() -> Unit
 ) {
     SimpleTitleBarLayout(modifier, applyInsets, content)
 }
+
+actual fun canIntegrateWithSystemBar() = false

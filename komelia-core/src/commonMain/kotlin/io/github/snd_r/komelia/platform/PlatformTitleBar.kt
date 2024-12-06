@@ -31,11 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
 import kotlin.math.max
 
+expect fun canIntegrateWithSystemBar(): Boolean
+
 @Composable
 expect fun PlatformTitleBar(
     modifier: Modifier = Modifier,
     applyInsets: Boolean = true,
-    fallbackToNonPlatformLayout: Boolean = true,
     content: @Composable TitleBarScope.() -> Unit = {},
 )
 

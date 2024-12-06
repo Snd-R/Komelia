@@ -45,12 +45,13 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.FileAppender
-import com.jetbrains.JBR
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories.projectDirectories
+import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.platform.AwtWindowState
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.canIntegrateWithSystemBar
 import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
 import io.github.snd_r.komelia.ui.log.LogView
@@ -82,7 +83,7 @@ private val windowPlacementFlow = MutableStateFlow(Maximized)
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     configureLogging()
-    if (DesktopPlatform.Current == DesktopPlatform.Linux) {
+    if (DesktopPlatform.Current == Linux) {
         // try to load system glib2 and gtk libraries by loading webkit2gtk first
         // loading in this order should prevent conflict between system gtk and bundled glib2 version
         loadWebviewLibraries()
@@ -175,11 +176,8 @@ private fun ApplicationScope.MainAppContent(
     var showLogWindow by remember { mutableStateOf(false) }
     val keyEvents = remember { MutableSharedFlow<KeyEvent>() }
     val coroutineScope = rememberCoroutineScope()
-    val undecorated = remember {
-        JBR.isAvailable()
-                && DesktopPlatform.Current == DesktopPlatform.Linux
-                && System.getenv("USE_CSD")?.toBoolean() ?: true
-    }
+    val undecorated = remember { canIntegrateWithSystemBar() && DesktopPlatform.Current == Linux }
+
     Window(
         title = "Komelia",
         onCloseRequest = {

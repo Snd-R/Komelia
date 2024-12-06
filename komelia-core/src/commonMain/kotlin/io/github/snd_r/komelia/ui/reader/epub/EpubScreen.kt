@@ -1,34 +1,20 @@
 package io.github.snd_r.komelia.ui.reader.epub
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.PlatformTitleBar
-import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.TitleBarScope
+import io.github.snd_r.komelia.platform.canIntegrateWithSystemBar
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
-import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
@@ -73,9 +59,13 @@ class EpubScreen(
 
         val state = vm.state.collectAsState().value
         Column {
-            PlatformTitleBar(fallbackToNonPlatformLayout = false, applyInsets = false) {
-                if (LocalPlatform.current == PlatformType.DESKTOP && state is Success) {
-                    TitleBarControls(onLeaveWebview = { state.value.closeWebview() })
+            PlatformTitleBar(applyInsets = false) {
+                if (canIntegrateWithSystemBar() && state is Success) {
+                    val book = state.value.book.collectAsState().value
+                    TitleBarContent(
+                        title = book?.metadata?.title ?: "",
+                        onExit = { state.value.closeWebview() }
+                    )
                 }
             }
             when (state) {
@@ -90,21 +80,4 @@ class EpubScreen(
         }
     }
 
-    @Composable
-    private fun TitleBarScope.TitleBarControls(onLeaveWebview: () -> Unit) {
-        Row(
-            modifier = Modifier
-                .align(Alignment.Start)
-                .clickable(onClick = onLeaveWebview)
-                .height(32.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                "Leave webview",
-                modifier = Modifier.fillMaxHeight()
-            )
-            Text("Leave webview", style = MaterialTheme.typography.labelLarge)
-        }
-    }
 }

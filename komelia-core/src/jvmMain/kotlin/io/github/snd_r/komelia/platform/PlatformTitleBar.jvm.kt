@@ -28,12 +28,13 @@ import java.awt.event.ComponentListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 
+val csdEnvEnabled = System.getenv("USE_CSD")?.toBoolean() ?: true
+actual fun canIntegrateWithSystemBar() = JBR.isAvailable() && csdEnvEnabled
 
 @Composable
 actual fun PlatformTitleBar(
     modifier: Modifier,
     applyInsets: Boolean,
-    fallbackToNonPlatformLayout: Boolean,
     content: @Composable TitleBarScope.() -> Unit,
 ) {
     val window = LocalWindow.current
@@ -89,11 +90,8 @@ actual fun PlatformTitleBar(
         }
     }
 
-    val isCsdEnabled = remember { System.getenv("USE_CSD")?.toBoolean() ?: true }
-    if (!isCsdEnabled || !JBR.isAvailable() || decoratedWindowState.isFullscreen) {
-        if (fallbackToNonPlatformLayout) {
-            SimpleTitleBarLayout(modifier, applyInsets, content)
-        }
+    if (!canIntegrateWithSystemBar() || decoratedWindowState.isFullscreen) {
+        SimpleTitleBarLayout(modifier, applyInsets, content)
     } else {
         when (DesktopPlatform.Current) {
             Windows -> TitleBarOnWindows(
