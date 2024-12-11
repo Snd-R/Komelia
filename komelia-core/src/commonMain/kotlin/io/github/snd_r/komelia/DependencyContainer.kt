@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia
 
-import cafe.adriel.lyricist.Lyricist
 import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.snd_r.komelia.fonts.UserFontsRepository
@@ -11,9 +10,10 @@ import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
-import io.github.snd_r.komelia.strings.Strings
+import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.updates.AppUpdater
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -32,5 +32,5 @@ interface DependencyContainer {
     val readerImageLoader: ReaderImageLoader
     val platformContext: PlatformContext
     val windowState: AppWindowState
-    val lyricist: Lyricist<Strings>
+    val appStrings: StateFlow<AppStrings>
 }

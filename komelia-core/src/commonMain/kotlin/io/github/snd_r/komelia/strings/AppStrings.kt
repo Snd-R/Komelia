@@ -61,7 +61,7 @@ import snd.komga.client.settings.KomgaThumbnailSize.LARGE
 import snd.komga.client.settings.KomgaThumbnailSize.MEDIUM
 import snd.komga.client.settings.KomgaThumbnailSize.XLARGE
 
-data class Strings(
+data class AppStrings(
     val seriesView: SeriesViewStrings,
     val filters: FilterStrings,
     val seriesFilter: SeriesFilterStrings,

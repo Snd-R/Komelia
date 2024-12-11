@@ -5,8 +5,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.input.key.KeyEvent
 import com.dokar.sonner.ToasterState
 import io.github.snd_r.komelia.ViewModelFactory
-import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.AppWindowState
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowWidth
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.ui.common.AppTheme

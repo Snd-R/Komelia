@@ -1,6 +1,6 @@
 package io.github.snd_r.komelia.strings
 
-val EnStrings = Strings(
+val EnStrings = AppStrings(
     filters = FilterStrings(
         anyValue = "Any",
 

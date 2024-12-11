@@ -20,7 +20,6 @@ import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import cafe.adriel.lyricist.ProvideStrings
 import cafe.adriel.voyager.navigator.Navigator
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
@@ -90,37 +89,33 @@ fun MainView(
 
             if (viewModelFactory == null) return@Surface
 
-            ProvideStrings(dependencies.lyricist, LocalStrings) {
-                val notificationToaster = rememberToasterState()
+            val notificationToaster = rememberToasterState()
 
-                CompositionLocalProvider(
-                    LocalViewModelFactory provides viewModelFactory,
-                    LocalToaster provides notificationToaster,
-                    LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
-                    LocalKomfIntegration provides dependencies.settingsRepository.getKomfEnabled(),
-                    LocalKeyEvents provides keyEvents,
-                    LocalWindowWidth provides windowWidth,
-                    LocalPlatform provides platformType,
-                    LocalTheme provides theme,
-                    LocalWindowState provides dependencies.windowState
-                ) {
+            CompositionLocalProvider(
+                LocalViewModelFactory provides viewModelFactory,
+                LocalToaster provides notificationToaster,
+                LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
+                LocalKomfIntegration provides dependencies.settingsRepository.getKomfEnabled(),
+                LocalKeyEvents provides keyEvents,
+                LocalWindowWidth provides windowWidth,
+                LocalPlatform provides platformType,
+                LocalTheme provides theme,
+                LocalWindowState provides dependencies.windowState
+            ) {
 
-                    Navigator(
-                        screen = when (platformType) {
-                            MOBILE, DESKTOP -> LoginScreen()
-                            WEB_KOMF -> KomfMainScreen()
-                        },
-                        onBackPressed = null
-                    )
+                Navigator(
+                    screen = when (platformType) {
+                        MOBILE, DESKTOP -> LoginScreen()
+                        WEB_KOMF -> KomfMainScreen()
+                    },
+                    onBackPressed = null
+                )
 
-                    AppNotifications(dependencies.appNotifications, theme)
+                AppNotifications(dependencies.appNotifications, theme)
 
-                    val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
-                    if (updateChecker != null) {
-                        StartupUpdateChecker(updateChecker)
-                    }
-
-
+                val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
+                if (updateChecker != null) {
+                    StartupUpdateChecker(updateChecker)
                 }
             }
 

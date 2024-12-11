@@ -1,4 +1,3 @@
-import cafe.adriel.lyricist.Lyricist
 import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotifications
@@ -12,9 +11,9 @@ import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.EnStrings
-import io.github.snd_r.komelia.strings.Locales
 import io.github.snd_r.komelia.updates.AppUpdater
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -34,5 +33,5 @@ class WasmDependencyContainer(
 ) : DependencyContainer {
     override val platformContext: PlatformContext = PlatformContext.INSTANCE
     override val appNotifications = AppNotifications()
-    override val lyricist = Lyricist(Locales.EN, mapOf(Locales.EN to EnStrings))
+    override val appStrings = MutableStateFlow(EnStrings)
 }

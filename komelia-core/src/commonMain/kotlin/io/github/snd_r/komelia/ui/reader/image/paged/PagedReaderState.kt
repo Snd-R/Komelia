@@ -14,7 +14,7 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
-import io.github.snd_r.komelia.strings.Strings
+import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.ui.reader.image.BookState
 import io.github.snd_r.komelia.ui.reader.image.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
@@ -56,7 +56,7 @@ class PagedReaderState(
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
     private val imageLoader: ReaderImageLoader,
-    private val appStrings: Flow<Strings>,
+    private val appStrings: Flow<AppStrings>,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)

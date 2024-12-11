@@ -3,8 +3,6 @@ package io.github.snd_r.komelia
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.ImageLoader
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
@@ -65,7 +63,6 @@ import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementVie
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesViewModel
 import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
 import io.github.snd_r.komelia.updates.AppRelease
-import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,20 +90,12 @@ class ViewModelFactory(
 ) {
     private val komgaClientFactory: KomgaClientFactory
         get() = dependencies.komgaClientFactory
-    private val appUpdater: AppUpdater?
-        get() = dependencies.appUpdater
     private val settingsRepository: CommonSettingsRepository
         get() = dependencies.settingsRepository
     private val readerSettingsRepository: ImageReaderSettingsRepository
         get() = dependencies.imageReaderSettingsRepository
     private val secretsRepository: SecretsRepository
         get() = dependencies.secretsRepository
-    private val imageLoader: ImageLoader
-        get() = dependencies.imageLoader
-    private val availableDecoders: Flow<PlatformDecoderDescriptor>
-        get() = dependencies.imageDecoderDescriptor
-    private val appStrings
-        get() = dependencies.lyricist.state.map { it.strings }
 
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
@@ -120,13 +109,13 @@ class ViewModelFactory(
     private val komgaEventSource = ManagedKomgaEvents(
         authenticatedUser = authenticatedUser,
         eventSourceFactory = komgaClientFactory::sseSession,
-        memoryCache = imageLoader.memoryCache,
-        diskCache = imageLoader.diskCache,
+        memoryCache = dependencies.imageLoader.memoryCache,
+        diskCache = dependencies.imageLoader.diskCache,
         libraryClient = komgaClientFactory.libraryClient(),
         librariesFlow = libraries
     )
 
-    private val startupUpdateChecker = appUpdater?.let { updater ->
+    private val startupUpdateChecker = dependencies.appUpdater?.let { updater ->
         StartupUpdateChecker(
             updater,
             settingsRepository,
@@ -245,8 +234,8 @@ class ViewModelFactory(
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
             imageLoader = dependencies.readerImageLoader,
-            decoderDescriptor = availableDecoders,
-            appStrings = appStrings,
+            decoderDescriptor = dependencies.imageDecoderDescriptor,
+            appStrings = dependencies.appStrings,
             markReadProgress = markReadProgress,
         )
     }
@@ -450,7 +439,7 @@ class ViewModelFactory(
             latestVersion = settingsRepository.getLastCheckedReleaseVersion(),
             komfEnabled = settingsRepository.getKomfEnabled(),
             platformType = platformType,
-            updatesEnabled = appUpdater != null
+            updatesEnabled = dependencies.appUpdater != null
         )
     }
 
@@ -461,7 +450,7 @@ class ViewModelFactory(
     fun getSettingsUpdatesViewModel(): AppUpdatesViewModel {
         return AppUpdatesViewModel(
             releases = releases,
-            updater = appUpdater,
+            updater = dependencies.appUpdater,
             settings = settingsRepository,
             notifications = dependencies.appNotifications,
         )

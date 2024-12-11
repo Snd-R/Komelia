@@ -7,7 +7,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.strings.Strings
+import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
@@ -34,7 +34,7 @@ class ReaderViewModel(
     readerSettingsRepository: ImageReaderSettingsRepository,
     imageLoader: ReaderImageLoader,
     decoderDescriptor: Flow<PlatformDecoderDescriptor>,
-    appStrings: Flow<Strings>,
+    appStrings: Flow<AppStrings>,
     markReadProgress: Boolean,
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
