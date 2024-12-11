@@ -1,6 +1,4 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -19,6 +17,11 @@ kotlin {
 
     androidTarget { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
     jvm { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "komelia-webview"
+        browser()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -27,6 +30,7 @@ kotlin {
             implementation(libs.kotlin.logging)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.core)
             implementation(libs.ksoup)
         }
 

@@ -19,7 +19,7 @@ class UserFont(
     val canonicalName get() = name.replace(illegalFontNameCharsRegex, "").ifBlank { "random_${Random.nextInt()}" }
 
     suspend fun getBytes(): ByteArray {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.Default) {
             SystemFileSystem.source(path).buffered().readByteArray()
         }
     }

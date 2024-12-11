@@ -44,6 +44,7 @@ import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile.DIVINA
 import snd.komga.client.book.MediaProfile.EPUB
 import snd.komga.client.book.MediaProfile.PDF
+import kotlin.jvm.Transient
 
 fun readerScreen(book: KomgaBook, markReadProgress: Boolean): Screen {
     return when (book.media.mediaProfile) {

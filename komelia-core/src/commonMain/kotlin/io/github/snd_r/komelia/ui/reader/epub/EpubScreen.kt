@@ -25,6 +25,7 @@ import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile.EPUB
+import kotlin.jvm.Transient
 
 class EpubScreen(
     private val bookId: KomgaBookId,

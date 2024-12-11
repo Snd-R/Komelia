@@ -34,7 +34,7 @@ typedef struct {
 
 void komelia_main_started_callback(webview_t webview, /*main_started_callback_t*/ void *data);
 
-load_result_t *komelia_interceptor_run(request_interceptor *loader, const char *uri);
+load_result_t *komelia_interceptor_run(request_interceptor *interceptor, const char *uri);
 
 request_interceptor *komelia_interceptor_create(JNIEnv *env, jobject jvm_interceptor, webview_t webview);
 

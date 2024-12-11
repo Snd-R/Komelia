@@ -25,6 +25,7 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
+import kotlin.jvm.Transient
 
 class OneshotScreen(
     val seriesId: KomgaSeriesId,

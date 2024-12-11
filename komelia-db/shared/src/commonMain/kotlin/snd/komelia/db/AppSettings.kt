@@ -5,7 +5,9 @@ import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class AppSettings(
     val username: String = "admin@example.org",
     val serverUrl: String = "http://localhost:25600",

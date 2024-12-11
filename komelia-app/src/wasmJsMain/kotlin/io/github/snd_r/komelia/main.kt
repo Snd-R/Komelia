@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia
 
+import WasmDependencyContainer
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.events.KeyboardEvent
 
 private val initScope = CoroutineScope(Dispatchers.Default)
+const val canvasElemId = "ComposeTarget"
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -27,7 +29,7 @@ fun main() {
     val keyEvents = MutableSharedFlow<KeyEvent>()
     val windowWidth = MutableStateFlow(WindowWidth.fromDp(window.innerWidth.dp))
     initScope.launch {
-        dependencies.value = WasmDependencyContainer.createInstance(initScope)
+        dependencies.value = initDependencies(initScope)
     }
     window.addEventListener("resize") {
         windowWidth.value = WindowWidth.fromDp(window.innerWidth.dp)
@@ -39,14 +41,14 @@ fun main() {
         initScope.launch { keyEvents.emit((event as KeyboardEvent).toComposeEvent()) }
     }
 
-    CanvasBasedWindow(canvasElementId = "ComposeTarget") {
+    CanvasBasedWindow(canvasElementId = canvasElemId) {
         val fontFamilyResolver = LocalFontFamilyResolver.current
-            MainView(
-                dependencies = dependencies.collectAsState().value,
-                windowWidth = windowWidth.collectAsState().value,
-                platformType = PlatformType.WEB_KOMF,
-                keyEvents = keyEvents
-            )
+        MainView(
+            dependencies = dependencies.collectAsState().value,
+            windowWidth = windowWidth.collectAsState().value,
+            platformType = PlatformType.WEB_KOMF,
+            keyEvents = keyEvents
+        )
 
         LaunchedEffect(Unit) {
             loadFonts(fontFamilyResolver)

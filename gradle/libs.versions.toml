@@ -23,9 +23,10 @@ flyway = "9.22.3"
 java-keyring = "1.0.4"
 komf-client = "1.0.0"
 komga-client = "0.6.0"
-kotlin = "2.1.0"
+kotlin = "2.0.21"
 kotlin-logging = "7.0.3"
 kotlinx-atomicfu = "0.26.1"
+kotlinx-browser = "0.3"
 kotlinx-coroutines = "1.9.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.7.3"
@@ -72,6 +73,7 @@ java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "
 komf-client = { module = "io.github.snd-r.komf:client", version.ref = "komf-client" }
 komga-client = { module = "io.github.snd-r:komga-client", version.ref = "komga-client" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }

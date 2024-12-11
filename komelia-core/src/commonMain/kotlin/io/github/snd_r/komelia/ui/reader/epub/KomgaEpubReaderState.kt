@@ -21,7 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -35,6 +34,7 @@ import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.webview.KomeliaWebview
 import snd.webview.ResourceLoadResult
+import snd.webview.runRequest
 
 private val logger = KotlinLogging.logger {}
 private val resourceBaseUriRegex = "^http(s)?://.*/resource/".toRegex()
@@ -167,21 +167,17 @@ class KomgaEpubReaderState(
             windowState.setFullscreen(!fullscreen)
         }
 
-        webview.registerRequestInterceptor { uri ->
+        webview.registerRequestInterceptor { request ->
             runCatching {
-                when (uri) {
+                when (request.url.toString()) {
                     "http://komelia/komga.html" -> {
-                        runBlocking {
-                            val bytes = Res.readBytes("files/komga.html")
-                            ResourceLoadResult(data = bytes, contentType = "text/html")
-                        }
+                        val bytes = Res.readBytes("files/komga.html")
+                        ResourceLoadResult(data = bytes, contentType = "text/html")
                     }
 
-                    else -> runBlocking {
-                        val bytes = ktor.get(uri).bodyAsBytes()
-                        ResourceLoadResult(data = bytes, contentType = null)
-                    }
+                    "http://komelia/favicon.ico" -> null
 
+                    else -> ktor.runRequest(request)
                 }
             }.onFailure { logger.catching(it) }.getOrNull()
         }

@@ -94,7 +94,7 @@ Java_snd_webview_KomeliaWebview_create(JNIEnv *env, jobject this, jobject awt_wi
 }
 
 JNIEXPORT void JNICALL
-Java_snd_webview_KomeliaWebview_registerRequestInterceptor(JNIEnv *env, jobject this, jobject jvm_interceptor) {
+Java_snd_webview_KomeliaWebview_setRequestInterceptor(JNIEnv *env, jobject this, jobject jvm_interceptor) {
     komelia_webview_t *webview_data = komelia_webview_from_jvm(env, this);
     webview_t webview = komelia_webview_get_webview(webview_data);
 

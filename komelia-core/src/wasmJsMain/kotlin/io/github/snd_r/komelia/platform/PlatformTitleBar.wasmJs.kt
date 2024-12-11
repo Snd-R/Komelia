@@ -11,3 +11,5 @@ actual fun PlatformTitleBar(
 ) {
     SimpleTitleBarLayout(modifier, applyInsets, content)
 }
+
+actual fun canIntegrateWithSystemBar() = false

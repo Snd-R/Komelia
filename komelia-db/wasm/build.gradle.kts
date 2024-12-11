@@ -18,7 +18,7 @@ kotlin {
 
     wasmJs {
         moduleName = "komeliaImageWorker"
-        binaries.executable()
+        browser()
     }
 
     sourceSets {

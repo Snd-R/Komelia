@@ -12,6 +12,8 @@ import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.fonts.getSystemFontNames
 import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.codepointsCount
+import io.github.snd_r.komelia.platform.resolve
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
@@ -36,7 +38,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -54,7 +55,7 @@ import snd.komga.client.book.WPLink
 import snd.komga.client.book.WPPublication
 import snd.webview.KomeliaWebview
 import snd.webview.ResourceLoadResult
-import java.net.URI
+import snd.webview.runRequest
 import kotlin.math.roundToLong
 
 private val logger = KotlinLogging.logger {}
@@ -207,39 +208,31 @@ class TtsuReaderState(
             closeWebview()
         }
 
-        webview.registerRequestInterceptor { uri ->
+        webview.registerRequestInterceptor { request ->
             runCatching {
+                val urlString = request.url.toString()
                 when {
-                    uri == "http://komelia/ttsu.html" -> {
-                        runBlocking {
-                            val bytes = Res.readBytes("files/ttsu.html")
-                            ResourceLoadResult(data = bytes, contentType = "text/html")
-                        }
+                    urlString == "http://komelia/ttsu.html" -> {
+                        val bytes = Res.readBytes("files/ttsu.html")
+                        ResourceLoadResult(data = bytes, contentType = "text/html")
                     }
 
-                    uri == "http://komelia/favicon.ico" -> null
+                    urlString == "http://komelia/favicon.ico" -> null
 
-
-                    uri.startsWith("http://komelia/userfonts") -> {
-                        val fontName = Url(uri).rawSegments.last()
-                        val font = runBlocking {
-                            fontsRepository.getFont(fontName)?.let {
-                                ResourceLoadResult(
-                                    data = it.getBytes(),
-                                    contentType = null
-                                )
-                            }
+                    urlString.startsWith("http://komelia/userfonts") -> {
+                        val fontName = request.url.rawSegments.last()
+                        val font = fontsRepository.getFont(fontName)?.let {
+                            ResourceLoadResult(
+                                data = it.getBytes(),
+                                contentType = null
+                            )
                         }
                         font
                     }
 
-                    uri.startsWith("http://komelia") -> error("invalid request uri $uri")
+                    urlString.startsWith("http://komelia") -> error("invalid request uri $urlString")
 
-                    else -> runBlocking {
-                        val bytes = ktor.get(uri).bodyAsBytes()
-                        ResourceLoadResult(data = bytes, contentType = null)
-                    }
-
+                    else -> ktor.runRequest(request)
                 }
             }.onFailure { logger.catching(it) }.getOrNull()
         }
@@ -371,7 +364,7 @@ class TtsuReaderState(
             val chapterBodyId = chapterBody.id().ifBlank { null }
             val chapterBodyClass = chapterBody.className()
 
-            images.addAll(scanAndReplaceImagePaths(manifest, URI(chapter.href), chapterBody))
+            images.addAll(scanAndReplaceImagePaths(manifest, Url(chapter.href), chapterBody))
 
             val childBodyDiv = Element("div")
             childBodyDiv.addClass("ttu-book-body-wrapper $chapterBodyClass")
@@ -468,12 +461,12 @@ class TtsuReaderState(
                     acc += if (indexOfText + beforeText.length < nodeText.length)
                         nodeText.substring(0, indexOfText + beforeText.length)
                             .removeWhitespacesAndLineBreaks()
-                            .codePoints().count()
-                    else nodeText.removeWhitespacesAndLineBreaks().codePoints().count()
+                            .let { codepointsCount(it) }
+                    else codepointsCount(nodeText.removeWhitespacesAndLineBreaks())
 
                     return acc
                 } else {
-                    acc += nodeText.removeWhitespacesAndLineBreaks().codePoints().count()
+                    acc += codepointsCount(nodeText.removeWhitespacesAndLineBreaks())
                 }
 
             } else if (isNodeGaiji(node)) {
@@ -487,7 +480,7 @@ class TtsuReaderState(
     private fun charCountForElement(elem: Element): Long {
         return getTextOrGaijiNodes(elem).fold(0L) { acc, node ->
             when {
-                node is TextNode -> acc + node.text().removeWhitespacesAndLineBreaks().codePoints().count()
+                node is TextNode -> acc + codepointsCount(node.text().removeWhitespacesAndLineBreaks())
                 isNodeGaiji(node) -> acc + 1
                 else -> acc
             }
@@ -498,7 +491,7 @@ class TtsuReaderState(
         var charAcc = 0L
         getTextOrGaijiNodes(elem).forEach { node ->
             if (node is TextNode) {
-                charAcc += node.text().removeWhitespacesAndLineBreaks().codePoints().count()
+                charAcc += codepointsCount(node.text().removeWhitespacesAndLineBreaks())
                 if (charAcc >= targetCharCount) return node
             } else if (isNodeGaiji(node)) {
                 charAcc += 1
@@ -540,7 +533,7 @@ class TtsuReaderState(
 
     private fun scanAndReplaceImagePaths(
         manifest: WPPublication,
-        baseUri: URI,
+        baseUrl: Url,
         body: Element,
     ): List<Url> {
 
@@ -562,13 +555,13 @@ class TtsuReaderState(
                     "image" -> if (image.hasAttr("xlink:href")) "xlink:href" else "href"
                     else -> error("unexpected image tag ${image.tag().name}")
                 }
-                val imageUri = image.attr(srcAttr).ifBlank { null }?.let { URI(it) } ?: continue
-                val imageAbsoluteUri = baseUri.resolve(imageUri)
-                val resourceUri = URI(resourceHref)
-                if (imageAbsoluteUri == resourceUri) {
-                    image.attr(srcAttr, resourceUri.toString())
+                val imageUri = image.attr(srcAttr).ifBlank { null } ?: continue
+                val imageAbsoluteUrl = baseUrl.resolve(imageUri)
+                val resourceUrl = Url(resourceHref)
+                if (imageAbsoluteUrl == resourceUrl) {
+                    image.attr(srcAttr, resourceUrl.toString())
                     if (!image.classNames().contains("gaiji")) {
-                        processedImageUrls.add(Url(resourceUri.toString()))
+                        processedImageUrls.add(resourceUrl)
                     }
                 }
             }

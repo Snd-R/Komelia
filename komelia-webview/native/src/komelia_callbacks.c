@@ -44,19 +44,22 @@ void komelia_bind_callback_run(const char *id, const char *req, void *data) {
     }
 }
 
-
-load_result_t *komelia_interceptor_run(request_interceptor *loader, const char *uri) {
-    JavaVM *jvm = loader->jvm;
+load_result_t *komelia_interceptor_run(request_interceptor *interceptor, const char *uri) {
+    JavaVM *jvm = interceptor->jvm;
     JNIEnv *env = NULL;
     int requires_detach = jvm_attach_if_necessary(jvm, &env);
 
     jstring jvm_req = (*env)->NewStringUTF(env, uri);
-    jobject jvm_result = (*env)->CallObjectMethod(env, loader->object, loader->method, jvm_req);
+    jobject jvm_future = (*env)->CallObjectMethod(env, interceptor->object, interceptor->method, jvm_req);
+    if (jvm_future == NULL) return NULL;
+
+    jclass jvm_future_class = (*env)->GetObjectClass(env, jvm_future);
+    jmethodID jvm_future_get = (*env)->GetMethodID(env, jvm_future_class, "get", "()Ljava/lang/Object;");
+    jobject jvm_result = (*env)->CallObjectMethod(env, jvm_future, jvm_future_get);
     if (jvm_result == NULL) return NULL;
 
-    jclass class = (*env)->GetObjectClass(env, jvm_result);
-
-    jfieldID data_field = (*env)->GetFieldID(env, class, "data", "[B");
+    jclass jvm_result_class = (*env)->GetObjectClass(env, jvm_result);
+    jfieldID data_field = (*env)->GetFieldID(env, jvm_result_class, "data", "[B");
     jbyteArray jvm_byte_array = (*env)->GetObjectField(env, jvm_result, data_field);
     load_result_t *result = malloc(sizeof(load_result_t));
 
@@ -65,7 +68,7 @@ load_result_t *komelia_interceptor_run(request_interceptor *loader, const char *
     unsigned char *result_bytes = malloc(bytes_size * sizeof(unsigned char));
     memcpy(result_bytes, jvm_bytes, bytes_size);
 
-    jfieldID content_type_field = (*env)->GetFieldID(env, class, "contentType", "Ljava/lang/String;");
+    jfieldID content_type_field = (*env)->GetFieldID(env, jvm_result_class, "contentType", "Ljava/lang/String;");
     jobject jvm_content_type = (*env)->GetObjectField(env, jvm_result, content_type_field);
     if (jvm_content_type != NULL) {
         const char *content_type_chars = (*env)->GetStringUTFChars(env, jvm_content_type, NULL);
@@ -88,8 +91,7 @@ load_result_t *komelia_interceptor_run(request_interceptor *loader, const char *
 
 request_interceptor *komelia_interceptor_create(JNIEnv *env, jobject jvm_interceptor, webview_t webview) {
     jclass class = (*env)->GetObjectClass(env, jvm_interceptor);
-    jmethodID method = (*env)->GetMethodID(env, class, "run",
-                                           "(Ljava/lang/String;)Lsnd/webview/ResourceLoadResult;");
+    jmethodID method = (*env)->GetMethodID(env, class, "run", "(Ljava/lang/String;)Ljava/util/concurrent/Future;");
 
     request_interceptor *interceptor = malloc(sizeof(request_interceptor));
     (*env)->GetJavaVM(env, &interceptor->jvm);

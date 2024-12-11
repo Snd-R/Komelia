@@ -7,7 +7,9 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScal
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType.SCREEN
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ImageReaderSettings(
     val readerType: ReaderType = ReaderType.PAGED,
     val stretchToFit: Boolean = true,

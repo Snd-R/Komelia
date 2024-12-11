@@ -16,10 +16,12 @@ import com.fleeksoft.ksoup.nodes.DataNode
 import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parseInputStream
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -44,7 +46,7 @@ actual class KomeliaWebview(private val webview: WebView) : WebViewClient(), Aut
     private val isRunning = AtomicBoolean(false)
     private var currentUrl: Uri? = null
     private val bindFunctions = mutableMapOf<String, WebviewCallback>()
-    private var interceptor: ResourceLoadHandler? = null
+    private var interceptor: RequestInterceptor? = null
     private var incomingPort: WebMessagePort? = null
     private var outgoingPort: WebMessagePort? = null
 
@@ -107,7 +109,7 @@ actual class KomeliaWebview(private val webview: WebView) : WebViewClient(), Aut
         }
     }
 
-    actual fun registerRequestInterceptor(handler: ResourceLoadHandler) {
+    actual fun registerRequestInterceptor(handler: RequestInterceptor) {
         mainDispatcherScope.launch {
             interceptor = handler
         }
@@ -162,7 +164,7 @@ actual class KomeliaWebview(private val webview: WebView) : WebViewClient(), Aut
 
     // TODO non blocking
     override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-        val response = this.interceptor?.run(request.url.toString()) ?: return null
+        val response = runBlocking { interceptor?.run(request = request.toResourceRequest()) } ?: return null
 
         if (currentUrl == request.url) {
             val htmlDocument = Ksoup.parseInputStream(response.data.inputStream(), "")
@@ -184,6 +186,14 @@ actual class KomeliaWebview(private val webview: WebView) : WebViewClient(), Aut
 
         return WebResourceResponse(response.contentType, null, response.data.inputStream())
     }
+
+    private fun WebResourceRequest.toResourceRequest() = ResourceRequest(
+        url = Url(this.url.toString()),
+        method = HttpMethod.parse(this.method),
+        requestHeaders = HeadersBuilder()
+            .apply { this@toResourceRequest.requestHeaders.forEach { (k, v) -> append(k, v) } }
+            .build()
+    )
 
     override fun onPageFinished(view: WebView, url: String) {
         val channel = view.createWebMessageChannel()

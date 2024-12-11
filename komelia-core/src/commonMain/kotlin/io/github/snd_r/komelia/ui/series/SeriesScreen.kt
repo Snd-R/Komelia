@@ -24,6 +24,7 @@ import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
+import kotlin.jvm.Transient
 
 fun seriesScreen(series: KomgaSeries): Screen =
     if (series.oneshot) OneshotScreen(series)

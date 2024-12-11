@@ -26,10 +26,10 @@ kotlin {
     }
 
     sourceSets {
-        val wasmJsMain by getting
         wasmJsMain.dependencies {
+            implementation(libs.kotlinx.browser)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(npm("wasm-vips", "0.0.10"))
+            implementation(npm("wasm-vips", "0.0.11"))
             implementation(npm("string-replace-loader", "3.1.0"))
         }
     }

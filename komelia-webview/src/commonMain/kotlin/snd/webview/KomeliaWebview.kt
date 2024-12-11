@@ -7,7 +7,7 @@ expect class KomeliaWebview : AutoCloseable {
 
     fun start()
     fun navigate(uri: String)
-    fun registerRequestInterceptor(handler: ResourceLoadHandler)
+    fun registerRequestInterceptor(handler: RequestInterceptor)
 
 }
 

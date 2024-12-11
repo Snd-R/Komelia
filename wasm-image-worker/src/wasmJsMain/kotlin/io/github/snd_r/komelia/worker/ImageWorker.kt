@@ -12,6 +12,7 @@ import io.github.snd_r.komelia.worker.messages.dimensionsRequest
 import io.github.snd_r.komelia.worker.messages.initMessage
 import io.github.snd_r.komelia.worker.util.asJsArray
 import io.github.snd_r.komelia.worker.util.workerBufferTransferParam
+import kotlinx.coroutines.delay
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.Worker
 import kotlin.coroutines.Continuation
@@ -53,8 +54,11 @@ class ImageWorker {
         }
     }
 
-    fun init() {
-        worker.postMessage(initMessage())
+    suspend fun init() {
+        while (!initialized) {
+            worker.postMessage(initMessage())
+            delay(50)
+        }
     }
 
     suspend fun decodeAndGet(
