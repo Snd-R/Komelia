@@ -61,8 +61,6 @@ kotlin {
             api(libs.coil)
             api(libs.coil.compose)
             api(libs.coil.network.ktor3)
-            api(libs.chiptextfield.core)
-            api(libs.chiptextfield.m3)
             api(libs.filekit.core)
             api(libs.filekit.compose)
             api(libs.komf.client)
@@ -75,11 +73,13 @@ kotlin {
             api(libs.markdown)
             api(libs.reorderable)
             api(libs.richEditor.compose)
-            api(libs.sonner)
             api(libs.voyager.screenmodel)
             api(libs.voyager.navigator)
             api(libs.voyager.transition)
 
+            api(project(":third_party:ChipTextField:chiptextfield-core"))
+            api(project(":third_party:ChipTextField:chiptextfield-m3"))
+            api(project(":third_party:compose-sonner:sonner"))
             implementation(project(":komelia-webview"))
         }
 

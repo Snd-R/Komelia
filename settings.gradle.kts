@@ -27,14 +27,10 @@ include(":komelia-jni")
 include(":komelia-webview")
 include(":komelia-image-decoder")
 include(":wasm-image-worker")
+include(":third_party:ChipTextField:chiptextfield-core")
+include(":third_party:ChipTextField:chiptextfield-m3")
+include(":third_party:compose-sonner:sonner")
 
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
-}
-includeBuild("third_party/compose-sonner") {
-    dependencySubstitution { substitute(module("io.github.dokar3:sonner")).using(project(":sonner")) }
-}
-includeBuild("third_party/ChipTextField") {
-    dependencySubstitution { substitute(module("io.github.dokar3:chiptextfield-m3")).using(project(":chiptextfield-m3")) }
-    dependencySubstitution { substitute(module("io.github.dokar3:chiptextfield-core")).using(project(":chiptextfield-core")) }
 }
