@@ -12,8 +12,10 @@ import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.fonts.getSystemFontNames
 import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.codepointsCount
 import io.github.snd_r.komelia.platform.resolve
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -68,6 +71,7 @@ class TtsuReaderState(
     private val notifications: AppNotifications,
     private val ktor: HttpClient,
     private val markReadProgress: Boolean,
+    private val settingsRepository: CommonSettingsRepository,
     private val epubSettingsRepository: EpubReaderSettingsRepository,
     private val fontsRepository: UserFontsRepository,
     private val windowState: AppWindowState,
@@ -215,6 +219,7 @@ class TtsuReaderState(
             closeWebview()
         }
 
+        val serverUrl = settingsRepository.getServerUrl().stateIn(coroutineScope)
         webview.registerRequestInterceptor { request ->
             runCatching {
                 val urlString = request.url.toString()
@@ -238,8 +243,8 @@ class TtsuReaderState(
                     }
 
                     urlString.startsWith("http://komelia") -> error("invalid request uri $urlString")
-
-                    else -> ktor.runRequest(request)
+                    urlString.startsWith(serverUrl.value) -> ktor.runRequest(request)
+                    else -> error("Requests to external hosts are not allowed")
                 }
             }.onFailure { logger.catching(it) }.getOrNull()
         }
@@ -362,6 +367,9 @@ class TtsuReaderState(
         for (deferredChapter in chapters) {
             val chapter = deferredChapter.await()
             val chapterDocument = Ksoup.parse(chapter.data)
+            if (platformType == WEB_KOMF) {
+                addCrossOriginToElements(chapterDocument)
+            }
 
             val chapterBody = chapterDocument.body()
             if (chapterBody.children().isEmpty()) {
@@ -536,6 +544,14 @@ class TtsuReaderState(
 
     private fun isElementGaiji(el: Element): Boolean {
         return el.classNames().any { it.contains("gaiji") }
+    }
+
+    private fun addCrossOriginToElements(body: Element) {
+        buildList {
+            addAll(body.getElementsByTag("link"))
+            addAll(body.getElementsByTag("img"))
+            addAll(body.getElementsByTag("image"))
+        }.forEach { it.attr("crossorigin", "use-credentials") }
     }
 
     private fun scanAndReplaceImagePaths(

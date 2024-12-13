@@ -77,6 +77,7 @@ class EpubReaderViewModel(
                             notifications = notifications,
                             ktor = ktor,
                             markReadProgress = markReadProgress,
+                            settingsRepository = settingsRepository,
                             epubSettingsRepository = epubSettingsRepository,
                             fontsRepository = fontsRepository,
                             windowState = windowState,

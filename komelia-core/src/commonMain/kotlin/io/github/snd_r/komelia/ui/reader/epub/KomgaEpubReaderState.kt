@@ -1,10 +1,14 @@
 package io.github.snd_r.komelia.ui.reader.epub
 
 import cafe.adriel.voyager.navigator.Navigator
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Element
+import com.fleeksoft.ksoup.parser.Parser.Companion.xmlParser
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
@@ -20,6 +24,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -132,7 +137,7 @@ class KomgaEpubReaderState(
         }
 
         webview.bind("d2ReaderGetContent") { href: String ->
-            proxyRequest(href)
+            getD2Content(href)
         }
         webview.bind("d2ReaderGetContentBytesLength") { href: String ->
             proxyRequest(href)?.length
@@ -167,17 +172,19 @@ class KomgaEpubReaderState(
             windowState.setFullscreen(!fullscreen)
         }
 
+        val serverUrl = settingsRepository.getServerUrl().stateIn(coroutineScope)
         webview.registerRequestInterceptor { request ->
             runCatching {
-                when (request.url.toString()) {
-                    "http://komelia/komga.html" -> {
+                val urlString = request.url.toString()
+                when {
+                    urlString == "http://komelia/komga.html" -> {
                         val bytes = Res.readBytes("files/komga.html")
                         ResourceLoadResult(data = bytes, contentType = "text/html")
                     }
 
-                    "http://komelia/favicon.ico" -> null
-
-                    else -> ktor.runRequest(request)
+                    urlString == "http://komelia/favicon.ico" -> null
+                    urlString.startsWith(serverUrl.value) -> ktor.runRequest(request)
+                    else -> error("Requests to external hosts are not allowed")
                 }
             }.onFailure { logger.catching(it) }.getOrNull()
         }
@@ -206,5 +213,27 @@ class KomgaEpubReaderState(
     private suspend fun proxyRequest(url: String): String? {
         val urlPath = parseUrl(url)?.fullPath ?: return null
         return ktor.get(urlPath) { accept(ContentType.Any) }.bodyAsText()
+    }
+
+    private suspend fun getD2Content(url: String): String? {
+        return runCatching {
+            val urlPath = parseUrl(url)?.fullPath ?: return null
+            val textResponse = ktor.get(urlPath) { accept(ContentType.Any) }.bodyAsText()
+            if (platformType == WEB_KOMF) {
+                val document = Ksoup.parse(textResponse, xmlParser()) //strict xhtml rules
+                addCrossOriginToElements(document)
+                document.outerHtml()
+            } else textResponse
+        }
+            .onFailure { logger.catching(it) }
+            .getOrNull()
+    }
+
+    private fun addCrossOriginToElements(body: Element) {
+        buildList {
+            addAll(body.getElementsByTag("link"))
+            addAll(body.getElementsByTag("img"))
+            addAll(body.getElementsByTag("image"))
+        }.forEach { it.attr("crossorigin", "use-credentials") }
     }
 }
