@@ -95,7 +95,14 @@ class TtsuReaderState(
             Res.getUri("files/ttsu.html")
 
             if (book.value == null) book.value = bookClient.getBook(bookId.value)
-            coroutineScope.launch { epubLoadTask.complete(generateEpubHtml(bookId.value)) }
+            coroutineScope.launch {
+                runCatching { epubLoadTask.complete(generateEpubHtml(bookId.value)) }
+                    .onFailure {
+                        logger.catching(it)
+                        webview.value?.close()
+                        state.value = LoadState.Error(it)
+                    }
+            }
             availableSystemFonts.value = getSystemFontNames()
             state.value = LoadState.Success(Unit)
         }.onFailure {

@@ -36,6 +36,8 @@ kotlin {
                         add(project.projectDir.path)
                         add(project.projectDir.path + "/commonMain/")
                         add(project.projectDir.path + "/wasmJsMain/")
+                        add(project.parent!!.projectDir.path + "/komelia-webview/src/commonMain/")
+                        add(project.parent!!.projectDir.path + "/komelia-webview/src/wasmJsMain/")
                         add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
                         add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
                     }
