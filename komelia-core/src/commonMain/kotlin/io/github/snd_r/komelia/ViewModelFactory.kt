@@ -266,6 +266,7 @@ class ViewModelFactory(
             series = series,
             onDialogDismiss = onDismissRequest,
             seriesClient = komgaClientFactory.seriesClient(),
+            referentialClient = komgaClientFactory.referentialClient(),
             notifications = dependencies.appNotifications,
             cardWidth = getGridCardWidth(),
         )
@@ -299,6 +300,7 @@ class ViewModelFactory(
         onDialogDismiss = onDismissRequest,
         bookClient = komgaClientFactory.bookClient(),
         seriesClient = komgaClientFactory.seriesClient(),
+        referentialClient = komgaClientFactory.referentialClient(),
         notifications = dependencies.appNotifications,
         cardWidth = getGridCardWidth(),
     )

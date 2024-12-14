@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.window.layout.WindowMetricsCalculator
 import io.github.snd_r.komelia.AndroidDependencyContainer
 import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.ui.MainView
 import io.github.vinceglb.filekit.core.FileKit
 import kotlinx.coroutines.CoroutineScope
@@ -63,9 +63,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
+            val windowSize = rememberWindowSize()
             MainView(
                 dependencies = dependencies.collectAsState().value,
-                windowWidth = WindowWidth.fromDp(rememberWindowSize().width),
+                windowWidth = WindowSizeClass.fromDp(windowSize.width),
+                windowHeight = WindowSizeClass.fromDp(windowSize.height),
                 platformType = PlatformType.MOBILE,
                 keyEvents = MutableSharedFlow()
             )

@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
@@ -60,9 +60,9 @@ fun SearchContent(
         contentAlignment = Alignment.TopCenter
     ) {
         val widthModifier = when (LocalWindowWidth.current) {
-            WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier.fillMaxWidth()
-            WindowWidth.EXPANDED -> Modifier.fillMaxWidth(.8f)
-            WindowWidth.FULL -> Modifier.width(1200.dp)
+            WindowSizeClass.COMPACT, WindowSizeClass.MEDIUM -> Modifier.fillMaxWidth()
+            WindowSizeClass.EXPANDED -> Modifier.fillMaxWidth(.8f)
+            WindowSizeClass.FULL -> Modifier.width(1200.dp)
         }
         val scrollState = rememberLazyListState()
 

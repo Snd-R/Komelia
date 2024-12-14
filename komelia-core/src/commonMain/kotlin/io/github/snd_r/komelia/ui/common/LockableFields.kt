@@ -129,6 +129,26 @@ fun LockableChipTextField(
 }
 
 @Composable
+fun LockableChipTextFieldWithSuggestions(
+    values: List<String>,
+    onValuesChange: (List<String>) -> Unit,
+    label: String,
+    suggestions: List<LabeledEntry<String>>,
+    locked: Boolean,
+    onLockChange: (Boolean) -> Unit
+) {
+    Row {
+        LockIcon(locked, onLockChange)
+        ChipFieldWithSuggestions(
+            label = { Text(label) },
+            values = values,
+            onValuesChange = onValuesChange,
+            suggestions = suggestions,
+        )
+    }
+}
+
+@Composable
 fun LockableChipTextField(
     values: List<String>,
     onValuesChange: (List<String>) -> Unit,

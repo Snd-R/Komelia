@@ -32,10 +32,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
-import io.github.snd_r.komelia.platform.WindowWidth.FULL
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
+import io.github.snd_r.komelia.platform.WindowSizeClass.EXPANDED
+import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
+import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth

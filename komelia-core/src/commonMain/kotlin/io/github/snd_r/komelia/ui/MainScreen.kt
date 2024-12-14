@@ -50,8 +50,8 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
-import io.github.snd_r.komelia.platform.WindowWidth
-import io.github.snd_r.komelia.platform.WindowWidth.FULL
+import io.github.snd_r.komelia.platform.WindowSizeClass
+import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.home.HomeScreen
@@ -264,7 +264,7 @@ class MainScreen(
     private fun NavBar(
         vm: MainScreenViewModel,
         navigator: Navigator,
-        width: WindowWidth
+        width: WindowSizeClass
     ) {
         val coroutineScope = rememberCoroutineScope()
         NavBarContent(

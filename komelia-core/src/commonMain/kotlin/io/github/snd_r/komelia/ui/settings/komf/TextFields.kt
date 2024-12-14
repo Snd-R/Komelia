@@ -15,23 +15,17 @@ import androidx.compose.material3.MenuAnchorType.Companion.PrimaryEditable
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.dokar.chiptextfield.Chip
-import com.dokar.chiptextfield.m3.ChipTextField
-import com.dokar.chiptextfield.rememberChipTextFieldState
 import io.github.snd_r.komelia.ui.common.HttpTextField
+import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.PasswordTextField
-import kotlinx.coroutines.flow.drop
 
 @Composable
 fun SavableTextField(
@@ -176,18 +170,18 @@ fun SavableHttpTextField(
 
 }
 
-val komfLanguageTagsSuggestions = mapOf(
-    "en" to "English (en)",
-    "ja" to "Japanese (ja)",
-    "ja-ro" to "Japanese romanized (ja-ro)",
-    "ko" to "Korean (ko)",
-    "ko-ro" to "Korean romanized (ko-ro)",
-    "zh" to "Simplified Chinese (zh)",
-    "zh-hk" to "Traditional Chinese (zh-hk)",
-    "zh-ro" to "Chinese romanized (zh-ro)",
-    "pt-br" to "Brazilian Portugese (pt-br)",
-    "es" to "Castilian Spanish (es)",
-    "es-la" to "Latin American Spanish (es-la)",
+val komfLanguageTagsSuggestions = listOf(
+    LabeledEntry("en", "English (en)"),
+    LabeledEntry("ja", "Japanese (ja)"),
+    LabeledEntry("ja-ro", "Japanese romanized (ja-ro)"),
+    LabeledEntry("ko", "Korean (ko)"),
+    LabeledEntry("ko-ro", "Korean romanized (ko-ro)"),
+    LabeledEntry("zh", "Simplified Chinese (zh)"),
+    LabeledEntry("zh-hk", "Traditional Chinese (zh-hk)"),
+    LabeledEntry("zh-ro", "Chinese romanized (zh-ro)"),
+    LabeledEntry("pt-br", "Brazilian Portugese (pt-br)"),
+    LabeledEntry("es", "Castilian Spanish (es)"),
+    LabeledEntry("es-la", "Latin American Spanish (es-la)"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -200,7 +194,7 @@ fun LanguageSelectionField(
 ) {
     var isChanged by remember { mutableStateOf(false) }
     val suggestedOptions = derivedStateOf {
-        komfLanguageTagsSuggestions.filter { (key, _) -> key.startsWith(languageValue) }
+        komfLanguageTagsSuggestions.filter { (_, label) -> label.lowercase().contains(languageValue.lowercase()) }
     }
     val focusManager = LocalFocusManager.current
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -228,11 +222,11 @@ fun LanguageSelectionField(
             ) {
                 suggestedOptions.value.forEach {
                     DropdownMenuItem(
-                        text = { Text(it.value) },
+                        text = { Text(it.label) },
                         onClick = {
                             isExpanded = false
                             focusManager.clearFocus()
-                            onLanguageValueChange(it.key)
+                            onLanguageValueChange(it.value)
                             onLanguageValueSave()
                             isChanged = false
                         }
@@ -252,66 +246,4 @@ fun LanguageSelectionField(
             Text("Save")
         }
     }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LanguageChipsField(
-    currentLanguages: List<String>,
-    onLanguagesChange: (List<String>) -> Unit
-) {
-    val focusManager = LocalFocusManager.current
-    val chipState = rememberChipTextFieldState(currentLanguages.map { Chip(it) })
-    LaunchedEffect(Unit) {
-        snapshotFlow { chipState.chips.map { it.text } }
-            .drop(1)
-            .collect { onLanguagesChange(it) }
-    }
-
-    var value by remember { mutableStateOf(TextFieldValue()) }
-    val suggestedOptions = derivedStateOf {
-        komfLanguageTagsSuggestions.filter { (key, _) -> key.startsWith(value.text) }
-    }
-
-    var isExpanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
-    ) {
-        ChipTextField(
-            state = chipState,
-            value = value,
-            onValueChange = { value = it },
-            label = { Text("Alternative title languages (ISO 639)") },
-            onSubmit = { value ->
-                if (chipState.chips.none { it.text == value.text }) Chip(value.text)
-                else null
-            },
-            readOnlyChips = true,
-            innerModifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(PrimaryEditable)
-        )
-
-        ExposedDropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
-        ) {
-            suggestedOptions.value.forEach { (key, value) ->
-                DropdownMenuItem(
-                    text = { Text(value) },
-                    onClick = {
-                        isExpanded = false
-                        focusManager.clearFocus()
-                        if (chipState.chips.none { it.text == key }) {
-                            chipState.addChip(Chip(key))
-                        }
-                    }
-                )
-            }
-
-        }
-    }
-
 }

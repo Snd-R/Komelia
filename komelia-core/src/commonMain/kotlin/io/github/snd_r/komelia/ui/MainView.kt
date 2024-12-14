@@ -35,7 +35,7 @@ import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.PlatformType.DESKTOP
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.toToast
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
@@ -55,7 +55,8 @@ private val vmFactory = MutableStateFlow<ViewModelFactory?>(null)
 @Composable
 fun MainView(
     dependencies: DependencyContainer?,
-    windowWidth: WindowWidth,
+    windowWidth: WindowSizeClass,
+    windowHeight: WindowSizeClass,
     platformType: PlatformType,
     keyEvents: SharedFlow<KeyEvent>
 ) {
@@ -97,10 +98,11 @@ fun MainView(
                 LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
                 LocalKomfIntegration provides dependencies.settingsRepository.getKomfEnabled(),
                 LocalKeyEvents provides keyEvents,
-                LocalWindowWidth provides windowWidth,
                 LocalPlatform provides platformType,
                 LocalTheme provides theme,
-                LocalWindowState provides dependencies.windowState
+                LocalWindowState provides dependencies.windowState,
+                LocalWindowWidth provides windowWidth,
+                LocalWindowHeight provides windowHeight,
             ) {
 
                 Navigator(

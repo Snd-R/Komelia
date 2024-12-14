@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.referential.KomgaReferentialClient
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
@@ -34,6 +35,7 @@ class OneshotEditDialogViewModel(
     private val notifications: AppNotifications,
     private val bookClient: KomgaBookClient,
     private val seriesClient: KomgaSeriesClient,
+    private val referentialClient: KomgaReferentialClient,
     private val cardWidth: Flow<Dp>,
 ) {
     val loadState = MutableStateFlow<LoadState<OneshotEditVmState>>(Uninitialized)
@@ -71,10 +73,12 @@ class OneshotEditDialogViewModel(
                 ?: seriesClient.getAllBooksBySeries(seriesId).content.first()
 
             val posterState = PosterEditState(cardWidth)
+            val allTags = referentialClient.getTags()
+            val allGenres = referentialClient.getGenres()
 
             loadState.value = Success(
                 OneshotEditVmState(
-                    seriesMetadataState = SeriesEditMetadataState(currentSeries, seriesClient),
+                    seriesMetadataState = SeriesEditMetadataState(currentSeries, allTags, allGenres, seriesClient),
                     bookMetadataState = BookEditMetadataState(currentBook, bookClient),
                     posterState = posterState,
                 )

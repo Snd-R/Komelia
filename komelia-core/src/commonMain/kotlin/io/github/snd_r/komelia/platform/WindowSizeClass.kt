@@ -3,18 +3,18 @@ package io.github.snd_r.komelia.platform
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-enum class WindowWidth {
+enum class WindowSizeClass {
     COMPACT,
     MEDIUM,
     EXPANDED,
     FULL;
 
     companion object {
-        fun fromDp(windowWidth: Dp): WindowWidth {
+        fun fromDp(size: Dp): WindowSizeClass {
             return when {
-                windowWidth < 600.dp -> COMPACT
-                windowWidth < 840.dp -> MEDIUM
-                windowWidth < 1200.dp -> EXPANDED
+                size < 600.dp -> COMPACT
+                size < 840.dp -> MEDIUM
+                size < 1200.dp -> EXPANDED
                 else -> FULL
             }
         }

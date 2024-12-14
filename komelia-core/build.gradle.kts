@@ -77,7 +77,6 @@ kotlin {
             api(libs.voyager.navigator)
             api(libs.voyager.transition)
 
-            api(project(":third_party:ChipTextField:chiptextfield-core"))
             api(project(":third_party:ChipTextField:chiptextfield-m3"))
             api(project(":third_party:compose-sonner:sonner"))
             implementation(project(":komelia-webview"))

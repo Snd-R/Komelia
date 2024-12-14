@@ -44,11 +44,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
+import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.BookReadButton
 import io.github.snd_r.komelia.ui.common.NoPaddingChip
@@ -57,7 +55,6 @@ import io.github.snd_r.komelia.ui.common.menus.BookActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.readIsSupported
 import snd.komga.client.book.KomgaBook
-import snd.komga.client.book.MediaProfile.DIVINA
 
 @Composable
 fun BookImageCard(

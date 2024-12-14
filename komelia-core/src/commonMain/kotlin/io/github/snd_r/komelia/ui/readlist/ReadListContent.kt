@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.PageSizeSelectionDropdown
 import io.github.snd_r.komelia.ui.common.itemlist.BookLazyCardGrid
@@ -115,7 +115,7 @@ fun ReadListContent(
         )
 
         val width = LocalWindowWidth.current
-        if ((width == WindowWidth.COMPACT || width == WindowWidth.MEDIUM) && selectedBooks.isNotEmpty()) {
+        if ((width == WindowSizeClass.COMPACT || width == WindowSizeClass.MEDIUM) && selectedBooks.isNotEmpty()) {
             BottomPopupBulkActionsPanel {
                 ReadListBulkActionsContent(readList, books, false)
                 BooksBulkActionsContent(books, false)
@@ -197,7 +197,7 @@ private fun BulkActionsToolbar(
         }
     ) {
         when (LocalWindowWidth.current) {
-            WindowWidth.FULL -> {
+            WindowSizeClass.FULL -> {
                 if (readList.ordered) Text("Edit mode: Click to select, drag to change order")
                 else Text("Selection mode: Click on items to select or deselect them")
                 if (selectedBooks.isNotEmpty()) {
@@ -208,7 +208,7 @@ private fun BulkActionsToolbar(
                 }
             }
 
-            WindowWidth.EXPANDED -> {
+            WindowSizeClass.EXPANDED -> {
                 if (selectedBooks.isEmpty()) {
                     if (readList.ordered) Text("Edit mode: Click to select, drag to change order")
                     else Text("Selection mode: Click on items to select or deselect them")
@@ -219,7 +219,7 @@ private fun BulkActionsToolbar(
                 }
             }
 
-            WindowWidth.COMPACT, WindowWidth.MEDIUM -> {}
+            WindowSizeClass.COMPACT, WindowSizeClass.MEDIUM -> {}
         }
     }
 }

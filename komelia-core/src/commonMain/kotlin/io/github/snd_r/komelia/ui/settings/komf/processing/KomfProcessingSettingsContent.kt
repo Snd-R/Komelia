@@ -12,13 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.common.ChipFieldWithSuggestions
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.DropdownMultiChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
-import io.github.snd_r.komelia.ui.settings.komf.LanguageChipsField
 import io.github.snd_r.komelia.ui.settings.komf.LanguageSelectionField
 import io.github.snd_r.komelia.ui.settings.komf.LibraryTabs
+import io.github.snd_r.komelia.ui.settings.komf.komfLanguageTagsSuggestions
 import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSettingsViewModel.ProcessingConfigState
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfReadingDirection
@@ -206,9 +207,11 @@ private fun ProcessingConfigContent(state: ProcessingConfigState) {
             onLanguageValueChange = state::onSeriesTitleLanguageChange,
             onLanguageValueSave = state::onSeriesTitleLanguageSave
         )
-        LanguageChipsField(
-            state.alternativeSeriesTitleLanguages,
-            state::onAlternativeTitleLanguagesChange
+        ChipFieldWithSuggestions(
+            label = { Text("Alternative title languages (ISO 639)") },
+            values = state.alternativeSeriesTitleLanguages,
+            onValuesChange = state::onAlternativeTitleLanguagesChange,
+            suggestions = komfLanguageTagsSuggestions
         )
         HorizontalDivider()
         Text("Default values", style = MaterialTheme.typography.titleLarge)

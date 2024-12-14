@@ -39,12 +39,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.cursorForMove
 import io.github.snd_r.komelia.platform.scrollbar
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.common.ChipFieldWithSuggestions
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.DropdownMultiChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
@@ -52,9 +53,9 @@ import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komelia.ui.settings.komf.LanguageChipsField
 import io.github.snd_r.komelia.ui.settings.komf.LibraryTabs
 import io.github.snd_r.komelia.ui.settings.komf.SavableTextField
+import io.github.snd_r.komelia.ui.settings.komf.komfLanguageTagsSuggestions
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.AniListConfigState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.GenericProviderConfigState
@@ -302,7 +303,7 @@ private fun ProviderCard(
 
         TabDialog(
             modifier = when (LocalWindowWidth.current) {
-                WindowWidth.COMPACT, WindowWidth.MEDIUM -> Modifier
+                WindowSizeClass.COMPACT, WindowSizeClass.MEDIUM -> Modifier
                 else -> Modifier.widthIn(max = 700.dp)
             },
             title = "Edit ${strings.forProvider(state.provider)}",
@@ -583,9 +584,11 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
     @Composable
     private fun MangaDexProviderSettings(state: MangaDexConfigState) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            LanguageChipsField(
-                currentLanguages = state.coverLanguages,
-                onLanguagesChange = state::onCoverLanguagesChange
+            ChipFieldWithSuggestions(
+                label = { Text("Alternative title languages (ISO 639)") },
+                values = state.coverLanguages,
+                onValuesChange = state::onCoverLanguagesChange,
+                suggestions = komfLanguageTagsSuggestions
             )
             DropdownMultiChoiceMenu(
                 selectedOptions = state.links.map { LabeledEntry(it, it.name) },

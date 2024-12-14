@@ -50,7 +50,7 @@ import io.github.snd_r.komelia.AppDirectories.projectDirectories
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.platform.AwtWindowState
 import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.WindowWidth
+import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.platform.canIntegrateWithSystemBar
 import io.github.snd_r.komelia.ui.MainView
 import io.github.snd_r.komelia.ui.error.ErrorView
@@ -215,7 +215,9 @@ private fun ApplicationScope.MainAppContent(
         }
 
         val verticalInsets = remember { window.insets.left + window.insets.right }
-        val widthClass = WindowWidth.fromDp(windowState.size.width - verticalInsets.dp)
+        val horizontalInsets = remember { window.insets.top + window.insets.bottom }
+        val widthClass = WindowSizeClass.fromDp(windowState.size.width - verticalInsets.dp)
+        val heightClass = WindowSizeClass.fromDp(windowState.size.height - horizontalInsets.dp)
 
         CompositionLocalProvider(LocalWindow provides window) {
             val borderModifier = derivedStateOf {
@@ -234,6 +236,7 @@ private fun ApplicationScope.MainAppContent(
                     MainView(
                         dependencies = dependencies,
                         windowWidth = widthClass,
+                        windowHeight = heightClass,
                         platformType = PlatformType.DESKTOP,
                         keyEvents = keyEvents
                     )

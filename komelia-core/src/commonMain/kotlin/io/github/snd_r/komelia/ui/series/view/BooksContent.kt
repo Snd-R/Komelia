@@ -51,10 +51,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
-import io.github.snd_r.komelia.platform.WindowWidth.FULL
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
+import io.github.snd_r.komelia.platform.WindowSizeClass.EXPANDED
+import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
+import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized

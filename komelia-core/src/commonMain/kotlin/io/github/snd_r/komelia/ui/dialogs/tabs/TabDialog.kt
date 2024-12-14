@@ -36,9 +36,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.platform.VerticalScrollbar
-import io.github.snd_r.komelia.platform.WindowWidth.COMPACT
-import io.github.snd_r.komelia.platform.WindowWidth.EXPANDED
-import io.github.snd_r.komelia.platform.WindowWidth.MEDIUM
+import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
+import io.github.snd_r.komelia.platform.WindowSizeClass.EXPANDED
+import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.dialogs.AppDialogLayout

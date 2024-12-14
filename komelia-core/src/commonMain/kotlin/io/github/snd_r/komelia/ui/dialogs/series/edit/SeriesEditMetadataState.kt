@@ -14,6 +14,8 @@ import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 
 class SeriesEditMetadataState(
     val series: KomgaSeries,
+    val allTags:List<String>,
+    val allGenres:List<String>,
     private val seriesClient: KomgaSeriesClient,
 ) {
     var title by mutableStateOf(series.metadata.title)
