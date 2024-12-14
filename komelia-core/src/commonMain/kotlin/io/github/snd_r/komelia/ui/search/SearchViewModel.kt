@@ -23,7 +23,6 @@ import snd.komga.client.book.KomgaBooksSort
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaSort
 import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesQuery
@@ -35,7 +34,6 @@ class SearchViewModel(
     private val bookClient: KomgaBookClient,
     private val appNotifications: AppNotifications,
     private val libraries: StateFlow<List<KomgaLibrary>>,
-    initialQuery: String?
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
     var seriesResults by mutableStateOf<List<KomgaSeries>>(emptyList())
@@ -52,15 +50,17 @@ class SearchViewModel(
     var bookTotalPages by mutableStateOf(1)
         private set
 
-    var query by mutableStateOf(initialQuery ?: "")
+    var query by mutableStateOf("")
 
-    //    private val searchState = MutableStateFlow<SearchState>(SearchState.Empty)
-    var searchType by mutableStateOf(SearchType.SERIES)
+    private var userSelectedTab by mutableStateOf(SearchResultsTab.SERIES)
+    var currentTab by mutableStateOf(SearchResultsTab.SERIES)
         private set
 
-    init {
-//        loadSeries(1)
-        load()
+    suspend fun initialize(initialQuery: String?) {
+        if (state.value != LoadState.Uninitialized && initialQuery == query) return
+        mutableState.value = LoadState.Loading
+        initialQuery?.let { query = it }
+        loadSearchResults()
 
         snapshotFlow { query }
             .drop(if (initialQuery != null) 1 else 0)
@@ -69,118 +69,87 @@ class SearchViewModel(
                 else 500
             }
             .distinctUntilChanged()
-            .onEach { load() }
+            .onEach { loadSearchResults() }
             .launchIn(screenModelScope)
+        mutableState.value = LoadState.Success(Unit)
     }
 
-
-    fun load() {
-        when (searchType) {
-            SearchType.SERIES -> loadSeries(1)
-            SearchType.BOOKS -> loadBooks(1)
-        }
-    }
-
-    fun loadSeries(pageNumber: Int) {
+    fun reload() {
         screenModelScope.launch {
-            appNotifications.runCatchingToNotifications {
-
-                mutableState.value = LoadState.Loading
-                val page = seriesClient.getAllSeries(
-                    KomgaSeriesQuery(searchTerm = query),
-                    KomgaPageRequest(
-                        pageIndex = pageNumber - 1,
-                        size = 10,
-                        sort = if (query.isBlank()) KomgaSeriesSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
-                    )
-                )
-
-                seriesCurrentPage = page.number + 1
-                seriesTotalPages = page.totalPages
-                seriesResults = page.content
-                mutableState.value = LoadState.Success(Unit)
-
-            }.onFailure { mutableState.value = LoadState.Error(it) }
+            mutableState.value = LoadState.Loading
+            loadSearchResults()
+            mutableState.value = LoadState.Success(Unit)
         }
     }
 
-    fun loadBooks(pageNumber: Int) {
+    private suspend fun loadSearchResults() {
+        currentTab = userSelectedTab
+        loadSeriesPage(1)
+        loadBooksPage(1)
+        if (seriesResults.isEmpty() && bookResults.isNotEmpty() && currentTab == SearchResultsTab.SERIES) {
+            currentTab = SearchResultsTab.BOOKS
+        }
+    }
+
+    fun onSeriesPageChange(pageNumber: Int) {
         screenModelScope.launch {
-            appNotifications.runCatchingToNotifications {
-
-                mutableState.value = LoadState.Loading
-                val page = bookClient.getAllBooks(
-                    KomgaBookQuery(searchTerm = query),
-                    KomgaPageRequest(
-                        pageIndex = pageNumber - 1,
-                        size = 10,
-                        sort = if (query.isBlank()) KomgaBooksSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
-                    )
-                )
-
-                bookCurrentPage = page.number + 1
-                bookTotalPages = page.totalPages
-                bookResults = page.content
-                mutableState.value = LoadState.Success(Unit)
-
-            }.onFailure { mutableState.value = LoadState.Error(it) }
+            mutableState.value = LoadState.Loading
+            loadSeriesPage(pageNumber)
+            mutableState.value = LoadState.Success(Unit)
         }
     }
 
-//    private suspend fun handle(query: String) {
-//        if (query.isBlank()) {
-//            searchState.value = SearchState.Empty
-//            return
-//        }
-//
-//        searchState.value = SearchState.Loading
-//
-//        val series = seriesClient.getAllSeries(
-//            KomgaSeriesQuery(searchTerm = query),
-//            KomgaPageRequest(size = 10)
-//        ).content
-//
-//        val books = bookClient.getAllBooks(
-//            KomgaBookQuery(searchTerm = query),
-//            KomgaPageRequest(size = 10)
-//        ).content
-//
-//        if (series.isEmpty() && books.isEmpty()) {
-//            searchState.value = SearchState.Empty
-//        } else {
-//            searchState.value = SearchState.Finished(SearchResults(series, books))
-//        }
-//    }
+    private suspend fun loadSeriesPage(pageNumber: Int) {
+        appNotifications.runCatchingToNotifications {
+            val page = seriesClient.getAllSeries(
+                KomgaSeriesQuery(searchTerm = query),
+                KomgaPageRequest(
+                    pageIndex = pageNumber - 1,
+                    size = 10,
+                    sort = if (query.isBlank()) KomgaSeriesSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
+                )
+            )
 
-//    fun onQueryChange(newQuery: String) {
-//        currentQuery = newQuery
-//    }
-
-    fun getLibraryById(id: KomgaLibraryId): KomgaLibrary? {
-        return libraries.value.firstOrNull { it.id == id }
+            seriesCurrentPage = page.number + 1
+            seriesTotalPages = page.totalPages
+            seriesResults = page.content
+        }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
-//    fun searchState(): StateFlow<SearchState> = searchState
-
-    fun onSearchTypeChange(type: SearchType) {
-        this.searchType = type
-        load()
+    fun onBookPageChange(pageNumber: Int) {
+        screenModelScope.launch {
+            mutableState.value = LoadState.Loading
+            loadBooksPage(pageNumber)
+            mutableState.value = LoadState.Success(Unit)
+        }
     }
 
-    fun onQueryChange() {
+    private suspend fun loadBooksPage(pageNumber: Int) {
+        appNotifications.runCatchingToNotifications {
+            val page = bookClient.getAllBooks(
+                KomgaBookQuery(searchTerm = query),
+                KomgaPageRequest(
+                    pageIndex = pageNumber - 1,
+                    size = 10,
+                    sort = if (query.isBlank()) KomgaBooksSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
+                )
+            )
 
+            bookCurrentPage = page.number + 1
+            bookTotalPages = page.totalPages
+            bookResults = page.content
+        }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
-    enum class SearchType {
+    fun onSearchTypeChange(type: SearchResultsTab) {
+        this.currentTab = type
+        this.userSelectedTab = type
+    }
+
+    enum class SearchResultsTab {
         SERIES,
         BOOKS,
     }
-}
-
-sealed interface SearchState {
-    data object Empty : SearchState
-    data object Loading : SearchState
-    data class Finished(val searchResults: SearchResults) : SearchState
 }
 
 data class SearchResults(

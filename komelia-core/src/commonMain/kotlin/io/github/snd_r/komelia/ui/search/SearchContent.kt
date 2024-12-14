@@ -26,18 +26,16 @@ import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.BookDetailedListCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesDetailedListCard
-import io.github.snd_r.komelia.ui.search.SearchViewModel.SearchType
+import io.github.snd_r.komelia.ui.search.SearchViewModel.SearchResultsTab
 import snd.komga.client.book.KomgaBook
-import snd.komga.client.book.KomgaBookId
 import snd.komga.client.series.KomgaSeries
-import snd.komga.client.series.KomgaSeriesId
 
 
 @Composable
 fun SearchContent(
     query: String,
-    searchType: SearchType,
-    onSearchTypeChange: (SearchType) -> Unit,
+    searchType: SearchResultsTab,
+    onSearchTypeChange: (SearchResultsTab) -> Unit,
 
     bookResults: List<KomgaBook>,
     bookCurrentPage: Int,
@@ -72,6 +70,8 @@ fun SearchContent(
             SearchToolBar(
                 searchType = searchType,
                 onSearchTypeChange = onSearchTypeChange,
+                hasSeries = seriesResults.isNotEmpty(),
+                hasBooks = bookResults.isNotEmpty(),
                 modifier = widthModifier
             )
 
@@ -82,7 +82,7 @@ fun SearchContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 when (searchType) {
-                    SearchType.SERIES -> {
+                    SearchResultsTab.SERIES -> {
                         items(seriesResults) { series ->
                             SeriesDetailedListCard(
                                 series = series,
@@ -99,7 +99,7 @@ fun SearchContent(
                         }
                     }
 
-                    SearchType.BOOKS -> {
+                    SearchResultsTab.BOOKS -> {
                         items(bookResults) { book ->
                             BookDetailedListCard(
                                 book = book,
@@ -125,69 +125,6 @@ fun SearchContent(
 }
 
 @Composable
-fun BookSearchContent(
-    bookResults: List<KomgaBook>,
-    bookCurrentPage: Int,
-    bookTotalPages: Int,
-    onBookPageChange: (Int) -> Unit,
-    onBookClick: (KomgaBookId) -> Unit,
-
-//    scrollState: LazyListState,
-) {
-    val scrollState = rememberLazyListState()
-    Box {
-        LazyColumn(
-            state = scrollState,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(bookResults) {
-                BookDetailedListCard(it, onClick = { onBookClick(it.id) })
-            }
-            item {
-                Pagination(
-                    totalPages = bookTotalPages,
-                    currentPage = bookCurrentPage,
-                    onPageChange = onBookPageChange
-                )
-            }
-
-        }
-        VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
-    }
-}
-
-@Composable
-fun SeriesSearchContent(
-    seriesResults: List<KomgaSeries>,
-    seriesCurrentPage: Int,
-    seriesTotalPages: Int,
-    onSeriesPageChange: (Int) -> Unit,
-    onSeriesClick: (KomgaSeriesId) -> Unit,
-//    scrollState: LazyListState,
-) {
-    val scrollState = rememberLazyListState()
-    Box {
-        LazyColumn(
-            state = scrollState,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            items(seriesResults) {
-                SeriesDetailedListCard(it, onClick = { onSeriesClick(it.id) })
-            }
-            item {
-                Pagination(
-                    totalPages = seriesTotalPages,
-                    currentPage = seriesCurrentPage,
-                    onPageChange = onSeriesPageChange
-                )
-            }
-        }
-        VerticalScrollbar(scrollState, Modifier.align(Alignment.TopEnd))
-    }
-}
-
-@Composable
 private fun EmptySearchResults() {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -201,10 +138,13 @@ private fun EmptySearchResults() {
 
 @Composable
 fun SearchToolBar(
-    searchType: SearchType,
-    onSearchTypeChange: (SearchType) -> Unit,
+    searchType: SearchResultsTab,
+    onSearchTypeChange: (SearchResultsTab) -> Unit,
+    hasSeries: Boolean,
+    hasBooks: Boolean,
     modifier: Modifier
 ) {
+    if (!hasSeries && !hasBooks) return
     Row(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -219,20 +159,24 @@ fun SearchToolBar(
             selectedContainerColor = MaterialTheme.colorScheme.primary,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
         )
-        FilterChip(
-            onClick = { onSearchTypeChange(SearchType.SERIES) },
-            selected = searchType == SearchType.SERIES,
-            label = { Text("Series") },
-            colors = chipColors,
-            border = null,
-        )
-        FilterChip(
-            onClick = { onSearchTypeChange(SearchType.BOOKS) },
-            selected = searchType == SearchType.BOOKS,
-            label = { Text("Books") },
-            colors = chipColors,
-            border = null,
-        )
+        if (hasSeries) {
+            FilterChip(
+                onClick = { onSearchTypeChange(SearchResultsTab.SERIES) },
+                selected = searchType == SearchResultsTab.SERIES,
+                label = { Text("Series") },
+                colors = chipColors,
+                border = null,
+            )
+        }
+        if (hasBooks) {
+            FilterChip(
+                onClick = { onSearchTypeChange(SearchResultsTab.BOOKS) },
+                selected = searchType == SearchResultsTab.BOOKS,
+                label = { Text("Books") },
+                colors = chipColors,
+                border = null,
+            )
+        }
     }
 }
 

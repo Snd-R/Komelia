@@ -33,8 +33,10 @@ class SearchScreen(
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(initialQuery) {
-            viewModelFactory.getSearchViewModel(initialQuery)
+            viewModelFactory.getSearchViewModel()
         }
+        LaunchedEffect(initialQuery) { vm.initialize(initialQuery) }
+
         val navigator = LocalNavigator.currentOrThrow
 
         Column(
@@ -47,7 +49,7 @@ class SearchScreen(
             when (val state = vm.state.collectAsState().value) {
                 is LoadState.Error -> ErrorContent(
                     state.exception.message ?: "Error",
-                    onReload = vm::load
+                    onReload = vm::reload
                 )
 
                 LoadState.Uninitialized, LoadState.Loading -> LoadingMaxSizeIndicator()
@@ -55,19 +57,19 @@ class SearchScreen(
 
                     SearchContent(
                         query = vm.query,
-                        searchType = vm.searchType,
+                        searchType = vm.currentTab,
                         onSearchTypeChange = vm::onSearchTypeChange,
 
                         seriesResults = vm.seriesResults,
                         seriesCurrentPage = vm.seriesCurrentPage,
                         seriesTotalPages = vm.seriesTotalPages,
-                        onSeriesPageChange = vm::loadSeries,
+                        onSeriesPageChange = vm::onSeriesPageChange,
                         onSeriesClick = { navigator.replaceAll(seriesScreen(it)) },
 
                         bookResults = vm.bookResults,
                         bookCurrentPage = vm.bookCurrentPage,
                         bookTotalPages = vm.bookTotalPages,
-                        onBookPageChange = vm::loadBooks,
+                        onBookPageChange = vm::onBookPageChange,
                         onBookClick = { navigator.replaceAll(bookScreen(it)) },
                     )
 

@@ -355,12 +355,11 @@ class ViewModelFactory(
         FileBrowserDialogViewModel(komgaClientFactory.fileSystemClient(), dependencies.appNotifications)
 
 
-    fun getSearchViewModel(initialQuery: String?) = SearchViewModel(
+    fun getSearchViewModel() = SearchViewModel(
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
         appNotifications = dependencies.appNotifications,
         libraries = libraries,
-        initialQuery = initialQuery
     )
 
 
