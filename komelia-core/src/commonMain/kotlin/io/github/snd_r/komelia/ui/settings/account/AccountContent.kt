@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialog
@@ -65,9 +67,10 @@ private fun PasswordDetails(user: KomgaUser) {
     var showPasswordDialog by remember { mutableStateOf(false) }
     FilledTonalButton(
         onClick = { showPasswordDialog = true },
-        shape = RoundedCornerShape(5.dp)
+        shape = RoundedCornerShape(5.dp),
+        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
     ) {
-        Text("CHANGE PASSWORD")
+        Text("Change Password")
     }
     if (showPasswordDialog) {
         PasswordChangeDialog(user = user, onDismiss = { showPasswordDialog = false })

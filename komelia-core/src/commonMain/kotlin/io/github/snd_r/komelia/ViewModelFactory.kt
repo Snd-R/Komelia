@@ -59,7 +59,6 @@ import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSetting
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsViewModel
-import io.github.snd_r.komelia.ui.settings.server.management.ServerManagementViewModel
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesViewModel
 import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
 import io.github.snd_r.komelia.updates.AppRelease
@@ -415,16 +414,6 @@ class ViewModelFactory(
             libraries = libraries,
             taskClient = komgaClientFactory.taskClient(),
             actuatorClient = komgaClientFactory.actuatorClient()
-        )
-    }
-
-    fun getServerManagementViewModel(): ServerManagementViewModel {
-        return ServerManagementViewModel(
-            appNotifications = dependencies.appNotifications,
-            libraryClient = komgaClientFactory.libraryClient(),
-            libraries = libraries,
-            taskClient = komgaClientFactory.taskClient(),
-            actuatorClient = komgaClientFactory.actuatorClient(),
         )
     }
 

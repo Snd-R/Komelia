@@ -1,20 +1,17 @@
 package io.github.snd_r.komelia.ui.dialogs.user
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,12 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.PasswordTextField
+import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import kotlinx.coroutines.launch
 import snd.komga.client.user.KomgaUser
 
@@ -54,26 +51,30 @@ fun PasswordChangeDialog(
     onPasswordChange: suspend (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        val focusManager = LocalFocusManager.current
-        Surface(
-            Modifier
-                .width(400.dp)
-                .height(400.dp)
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
-        ) {
+    var password by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    var repeatPassword by remember { mutableStateOf("") }
+    var repeatPasswordError by remember { mutableStateOf<String?>(null) }
+
+    AppDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.widthIn(max = 600.dp),
+        header = {
+            Text(
+                text = "Change Password",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp)
+            )
+        },
+        content = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(40.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier.padding(20.dp)
             ) {
                 val (first, second) = remember { FocusRequester.createRefs() }
 
-                Text("Change password")
-
-                var password by remember { mutableStateOf("") }
-                var passwordError by remember { mutableStateOf<String?>(null) }
                 PasswordTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -85,8 +86,6 @@ fun PasswordChangeDialog(
                         .focusProperties { next = second }
                 )
 
-                var repeatPassword by remember { mutableStateOf("") }
-                var repeatPasswordError by remember { mutableStateOf<String?>(null) }
                 PasswordTextField(
                     value = repeatPassword,
                     onValueChange = { repeatPassword = it },
@@ -96,33 +95,42 @@ fun PasswordChangeDialog(
                     modifier = Modifier.fillMaxWidth()
                         .focusRequester(second)
                 )
-
-                val coroutineScope = rememberCoroutineScope()
-
                 Spacer(Modifier.weight(1f))
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Spacer(Modifier.weight(1f))
 
-                    TextButton(onClick = onDismiss) {
-                        Text("CANCEL")
-                    }
+            }
+        },
 
-                    FilledTonalButton(
-                        onClick = {
-                            when {
-                                password.isBlank() -> passwordError = "New password is required"
-                                password != repeatPassword -> repeatPasswordError = "Passwords must be identical"
-                                else -> coroutineScope.launch {
-                                    onPasswordChange(password)
-                                    onDismiss()
-                                }
+        controlButtons = {
+            val coroutineScope = rememberCoroutineScope()
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.padding(10.dp),
+            ) {
+                ElevatedButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                ) {
+                    Text("Cancel")
+                }
+
+                FilledTonalButton(
+                    onClick = {
+                        when {
+                            password.isBlank() -> passwordError = "New password is required"
+                            password != repeatPassword -> repeatPasswordError = "Passwords must be identical"
+                            else -> coroutineScope.launch {
+                                onPasswordChange(password)
+                                onDismiss()
                             }
-                        },
-                    ) {
-                        Text("CHANGE PASSWORD")
-                    }
+                        }
+                    },
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                ) {
+                    Text("Change Password")
                 }
             }
         }
-    }
+    )
 }

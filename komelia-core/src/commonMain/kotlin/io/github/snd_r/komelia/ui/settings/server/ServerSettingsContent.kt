@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,6 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import io.github.snd_r.komelia.ui.LocalStrings
@@ -46,12 +50,66 @@ fun ServerSettingsContent(
     serverPort: StateHolder<Int?>,
     configServerPort: Int,
     serverContextPath: StateHolder<String?>,
+    thumbnailSize: OptionsStateHolder<KomgaThumbnailSize>,
+    thumbnailSizeChanged: Boolean,
+    onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
+    generalSettingsChanged: Boolean,
+    onGeneralSettingsSave: () -> Unit,
+    onGeneralSettingsDiscard: () -> Unit,
 
+    onScanAllLibraries: (deep: Boolean) -> Unit,
+    onEmptyTrash: () -> Unit,
+    onCancelAllTasks: () -> Unit,
+    onShutdown: () -> Unit
+) {
+    GeneralSettingsContent(
+        deleteEmptyCollections = deleteEmptyCollections,
+        deleteEmptyReadLists = deleteEmptyReadLists,
+        taskPoolSize = taskPoolSize,
+
+        rememberMeDurationDays = rememberMeDurationDays,
+        renewRememberMeKey = renewRememberMeKey,
+        serverPort = serverPort,
+        configServerPort = configServerPort,
+        serverContextPath = serverContextPath,
+        thumbnailSize = thumbnailSize,
+    )
+
+    ChangesConfirmationButton(
+        thumbnailSizeChanged = thumbnailSizeChanged,
+        onThumbnailRegenerate = onThumbnailRegenerate,
+
+        isChanged = generalSettingsChanged,
+        onSave = onGeneralSettingsSave,
+        onDiscard = onGeneralSettingsDiscard,
+    )
+
+
+    ServerManagementContent(
+        onScanAllLibraries = onScanAllLibraries,
+        onEmptyTrash = onEmptyTrash,
+        onCancelAllTasks = onCancelAllTasks,
+        onShutdown = onShutdown
+    )
+
+    Spacer(Modifier.height(100.dp))
+}
+
+@Composable
+fun GeneralSettingsContent(
+    deleteEmptyCollections: StateHolder<Boolean>,
+    deleteEmptyReadLists: StateHolder<Boolean>,
+    taskPoolSize: StateHolder<Int?>,
+    rememberMeDurationDays: StateHolder<Int?>,
+    renewRememberMeKey: StateHolder<Boolean>,
+    serverPort: StateHolder<Int?>,
+    configServerPort: Int,
+    serverContextPath: StateHolder<String?>,
     thumbnailSize: OptionsStateHolder<KomgaThumbnailSize>,
 ) {
     val strings = LocalStrings.current.settings
 
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp),) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
             DropdownChoiceMenu(
@@ -164,10 +222,15 @@ fun ChangesConfirmationButton(
     ) {
 
         Spacer(Modifier.weight(1f))
-        TextButton(
+
+        ElevatedButton(
             onClick = onDiscard,
-            enabled = isChanged
-        ) { Text(strings.serverSettingsDiscard) }
+            shape = RoundedCornerShape(5.dp),
+            enabled = isChanged,
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+        ) {
+            Text(strings.serverSettingsDiscard)
+        }
         Spacer(Modifier.width(20.dp))
 
         FilledTonalButton(
@@ -176,7 +239,8 @@ fun ChangesConfirmationButton(
                 onSave()
             },
             shape = RoundedCornerShape(5.dp),
-            enabled = isChanged
+            enabled = isChanged,
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
             Text(strings.serverSettingsSave)
         }

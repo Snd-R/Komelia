@@ -1,9 +1,11 @@
 package io.github.snd_r.komelia.ui.settings.server
 
-import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.LoadState
+import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,6 +19,7 @@ import snd.komga.client.settings.KomgaSettings
 import snd.komga.client.settings.KomgaSettingsClient
 import snd.komga.client.settings.KomgaSettingsUpdateRequest
 import snd.komga.client.settings.KomgaThumbnailSize
+import snd.komga.client.settings.SettingMultiSource
 import snd.komga.client.task.KomgaTaskClient
 
 class ServerSettingsViewModel(
@@ -28,9 +31,19 @@ class ServerSettingsViewModel(
     private val libraries: StateFlow<List<KomgaLibrary>>,
     private val taskClient: KomgaTaskClient,
     private val actuatorClient: KomgaActuatorClient,
-) : ScreenModel {
+) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
-    val currentSettings = MutableStateFlow<KomgaSettings?>(null)
+    val currentSettings = MutableStateFlow(
+        KomgaSettings(
+            deleteEmptyCollections = false,
+            deleteEmptyReadLists = false,
+            rememberMeDurationDays = 365,
+            thumbnailSize = KomgaThumbnailSize.DEFAULT,
+            taskPoolSize = 1,
+            serverPort = SettingMultiSource(25600, null, 25600),
+            serverContextPath = SettingMultiSource(null, null, null),
+        )
+    )
 
     val deleteEmptyCollections = MutableStateFlow(false)
     val deleteEmptyReadLists = MutableStateFlow(false)
@@ -60,6 +73,17 @@ class ServerSettingsViewModel(
         }
     }
 
+    suspend fun initialize() {
+        if (state.value != Uninitialized) return
+        mutableState.value = LoadState.Loading
+        appNotifications.runCatchingToNotifications {
+
+            loadSettings()
+            mutableState.value = LoadState.Success(Unit)
+        }.onFailure {
+            mutableState.value = LoadState.Error(it)
+        }
+    }
 
     fun regenerateThumbnails(forBiggerResultOnly: Boolean) {
         screenModelScope.launch {

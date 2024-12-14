@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateTimeFormat
@@ -71,7 +73,12 @@ fun UsersContent(
         }
         var showUserAddDialog by remember { mutableStateOf(false) }
 
-        FilledTonalButton(onClick = { showUserAddDialog = true }, shape = RoundedCornerShape(5.dp)) {
+        FilledTonalButton(
+            onClick = { showUserAddDialog = true },
+            shape = RoundedCornerShape(5.dp),
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+
+        ) {
             Text("Add User")
         }
 
@@ -197,7 +204,9 @@ private fun UserActions(
         if (!isSelf)
             FilledTonalButton(
                 onClick = { showEditDialog = true },
-                contentPadding = contentPadding
+                shape = RoundedCornerShape(5.dp),
+                contentPadding = contentPadding,
+                modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
             ) {
                 Icon(Icons.Default.Edit, null)
                 Spacer(Modifier.width(10.dp))
@@ -206,7 +215,9 @@ private fun UserActions(
 
         FilledTonalButton(
             onClick = { showChangePasswordDialog = true },
-            contentPadding = contentPadding
+            shape = RoundedCornerShape(5.dp),
+            contentPadding = contentPadding,
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
             Icon(Icons.Default.LockReset, null)
             Spacer(Modifier.width(10.dp))
@@ -221,7 +232,9 @@ private fun UserActions(
                 colors = ButtonDefaults.filledTonalButtonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
-                )
+                ),
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
             ) {
                 Icon(Icons.Default.Delete, null)
                 Spacer(Modifier.width(10.dp))
