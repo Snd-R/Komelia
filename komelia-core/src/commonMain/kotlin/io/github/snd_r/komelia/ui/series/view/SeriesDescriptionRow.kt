@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -56,27 +57,27 @@ fun SeriesDescriptionRow(
                     label = { Text(strings.forSeriesStatus(status)) },
                     border = null,
                     colors =
-                    when (status) {
-                        ENDED -> SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            labelColor = MaterialTheme.colorScheme.onSecondary
-                        )
+                        when (status) {
+                            ENDED -> SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                labelColor = MaterialTheme.colorScheme.onSecondary
+                            )
 
-                        ONGOING -> SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                            ONGOING -> SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
 
-                        ABANDONED -> SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            labelColor = MaterialTheme.colorScheme.onErrorContainer
-                        )
+                            ABANDONED -> SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                labelColor = MaterialTheme.colorScheme.onErrorContainer
+                            )
 
-                        HIATUS -> SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            labelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                    },
+                            HIATUS -> SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        },
                 )
             }
 
@@ -113,25 +114,25 @@ fun SeriesDescriptionRow(
         }
 
         if (alternateTitles.isNotEmpty()) {
-            Column {
-                Text("Alternative titles", fontWeight = FontWeight.Bold)
-                alternateTitles.forEach {
-                    Row {
-                        Text(
-                            it.label,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.widthIn(min = 100.dp, max = 200.dp)
-                        )
-                        Text(
-                            it.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+            SelectionContainer {
+                Column {
+                    Text("Alternative titles", fontWeight = FontWeight.Bold)
+                    alternateTitles.forEach {
+                        Row {
+                            Text(
+                                it.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.widthIn(min = 100.dp, max = 200.dp)
+                            )
+                            Text(
+                                it.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
                     }
                 }
             }
         }
-
-
     }
 }
 
