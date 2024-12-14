@@ -28,14 +28,18 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.PlatformTitleBar
+import io.github.snd_r.komelia.platform.canIntegrateWithSystemBar
 import io.github.snd_r.komelia.ui.LoadState
+import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.LocalWindowState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
-import io.github.snd_r.komelia.ui.reader.image.common.ReaderContent
+import io.github.snd_r.komelia.ui.reader.TitleBarContent
 import io.github.snd_r.komelia.ui.reader.epub.EpubScreen
+import io.github.snd_r.komelia.ui.reader.image.common.ReaderContent
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -80,7 +84,23 @@ class ImageReaderScreen(
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
 
         Column {
-            PlatformTitleBar(Modifier.zIndex(10f), false)
+            PlatformTitleBar(Modifier.zIndex(10f), false) {
+                if (canIntegrateWithSystemBar()) {
+                    val currentBook = vm.readerState.booksState.value?.currentBook
+                    val isFullscreen = LocalWindowState.current.isFullscreen.collectAsState(false)
+                    if (currentBook != null && !isFullscreen.value) {
+                        TitleBarContent(
+                            title = "${currentBook.seriesTitle} - ${currentBook.metadata.title}",
+                            onExit = {
+                                navigator replace MainScreen(
+                                    if (currentBook.oneshot) OneshotScreen(currentBook)
+                                    else SeriesScreen(currentBook.seriesId)
+                                )
+                            }
+                        )
+                    }
+                }
+            }
 
             when (val result = vmState.value) {
                 is LoadState.Error -> ErrorContent(
@@ -90,7 +110,7 @@ class ImageReaderScreen(
                 )
 
                 LoadState.Loading, LoadState.Uninitialized -> LoadIndicator()
-                is LoadState.Success -> ReaderScreenContent(vm)
+                is Success -> ReaderScreenContent(vm)
             }
         }
     }

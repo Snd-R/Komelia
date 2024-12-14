@@ -16,11 +16,13 @@ import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.LocalWindowState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.reader.TitleBarContent
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
@@ -61,12 +63,15 @@ class EpubScreen(
         val state = vm.state.collectAsState().value
         Column {
             PlatformTitleBar(applyInsets = false) {
-                if (canIntegrateWithSystemBar() && state is Success) {
-                    val book = state.value.book.collectAsState().value
-                    TitleBarContent(
-                        title = book?.metadata?.title ?: "",
-                        onExit = { state.value.closeWebview() }
-                    )
+                if (canIntegrateWithSystemBar()) {
+                    val isFullscreen = LocalWindowState.current.isFullscreen.collectAsState(false)
+                    if (state is Success && !isFullscreen.value) {
+                        val book = state.value.book.collectAsState().value
+                        TitleBarContent(
+                            title = book?.metadata?.title ?: "",
+                            onExit = { state.value.closeWebview() }
+                        )
+                    }
                 }
             }
             when (state) {

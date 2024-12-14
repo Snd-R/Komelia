@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.reader.epub
+package io.github.snd_r.komelia.ui.reader
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -20,7 +20,6 @@ fun TitleBarScope.TitleBarContent(
     title: String,
     onExit: () -> Unit,
 ) {
-
     Row(
         modifier = Modifier
             .align(Alignment.Start)
@@ -31,7 +30,7 @@ fun TitleBarScope.TitleBarContent(
         IconButton(onClick = onExit) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
-                "Leave webview",
+                "Leave",
                 modifier = Modifier.fillMaxHeight()
             )
         }
