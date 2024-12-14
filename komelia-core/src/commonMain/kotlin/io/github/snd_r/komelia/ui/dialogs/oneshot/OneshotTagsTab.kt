@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.common.LockableChipTextField
+import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
+import io.github.snd_r.komelia.ui.common.LockableChipTextFieldWithSuggestions
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.dialogs.book.edit.BookEditMetadataState
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditMetadataState
@@ -30,6 +33,8 @@ internal class OneshotTagsTab(
             tagsLock = StateHolder(bookMetadata.tagsLock, bookMetadata::tagsLock::set),
             genres = StateHolder(seriesMetadata.genres, seriesMetadata::genres::set),
             genresLock = StateHolder(seriesMetadata.genresLock, seriesMetadata::genresLock::set),
+            allTags = seriesMetadata.allTags.collectAsState().value,
+            allGenres = seriesMetadata.allGenres.collectAsState().value,
         )
     }
 
@@ -39,10 +44,26 @@ internal class OneshotTagsTab(
         tagsLock: StateHolder<Boolean>,
         genres: StateHolder<List<String>>,
         genresLock: StateHolder<Boolean>,
+        allTags: List<String>,
+        allGenres: List<String>,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            LockableChipTextField(tags, "Tags", tagsLock)
-            LockableChipTextField(genres, "Genres", genresLock)
+            LockableChipTextFieldWithSuggestions(
+                values = tags.value,
+                onValuesChange = { tags.setValue(it) },
+                label = "Tags",
+                suggestions = remember(allTags) { allTags.map { stringEntry(it) } },
+                locked = tagsLock.value,
+                onLockChange = { tagsLock.setValue(it) }
+            )
+            LockableChipTextFieldWithSuggestions(
+                values = genres.value,
+                onValuesChange = { genres.setValue(it) },
+                label = "Genres",
+                suggestions = remember(allGenres) { allGenres.map { stringEntry(it) } },
+                locked = genresLock.value,
+                onLockChange = { genresLock.setValue(it) }
+            )
         }
     }
 }

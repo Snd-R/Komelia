@@ -4,11 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.Loading
-import io.github.snd_r.komelia.ui.LoadState.Success
-import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState
 import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
@@ -19,6 +16,8 @@ import snd.komga.client.referential.KomgaReferentialClient
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 
+private val logger = KotlinLogging.logger { }
+
 class SeriesEditDialogViewModel(
     val series: KomgaSeries,
     val onDialogDismiss: () -> Unit,
@@ -27,67 +26,49 @@ class SeriesEditDialogViewModel(
     private val notifications: AppNotifications,
     private val cardWidth: Flow<Dp>,
 ) {
-    val loadState = MutableStateFlow<LoadState<SeriesEditVmState>>(Uninitialized)
+    private val allTags = MutableStateFlow<List<String>>(emptyList())
+    private val allGenres = MutableStateFlow<List<String>>(emptyList())
+    private val posterState = PosterEditState(cardWidth)
+    private val metadataState = SeriesEditMetadataState(series, allTags, allGenres, seriesClient)
 
-    class SeriesEditVmState(
-        val posterState: PosterEditState,
-        val metadataState: SeriesEditMetadataState,
-    ) {
-        private val generalTab = GeneralTab(metadataState)
-        private val alternativeTitlesTab = AlternativeTitlesTab(metadataState)
-        private val tagsTab = TagsTab(metadataState)
-        private val linksTab = LinksTab(metadataState)
-        private val posterTab = PosterTab(posterState)
-        private val sharingTab = SharingTab(metadataState)
+    private val generalTab = GeneralTab(metadataState)
+    private val alternativeTitlesTab = AlternativeTitlesTab(metadataState)
+    private val tagsTab = TagsTab(metadataState)
+    private val linksTab = LinksTab(metadataState)
+    private val posterTab = PosterTab(posterState)
+    private val sharingTab = SharingTab(metadataState)
 
-        var currentTab by mutableStateOf<DialogTab>(generalTab)
+    var currentTab by mutableStateOf<DialogTab>(generalTab)
 
-        val tabs: List<DialogTab> = listOf(
-            generalTab,
-            alternativeTitlesTab,
-            tagsTab,
-            linksTab,
-            posterTab,
-            sharingTab
-        )
-    }
+    val tabs: List<DialogTab> = listOf(
+        generalTab,
+        alternativeTitlesTab,
+        tagsTab,
+        linksTab,
+        posterTab,
+        sharingTab
+    )
+
 
     suspend fun initialize() {
-        if (loadState.value != Uninitialized) return
-        loadState.value = Loading
-
         notifications.runCatchingToNotifications {
             val posterState = PosterEditState(cardWidth)
             posterState.thumbnails = seriesClient.getSeriesThumbnails(series.id).map { SeriesThumbnail(it) }
-            val allTags = referentialClient.getTags()
-            val allGenres = referentialClient.getGenres()
-            val metadataState = SeriesEditMetadataState(
-                series = series,
-                allTags = allTags,
-                allGenres = allGenres,
-                seriesClient = seriesClient
-            )
+            allTags.value = referentialClient.getTags()
+            allGenres.value = referentialClient.getGenres()
 
-            loadState.value = Success(
-                SeriesEditVmState(
-                    posterState = posterState,
-                    metadataState = metadataState
-                )
-            )
-        }
+        }.onFailure { logger.catching(it) }
     }
 
     suspend fun saveChanges() {
-        val state = getState()
         notifications.runCatchingToNotifications {
-            state.metadataState.saveMetadataChanges()
+            metadataState.saveMetadataChanges()
             saveThumbnailChanges()
             onDialogDismiss()
         }
     }
 
     private suspend fun saveThumbnailChanges() {
-        val posterState = getState().posterState
         posterState.userUploadedThumbnails.forEach { thumb ->
             seriesClient.uploadSeriesThumbnail(
                 seriesId = series.id,
@@ -100,12 +81,5 @@ class SeriesEditDialogViewModel(
             ?.let { thumb -> seriesClient.selectSeriesThumbnail(series.id, thumb.id) }
         posterState.thumbnails.filter { it.markedDeleted }
             .forEach { thumb -> seriesClient.deleteSeriesThumbnail(series.id, thumb.id) }
-    }
-
-    private fun getState(): SeriesEditVmState {
-        return when (val state = loadState.value) {
-            is Success -> state.value
-            else -> error("successful state is required, current state $state")
-        }
     }
 }

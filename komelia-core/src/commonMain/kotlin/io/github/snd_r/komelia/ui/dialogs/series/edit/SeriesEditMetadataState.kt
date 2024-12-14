@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.StateFlow
 import snd.komga.client.common.KomgaWebLink
 import snd.komga.client.common.patch
 import snd.komga.client.common.patchLists
@@ -14,8 +15,8 @@ import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 
 class SeriesEditMetadataState(
     val series: KomgaSeries,
-    val allTags:List<String>,
-    val allGenres:List<String>,
+    val allTags: StateFlow<List<String>>,
+    val allGenres: StateFlow<List<String>>,
     private val seriesClient: KomgaSeriesClient,
 ) {
     var title by mutableStateOf(series.metadata.title)

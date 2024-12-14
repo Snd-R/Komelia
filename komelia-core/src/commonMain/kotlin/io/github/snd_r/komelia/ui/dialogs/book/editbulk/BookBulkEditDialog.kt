@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.dialogs.book.editbulk
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
@@ -17,6 +18,7 @@ fun BookBulkEditDialog(
     val viewModelFactory = LocalViewModelFactory.current
     val coroutineScope = rememberCoroutineScope()
     val vm = remember { viewModelFactory.getBookBulkEditDialogViewModel(books, onDismissRequest) }
+    LaunchedEffect(books) { vm.initialize() }
 
     TabDialog(
         title = "Edit ${books.size} books",

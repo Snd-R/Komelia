@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.dialogs.book.editbulk
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import snd.komga.client.book.KomgaBook
@@ -11,13 +12,18 @@ import snd.komga.client.book.KomgaBookMetadataUpdateRequest
 import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.common.patch
 import snd.komga.client.common.patchLists
+import snd.komga.client.referential.KomgaReferentialClient
 
+private val logger = KotlinLogging.logger {  }
 class BookBulkEditDialogViewModel(
     val books: List<KomgaBook>,
     val onDialogDismiss: () -> Unit,
     private val bookClient: KomgaBookClient,
+    private val referentialClient: KomgaReferentialClient,
     private val notifications: AppNotifications,
 ) {
+    var allTags by mutableStateOf<List<String>>(emptyList())
+        private set
     var tags by mutableStateOf<List<String>>(emptyList())
     var tagsLock by mutableStateOf(
         distinctOrDefault(books, false) { it.metadata.tagsLock }
@@ -37,6 +43,12 @@ class BookBulkEditDialogViewModel(
     private val authorsTab = AuthorsTab(this)
     private val tagsTab = TagsTab(this)
     var currentTab by mutableStateOf<DialogTab>(authorsTab)
+
+    suspend fun initialize() {
+        notifications.runCatchingToNotifications {
+            allTags = referentialClient.getTags()
+        }.onFailure { logger.catching(it) }
+    }
 
     fun tabs(): List<DialogTab> = listOf(authorsTab, tagsTab)
 

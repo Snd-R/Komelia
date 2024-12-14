@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
@@ -29,8 +30,8 @@ internal class TagsTab(
             tagsLock = StateHolder(vm.tagsLock, vm::tagsLock::set),
             genres = StateHolder(vm.genres, vm::genres::set),
             genresLock = StateHolder(vm.genresLock, vm::genresLock::set),
-            allTags = vm.allTags,
-            allGenres = vm.allGenres
+            allTags = vm.allTags.collectAsState().value,
+            allGenres = vm.allGenres.collectAsState().value
         )
     }
 }

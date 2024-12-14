@@ -3,18 +3,23 @@ package io.github.snd_r.komelia.ui.dialogs.series.editbulk
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import snd.komga.client.common.patch
 import snd.komga.client.common.patchLists
+import snd.komga.client.referential.KomgaReferentialClient
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
+
+private val logger = KotlinLogging.logger { }
 
 class SeriesBulkEditDialogViewModel(
     val series: List<KomgaSeries>,
     val onDialogDismiss: () -> Unit,
     private val seriesClient: KomgaSeriesClient,
+    private val referentialClient: KomgaReferentialClient,
     private val notifications: AppNotifications,
 ) {
     var status by mutableStateOf(
@@ -71,6 +76,10 @@ class SeriesBulkEditDialogViewModel(
         distinctOrDefault(series, false) { it.metadata.sharingLabelsLock }
     )
 
+    var allTags: List<String> by mutableStateOf(emptyList())
+        private set
+    var allGenres: List<String> by mutableStateOf(emptyList())
+        private set
 
     private val generalTab = GeneralTab(this)
     private val tagsTab = TagsTab(this)
@@ -79,6 +88,10 @@ class SeriesBulkEditDialogViewModel(
     var currentTab by mutableStateOf<DialogTab>(generalTab)
 
     suspend fun initialize() {
+        notifications.runCatchingToNotifications {
+            allTags = referentialClient.getTags()
+            allGenres = referentialClient.getGenres()
+        }.onFailure { logger.catching(it) }
     }
 
     fun tabs(): List<DialogTab> = listOf(generalTab, tagsTab, sharingTab)

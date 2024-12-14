@@ -78,8 +78,13 @@ class OneshotEditDialogViewModel(
 
             loadState.value = Success(
                 OneshotEditVmState(
-                    seriesMetadataState = SeriesEditMetadataState(currentSeries, allTags, allGenres, seriesClient),
-                    bookMetadataState = BookEditMetadataState(currentBook, bookClient),
+                    seriesMetadataState = SeriesEditMetadataState(
+                        series = currentSeries,
+                        allTags = MutableStateFlow(allTags),
+                        allGenres = MutableStateFlow(allGenres),
+                        seriesClient = seriesClient
+                    ),
+                    bookMetadataState = BookEditMetadataState(currentBook, MutableStateFlow(allTags), bookClient),
                     posterState = posterState,
                 )
             )

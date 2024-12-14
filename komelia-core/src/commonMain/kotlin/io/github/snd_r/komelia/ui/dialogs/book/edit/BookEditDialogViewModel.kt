@@ -10,17 +10,21 @@ import io.github.snd_r.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.BookThu
 import io.github.snd_r.komelia.ui.dialogs.PosterTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.referential.KomgaReferentialClient
 
 class BookEditDialogViewModel(
     val book: KomgaBook,
     val onDialogDismiss: () -> Unit,
     private val bookClient: KomgaBookClient,
+    private val referentialClient: KomgaReferentialClient,
     private val notifications: AppNotifications,
     cardWidth: Flow<Dp>,
 ) {
-    private val metadataState = BookEditMetadataState(book, bookClient)
+    private val allTags = MutableStateFlow<List<String>>(emptyList())
+    private val metadataState = BookEditMetadataState(book, allTags, bookClient)
     private val posterState = PosterEditState(cardWidth)
 
     private val generalTab = GeneralTab(metadataState)
@@ -33,6 +37,7 @@ class BookEditDialogViewModel(
     suspend fun initialize() {
         notifications.runCatchingToNotifications {
             posterState.thumbnails = bookClient.getBookThumbnails(book.id).map { BookThumbnail(it) }
+            allTags.value = referentialClient.getTags()
         }
     }
 

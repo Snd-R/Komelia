@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.LocalDate
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
@@ -15,6 +16,7 @@ import snd.komga.client.common.patchLists
 
 class BookEditMetadataState(
     val book: KomgaBook,
+    val allTags: StateFlow<List<String>>,
     private val bookClient: KomgaBookClient,
 ) {
     var title by mutableStateOf(book.metadata.title)
@@ -54,7 +56,7 @@ class BookEditMetadataState(
             .plus(book.metadata.authors.groupBy { it.role })
     )
 
-     suspend fun saveMetadataChanges() {
+    suspend fun saveMetadataChanges() {
         val bookMetadata = book.metadata
         val newAuthors = authors.flatMap { (_, authorsForRole) -> authorsForRole }
         val newReleaseDate = if (releaseDate.isNotBlank()) LocalDate.parse(releaseDate) else null
