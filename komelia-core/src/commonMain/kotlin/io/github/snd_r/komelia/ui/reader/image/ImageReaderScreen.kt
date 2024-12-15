@@ -86,7 +86,7 @@ class ImageReaderScreen(
         Column {
             PlatformTitleBar(Modifier.zIndex(10f), false) {
                 if (canIntegrateWithSystemBar()) {
-                    val currentBook = vm.readerState.booksState.value?.currentBook
+                    val currentBook = vm.readerState.booksState.collectAsState().value?.currentBook
                     val isFullscreen = LocalWindowState.current.isFullscreen.collectAsState(false)
                     if (currentBook != null && !isFullscreen.value) {
                         TitleBarContent(
