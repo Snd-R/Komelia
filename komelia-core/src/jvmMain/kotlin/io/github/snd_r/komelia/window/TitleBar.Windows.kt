@@ -6,6 +6,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import com.jetbrains.JBR
 import com.jetbrains.WindowDecorations.CustomTitleBar
@@ -36,12 +38,7 @@ internal fun TitleBarOnWindows(
             JBR.getWindowDecorations().setCustomTitleBar(window, titleBar)
             PaddingValues(start = titleBar.leftInset.dp, end = titleBar.rightInset.dp)
         },
-        applyContentWidth = { start, center, end ->
-            titleBarClientHitAdapter.startSpace = start?.let { (start, end) -> start.value..end.value }
-            titleBarClientHitAdapter.centerSpace = center?.let { (start, end) -> start.value..end.value }
-            titleBarClientHitAdapter.endSpace = end?.let { (start, end) -> start.value..end.value }
-
-        },
+        onElementsPlaced = { elements -> titleBarClientHitAdapter.elements = elements },
         content = content,
     )
 
@@ -63,15 +60,12 @@ internal fun TitleBarOnWindows(
 }
 
 class ClientAreaHitAdapter(private val titleBar: CustomTitleBar) : MouseAdapter() {
-    var startSpace: ClosedFloatingPointRange<Float>? = null
-    var centerSpace: ClosedFloatingPointRange<Float>? = null
-    var endSpace: ClosedFloatingPointRange<Float>? = null
+    var elements: List<Rect> = emptyList()
 
-    private fun hit(e: MouseEvent) {
-        val x = e.x.toFloat()
-        val isClientArea = e.y <= titleBar.height &&
-                (startSpace?.contains(x) == true || centerSpace?.contains(x) == true || endSpace?.contains(x) == true)
-
+    private fun hit(event: MouseEvent) {
+        if (event.y > titleBar.height) titleBar.forceHitTest(false)
+        val offset = Offset(event.x.toFloat(), event.y.toFloat())
+        val isClientArea = elements.any { it.contains(offset) }
         titleBar.forceHitTest(isClientArea)
     }
 

@@ -63,7 +63,7 @@ internal fun TitleBarOnLinux(
                 }
             },
         applyTitleBar = { _ -> PaddingValues(0.dp) },
-        applyContentWidth = { _, _, _ -> }
+        onElementsPlaced = { _ -> }
     ) {
         ControlButton(
             { window.dispatchEvent(WindowEvent(window, WindowEvent.WINDOW_CLOSING)) },

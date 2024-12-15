@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.ui.common
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.indication
@@ -52,6 +53,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.platform.scrollbar
 import io.github.snd_r.komelia.ui.LocalStrings
 import kotlinx.coroutines.delay
 
@@ -85,9 +87,12 @@ fun <T> DropdownChoiceMenu(
             contentPadding = contentPadding
         )
 
+        val scrollState = rememberScrollState()
         ExposedDropdownMenu(
             expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
+            onDismissRequest = { isExpanded = false },
+            scrollState = scrollState,
+            modifier = Modifier.scrollbar(scrollState, Orientation.Vertical)
         ) {
 
             options.forEach {
