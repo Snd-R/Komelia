@@ -3,6 +3,7 @@ package io.github.snd_r.komelia
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
+import io.github.snd_r.komelia.curves.CurvesViewModel
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
@@ -602,6 +603,10 @@ class ViewModelFactory(
 
     fun getEpubReaderSettingsViewModel(): EpubReaderSettingsViewModel {
         return EpubReaderSettingsViewModel(dependencies.epubReaderSettingsRepository)
+    }
+
+    fun getCurvesViewModel(): CurvesViewModel {
+        return CurvesViewModel()
     }
 
     fun getSeriesBulkActions() = SeriesBulkActions(

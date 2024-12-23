@@ -10,6 +10,10 @@ actual class PlatformImage {
     actual val height: Int
         get() = TODO("Not yet implemented")
 
+    actual val bands: Int
+        get() = TODO("Not yet implemented")
+
     actual fun close() {
     }
+
 }
