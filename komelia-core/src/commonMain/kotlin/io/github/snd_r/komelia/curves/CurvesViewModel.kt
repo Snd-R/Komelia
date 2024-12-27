@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.toSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import io.github.snd_r.komelia.curves.Curve.CurvePoint
 import io.github.snd_r.komelia.curves.Curve.CurvePointType
-import io.github.snd_r.komelia.image.PlatformImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,6 +27,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import snd.komelia.image.KomeliaImage
 import kotlin.math.abs
 
 const val pointSize = 7f
@@ -269,15 +269,15 @@ class CurvesViewModel : ScreenModel {
         Offset(this.x.toNormalizedX(normalizationRatio), this.y.toNormalizedY(normalizationRatio))
 }
 
-expect fun getImage(): PlatformImage
+expect fun getImage(): KomeliaImage
 expect fun transformImage(
-    image: PlatformImage,
+    image: KomeliaImage,
     targetHeight: Int,
     colorLut: LookupTable?,
     redLut: LookupTable?,
     greenLut: LookupTable?,
     blueLut: LookupTable?,
-): PlatformImage
+): KomeliaImage
 
-expect fun toImageBitmap(image: PlatformImage): ImageBitmap
-expect fun getHistogram(image: PlatformImage): Histogram
+expect fun toImageBitmap(image: KomeliaImage): ImageBitmap
+expect fun getHistogram(image: KomeliaImage): Histogram

@@ -5,12 +5,10 @@ import com.google.protobuf.gradle.proto
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlinAtomicfu)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
@@ -81,6 +79,7 @@ kotlin {
             api(project(":third_party:ChipTextField:chiptextfield-m3"))
             api(project(":third_party:compose-sonner:sonner"))
             implementation(project(":komelia-webview"))
+            implementation(project(":komelia-image-decoder:shared"))
         }
 
         androidMain.dependencies {
@@ -96,7 +95,7 @@ kotlin {
             api(libs.protobuf.javalite)
             api(libs.protobuf.kotlin.lite)
             api(libs.slf4j.api)
-            api(project(":komelia-image-decoder"))
+            api(project(":komelia-image-decoder:vips"))
         }
 
         jvmMain.dependencies {
@@ -115,13 +114,13 @@ kotlin {
             api(libs.okhttp.logging.interceptor)
             api(libs.secret.service)
             api(libs.slf4j.api)
-            api(project(":komelia-image-decoder"))
+            api(project(":komelia-image-decoder:vips"))
             api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
 
         wasmJsMain.dependencies {
             api(libs.ktor.client.js)
-            api(project(":wasm-image-worker"))
+            implementation(project(":komelia-image-decoder:wasm-image-worker"))
         }
     }
 }

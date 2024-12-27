@@ -10,15 +10,15 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.AndroidSharedLibrariesLoader
 import io.github.snd_r.komelia.AndroidDependencyContainer
 import io.github.snd_r.komelia.fonts.fontsDirectory
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
-import io.github.snd_r.komelia.image.AndroidImageDecoder
+import io.github.snd_r.komelia.image.AndroidImageFactory
 import io.github.snd_r.komelia.image.CropBordersStep
 import io.github.snd_r.komelia.image.ImageProcessingPipeline
 import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -26,7 +26,6 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
-import io.github.snd_r.komelia.image.coil.VipsImageDecoder
 import io.github.snd_r.komelia.platform.AndroidWindowState
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
@@ -65,6 +64,9 @@ import snd.komelia.db.repository.ActorSettingsRepository
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
+import snd.komelia.image.AndroidSharedLibrariesLoader
+import snd.komelia.image.ImageDecoder
+import snd.komelia.image.VipsImageDecoder
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import java.util.concurrent.TimeUnit
@@ -126,15 +128,24 @@ suspend fun initDependencies(
         cropBorders = imageReaderSettingsRepository.getCropBorders().stateIn(initScope)
     )
     val stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(initScope)
+
+    val vipsDecoder = VipsImageDecoder()
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
         stretchImages = stretchImages,
         pipeline = imagePipeline,
+        decoder = vipsDecoder
     )
 
-    val coil = createCoil(ktorWithoutCache, baseUrl, cookiesStorage, context)
+    val coil = createCoil(
+        ktorClient = ktorWithoutCache,
+        url = baseUrl,
+        cookiesStorage = cookiesStorage,
+        decoder = vipsDecoder,
+        context = context
+    )
     SingletonImageLoader.setSafe { coil }
 
     val komfClientFactory = KomfClientFactory.Builder()
@@ -201,7 +212,8 @@ private fun createReaderImageLoader(
     ktorClient: HttpClient,
     cookiesStorage: RememberMePersistingCookieStore,
     stretchImages: StateFlow<Boolean>,
-    pipeline: ImageProcessingPipeline
+    pipeline: ImageProcessingPipeline,
+    decoder: ImageDecoder,
 ): ReaderImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -211,9 +223,10 @@ private fun createReaderImageLoader(
         .bookClient()
     return ReaderImageLoader(
         bookClient = bookClient,
-        decoder = AndroidImageDecoder(
+        decoder = AndroidImageFactory(
             stretchImages = stretchImages,
-            processingPipeline = pipeline
+            processingPipeline = pipeline,
+            decoder = decoder,
         ),
         diskCache = DiskCache.Builder()
             .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
@@ -225,6 +238,7 @@ private fun createCoil(
     ktorClient: HttpClient,
     url: StateFlow<String>,
     cookiesStorage: RememberMePersistingCookieStore,
+    decoder: ImageDecoder,
     context: PlatformContext
 ): ImageLoader {
     val coilKtorClient = ktorClient.config {
@@ -245,7 +259,7 @@ private fun createCoil(
             add(KomgaReadListMapper(url))
             add(KomgaSeriesThumbnailMapper(url))
             add(FileMapper())
-            add(VipsImageDecoder.Factory())
+            add(CoilDecoder.Factory(decoder))
             add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
         }.diskCache(diskCache)
         .build()

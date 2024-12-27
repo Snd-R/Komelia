@@ -11,34 +11,29 @@ import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
-import io.github.snd_r.ImageRect
-import io.github.snd_r.VipsBitmapFactory.toBitmap
-import io.github.snd_r.VipsImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import kotlinx.coroutines.flow.StateFlow
+import snd.komelia.image.AndroidBitmap.toBitmap
+import snd.komelia.image.ImageDecoder
+import snd.komelia.image.ImageRect
+import snd.komelia.image.KomeliaImage
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Bitmap
 
 class AndroidTilingReaderImage(
     encoded: ByteArray,
     processingPipeline: ImageProcessingPipeline,
     stretchImages: StateFlow<Boolean>,
+    decoder: ImageDecoder,
     pageId: PageId,
 ) : TilingReaderImage(
     encoded,
     processingPipeline,
     stretchImages,
+    decoder,
     pageId
 ) {
-
-    override fun getDimensions(encoded: ByteArray): IntSize {
-        val vipsDimensions = VipsImage.Companion.getDimensions(encoded)
-        return IntSize(vipsDimensions.width, vipsDimensions.height)
-    }
-
-    override fun decode(encoded: ByteArray): PlatformImage {
-        return VipsImage.decode(encoded)
-    }
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
         tiles.forEach { it.renderImage?.recycle() }
@@ -56,7 +51,7 @@ class AndroidTilingReaderImage(
         return PlaceholderPainter(displaySize)
     }
 
-    override suspend fun resizeImage(image: PlatformImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
+    override suspend fun resizeImage(image: KomeliaImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
         val resized = image.resize(scaleWidth, scaleHeight, false)
         val bitmap = resized.toBitmap()
         val imageData = ReaderImageData(resized.width, resized.height, bitmap)
@@ -65,13 +60,13 @@ class AndroidTilingReaderImage(
     }
 
     override suspend fun getImageRegion(
-        image: PlatformImage,
+        image: KomeliaImage,
         imageRegion: IntRect,
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData {
-        var region: VipsImage? = null
-        var resized: VipsImage? = null
+        var region: KomeliaImage? = null
+        var resized: KomeliaImage? = null
         try {
             region = image.extractArea(imageRegion.toImageRect())
             if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
@@ -86,7 +81,7 @@ class AndroidTilingReaderImage(
         }
     }
 
-    private fun VipsImage.toReaderImageData(): ReaderImageData {
+    private fun KomeliaImage.toReaderImageData(): ReaderImageData {
         val bitmap = this.toBitmap()
         return ReaderImageData(this.width, this.height, bitmap)
     }

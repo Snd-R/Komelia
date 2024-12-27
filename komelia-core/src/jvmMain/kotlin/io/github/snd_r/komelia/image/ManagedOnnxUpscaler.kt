@@ -2,10 +2,6 @@ package io.github.snd_r.komelia.image
 
 import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.ImageFormat
-import io.github.snd_r.OnnxRuntimeSharedLibraries
-import io.github.snd_r.OnnxRuntimeUpscaler
-import io.github.snd_r.VipsImage
 import io.github.snd_r.komelia.AppDirectories
 import io.github.snd_r.komelia.AppDirectories.mangaJaNaiInstallPath
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.MANGAJANAI_PRESET
@@ -20,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,6 +24,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
+import snd.komelia.image.ImageFormat
+import snd.komelia.image.KomeliaImage
+import snd.komelia.image.VipsBackedImage
+import snd.komelia.image.VipsImage
+import snd.komelia.image.toVipsImage
+import snd.komelia.image.OnnxRuntimeSharedLibraries
+import snd.komelia.image.OnnxRuntimeUpscaler
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -84,19 +86,20 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
             }.launchIn(scope)
     }
 
-    suspend fun upscale(pageId: PageId, image: VipsImage): VipsImage? {
+    suspend fun upscale(pageId: PageId, image: KomeliaImage): KomeliaImage? {
         val timeSource = TimeSource.Monotonic
 
         mutex.withLock {
             val start = timeSource.markNow()
+            val vipsImage = image.toVipsImage()
             val result = withContext(Dispatchers.IO) {
                 imageCache.openSnapshot(pageId.toString()).use { snapshot ->
                     if (snapshot != null) {
                         return@withContext VipsImage.decodeFromFile(snapshot.data.toString())
                     }
                     val upscaled = when (upscaleMode.value) {
-                        USER_SPECIFIED_MODEL -> OnnxRuntimeUpscaler.upscale(image)
-                        MANGAJANAI_PRESET -> mangaJaNaiUpscale(pageId, image)
+                        USER_SPECIFIED_MODEL -> OnnxRuntimeUpscaler.upscale(vipsImage)
+                        MANGAJANAI_PRESET -> mangaJaNaiUpscale(pageId, vipsImage)
                         NONE -> null
                     }
 
@@ -109,7 +112,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
                 val end = timeSource.markNow()
                 logger.info { "page ${pageId.pageNumber} completed ORT upscaling in ${end - start}" }
             }
-            return result
+            return result?.let { VipsBackedImage(it) }
         }
     }
 
@@ -175,18 +178,6 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
         // consider image grayscale if less than 10% are not grayscale pixels
         val rgbaPixelCount = rgba.size / 4
         return (rgbaPixelCount - grayScaleCount) < rgbaPixelCount / 10
-    }
-
-    private class OnnxRuntimeProcessingStep(
-        private val upscaler: ManagedOnnxUpscaler,
-    ) : ProcessingStep {
-        override suspend fun process(pageId: PageId, image: VipsImage): PlatformImage? {
-            return upscaler.upscale(pageId, image)
-        }
-
-        override suspend fun addChangeListener(callback: () -> Unit) {
-            upscaler.upscaleMode.drop(1).collect { callback() }
-        }
     }
 
     enum class UpscaleMode {

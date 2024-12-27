@@ -11,9 +11,6 @@ import androidx.compose.ui.graphics.toSkiaRect
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
-import io.github.snd_r.ImageRect
-import io.github.snd_r.VipsBitmapFactory
-import io.github.snd_r.VipsImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
@@ -28,7 +25,12 @@ import org.jetbrains.skia.Font
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.TextLine
+import snd.komelia.image.ImageDecoder
+import snd.komelia.image.ImageRect
+import snd.komelia.image.KomeliaImage
+import snd.komelia.image.SkiaBitmap.toSkiaBitmap
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Image
 
 class DesktopTilingReaderImage(
@@ -36,6 +38,7 @@ class DesktopTilingReaderImage(
     processingPipeline: ImageProcessingPipeline,
     upscaleOption: StateFlow<UpscaleOption>,
     stretchImages: StateFlow<Boolean>,
+    decoder: ImageDecoder,
     pageId: PageId,
     private val upscaler: ManagedOnnxUpscaler?,
     private val showDebugGrid: StateFlow<Boolean>,
@@ -43,7 +46,8 @@ class DesktopTilingReaderImage(
     encoded,
     processingPipeline,
     stretchImages,
-    pageId
+    decoder,
+    pageId,
 ) {
 
     @Volatile
@@ -78,15 +82,6 @@ class DesktopTilingReaderImage(
         }?.launchIn(processingScope)
     }
 
-    override fun getDimensions(encoded: ByteArray): IntSize {
-        val vipsDimensions = VipsImage.getDimensions(encoded)
-        return IntSize(vipsDimensions.width, vipsDimensions.height)
-    }
-
-    override fun decode(encoded: ByteArray): PlatformImage {
-        return VipsImage.decode(encoded)
-    }
-
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
         tiles.forEach { runCatching { it.renderImage?.close() } }
     }
@@ -109,7 +104,11 @@ class DesktopTilingReaderImage(
         return PlaceholderPainter(displaySize)
     }
 
-    override suspend fun resizeImage(image: VipsImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
+    override suspend fun resizeImage(
+        image: KomeliaImage,
+        scaleWidth: Int,
+        scaleHeight: Int
+    ): ReaderImageData {
         if (scaleWidth > image.width || scaleHeight > image.height) {
             return upscaleImage(image, scaleWidth, scaleHeight)
         }
@@ -118,17 +117,16 @@ class DesktopTilingReaderImage(
         val imageData = downscaled.toReaderImageData()
         downscaled.close()
         return imageData
-
     }
 
     override suspend fun getImageRegion(
-        image: VipsImage,
+        image: KomeliaImage,
         imageRegion: IntRect,
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData {
-        var region: VipsImage? = null
-        var resized: VipsImage? = null
+        var region: KomeliaImage? = null
+        var resized: KomeliaImage? = null
         try {
             region = image.extractArea(imageRegion.toImageRect())
             if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
@@ -143,7 +141,7 @@ class DesktopTilingReaderImage(
     }
 
     private suspend fun upscaleImage(
-        image: VipsImage,
+        image: KomeliaImage,
         scaleWidth: Int,
         scaleHeight: Int,
     ): ReaderImageData {
@@ -167,15 +165,15 @@ class DesktopTilingReaderImage(
 
 
     private suspend fun upscaleRegion(
-        image: VipsImage,
+        image: KomeliaImage,
         imageRegion: IntRect,
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData {
         // try to reuse full resized image instead of upscaling individual regions
         val upscaled = upscaler?.upscale(pageId, image)
-        var region: VipsImage? = null
-        var resized: VipsImage? = null
+        var region: KomeliaImage? = null
+        var resized: KomeliaImage? = null
 
         try {
             if (upscaled != null) {
@@ -209,9 +207,9 @@ class DesktopTilingReaderImage(
         }
     }
 
+    private fun KomeliaImage.toReaderImageData(): ReaderImageData {
+        val skiaBitmap = this.toSkiaBitmap()
 
-    private fun VipsImage.toReaderImageData(): ReaderImageData {
-        val skiaBitmap = VipsBitmapFactory.toSkiaBitmap(this)
         val image = Image.makeFromBitmap(skiaBitmap)
         skiaBitmap.close()
         return ReaderImageData(width, height, image)

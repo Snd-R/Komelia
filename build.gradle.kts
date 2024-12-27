@@ -47,6 +47,7 @@ val linuxCommonLibs = setOf(
     "libgobject-2.0.so",
     "libheif.so",
     "libhwy.so",
+    "liblcms2.so",
     "libjpeg.so",
     "libjxl.so",
     "libjxl_cms.so",

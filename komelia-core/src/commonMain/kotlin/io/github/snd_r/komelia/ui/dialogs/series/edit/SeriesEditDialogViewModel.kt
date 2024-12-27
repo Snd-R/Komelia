@@ -49,10 +49,8 @@ class SeriesEditDialogViewModel(
         sharingTab
     )
 
-
     suspend fun initialize() {
         notifications.runCatchingToNotifications {
-            val posterState = PosterEditState(cardWidth)
             posterState.thumbnails = seriesClient.getSeriesThumbnails(series.id).map { SeriesThumbnail(it) }
             allTags.value = referentialClient.getTags()
             allGenres.value = referentialClient.getGenres()

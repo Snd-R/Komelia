@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import snd.komelia.image.ImageDecoder
+import snd.komelia.image.KomeliaImage
 import kotlin.concurrent.Volatile
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -37,6 +39,7 @@ private const val tileThreshold1 = 2048 * 2048
 private const val tileThreshold2 = 4096 * 4096
 private const val tileThreshold3 = 6144 * 6144
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect class RenderImage
 
 private val logger = KotlinLogging.logger {}
@@ -45,6 +48,7 @@ abstract class TilingReaderImage(
     private val encoded: ByteArray,
     private val processingPipeline: ImageProcessingPipeline,
     private val stretchImages: StateFlow<Boolean>,
+    private val decoder: ImageDecoder,
     final override val pageId: PageId
 ) : ReaderImage {
     final override val painter = MutableStateFlow(noopPainter)
@@ -65,7 +69,7 @@ abstract class TilingReaderImage(
 
     private val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
     private val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
-    protected val image = MutableStateFlow<PlatformImage?>(null)
+    protected val image = MutableStateFlow<KomeliaImage?>(null)
 
     data class UpdateRequest(
         val visibleDisplaySize: IntRect,
@@ -112,7 +116,8 @@ abstract class TilingReaderImage(
     private suspend fun loadImage() {
         try {
             measureTime {
-                val processed = processingPipeline.process(pageId, decode(encoded))
+                val decoded = decoder.decode(encoded)
+                val processed = processingPipeline.process(pageId, decoded)
                 image.value = processed
                 originalSize.value = IntSize(processed.width, processed.height)
             }.also { logger.info { "page ${pageId.pageNumber} completed load in $it" } }
@@ -129,7 +134,7 @@ abstract class TilingReaderImage(
         return imageAwaitScope.async { originalSize.filterNotNull().first() }.await()
     }
 
-    private suspend fun getCurrentImage(): PlatformImage {
+    private suspend fun getCurrentImage(): KomeliaImage {
         return imageAwaitScope.async { image.filterNotNull().first() }.await()
     }
 
@@ -198,7 +203,7 @@ abstract class TilingReaderImage(
     }
 
     private suspend fun doFullResize(
-        image: PlatformImage,
+        image: KomeliaImage,
         scaleFactor: Double,
         displayScaleFactor: Double,
         displayArea: IntSize
@@ -242,7 +247,7 @@ abstract class TilingReaderImage(
     }
 
     private suspend fun doTile(
-        image: PlatformImage,
+        image: KomeliaImage,
         displayRegion: Rect,
         displayScaleFactor: Double,
         scaleFactor: Double,
@@ -343,9 +348,6 @@ abstract class TilingReaderImage(
         imageAwaitScope.cancel()
     }
 
-    protected abstract fun getDimensions(encoded: ByteArray): IntSize
-    protected abstract fun decode(encoded: ByteArray): PlatformImage
-
     protected abstract fun closeTileBitmaps(tiles: List<ReaderImageTile>)
     protected abstract fun createTilePainter(
         tiles: List<ReaderImageTile>,
@@ -356,13 +358,13 @@ abstract class TilingReaderImage(
     protected abstract fun createPlaceholderPainter(displaySize: IntSize): Painter
 
     protected abstract suspend fun resizeImage(
-        image: PlatformImage,
+        image: KomeliaImage,
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData
 
     protected abstract suspend fun getImageRegion(
-        image: PlatformImage,
+        image: KomeliaImage,
         imageRegion: IntRect,
         scaleWidth: Int,
         scaleHeight: Int

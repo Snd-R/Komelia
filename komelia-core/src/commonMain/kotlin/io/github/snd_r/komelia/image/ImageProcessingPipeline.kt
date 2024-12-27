@@ -8,6 +8,7 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import snd.komelia.image.KomeliaImage
 
 class ImageProcessingPipeline {
     private val pipelineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -16,7 +17,7 @@ class ImageProcessingPipeline {
     private val _changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = DROP_OLDEST)
     val changeFlow = _changeFlow.asSharedFlow()
 
-    suspend fun process(pageId: PageId, image: PlatformImage): PlatformImage {
+    suspend fun process(pageId: PageId, image: KomeliaImage): KomeliaImage {
         var imageResult = image
         for (step in steps) {
             val oldResult = imageResult
@@ -36,6 +37,6 @@ class ImageProcessingPipeline {
 }
 
 interface ProcessingStep {
-    suspend fun process(pageId: PageId, image: PlatformImage): PlatformImage?
+    suspend fun process(pageId: PageId, image: KomeliaImage): KomeliaImage?
     suspend fun addChangeListener(callback: () -> Unit)
 }

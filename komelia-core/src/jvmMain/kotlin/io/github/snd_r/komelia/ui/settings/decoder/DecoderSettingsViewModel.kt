@@ -3,11 +3,11 @@ package io.github.snd_r.komelia.ui.settings.decoder
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import coil3.ImageLoader
-import io.github.snd_r.OnnxRuntimeSharedLibraries
-import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
-import io.github.snd_r.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
-import io.github.snd_r.OnnxRuntimeUpscaler
-import io.github.snd_r.OnnxRuntimeUpscaler.DeviceInfo
+import snd.komelia.image.OnnxRuntimeSharedLibraries
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.image.OnnxRuntimeUpscaler
+import snd.komelia.image.OnnxRuntimeUpscaler.DeviceInfo
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.platform.DownscaleOption

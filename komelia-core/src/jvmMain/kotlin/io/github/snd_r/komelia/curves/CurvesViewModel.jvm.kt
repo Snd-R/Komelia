@@ -2,23 +2,25 @@ package io.github.snd_r.komelia.curves
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeImageBitmap
-import io.github.snd_r.VipsBitmapFactory
-import io.github.snd_r.VipsImage
-import io.github.snd_r.VipsImage.Companion.DIMENSION_MAX_SIZE
-import io.github.snd_r.komelia.image.PlatformImage
+import snd.komelia.image.KomeliaImage
+import snd.komelia.image.SkiaBitmap.toSkiaBitmap
+import snd.komelia.image.VipsBackedImage
+import snd.komelia.image.VipsImage
+import snd.komelia.image.toVipsImage
 
-actual fun getImage(): VipsImage {
-    return VipsImage.decodeFromFile("")
+actual fun getImage(): KomeliaImage {
+    return VipsBackedImage(VipsImage.decodeFromFile(""))
 }
 
-actual fun toImageBitmap(image: PlatformImage): ImageBitmap {
-    val skiaBitmap = VipsBitmapFactory.toSkiaBitmap(image)
+actual fun toImageBitmap(image: KomeliaImage): ImageBitmap {
+    val skiaBitmap = image.toSkiaBitmap()
     return skiaBitmap.asComposeImageBitmap()
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-actual fun getHistogram(image: VipsImage): Histogram {
-    val vipsHistogram = image.makeHistogram()
+actual fun getHistogram(image: KomeliaImage): Histogram {
+    val vipsImage = image.toVipsImage()
+    val vipsHistogram = vipsImage.makeHistogram()
     val bands = vipsHistogram.bands
     val data = vipsHistogram.getBytes()
 //    vipsHistogram.close()
@@ -32,23 +34,22 @@ actual fun getHistogram(image: VipsImage): Histogram {
     return Histogram(channels)
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 actual fun transformImage(
-    image: VipsImage,
+    image: KomeliaImage,
     targetHeight: Int,
     colorLut: LookupTable?,
     redLut: LookupTable?,
     greenLut: LookupTable?,
     blueLut: LookupTable?,
-): VipsImage {
-
+): KomeliaImage {
+    val vipsImage = image.toVipsImage()
     val remapped = when (image.bands) {
-        1 -> mapGrayscaleLut(image, colorLut)
-        4 -> mapRGBALut(image, colorLut, redLut, greenLut, blueLut)
+        1 -> mapGrayscaleLut(vipsImage, colorLut)
+        4 -> mapRGBALut(vipsImage, colorLut, redLut, greenLut, blueLut)
         else -> error("Unsupported number of image bands")
     }
 
-    return remapped.resize(DIMENSION_MAX_SIZE, targetHeight, false)
+    return VipsBackedImage( remapped.resize(VipsImage.DIMENSION_MAX_SIZE, targetHeight, false))
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)

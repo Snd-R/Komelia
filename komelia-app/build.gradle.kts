@@ -39,7 +39,7 @@ kotlin {
                         add(project.parent!!.projectDir.path + "/komelia-webview/src/commonMain/")
                         add(project.parent!!.projectDir.path + "/komelia-webview/src/wasmJsMain/")
                         add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
-                        add(project.parent!!.projectDir.path + "/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
+                        add(project.parent!!.projectDir.path + "/komelia-image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
                     }
                 }
             }
@@ -61,12 +61,12 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(project(":komelia-db:sqlite"))
-            implementation(project(":komelia-image-decoder"))
+            implementation(project(":komelia-image-decoder:vips"))
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
-            implementation(project(":wasm-image-worker"))
+            implementation(project(":komelia-image-decoder:wasm-image-worker"))
             implementation(project(":komelia-db:wasm"))
         }
     }

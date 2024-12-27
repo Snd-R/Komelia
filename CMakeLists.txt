@@ -51,6 +51,7 @@ if (KOMELIA_SUPERBUILD)
     include("cmake/external/expat.cmake")
     include("cmake/external/glib.cmake")
     include("cmake/external/highway.cmake")
+    include("cmake/external/lcms2.cmake")
 
     include("cmake/external/mozjpeg.cmake")
     include("cmake/external/jxl.cmake")
@@ -67,7 +68,7 @@ if (KOMELIA_SUPERBUILD)
             DOWNLOAD_COMMAND ""
             UPDATE_COMMAND ""
             DEPENDS ep_vips
-            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-image-decoder/native
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-image-decoder/vips/native
             CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}

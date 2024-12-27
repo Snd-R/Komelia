@@ -2,7 +2,7 @@ package io.github.snd_r.komelia
 
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.platform.Font
-import io.github.snd_r.komelia.worker.util.asByteArray
+import snd.komelia.image.wasm.asByteArray
 import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array

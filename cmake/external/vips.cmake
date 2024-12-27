@@ -3,7 +3,7 @@ include(ExternalProject)
 ExternalProject_Add(ep_vips
         GIT_REPOSITORY https://github.com/libvips/libvips.git
         GIT_TAG v8.16.0
-        DEPENDS ep_expat ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_mozjpeg
+        DEPENDS ep_expat ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_mozjpeg ep_lcms2
         CONFIGURE_COMMAND
             ${Meson_EXECUTABLE} setup ${EP_MESON_ARGS}
             -Dhighway=enabled
@@ -11,6 +11,7 @@ ExternalProject_Add(ep_vips
             -Djpeg=enabled
             -Dcgif=enabled
             -Dheif=enabled
+            -Dlcms=enabled
             -Dspng=enabled
             -Dtiff=enabled
             -Dwebp=enabled
@@ -30,7 +31,6 @@ ExternalProject_Add(ep_vips
             -Dheif-module=disabled
             -Dimagequant=disabled
             -Djpeg-xl-module=disabled
-            -Dlcms=disabled
             -Dmagick=disabled
             -Dmatio=disabled
             -Dnifti=disabled

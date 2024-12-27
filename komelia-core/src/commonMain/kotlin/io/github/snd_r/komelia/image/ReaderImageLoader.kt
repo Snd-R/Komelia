@@ -14,7 +14,7 @@ private val logger = KotlinLogging.logger {}
 
 class ReaderImageLoader(
     private val bookClient: KomgaBookClient,
-    private val decoder: ImageDecoder,
+    private val decoder: ReaderImageFactory,
     //TODO consider non coil disk cache implementation?
     private val diskCache: DiskCache?,
 ) {
@@ -32,13 +32,13 @@ class ReaderImageLoader(
         val pageId = PageId(bookId.value, page)
         if (diskCache == null) {
             val bytes: ByteArray = bookClient.getBookPage(bookId, page)
-            return decoder.decode(bytes, pageId)
+            return decoder.getImage(bytes, pageId)
 
         }
         diskCache.openSnapshot(pageId.toString()).use { snapshot ->
             val fileSystem = diskCache.fileSystem
             if (snapshot != null) {
-                return decoder.decode(snapshot.data, pageId)
+                return decoder.getImage(snapshot.data, pageId)
             }
 
             val bytes = bookClient.getBookPage(bookId, page)
@@ -48,7 +48,7 @@ class ReaderImageLoader(
                 bytes = bytes
             )
 
-            return decoder.decode(bytes, pageId)
+            return decoder.getImage(bytes, pageId)
         }
     }
 

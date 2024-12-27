@@ -7,20 +7,16 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.OnnxRuntimeSharedLibraries
-import io.github.snd_r.OnnxRuntimeUpscaler
-import io.github.snd_r.VipsBitmapFactory
-import io.github.snd_r.VipsSharedLibraries
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.CropBordersStep
-import io.github.snd_r.komelia.image.DesktopImageDecoder
+import io.github.snd_r.komelia.image.DesktopReaderImageFactory
 import io.github.snd_r.komelia.image.ImageProcessingPipeline
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
 import io.github.snd_r.komelia.image.ReaderImageLoader
-import io.github.snd_r.komelia.image.coil.DesktopDecoder
+import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
@@ -80,6 +76,12 @@ import snd.komelia.db.repository.ActorSettingsRepository
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
+import snd.komelia.image.ImageDecoder
+import snd.komelia.image.SkiaBitmap
+import snd.komelia.image.VipsImageDecoder
+import snd.komelia.image.OnnxRuntimeSharedLibraries
+import snd.komelia.image.OnnxRuntimeUpscaler
+import snd.komelia.image.VipsSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.webview.WebviewSharedLibraries
@@ -165,8 +167,11 @@ suspend fun initDependencies(
     val onnxRuntimeInstaller = OnnxRuntimeInstaller(updateClient)
     val mangaJaNaiDownloader = MangaJaNaiDownloader(updateClient, notifications)
 
+    val vipsDecoder = VipsImageDecoder()
+
     val coil = createCoil(
         ktorClient = ktorWithoutCache,
+        decoder = vipsDecoder,
         url = baseUrl,
         cookiesStorage = cookiesStorage,
         tempDir = coilCachePath.createDirectories()
@@ -185,7 +190,8 @@ suspend fun initDependencies(
         pipeline = imagePipeline,
         stretchImages = stretchImages,
         onnxUpscaler = onnxUpscaler,
-        showDebugGrid = settingsRepository.getImageReaderShowDebugGrid().stateIn(initScope)
+        showDebugGrid = settingsRepository.getImageReaderShowDebugGrid().stateIn(initScope),
+        vipsDecoder = vipsDecoder
     )
 
     val availableDecoders = createAvailableDecodersFlow(
@@ -223,7 +229,7 @@ private fun checkVipsLibraries() {
     }
     if (!VipsSharedLibraries.isAvailable)
         throw NonRestartableException("libvips shared libraries were not loaded. libvips is required for image decoding")
-    VipsBitmapFactory.load()
+    SkiaBitmap.load()
 }
 
 private fun createOnnxRuntimeUpscaler(settingsRepository: CommonSettingsRepository): ManagedOnnxUpscaler? {
@@ -320,6 +326,7 @@ private fun createReaderImageLoader(
     pipeline: ImageProcessingPipeline,
     onnxUpscaler: ManagedOnnxUpscaler?,
     showDebugGrid: StateFlow<Boolean>,
+    vipsDecoder: VipsImageDecoder
 ): ReaderImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -328,17 +335,19 @@ private fun createReaderImageLoader(
         .build()
         .bookClient()
 
-    val decoder = DesktopImageDecoder(
+    val readerDecoder = DesktopReaderImageFactory(
         upscaleOptionFlow = upscaleOption,
         processingPipeline = pipeline,
         stretchImages = stretchImages,
         onnxUpscaler = onnxUpscaler,
-        showDebugGrid = showDebugGrid
+        showDebugGrid = showDebugGrid,
+        decoder = vipsDecoder
+
     )
 
     return ReaderImageLoader(
         bookClient,
-        decoder,
+        readerDecoder,
         DiskCache.Builder()
             .directory(readerCachePath.createDirectories().toOkioPath())
             .build()
@@ -348,6 +357,7 @@ private fun createReaderImageLoader(
 private fun createCoil(
     ktorClient: HttpClient,
     url: StateFlow<String>,
+    decoder: ImageDecoder,
     cookiesStorage: CookiesStorage,
     tempDir: Path,
 ): ImageLoader {
@@ -370,7 +380,7 @@ private fun createCoil(
                 add(KomgaReadListMapper(url))
                 add(KomgaSeriesThumbnailMapper(url))
                 add(FileMapper())
-                add(DesktopDecoder.Factory())
+                add(CoilDecoder.Factory(decoder))
                 add(KtorNetworkFetcherFactory(httpClient = coilKtorClient))
             }
             .memoryCache(
