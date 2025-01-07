@@ -185,13 +185,13 @@ private fun getVipsModule(): Promise<JsAny> {
                         locateFile: (fileName, scriptDirectory) => fileName,
                     });
                     vips.Cache.max(0);
-                
+
                 resolve(vips);
             } catch (err) {
                 console.warn(err)
                 reject(err);
             }
-    }); 
+    });
     """
     )
 }

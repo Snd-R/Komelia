@@ -337,5 +337,3 @@ data class SelectedPoint(
 )
 
 
-// use debounce instead of conflate on wasmJs to avoid stuttering caused by large copies from js->wasm GC heap array(kotlin)->wasm linear memory array(skia)
-expect fun <T> Flow<T>.debounceImageTransforms(): Flow<T>

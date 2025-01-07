@@ -73,21 +73,18 @@ class ExposedColorLevelsPresetRepository(
                 it[redLowOutput] = preset.channels.red.lowOutput
                 it[redHighOutput] = preset.channels.red.highOutput
                 it[redGamma] = preset.channels.red.gamma
-                it[redLowInput] = preset.channels.red.lowInput
 
                 it[greenLowInput] = preset.channels.green.lowInput
                 it[greenHighInput] = preset.channels.green.highInput
                 it[greenLowOutput] = preset.channels.green.lowOutput
                 it[greenHighOutput] = preset.channels.green.highOutput
                 it[greenGamma] = preset.channels.green.gamma
-                it[greenLowInput] = preset.channels.green.lowInput
 
                 it[blueLowInput] = preset.channels.blue.lowInput
                 it[blueHighInput] = preset.channels.blue.highInput
                 it[blueLowOutput] = preset.channels.blue.lowOutput
                 it[blueHighOutput] = preset.channels.blue.highOutput
                 it[blueGamma] = preset.channels.blue.gamma
-                it[blueLowInput] = preset.channels.blue.lowInput
             }
         }
     }

@@ -16,6 +16,7 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.BrowserWindowState
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
@@ -28,6 +29,10 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import snd.komelia.db.SettingsStateActor
+import snd.komelia.db.color.IDBBookColorCorrectionRepository
+import snd.komelia.db.color.IDBColorCurvesPresetRepository
+import snd.komelia.db.color.IDBColorLevelsPresetRepository
+import snd.komelia.db.getIndexedDb
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
 import snd.komelia.db.repository.ActorSettingsRepository
@@ -61,9 +66,14 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         )
     )
     val secretsRepository = CookieStoreSecretsRepository()
+
+    val idb = getIndexedDb()
+    val bookColorCorrectionRepository = IDBBookColorCorrectionRepository(idb)
+    val curvePresetsRepository = IDBColorCurvesPresetRepository(idb)
+    val levelsPresetsRepository = IDBColorLevelsPresetRepository(idb)
+
     val baseUrl = appSettingsRepository.getServerUrl().stateIn(stateFlowScope)
     val komfUrl = appSettingsRepository.getKomfUrl().stateIn(stateFlowScope)
-
     overrideFetch { baseUrl.value }
 
     val ktorClient = createKtorClient(baseUrl)
@@ -77,7 +87,8 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         .ktor(ktorClient)
         .build()
 
-    val imagePipeline = createImagePipeline()
+    val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
+    val imagePipeline = createImagePipeline(colorCorrectionStep)
     val decoderSettings = appSettingsRepository.getDecoderSettings().stateIn(stateFlowScope)
     val stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(stateFlowScope)
 
@@ -99,6 +110,10 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         imageReaderSettingsRepository = imageReaderSettingsRepository,
         fontsRepository = NoopFontsRepository(),
         secretsRepository = secretsRepository,
+        colorCurvesPresetsRepository = curvePresetsRepository,
+        colorLevelsPresetRepository = levelsPresetsRepository,
+        bookColorCorrectionRepository = bookColorCorrectionRepository,
+
         komgaClientFactory = komgaClientFactory,
         komfClientFactory = komfClientFactory,
         appUpdater = null,
@@ -108,7 +123,7 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         windowState = BrowserWindowState(),
         imageDecoder = workerDecoder,
         readerImageFactory = readerImageFactory,
-        colorCurvesPresetsRepository = colorCurvesRepository,
+        colorCorrectionStep = colorCorrectionStep
     )
 }
 
@@ -177,8 +192,10 @@ private fun createReaderImageLoader(
 }
 
 private fun createImagePipeline(
+    colorCorrectionStep: ColorCorrectionStep
 ): ImageProcessingPipeline {
     val pipeline = ImageProcessingPipeline()
+    pipeline.addStep(colorCorrectionStep)
     return pipeline
 }
 

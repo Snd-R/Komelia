@@ -37,11 +37,7 @@ kotlin {
                     static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
                         add(project.projectDir.path)
-                        add(project.projectDir.path + "/commonMain/")
-                        add(project.projectDir.path + "/wasmJsMain/")
-                        add(project.parent!!.projectDir.path + "/komelia-webview/src/commonMain/")
-                        add(project.parent!!.projectDir.path + "/komelia-webview/src/wasmJsMain/")
-                        add(project.parent!!.projectDir.path + "/build/js/node_modules/wasm-vips/lib/")
+                        add(project.rootDir.path)
                         add(project.parent!!.projectDir.path + "/komelia-image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
                     }
                 }
@@ -49,6 +45,9 @@ kotlin {
         }
         browser()
         binaries.executable()
+//        compilerOptions{
+//            freeCompilerArgs.add("-Xwasm-use-new-exception-proposal")
+//        }
     }
 
     sourceSets {

@@ -21,7 +21,7 @@ class WasmSimpleReaderImage(
     override val painter by lazy { MutableStateFlow(noopPainter) }
     override val error: StateFlow<Exception?> = MutableStateFlow<Exception?>(null)
     override val currentSize = MutableStateFlow<IntSize?>(null)
-    override val originalSize = MutableStateFlow<IntSize?>(IntSize(image.width, image.height))
+    override val originalSize = MutableStateFlow(IntSize(image.width, image.height))
     override val displaySize = MutableStateFlow<IntSize?>(null)
 
     private var currentImage: Image? = null

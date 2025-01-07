@@ -15,4 +15,3 @@ config.devServer = Object.assign(
 
     }
 )
-config.resolve.conditionNames = ['require', 'import'];

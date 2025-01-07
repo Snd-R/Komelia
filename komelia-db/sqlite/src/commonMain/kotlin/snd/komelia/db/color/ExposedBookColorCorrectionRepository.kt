@@ -179,23 +179,21 @@ class ExposedBookColorCorrectionRepository(
                 it[redLowOutput] = levels.channels.red.lowOutput
                 it[redHighOutput] = levels.channels.red.highOutput
                 it[redGamma] = levels.channels.red.gamma
-                it[redLowInput] = levels.channels.red.lowInput
 
                 it[greenLowInput] = levels.channels.green.lowInput
                 it[greenHighInput] = levels.channels.green.highInput
                 it[greenLowOutput] = levels.channels.green.lowOutput
                 it[greenHighOutput] = levels.channels.green.highOutput
                 it[greenGamma] = levels.channels.green.gamma
-                it[greenLowInput] = levels.channels.green.lowInput
 
                 it[blueLowInput] = levels.channels.blue.lowInput
                 it[blueHighInput] = levels.channels.blue.highInput
                 it[blueLowOutput] = levels.channels.blue.lowOutput
                 it[blueHighOutput] = levels.channels.blue.highOutput
                 it[blueGamma] = levels.channels.blue.gamma
-                it[blueLowInput] = levels.channels.blue.lowInput
             }
         }
+        levelsChangeFlow.emit(levels.bookId to levels)
     }
 
     override suspend fun deleteLevels(bookId: KomgaBookId) {

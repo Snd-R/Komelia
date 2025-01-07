@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -90,7 +91,7 @@ class ColorCorrectionViewModel(
     val displayImage = combine(
         originalImage.filterNotNull(),
         imageMaxSize.filterNotNull(),
-        currentLut
+        currentLut.debounceImageTransforms()
     ) { image, targetSize, channelsLut ->
         val colorLut = channelsLut.colorLut
         val rgbLut = channelsLut.rgbaLut
@@ -218,3 +219,6 @@ enum class ColorCorrectionType {
     COLOR_CURVES,
     COLOR_LEVELS
 }
+
+// use debounce instead of conflate on wasmJs to avoid stuttering caused by large copies from js->wasm GC heap array(kotlin)->wasm linear memory array(skia)
+expect fun <T> Flow<T>.debounceImageTransforms(): Flow<T>

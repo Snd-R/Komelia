@@ -25,6 +25,7 @@ kotlin {
         wasmJsMain.dependencies {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-db:shared"))
+            api(project(":third_party:indexeddb:core"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.browser)
         }

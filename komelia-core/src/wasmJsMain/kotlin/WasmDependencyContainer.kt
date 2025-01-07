@@ -2,12 +2,15 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.DependencyContainer
+import io.github.snd_r.komelia.color.repository.BookColorCorrectionRepository
+import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
+import io.github.snd_r.komelia.color.repository.ColorLevelsPresetRepository
 import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.ReaderImageFactory
+import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
@@ -26,7 +29,10 @@ class WasmDependencyContainer(
     override val imageReaderSettingsRepository: ImageReaderSettingsRepository,
     override val fontsRepository: UserFontsRepository,
     override val colorCurvesPresetsRepository: ColorCurvePresetRepository,
+    override val colorLevelsPresetRepository: ColorLevelsPresetRepository,
+    override val bookColorCorrectionRepository: BookColorCorrectionRepository,
     override val secretsRepository: SecretsRepository,
+
     override val komgaClientFactory: KomgaClientFactory,
     override val komfClientFactory: KomfClientFactory,
     override val appUpdater: AppUpdater?,
@@ -36,6 +42,7 @@ class WasmDependencyContainer(
     override val bookImageLoader: BookImageLoader,
     override val readerImageFactory: ReaderImageFactory,
     override val windowState: AppWindowState,
+    override val colorCorrectionStep: ColorCorrectionStep,
 ) : DependencyContainer {
     override val platformContext: PlatformContext = PlatformContext.INSTANCE
     override val appNotifications = AppNotifications()
