@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
 import io.github.snd_r.komelia.platform.skiaSamplerMitchell
@@ -25,7 +26,6 @@ import org.jetbrains.skia.Font
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.TextLine
-import snd.komelia.image.ImageDecoder
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.SkiaBitmap.toSkiaBitmap
@@ -34,19 +34,17 @@ import snd.komelia.image.SkiaBitmap.toSkiaBitmap
 actual typealias RenderImage = Image
 
 class DesktopTilingReaderImage(
-    encoded: ByteArray,
+    originalImage: KomeliaImage,
     processingPipeline: ImageProcessingPipeline,
     upscaleOption: StateFlow<UpscaleOption>,
     stretchImages: StateFlow<Boolean>,
-    decoder: ImageDecoder,
     pageId: PageId,
     private val upscaler: ManagedOnnxUpscaler?,
     private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    encoded,
+    originalImage,
     processingPipeline,
     stretchImages,
-    decoder,
     pageId,
 ) {
 

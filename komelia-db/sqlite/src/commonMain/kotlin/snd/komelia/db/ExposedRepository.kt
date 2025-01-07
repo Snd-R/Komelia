@@ -9,7 +9,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 abstract class ExposedRepository(
     private val database: Database
 ) {
-    protected suspend fun <T> transactionOnDefaultDispatcher(statement: Transaction.() -> T): T {
-        return withContext(Dispatchers.Default) { transaction(database, statement) }
+    protected suspend fun <T> transaction(
+        statement: Transaction.() -> T
+    ): T {
+        return withContext(Dispatchers.Default) {
+            transaction(db = database, statement = statement)
+        }
     }
 }

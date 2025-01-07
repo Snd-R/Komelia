@@ -15,6 +15,17 @@ plugins {
     alias(libs.plugins.parcelize) apply false
 }
 
+// https://youtrack.jetbrains.com/issue/CMP-5831
+allprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlinx" && requested.name == "atomicfu") {
+                useVersion(libs.versions.kotlinx.atomicfu.get())
+            }
+        }
+    }
+}
+
 tasks.wrapper {
     gradleVersion = "8.11.1"
     distributionType = Wrapper.DistributionType.ALL
@@ -39,6 +50,7 @@ val linuxCommonLibs = setOf(
     "libbrotlienc.so",
     "libde265.so",
     "libdav1d.so",
+    "libexif.so",
     "libexpat.so",
     "libffi.so",
     "libgio-2.0.so",
@@ -87,6 +99,7 @@ val windowsLibs = setOf(
     "libbrotlienc.dll",
     "libde265.dll",
     "libdav1d.dll",
+    "libexif.so",
     "libexpat-1.dll",
     "libffi-8.dll",
     "libgio-2.0-0.dll",
@@ -95,6 +108,7 @@ val windowsLibs = setOf(
     "libgobject-2.0-0.dll",
     "libheif.dll",
     "libhwy.dll",
+    "liblcms2.dll",
     "libintl-8.dll",
     "libjpeg-62.dll",
     "libjxl.dll",

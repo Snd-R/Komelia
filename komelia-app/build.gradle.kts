@@ -1,4 +1,7 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
@@ -49,6 +52,7 @@ kotlin {
     }
 
     sourceSets {
+        all { languageSettings.optIn("kotlin.ExperimentalUnsignedTypes") }
         commonMain.dependencies {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-db:shared"))
@@ -113,8 +117,8 @@ compose.desktop {
         mainClass = "io.github.snd_r.komelia.MainKt"
 
         jvmArgs += listOf(
-            "-Dkotlinx.coroutines.scheduler.max.pool.size=3",
-            "-Dkotlinx.coroutines.scheduler.core.pool.size=3",
+            "-Dkotlinx.coroutines.scheduler.max.pool.size=4",
+            "-Dkotlinx.coroutines.scheduler.core.pool.size=4",
             "-XX:+UnlockExperimentalVMOptions",
             "-XX:+UseShenandoahGC",
             "-XX:ShenandoahGCHeuristics=compact",

@@ -9,6 +9,7 @@ import org.w3c.dom.DedicatedWorkerGlobalScope
 import org.w3c.dom.HIGH
 import org.w3c.dom.ImageBitmap
 import org.w3c.dom.ImageBitmapOptions
+import org.w3c.dom.ImageData
 import org.w3c.dom.ResizeQuality
 import org.w3c.files.Blob
 import snd.komelia.image.ImageFormat
@@ -186,42 +187,22 @@ internal class CanvasImageActor(workerScope: DedicatedWorkerGlobalScope) :
 
     override suspend fun mapLookupTable(message: MapLookupTableRequest) {
         val image = requireNotNull(images[message.imageId])
-        val bytes = image.getBytes().toUByteArray()
-        val newBytes = UByteArray(bytes.size)
-        val bandSize = bytes.size / 4
-        val lut = message.table.toUByteArray()
-        val redLut = UByteArray(256)
-        val greenLut = UByteArray(256)
-        val blueLut = UByteArray(256)
-        val alphaLut = UByteArray(256)
-
-        for (i in 0 until 256) {
-            val index = i * 4
-            redLut[i] = lut[index]
-            greenLut[i] = lut[index + 1]
-            blueLut[i] = lut[index + 2]
-            alphaLut[i] = lut[index + 3]
-        }
-
-        for (i in 0 until bandSize) {
-            val index = i * 4
-            val redIndex = bytes[index].toInt()
-            val greenIndex = bytes[index + 1].toInt()
-            val blueIndex = bytes[index + 2].toInt()
-            val alphaIndex = bytes[index + 3].toInt()
-            newBytes[index] = redLut[redIndex]
-            newBytes[index + 1] = greenLut[greenIndex]
-            newBytes[index + 2] = blueLut[blueIndex]
-            newBytes[index + 3] = alphaLut[alphaIndex]
-        }
-        val bitmap = workerScope.createImageBitmap(toBlob(newBytes.toUint8Array())).await<ImageBitmap>()
+        val bytes = image.getBytes()
+        // 90% of time is spent copying image data from js to wasm and back (~100ms for 1000x1000px image)
+        // it's faster to do all mapping on js side
+        val imageData = mapLutJs(image, bytes, message.table)
+        val bitmap = workerScope.createImageBitmap(imageData).await<ImageBitmap>()
         val imageId = saveImage(bitmap)
         workerScope.postMessage(bitmap.toImageResponse(message.requestId, imageId))
     }
 
     override suspend fun getBytes(message: GetBytesRequest) {
-        val image = requireNotNull(images[message.imageId])
-        val uint8Array = image.getBytes()
+        val image = images[message.imageId]
+        val histogram = histograms.remove(message.imageId)
+        if (image == null && histogram == null) {
+            error("Failed to find image ${message.imageId}")
+        }
+        val uint8Array = requireNotNull(image?.getBytes() ?: histogram?.toUint8Array())
         workerScope.postMessage(
             getBytesResponse(requestId = message.requestId, bytes = uint8Array),
             jsArray(uint8Array.buffer)
@@ -335,4 +316,41 @@ external interface OffscreenCanvas : JsAny {
 
 private fun createOffscreenCanvas(width: Int, height: Int): OffscreenCanvas {
     js("return new OffscreenCanvas(width, height);")
+}
+
+
+private fun mapLutJs(image: ImageBitmap, imageBytes: Uint8Array, lut: Uint8Array): ImageData {
+    js(
+        """
+        let newBytes = new Uint8ClampedArray(imageBytes.length);
+        let bandSize = imageBytes.length / 4;
+
+        let redLut = new Uint8Array(256);
+        let greenLut = new Uint8Array(256);
+        let blueLut = new Uint8Array(256);
+        let alphaLut = new Uint8Array(256);
+
+        for (let i = 0; i < 256; i++) {
+          let index = i * 4;
+          redLut[i] = lut[index];
+          greenLut[i] = lut[index + 1];
+          blueLut[i] = lut[index + 2];
+          alphaLut[i] = lut[index + 3];
+        }
+
+        for (let i = 0; i < bandSize; i++) {
+          let index = i * 4;
+          let redIndex = imageBytes[index];
+          let greenIndex = imageBytes[index + 1];
+          let blueIndex = imageBytes[index + 2];
+          let alphaIndex = imageBytes[index + 3];
+          newBytes[index] = redLut[redIndex];
+          newBytes[index + 1] = greenLut[greenIndex];
+          newBytes[index + 2] = blueLut[blueIndex];
+          newBytes[index + 3] = alphaLut[alphaIndex];
+        }
+
+        return new ImageData(newBytes, image.width, image.height);
+    """
+    )
 }

@@ -2,7 +2,7 @@
 
 JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_vipsInit() {
     VIPS_INIT("komelia");
-     vips_cache_set_max(0);
+    vips_cache_set_max(0);
 }
 
 JNIEXPORT jobject JNICALL
@@ -347,7 +347,6 @@ Java_snd_komelia_image_VipsImage_makeHistogram(JNIEnv *env, jobject this) {
     }
 
     vips_hist_find(image, &histogram, "band", -1, NULL);
-    fprintf(stderr, "histogram format %i\n", histogram->BandFmt);
 
     if (histogram == NULL) {
         komelia_throw_jvm_vips_exception(env, vips_error_buffer());

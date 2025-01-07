@@ -2,28 +2,21 @@ package snd.komelia.db.fonts
 
 import io.github.snd_r.komelia.fonts.UserFont
 import io.github.snd_r.komelia.fonts.UserFontsRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
+import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.UserFontsTable
 
 class ExposedUserFontsRepository(
-    private val database: Database
-) : UserFontsRepository {
-
-    private suspend fun <T> transactionOnDefaultDispatcher(statement: Transaction.() -> T): T {
-        return withContext(Dispatchers.Default) { transaction(database, statement) }
-    }
+    database: Database
+) : ExposedRepository(database), UserFontsRepository {
 
     override suspend fun getAllFonts(): List<UserFont> {
-        return transactionOnDefaultDispatcher {
+        return transaction {
             UserFontsTable.selectAll().map {
                 UserFont(
                     name = it[UserFontsTable.name],
@@ -34,7 +27,7 @@ class ExposedUserFontsRepository(
     }
 
     override suspend fun getFont(name: String): UserFont? {
-        return transactionOnDefaultDispatcher {
+        return transaction {
             UserFontsTable.selectAll()
                 .where { UserFontsTable.name.eq(name) }
                 .firstOrNull()
@@ -48,7 +41,7 @@ class ExposedUserFontsRepository(
     }
 
     override suspend fun putFont(font: UserFont) {
-        transactionOnDefaultDispatcher {
+        transaction {
             UserFontsTable.upsert {
                 it[name] = font.name
                 it[path] = font.path.toString()
@@ -57,7 +50,7 @@ class ExposedUserFontsRepository(
     }
 
     override suspend fun deleteFont(font: UserFont) {
-        transactionOnDefaultDispatcher {
+        transaction {
             UserFontsTable.deleteWhere { name.eq(font.name) }
         }
     }

@@ -5,24 +5,25 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.reactivecircus.cache4k.Cache
 import io.github.reactivecircus.cache4k.CacheEvent.Evicted
 import io.github.reactivecircus.cache4k.CacheEvent.Expired
 import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.image.ReaderImage
-import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.ImageResult
+import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.ui.reader.image.BookState
-import io.github.snd_r.komelia.ui.reader.image.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
+import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.SpreadIndex
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Error
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Success
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
@@ -46,23 +47,27 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import snd.komga.client.book.KomgaBook
 import kotlin.math.max
 import kotlin.math.roundToInt
+
+private val logger = KotlinLogging.logger { }
 
 class PagedReaderState(
     private val cleanupScope: CoroutineScope,
     private val settingsRepository: ImageReaderSettingsRepository,
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
-    private val imageLoader: ReaderImageLoader,
+    private val imageLoader: BookImageLoader,
     private val appStrings: Flow<AppStrings>,
+    private val readerImageFactory: ReaderImageFactory,
     val screenScaleState: ScreenScaleState,
 ) {
-    private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val pageLoadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<Page>>()
+    private val imageCache = Cache.Builder<PageId, Deferred<Page>>()
         .maximumCacheSize(10)
         .eventListener {
             val value = when (it) {
@@ -131,7 +136,7 @@ class PagedReaderState(
         imageCache.invalidateAll()
     }
 
-    private suspend fun updateSpreadImageState(
+    private fun updateSpreadImageState(
         spread: PageSpread,
         screenScaleState: ScreenScaleState,
         readingDirection: ReadingDirection
@@ -146,7 +151,7 @@ class PagedReaderState(
         val pages = spread.pages
         var xOffset = offset.x
         pages.forEachIndexed { index, result ->
-            if (result.imageResult is Success) {
+            if (result.imageResult is ReaderImageResult.Success) {
                 val image = result.imageResult.image
                 val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit)
 
@@ -326,13 +331,20 @@ class PagedReaderState(
 
     private fun launchSpreadLoadJob(pagesMeta: List<PageMetadata>): Deferred<PagesLoadJob> {
         val pages = pagesMeta.map { meta ->
-            val cacheKey = ImageCacheKey(meta.bookId, meta.pageNumber)
-            val cached = imageCache.get(cacheKey)
+            val pageId = meta.toPageId()
+            val cached = imageCache.get(pageId)
 
             if (cached != null && !cached.isCancelled) cached
             else pageLoadScope.async {
-                Page(meta, imageLoader.load(meta.bookId, meta.pageNumber))
-            }.also { imageCache.put(cacheKey, it) }
+                val imageResult = when (val result = imageLoader.loadImage(meta.bookId, meta.pageNumber)) {
+                    is ImageResult.Success -> ReaderImageResult.Success(
+                        readerImageFactory.getImage(result.image, pageId)
+                    )
+
+                    is ImageResult.Error -> ReaderImageResult.Error(result.throwable)
+                }
+                Page(meta, imageResult)
+            }.also { imageCache.put(pageId, it) }
         }
 
         return pageLoadScope.async {
@@ -341,7 +353,7 @@ class PagedReaderState(
         }
     }
 
-    private suspend fun completeLoadJob(pages: List<Page>): PagesLoadJob {
+    private fun completeLoadJob(pages: List<Page>): PagesLoadJob {
         val containerSize = screenScaleState.areaSize.value
         val maxPageSize = getMaxPageSize(pages.map { it.metadata }, containerSize)
         val newScale = calculateScreenScale(
@@ -374,7 +386,7 @@ class PagedReaderState(
     }
 
     @Suppress("DeferredResultUnused")
-    private suspend fun enqueueSpreadLoadJob(pagesMeta: List<PageMetadata>) {
+    private fun enqueueSpreadLoadJob(pagesMeta: List<PageMetadata>) {
         launchSpreadLoadJob(pagesMeta)
     }
 
@@ -513,7 +525,7 @@ class PagedReaderState(
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
     }
 
-    private suspend fun calculateScreenScale(
+    private fun calculateScreenScale(
         pages: List<Page>,
         areaSize: IntSize,
         maxPageSize: IntSize,
@@ -525,8 +537,8 @@ class PagedReaderState(
         val fitToScreenSize = pages
             .map {
                 when (it.imageResult) {
-                    is Error, null -> maxPageSize
-                    is Success -> {
+                    is ReaderImageResult.Error, null -> maxPageSize
+                    is ReaderImageResult.Success -> {
                         it.imageResult.image.calculateSizeForArea(maxPageSize, true)
                     }
                 }
@@ -541,8 +553,8 @@ class PagedReaderState(
 
         val actualSpreadSize = pages.map {
             when (val result = it.imageResult) {
-                is Error, null -> maxPageSize
-                is Success -> result.image.getOriginalSize()
+                is ReaderImageResult.Error, null -> maxPageSize
+                is ReaderImageResult.Success -> result.image.originalSize.value
             }
         }.fold(IntSize.Zero) { total, current ->
             IntSize(
@@ -623,17 +635,9 @@ class PagedReaderState(
 
     data class Page(
         val metadata: PageMetadata,
-        val imageResult: ImageResult?,
+        val imageResult: ReaderImageResult?,
     )
 
-    sealed interface ImageResult {
-        val image: ReaderImage?
-
-        data class Success(override val image: ReaderImage) : ImageResult
-        data class Error(val throwable: Throwable) : ImageResult {
-            override val image: ReaderImage? = null
-        }
-    }
 
     sealed interface TransitionPage {
         data class BookEnd(
@@ -646,20 +650,4 @@ class PagedReaderState(
             val previousBook: KomgaBook?,
         ) : TransitionPage
     }
-
-
-    private fun IntSize.coerceAtMost(other: IntSize): IntSize {
-        return IntSize(
-            width.coerceAtMost(other.width),
-            height.coerceAtMost(other.height)
-        )
-    }
-
-    private fun IntSize.coerceAtLeast(other: IntSize): IntSize {
-        return IntSize(
-            width.coerceAtLeast(other.width),
-            height.coerceAtLeast(other.height)
-        )
-    }
 }
-

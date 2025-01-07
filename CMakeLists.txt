@@ -52,6 +52,7 @@ if (KOMELIA_SUPERBUILD)
     include("cmake/external/glib.cmake")
     include("cmake/external/highway.cmake")
     include("cmake/external/lcms2.cmake")
+    include("cmake/external/exif.cmake")
 
     include("cmake/external/mozjpeg.cmake")
     include("cmake/external/jxl.cmake")

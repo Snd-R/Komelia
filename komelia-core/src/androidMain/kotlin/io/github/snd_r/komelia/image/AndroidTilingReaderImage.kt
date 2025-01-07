@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.image.AndroidBitmap.toBitmap
-import snd.komelia.image.ImageDecoder
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
 
@@ -22,16 +22,14 @@ import snd.komelia.image.KomeliaImage
 actual typealias RenderImage = Bitmap
 
 class AndroidTilingReaderImage(
-    encoded: ByteArray,
+    originalImage: KomeliaImage,
     processingPipeline: ImageProcessingPipeline,
     stretchImages: StateFlow<Boolean>,
-    decoder: ImageDecoder,
     pageId: PageId,
 ) : TilingReaderImage(
-    encoded,
+    originalImage,
     processingPipeline,
     stretchImages,
-    decoder,
     pageId
 ) {
 

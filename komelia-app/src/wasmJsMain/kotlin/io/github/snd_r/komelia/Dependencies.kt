@@ -6,9 +6,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
-import io.github.snd_r.komelia.image.CropBordersStep
-import io.github.snd_r.komelia.image.ImageProcessingPipeline
-import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.WasmReaderImageFactory
 import io.github.snd_r.komelia.image.coil.BlobFetcher
 import io.github.snd_r.komelia.image.coil.CoilDecoder
@@ -18,8 +16,8 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.BrowserWindowState
-import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
@@ -79,17 +77,19 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         .ktor(ktorClient)
         .build()
 
-    val imagePipeline = createImagePipeline(
-        cropBorders = imageReaderSettingsRepository.getCropBorders().stateIn(stateFlowScope)
-    )
+    val imagePipeline = createImagePipeline()
     val decoderSettings = appSettingsRepository.getDecoderSettings().stateIn(stateFlowScope)
+    val stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(stateFlowScope)
+
+    val readerImageFactory = WasmReaderImageFactory(
+        upscaleOptionFlow = decoderSettings.map { it.upscaleOption }.stateIn(stateFlowScope),
+        processingPipeline = imagePipeline,
+        stretchImages = stretchImages,
+        showDebugGrid = appSettingsRepository.getImageReaderShowDebugGrid().stateIn(stateFlowScope),
+    )
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorClient,
-        upscaleOption = decoderSettings.map { it.upscaleOption }.stateIn(stateFlowScope),
-        pipeline = imagePipeline,
-        stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(stateFlowScope),
-        showDebugGrid = appSettingsRepository.getImageReaderShowDebugGrid().stateIn(stateFlowScope),
         decoder = workerDecoder,
     )
 
@@ -103,9 +103,12 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         komfClientFactory = komfClientFactory,
         appUpdater = null,
         imageDecoderDescriptor = emptyFlow(),
-        imageLoader = coil,
-        readerImageLoader = readerImageLoader,
-        windowState = BrowserWindowState()
+        coilImageLoader = coil,
+        bookImageLoader = readerImageLoader,
+        windowState = BrowserWindowState(),
+        imageDecoder = workerDecoder,
+        readerImageFactory = readerImageFactory,
+        colorCurvesPresetsRepository = colorCurvesRepository,
     )
 }
 
@@ -158,37 +161,24 @@ private fun createCoil(
 private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
-    upscaleOption: StateFlow<UpscaleOption>,
-    pipeline: ImageProcessingPipeline,
-    showDebugGrid: StateFlow<Boolean>,
-    stretchImages: StateFlow<Boolean>,
     decoder: WorkerImageDecoder,
-): ReaderImageLoader {
+): BookImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
         .baseUrl { baseUrl.value }
         .build()
         .bookClient()
 
-    return ReaderImageLoader(
+    return BookImageLoader(
         bookClient = bookClient,
-        decoder = WasmReaderImageFactory(
-            upscaleOptionFlow = upscaleOption,
-            stretchImages = stretchImages,
-            processingPipeline = pipeline,
-            showDebugGrid = showDebugGrid,
-            decoder = decoder,
-
-            ),
+        decoder = decoder,
         diskCache = null
     )
 }
 
 private fun createImagePipeline(
-    cropBorders: StateFlow<Boolean>,
 ): ImageProcessingPipeline {
     val pipeline = ImageProcessingPipeline()
-    pipeline.addStep(CropBordersStep(cropBorders))
     return pipeline
 }
 

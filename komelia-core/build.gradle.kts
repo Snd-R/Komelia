@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinAtomicfu)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
@@ -26,7 +27,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.addAll(
                 "-P",
-                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=io.github.snd_r.komelia.platform.CommonParcelize"
+                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=io.github.snd_r.komelia.platform.CommonParcelize",
             )
         }
     }
@@ -42,7 +43,10 @@ kotlin {
     }
 
     sourceSets {
-        all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
+        all {
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+            languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
+        }
         commonMain.dependencies {
             api(compose.runtime)
             api(compose.foundation)

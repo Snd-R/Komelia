@@ -49,6 +49,8 @@ fun ReaderContent(
 
     onSeriesBackClick: () -> Unit,
     onBookBackClick: () -> Unit,
+    isColorCurvesActive: Boolean,
+    onColorCorrectionClick: () -> Unit,
 ) {
     val book = commonReaderState.booksState.collectAsState().value?.currentBook
     var showHelpDialog by remember { mutableStateOf(false) }
@@ -93,6 +95,8 @@ fun ReaderContent(
                 onShowHelpDialogChange = { showHelpDialog = it },
                 showSettingsMenu = showSettingsMenu,
                 onShowSettingsMenuChange = { showSettingsMenu = it },
+                expandImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
+                onExpandImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
 
                 screenScaleState = screenScaleState,
                 pagedReaderState = pagedReaderState,
@@ -101,6 +105,8 @@ fun ReaderContent(
                 book = book,
                 onBookBackClick = onBookBackClick,
                 onSeriesBackClick = onSeriesBackClick,
+                isColorCurvesActive = isColorCurvesActive,
+                onColorCurvesClick = onColorCorrectionClick,
             )
 
 
@@ -110,6 +116,8 @@ fun ReaderContent(
 
                 showSettingsMenu = showSettingsMenu,
                 onShowSettingsMenuChange = { showSettingsMenu = it },
+                expandImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
+                onExpandImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
 
                 screenScaleState = screenScaleState,
                 continuousReaderState = continuousReaderState,
@@ -118,6 +126,8 @@ fun ReaderContent(
                 book = book,
                 onBookBackClick = onBookBackClick,
                 onSeriesBackClick = onSeriesBackClick,
+                isColorCurvesActive = isColorCurvesActive,
+                onColorCurvesClick = onColorCorrectionClick,
             )
         }
     }

@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.reader.image.common
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +27,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +42,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,8 +75,13 @@ fun SettingsMenu(
     onShowHelpMenu: () -> Unit,
     onSeriesPress: () -> Unit,
     onBookClick: () -> Unit,
+    expandImageSettings: Boolean,
+    onExpandImageSettingsChange: (Boolean) -> Unit,
+    isColorCorrectionsActive: Boolean,
+    onColorCorrectionClick: () -> Unit,
     readerSettingsContent: @Composable ColumnScope.() -> Unit,
 ) {
+//    var showImageSettings by remember { mutableStateOf(false) }
     if (!show) return
     Box(
         modifier = modifier.fillMaxSize(),
@@ -92,10 +104,14 @@ fun SettingsMenu(
                 book = book,
                 settingsState = settingsState,
                 screenScaleState = screenScaleState,
+                showImageSettings = expandImageSettings,
+                onShowImageSettingsChange = { onExpandImageSettingsChange(it) },
                 onMenuDismiss = onMenuDismiss,
                 onShowHelpMenu = onShowHelpMenu,
                 onSeriesPress = onSeriesPress,
                 onBookClick = onBookClick,
+                isColorCorrectionsActive = isColorCorrectionsActive,
+                onColorCorrectionClick = onColorCorrectionClick,
                 readerSettingsContent = readerSettingsContent
             )
 
@@ -110,11 +126,15 @@ private fun ColumnScope.SettingsContent(
     book: KomgaBook?,
     settingsState: ReaderState,
     screenScaleState: ScreenScaleState,
+    showImageSettings: Boolean,
+    onShowImageSettingsChange: (Boolean) -> Unit,
 
     onMenuDismiss: () -> Unit,
     onShowHelpMenu: () -> Unit,
     onSeriesPress: () -> Unit,
     onBookClick: () -> Unit,
+    isColorCorrectionsActive: Boolean,
+    onColorCorrectionClick: () -> Unit,
     readerSettingsContent: @Composable ColumnScope.() -> Unit,
 ) {
     Row {
@@ -123,8 +143,12 @@ private fun ColumnScope.SettingsContent(
         IconButton(onClick = { onShowHelpMenu() }) { Icon(Icons.AutoMirrored.Default.Help, null) }
     }
     if (book != null) {
-        ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
-        ReturnLink(Icons.Default.Book, book.metadata.title, onBookClick)
+        if (book.oneshot) {
+            ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
+        } else {
+            ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
+            ReturnLink(Icons.Default.Book, book.metadata.title, onBookClick)
+        }
     }
 
     HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
@@ -135,6 +159,81 @@ private fun ColumnScope.SettingsContent(
     val zoom = screenScaleState.zoom.collectAsState().value
     val zoomPercentage = (zoom * 100).roundToInt()
     Text("${strings.zoom}: $zoomPercentage%")
+    val decoder = settingsState.decoderSettings.collectAsState().value
+    val decoderDescriptor = settingsState.currentDecoderDescriptor.collectAsState().value
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable { onShowImageSettingsChange(!showImageSettings) }
+            .cursorForHand()
+            .padding(10.dp)
+    ) {
+        Text("Image Settings")
+        Spacer(Modifier.weight(1f))
+        Icon(
+            Icons.Filled.ArrowDropDown,
+            null,
+            Modifier.rotate(if (showImageSettings) 180f else 0f)
+        )
+    }
+    AnimatedVisibility(showImageSettings) {
+        Column(modifier = Modifier.padding(start = 10.dp)) {
+            if (decoder != null && decoderDescriptor != null && decoderDescriptor.upscaleOptions.size > 1) {
+                DropdownChoiceMenu(
+                    selectedOption = LabeledEntry(decoder.upscaleOption, decoder.upscaleOption.value),
+                    options = remember { decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) } },
+                    onOptionChange = { settingsState.onUpscaleMethodChange(it.value) },
+                    inputFieldModifier = Modifier.fillMaxWidth(),
+                    label = { Text("Upscale method") },
+                    inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
+
+            SwitchWithLabel(
+                checked = settingsState.imageStretchToFit.collectAsState().value,
+                onCheckedChange = settingsState::onStretchToFitChange,
+                label = { Text(strings.stretchToFit) },
+                contentPadding = PaddingValues(horizontal = 10.dp)
+            )
+
+            if (LocalPlatform.current != PlatformType.WEB_KOMF) {
+                SwitchWithLabel(
+                    checked = settingsState.cropBorders.collectAsState().value,
+                    onCheckedChange = settingsState::onTrimEdgesChange,
+                    label = { Text("Crop borders") },
+                    contentPadding = PaddingValues(horizontal = 10.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .clickable { onColorCorrectionClick() }
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .padding(horizontal = 10.dp, vertical = 15.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Color Correction")
+                Spacer(Modifier.width(10.dp))
+                Icon(
+                    imageVector = Icons.Default.BarChart,
+                    contentDescription = null,
+                    tint = if (isColorCorrectionsActive) MaterialTheme.colorScheme.secondary
+                    else LocalContentColor.current
+                )
+                if (isColorCorrectionsActive) {
+                    Text(
+                        "active",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
+    }
+
+    HorizontalDivider(Modifier.padding(vertical = 5.dp))
+
     DropdownChoiceMenu(
         selectedOption = LabeledEntry(readerType, strings.forReaderType(readerType)),
         options = remember { ReaderType.entries.map { LabeledEntry(it, strings.forReaderType(it)) } },
@@ -143,37 +242,7 @@ private fun ColumnScope.SettingsContent(
         label = { Text(strings.readerType) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
-    val decoder = settingsState.decoderSettings.collectAsState().value
-    val decoderDescriptor = settingsState.currentDecoderDescriptor.collectAsState().value
 
-    if (decoder != null && decoderDescriptor != null && decoderDescriptor.upscaleOptions.size > 1) {
-        DropdownChoiceMenu(
-            selectedOption = LabeledEntry(decoder.upscaleOption, decoder.upscaleOption.value),
-            options = remember { decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) } },
-            onOptionChange = { settingsState.onUpscaleMethodChange(it.value) },
-            inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text("Upscale method") },
-            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    }
-
-    SwitchWithLabel(
-        checked = settingsState.imageStretchToFit.collectAsState().value,
-        onCheckedChange = settingsState::onStretchToFitChange,
-        label = { Text(strings.stretchToFit) },
-        contentPadding = PaddingValues(horizontal = 10.dp)
-    )
-
-    if (LocalPlatform.current != PlatformType.WEB_KOMF) {
-        SwitchWithLabel(
-            checked = settingsState.cropBorders.collectAsState().value,
-            onCheckedChange = settingsState::onTrimEdgesChange,
-            label = { Text("Crop borders") },
-            contentPadding = PaddingValues(horizontal = 10.dp)
-        )
-    }
-
-    HorizontalDivider(Modifier.padding(vertical = 5.dp))
     readerSettingsContent()
 
 }

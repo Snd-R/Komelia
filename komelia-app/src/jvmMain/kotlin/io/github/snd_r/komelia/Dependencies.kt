@@ -11,11 +11,9 @@ import io.github.snd_r.komelia.AppDirectories.coilCachePath
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
-import io.github.snd_r.komelia.image.CropBordersStep
+import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.DesktopReaderImageFactory
-import io.github.snd_r.komelia.image.ImageProcessingPipeline
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
-import io.github.snd_r.komelia.image.ReaderImageLoader
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
@@ -24,6 +22,9 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
+import io.github.snd_r.komelia.image.processing.CropBordersStep
+import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.AwtWindowState
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.UpscaleOption
@@ -69,6 +70,9 @@ import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomeliaDatabase
 import snd.komelia.db.SettingsStateActor
+import snd.komelia.db.color.ExposedBookColorCorrectionRepository
+import snd.komelia.db.color.ExposedColorCurvesPresetRepository
+import snd.komelia.db.color.ExposedColorLevelsPresetRepository
 import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
@@ -77,10 +81,10 @@ import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.image.ImageDecoder
-import snd.komelia.image.SkiaBitmap
-import snd.komelia.image.VipsImageDecoder
 import snd.komelia.image.OnnxRuntimeSharedLibraries
 import snd.komelia.image.OnnxRuntimeUpscaler
+import snd.komelia.image.SkiaBitmap
+import snd.komelia.image.VipsImageDecoder
 import snd.komelia.image.VipsSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
@@ -130,6 +134,9 @@ suspend fun initDependencies(
     val imageReadRepository = createImageReaderSettingsRepository(database)
     val epubReaderSettingsRepository = createEpubReaderSettings(database)
     val fontsRepository = ExposedUserFontsRepository(database.database)
+    val colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(database.database)
+    val colorLevelsPresetsRepository = ExposedColorLevelsPresetRepository(database.database)
+    val bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(database.database)
 
     val secretsRepository = createSecretsRepository()
 
@@ -178,19 +185,24 @@ suspend fun initDependencies(
     )
 
     val onnxUpscaler = createOnnxRuntimeUpscaler(settingsRepository)
+    val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
     val imagePipeline = createImagePipeline(
-        cropBorders = imageReadRepository.getCropBorders().stateIn(initScope)
+        cropBorders = imageReadRepository.getCropBorders().stateIn(initScope),
+        colorCorrectionStep = colorCorrectionStep
     )
     val stretchImages = imageReadRepository.getStretchToFit().stateIn(initScope)
+    val readerImageFactory = DesktopReaderImageFactory(
+        upscaleOptionFlow = decoderSettings.map { it.upscaleOption }.stateIn(initScope),
+        processingPipeline = imagePipeline,
+        stretchImages = stretchImages,
+        onnxUpscaler = onnxUpscaler,
+        showDebugGrid = settingsRepository.getImageReaderShowDebugGrid().stateIn(initScope),
+    )
+
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
-        upscaleOption = decoderSettings.map { it.upscaleOption }.stateIn(initScope),
-        pipeline = imagePipeline,
-        stretchImages = stretchImages,
-        onnxUpscaler = onnxUpscaler,
-        showDebugGrid = settingsRepository.getImageReaderShowDebugGrid().stateIn(initScope),
         vipsDecoder = vipsDecoder
     )
 
@@ -205,21 +217,28 @@ suspend fun initDependencies(
         .build()
 
     return DesktopDependencyContainer(
-        komgaClientFactory = komgaClientFactory,
-        appUpdater = appUpdater,
         settingsRepository = settingsRepository,
         epubReaderSettingsRepository = epubReaderSettingsRepository,
         imageReaderSettingsRepository = imageReadRepository,
         fontsRepository = fontsRepository,
+        colorCurvesPresetsRepository = colorCurvesPresetsRepository,
+        colorLevelsPresetRepository = colorLevelsPresetsRepository,
+        bookColorCorrectionRepository = bookColorCorrectionRepository,
         secretsRepository = secretsRepository,
-        imageLoader = coil,
+
+        komgaClientFactory = komgaClientFactory,
+        appUpdater = appUpdater,
+        coilImageLoader = coil,
         imageDecoderDescriptor = availableDecoders,
-        readerImageLoader = readerImageLoader,
+        bookImageLoader = readerImageLoader,
+        readerImageFactory = readerImageFactory,
         appNotifications = notifications,
         komfClientFactory = komfClientFactory,
         onnxRuntimeInstaller = onnxRuntimeInstaller,
         windowState = windowState,
-        mangaJaNaiDownloader = mangaJaNaiDownloader
+        mangaJaNaiDownloader = mangaJaNaiDownloader,
+        imageDecoder = vipsDecoder,
+        colorCorrectionStep = colorCorrectionStep
     )
 }
 
@@ -311,8 +330,11 @@ private fun createKomgaClientFactory(
 
 private fun createImagePipeline(
     cropBorders: StateFlow<Boolean>,
+    colorCorrectionStep: ColorCorrectionStep,
 ): ImageProcessingPipeline {
     val pipeline = ImageProcessingPipeline()
+    pipeline.addStep(colorCorrectionStep)
+
     pipeline.addStep(CropBordersStep(cropBorders))
     return pipeline
 }
@@ -321,13 +343,8 @@ private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
     cookiesStorage: CookiesStorage,
-    upscaleOption: StateFlow<UpscaleOption>,
-    stretchImages: StateFlow<Boolean>,
-    pipeline: ImageProcessingPipeline,
-    onnxUpscaler: ManagedOnnxUpscaler?,
-    showDebugGrid: StateFlow<Boolean>,
     vipsDecoder: VipsImageDecoder
-): ReaderImageLoader {
+): BookImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
         .baseUrl { baseUrl.value }
@@ -335,19 +352,9 @@ private fun createReaderImageLoader(
         .build()
         .bookClient()
 
-    val readerDecoder = DesktopReaderImageFactory(
-        upscaleOptionFlow = upscaleOption,
-        processingPipeline = pipeline,
-        stretchImages = stretchImages,
-        onnxUpscaler = onnxUpscaler,
-        showDebugGrid = showDebugGrid,
-        decoder = vipsDecoder
-
-    )
-
-    return ReaderImageLoader(
+    return BookImageLoader(
         bookClient,
-        readerDecoder,
+        vipsDecoder,
         DiskCache.Builder()
             .directory(readerCachePath.createDirectories().toOkioPath())
             .build()

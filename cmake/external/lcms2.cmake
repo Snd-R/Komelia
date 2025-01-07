@@ -7,7 +7,7 @@ ExternalProject_Add(ep_lcms2
         CONFIGURE_COMMAND
             <SOURCE_DIR>/configure ${HOST_FLAG}
             --prefix ${CMAKE_BINARY_DIR}/sysroot
-        BUILD_COMMAND ${Make_EXECUTABLE} all
+        BUILD_COMMAND ${Make_EXECUTABLE}
         INSTALL_COMMAND ${Make_EXECUTABLE} install
         BUILD_IN_SOURCE true
         USES_TERMINAL_DOWNLOAD true

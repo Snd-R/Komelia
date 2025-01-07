@@ -28,7 +28,9 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.ui.LocalKeyEvents
+import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.PageSpreadProgressSlider
@@ -36,9 +38,6 @@ import io.github.snd_r.komelia.ui.reader.image.common.PagedReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
 import io.github.snd_r.komelia.ui.reader.image.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.image.common.SettingsMenu
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Error
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Success
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.Page
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
@@ -55,6 +54,8 @@ fun BoxScope.PagedReaderContent(
     onShowHelpDialogChange: (Boolean) -> Unit,
     showSettingsMenu: Boolean,
     onShowSettingsMenuChange: (Boolean) -> Unit,
+    expandImageSettings: Boolean,
+    onExpandImageSettingsChange: (Boolean) -> Unit,
 
     screenScaleState: ScreenScaleState,
     pagedReaderState: PagedReaderState,
@@ -62,7 +63,9 @@ fun BoxScope.PagedReaderContent(
 
     book: KomgaBook?,
     onBookBackClick: () -> Unit,
-    onSeriesBackClick: () -> Unit
+    onSeriesBackClick: () -> Unit,
+    isColorCurvesActive: Boolean,
+    onColorCurvesClick: () -> Unit,
 ) {
     if (showHelpDialog)
         PagedReaderHelpDialog(onDismissRequest = { onShowHelpDialogChange(false) })
@@ -112,6 +115,10 @@ fun BoxScope.PagedReaderContent(
         screenScaleState = screenScaleState,
         onSeriesPress = onSeriesBackClick,
         onBookClick = onBookBackClick,
+        expandImageSettings = expandImageSettings,
+        onExpandImageSettingsChange = onExpandImageSettingsChange,
+        isColorCorrectionsActive = isColorCurvesActive,
+        onColorCorrectionClick = onColorCurvesClick,
         readerSettingsContent = { PagedReaderSettingsContent(pagedReaderState) }
     )
 
@@ -227,27 +234,10 @@ fun ReaderPages(
 }
 
 @Composable
-private fun PageContent(imageResult: ImageResult?) {
+private fun PageContent(imageResult: ReaderImageResult?) {
     when (imageResult) {
-        is Success -> {
-            val painter = imageResult.image.painter.collectAsState().value
-            val error = imageResult.image.error.collectAsState().value
-
-            if (error != null) {
-                Text(
-                    "${error::class.simpleName}: ${error.message}",
-                    color = MaterialTheme.colorScheme.error
-                )
-            } else {
-                Image(
-                    modifier = Modifier.background(Color.White),
-                    painter = painter,
-                    contentDescription = null,
-                )
-            }
-        }
-
-        is Error -> Text(
+        is ReaderImageResult.Success -> PageImageContent(imageResult.image)
+        is ReaderImageResult.Error -> Text(
             "${imageResult.throwable::class.simpleName}: ${imageResult.throwable.message}",
             color = MaterialTheme.colorScheme.error
         )
@@ -258,6 +248,26 @@ private fun PageContent(imageResult: ImageResult?) {
             content = { CircularProgressIndicator() }
         )
     }
+}
+
+@Composable
+private fun PageImageContent(image: ReaderImage) {
+    val painter = image.painter.collectAsState().value
+    val error = image.error.collectAsState().value
+
+    if (error != null) {
+        Text(
+            "${error::class.simpleName}: ${error.message}",
+            color = MaterialTheme.colorScheme.error
+        )
+    } else {
+        Image(
+            modifier = Modifier.background(Color.White),
+            painter = painter,
+            contentDescription = null,
+        )
+    }
+
 }
 
 private suspend fun registerPagedReaderKeyboardEvents(

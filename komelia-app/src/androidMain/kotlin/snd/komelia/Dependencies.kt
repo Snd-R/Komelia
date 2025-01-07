@@ -14,10 +14,8 @@ import io.github.snd_r.komelia.AndroidDependencyContainer
 import io.github.snd_r.komelia.fonts.fontsDirectory
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
-import io.github.snd_r.komelia.image.AndroidImageFactory
-import io.github.snd_r.komelia.image.CropBordersStep
-import io.github.snd_r.komelia.image.ImageProcessingPipeline
-import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.AndroidReaderImageFactory
+import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
@@ -26,6 +24,9 @@ import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesThumbnailMapper
+import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
+import io.github.snd_r.komelia.image.processing.CropBordersStep
+import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.AndroidWindowState
 import io.github.snd_r.komelia.settings.AndroidSecretsRepository
 import io.github.snd_r.komelia.settings.AppSettingsSerializer
@@ -57,6 +58,9 @@ import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomeliaDatabase
 import snd.komelia.db.SettingsStateActor
+import snd.komelia.db.color.ExposedBookColorCorrectionRepository
+import snd.komelia.db.color.ExposedColorCurvesPresetRepository
+import snd.komelia.db.color.ExposedColorLevelsPresetRepository
 import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
@@ -101,6 +105,9 @@ suspend fun initDependencies(
     val imageReaderSettingsRepository = createImageReaderSettingsRepository(database)
     val epubReaderSettingsRepository = createEpubReaderSettings(database)
     val fontsRepository = ExposedUserFontsRepository(database.database)
+    val colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(database.database)
+    val colorLevelsPresetsRepository = ExposedColorLevelsPresetRepository(database.database)
+    val bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(database.database)
 
     val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
     val komfUrl = settingsRepository.getKomfUrl().stateIn(initScope)
@@ -124,18 +131,23 @@ suspend fun initDependencies(
         cookiesStorage = cookiesStorage,
     )
 
+    val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
     val imagePipeline = createImagePipeline(
-        cropBorders = imageReaderSettingsRepository.getCropBorders().stateIn(initScope)
+        cropBorders = imageReaderSettingsRepository.getCropBorders().stateIn(initScope),
+        colorCorrectionStep = colorCorrectionStep
     )
     val stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(initScope)
+    val readerImageFactory = AndroidReaderImageFactory(
+        processingPipeline = imagePipeline,
+        stretchImages = stretchImages,
+    )
+
 
     val vipsDecoder = VipsImageDecoder()
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
-        stretchImages = stretchImages,
-        pipeline = imagePipeline,
         decoder = vipsDecoder
     )
 
@@ -159,15 +171,22 @@ suspend fun initDependencies(
         epubReaderSettingsRepository = epubReaderSettingsRepository,
         imageReaderSettingsRepository = imageReaderSettingsRepository,
         fontsRepository = fontsRepository,
+        colorCurvesPresetsRepository = colorCurvesPresetsRepository,
+        colorLevelsPresetRepository = colorLevelsPresetsRepository,
+        bookColorCorrectionRepository = bookColorCorrectionRepository,
         secretsRepository = secretsRepository,
+
         appUpdater = appUpdater,
         imageDecoderDescriptor = emptyFlow(),
         komgaClientFactory = komgaClientFactory,
-        imageLoader = coil,
+        coilImageLoader = coil,
         platformContext = context,
-        readerImageLoader = readerImageLoader,
+        bookImageLoader = readerImageLoader,
         komfClientFactory = komfClientFactory,
-        windowState = AndroidWindowState(mainActivity)
+        windowState = AndroidWindowState(mainActivity),
+        imageDecoder = vipsDecoder,
+        colorCorrectionStep = colorCorrectionStep,
+        readerImageFactory = readerImageFactory,
     )
 }
 
@@ -211,23 +230,17 @@ private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
     cookiesStorage: RememberMePersistingCookieStore,
-    stretchImages: StateFlow<Boolean>,
-    pipeline: ImageProcessingPipeline,
     decoder: ImageDecoder,
-): ReaderImageLoader {
+): BookImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
         .baseUrl { baseUrl.value }
         .cookieStorage(cookiesStorage)
         .build()
         .bookClient()
-    return ReaderImageLoader(
+    return BookImageLoader(
         bookClient = bookClient,
-        decoder = AndroidImageFactory(
-            stretchImages = stretchImages,
-            processingPipeline = pipeline,
-            decoder = decoder,
-        ),
+        decoder = decoder,
         diskCache = DiskCache.Builder()
             .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
             .build()
@@ -283,8 +296,10 @@ private fun createAppUpdater(
 
 private fun createImagePipeline(
     cropBorders: StateFlow<Boolean>,
+    colorCorrectionStep: ColorCorrectionStep,
 ): ImageProcessingPipeline {
     val pipeline = ImageProcessingPipeline()
+    pipeline.addStep(colorCorrectionStep)
     pipeline.addStep(CropBordersStep(cropBorders))
     return pipeline
 }

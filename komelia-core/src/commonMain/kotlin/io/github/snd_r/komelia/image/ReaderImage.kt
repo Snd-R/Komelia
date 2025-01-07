@@ -6,21 +6,19 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlin.math.roundToInt
 
 interface ReaderImage : AutoCloseable {
     val pageId: PageId
-    val originalSize: StateFlow<IntSize?>
+    val originalSize: StateFlow<IntSize>
     val displaySize: StateFlow<IntSize?>
     val currentSize: StateFlow<IntSize?>
     val painter: StateFlow<Painter>
     val error: StateFlow<Throwable?>
 
     suspend fun getOriginalSize(): IntSize
-    suspend fun calculateSizeForArea(maxDisplaySize: IntSize, allowUpscale: Boolean): IntSize {
-        val imageSize = this.originalSize.filterNotNull().first()
+    fun calculateSizeForArea(maxDisplaySize: IntSize, allowUpscale: Boolean): IntSize {
+        val imageSize = this.originalSize.value
         if (imageSize == IntSize.Zero) return maxDisplaySize
         val widthRatio = maxDisplaySize.width.toDouble() / imageSize.width
         val heightRatio = maxDisplaySize.height.toDouble() / imageSize.height

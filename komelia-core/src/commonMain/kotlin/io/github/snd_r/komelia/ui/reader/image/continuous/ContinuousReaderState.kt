@@ -18,20 +18,21 @@ import io.github.reactivecircus.cache4k.CacheEvent.Expired
 import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.ImageResult
 import io.github.snd_r.komelia.image.ReaderImage
-import io.github.snd_r.komelia.image.ReaderImageLoader
+import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
-import io.github.snd_r.komelia.ui.reader.image.ImageCacheKey
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
+import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Error
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult.Success
+import io.ktor.util.collections.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -65,10 +66,11 @@ private val logger = KotlinLogging.logger("ContinuousReaderState")
 class ContinuousReaderState(
     private val cleanupScope: CoroutineScope,
     private val readerState: ReaderState,
-    private val imageLoader: ReaderImageLoader,
+    private val imageLoader: BookImageLoader,
     private val settingsRepository: ImageReaderSettingsRepository,
     private val notifications: AppNotifications,
     private val appStrings: Flow<AppStrings>,
+    private val readerImageFactory: ReaderImageFactory,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -92,7 +94,7 @@ class ContinuousReaderState(
     private val nextBook = readerState.booksState.filterNotNull().map { it.nextBook }
     private val previousBook = readerState.booksState.filterNotNull().map { it.previousBook }
 
-    private val imageCache = Cache.Builder<ImageCacheKey, Deferred<ImageResult>>()
+    private val imageCache = Cache.Builder<PageId, Deferred<ReaderImageResult>>()
         .maximumCacheSize(10)
         .eventListener {
             val (key, value) = when (it) {
@@ -108,7 +110,7 @@ class ContinuousReaderState(
             }
         }
         .build()
-    private val imagesInUse: MutableMap<ImageCacheKey, ReaderImage> = HashMap()
+    private val imagesInUse: MutableMap<PageId, ReaderImage> = ConcurrentMap()
     private val imageDisplayFlow: MutableSharedFlow<ReaderImage> = MutableSharedFlow()
 
     suspend fun initialize() {
@@ -374,12 +376,12 @@ class ContinuousReaderState(
         }
     }
 
-    suspend fun getImage(requestPage: PageMetadata): ImageResult {
+    suspend fun getImage(requestPage: PageMetadata): ReaderImageResult {
         val requestedPageJob = launchImageJob(requestPage)
 
         val nextPage = getPagesFor(requestPage.bookId)?.getOrNull(requestPage.pageNumber)
         if (nextPage != null) {
-            if (!imagesInUse.containsKey(nextPage.toCacheKey())) {
+            if (!imagesInUse.containsKey(nextPage.toPageId())) {
                 imageLoadScope.launch {
                     val result = launchImageJob(nextPage).await()
                     result.image?.let {
@@ -398,27 +400,31 @@ class ContinuousReaderState(
         return requestedPageJob.await()
     }
 
-    private fun launchImageJob(requestPage: PageMetadata): Deferred<ImageResult> {
-        val cacheKey = ImageCacheKey(requestPage.bookId, requestPage.pageNumber)
-        val cached = imageCache.get(cacheKey)
+    private fun launchImageJob(requestPage: PageMetadata): Deferred<ReaderImageResult> {
+        val pageId = requestPage.toPageId()
+        val cached = imageCache.get(pageId)
 
         val job = if (cached != null && !cached.isCancelled) cached
         else imageLoadScope.async {
-            imageLoader.load(requestPage.bookId, requestPage.pageNumber)
-        }.also { imageCache.put(cacheKey, it) }
+            when (val result = imageLoader.loadImage(requestPage.bookId, requestPage.pageNumber)) {
+                is ImageResult.Success -> ReaderImageResult.Success(readerImageFactory.getImage(result.image, pageId))
+                is ImageResult.Error -> ReaderImageResult.Error(result.throwable)
+            }
+
+        }.also { imageCache.put(pageId, it) }
 
 
         return job
     }
 
-    private suspend fun updateVisibleImages() {
+    private fun updateVisibleImages() {
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
         if (visibleItems.isEmpty()) return
 
         val firstItem = visibleItems.first()
 
         val visiblePages = visibleItems.filter { it.key is PageMetadata }.map { it.key as PageMetadata }
-        val visibleImages = visiblePages.associateWith { page -> imagesInUse[page.toCacheKey()] }
+        val visibleImages = visiblePages.associateWith { page -> imagesInUse[page.toPageId()] }
 
         val scale = screenScaleState.transformation.value.scale
         val firstItemOffset = lazyListState.firstVisibleItemScrollOffset
@@ -450,14 +456,12 @@ class ContinuousReaderState(
                     )
                 }
                 image.requestUpdate(
-//                    displaySize = firstImageSize.displaySize,
                     visibleDisplaySize = visibleArea,
                     zoomFactor = scale,
                     maxDisplaySize = firstImageSize.maxSize
                 )
             } else {
                 image.requestUpdate(
-//                    displaySize = firstImageSize.displaySize,
                     visibleDisplaySize = firstImageSize.displaySize.toIntRect(),
                     zoomFactor = scale,
                     maxDisplaySize = firstImageSize.maxSize
@@ -512,7 +516,7 @@ class ContinuousReaderState(
         val maxSize: IntSize,
     )
 
-    private suspend fun getImageDisplaySize(image: ReaderImage): ImageDisplaySize {
+    private fun getImageDisplaySize(image: ReaderImage): ImageDisplaySize {
         val containerSize = screenScaleState.areaSize.value
         return when (readingDirection.value) {
             TOP_TO_BOTTOM -> {
@@ -538,17 +542,17 @@ class ContinuousReaderState(
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getPageDisplaySize(page: PageMetadata): Flow<IntSize> {
 
-        val cached = imageCache.get(ImageCacheKey(page.bookId, page.pageNumber))
+        val cached = imageCache.get(PageId(page.bookId.value, page.pageNumber))
         return if (cached != null) {
             if (cached.isCompleted) {
                 when (val result = cached.getCompleted()) {
-                    is Success -> result.image.displaySize.filterNotNull()
-                    is Error -> MutableStateFlow(guessPageDisplaySize(page))
+                    is ReaderImageResult.Success -> result.image.displaySize.filterNotNull()
+                    is ReaderImageResult.Error -> MutableStateFlow(guessPageDisplaySize(page))
                 }
             } else {
                 when (val result = cached.await()) {
-                    is Success -> result.image.displaySize.filterNotNull()
-                    is Error -> MutableStateFlow(guessPageDisplaySize(page))
+                    is ReaderImageResult.Success -> result.image.displaySize.filterNotNull()
+                    is ReaderImageResult.Error -> MutableStateFlow(guessPageDisplaySize(page))
                 }
             }
 
@@ -561,7 +565,7 @@ class ContinuousReaderState(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun guessPageDisplaySize(page: PageMetadata, pageSize: IntSize? = null): IntSize {
-        val cached = imageCache.get(ImageCacheKey(page.bookId, page.pageNumber))
+        val cached = imageCache.get(PageId(page.bookId.value, page.pageNumber))
         var cachedImageSize: IntSize? = null
         if (cached != null && cached.isCompleted) {
             cachedImageSize = cached.getCompleted().image?.originalSize?.value
@@ -646,8 +650,8 @@ class ContinuousReaderState(
         return displaySize
     }
 
-    private suspend fun updatePageSize(page: PageMetadata, image: ReaderImage) {
-        val imageSize = image.getOriginalSize()
+    private fun updatePageSize(page: PageMetadata, image: ReaderImage) {
+        val imageSize = image.originalSize.value
         val updated = page.copy(size = imageSize)
 
         pageIntervals.update { current ->
@@ -701,7 +705,7 @@ class ContinuousReaderState(
 
     fun onPageDisplay(page: PageMetadata, image: ReaderImage) {
         stateScope.launch {
-            imagesInUse[page.toCacheKey()] = image
+            imagesInUse[page.toPageId()] = image
             if (page.size == null) updatePageSize(page, image)
             updateVisibleImages()
             imageDisplayFlow.emit(image)
@@ -709,7 +713,7 @@ class ContinuousReaderState(
     }
 
     fun onPageDispose(page: PageMetadata) {
-        val cacheKey = page.toCacheKey()
+        val cacheKey = page.toPageId()
         val image = imagesInUse.remove(cacheKey)
         if (image != null && imageCache.get(cacheKey) == null) {
             image.close()

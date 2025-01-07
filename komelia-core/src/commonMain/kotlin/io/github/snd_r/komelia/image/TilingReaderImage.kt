@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toRect
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,7 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import snd.komelia.image.ImageDecoder
 import snd.komelia.image.KomeliaImage
 import kotlin.concurrent.Volatile
 import kotlin.math.round
@@ -45,16 +45,15 @@ expect class RenderImage
 private val logger = KotlinLogging.logger {}
 
 abstract class TilingReaderImage(
-    private val encoded: ByteArray,
+    private val originalImage: KomeliaImage,
     private val processingPipeline: ImageProcessingPipeline,
     private val stretchImages: StateFlow<Boolean>,
-    private val decoder: ImageDecoder,
     final override val pageId: PageId
 ) : ReaderImage {
     final override val painter = MutableStateFlow(noopPainter)
     final override val error = MutableStateFlow<Throwable?>(null)
 
-    final override val originalSize = MutableStateFlow<IntSize?>(null)
+    final override val originalSize = MutableStateFlow(IntSize(originalImage.width, originalImage.height))
     final override val displaySize = MutableStateFlow<IntSize?>(null)
     final override val currentSize = MutableStateFlow<IntSize?>(null)
 
@@ -93,9 +92,13 @@ abstract class TilingReaderImage(
             }.launchIn(processingScope)
 
         processingPipeline.changeFlow.onEach {
-            image.value?.close()
+            val currentImage = image.value
+            if (currentImage !== originalImage) {
+                currentImage?.close()
+            }
+
             image.value = null
-            originalSize.value = null
+            originalSize.value = IntSize(originalImage.width, originalImage.height)
             currentSize.value = null
             loadImage()
             reloadLastRequest()
@@ -115,17 +118,13 @@ abstract class TilingReaderImage(
 
     private suspend fun loadImage() {
         try {
-            measureTime {
-                val decoded = decoder.decode(encoded)
-                val processed = processingPipeline.process(pageId, decoded)
-                image.value = processed
-                originalSize.value = IntSize(processed.width, processed.height)
-            }.also { logger.info { "page ${pageId.pageNumber} completed load in $it" } }
+            val processed = processingPipeline.process(pageId, originalImage)
+            image.value = processed
+            originalSize.value = IntSize(processed.width, processed.height)
         } catch (e: Throwable) {
             currentCoroutineContext().ensureActive()
             logger.catching(e)
             this.error.value = e
-            originalSize.value = IntSize(100, 100)
             imageAwaitScope.coroutineContext.cancelChildren()
         }
     }
@@ -342,10 +341,13 @@ abstract class TilingReaderImage(
     }
 
     override fun close() {
-        closeTileBitmaps(tiles.value)
-        image.value?.close()
-        processingScope.cancel()
-        imageAwaitScope.cancel()
+        processingScope.launch {
+            originalImage.close()
+            closeTileBitmaps(tiles.value)
+            image.value?.close()
+            processingScope.cancel()
+            imageAwaitScope.cancel()
+        }
     }
 
     protected abstract fun closeTileBitmaps(tiles: List<ReaderImageTile>)

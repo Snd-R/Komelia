@@ -5,6 +5,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     ninja-build \
     nasm \
     autoconf \
+    automake \
+    autopoint \
+    autotools-dev \
     openjdk-17-jdk \
     texinfo \
     gettext \

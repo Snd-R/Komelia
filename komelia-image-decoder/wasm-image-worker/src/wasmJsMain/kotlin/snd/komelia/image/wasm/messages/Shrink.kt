@@ -1,6 +1,6 @@
 package snd.komelia.image.wasm.messages
 
-import snd.komelia.image.wasm.messages.WorkerMessageType.RESIZE
+import snd.komelia.image.wasm.messages.WorkerMessageType.SHRINK
 import snd.komelia.image.wasm.set
 
 external interface ShrinkRequest : WorkerMessage {
@@ -13,7 +13,7 @@ internal fun shrinkRequest(
     factor: Double,
     imageId: Int
 ): ShrinkRequest {
-    val jsObject = workerMessage<ShrinkRequest>(RESIZE, requestId)
+    val jsObject = workerMessage<ShrinkRequest>(SHRINK, requestId)
     jsObject["imageId"] = imageId.toJsNumber()
     jsObject["factor"] = factor.toJsNumber()
     return jsObject

@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
+import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.ContinuousReaderHelpDialog
@@ -64,7 +65,6 @@ import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
-import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ImageResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
@@ -77,6 +77,8 @@ fun BoxScope.ContinuousReaderContent(
     onShowHelpDialogChange: (Boolean) -> Unit,
     showSettingsMenu: Boolean,
     onShowSettingsMenuChange: (Boolean) -> Unit,
+    expandImageSettings: Boolean,
+    onExpandImageSettingsChange: (Boolean) -> Unit,
 
     screenScaleState: ScreenScaleState,
     continuousReaderState: ContinuousReaderState,
@@ -84,7 +86,9 @@ fun BoxScope.ContinuousReaderContent(
 
     book: KomgaBook?,
     onBookBackClick: () -> Unit,
-    onSeriesBackClick: () -> Unit
+    onSeriesBackClick: () -> Unit,
+    isColorCurvesActive: Boolean,
+    onColorCurvesClick: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val readingDirection = continuousReaderState.readingDirection.collectAsState().value
@@ -134,6 +138,10 @@ fun BoxScope.ContinuousReaderContent(
         screenScaleState = screenScaleState,
         onSeriesPress = onSeriesBackClick,
         onBookClick = onBookBackClick,
+        expandImageSettings = expandImageSettings,
+        onExpandImageSettingsChange = onExpandImageSettingsChange,
+        isColorCorrectionsActive = isColorCurvesActive,
+        onColorCorrectionClick = onColorCurvesClick,
         readerSettingsContent = { ContinuousReaderSettingsContent(continuousReaderState) }
     )
 
@@ -352,7 +360,7 @@ private fun ContinuousReaderImage(
     modifier: Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var imageResult by remember { mutableStateOf<ImageResult?>(null) }
+    var imageResult by remember { mutableStateOf<ReaderImageResult?>(null) }
     DisposableEffect(Unit) {
         coroutineScope.launch {
             val result = state.getImage(page)
@@ -370,8 +378,8 @@ private fun ContinuousReaderImage(
     ) {
 
         when (val result = imageResult) {
-            is ImageResult.Error -> Text(result.throwable.message ?: "Page load error")
-            is ImageResult.Success ->
+            is ReaderImageResult.Error -> Text(result.throwable.message ?: "Page load error")
+            is ReaderImageResult.Success ->
                 Image(
                     modifier = modifier.background(Color.White),
                     painter = result.image.painter.collectAsState().value,

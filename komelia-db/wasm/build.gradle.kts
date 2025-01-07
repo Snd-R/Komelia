@@ -26,6 +26,7 @@ kotlin {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-db:shared"))
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.browser)
         }
     }
 }

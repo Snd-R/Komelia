@@ -15,7 +15,7 @@ import snd.komelia.db.tables.ImageReaderSettingsTable
 class ExposedImageReaderSettingsRepository(database: Database) : ExposedRepository(database) {
 
     suspend fun get(): ImageReaderSettings? {
-        return transactionOnDefaultDispatcher {
+        return transaction {
             ImageReaderSettingsTable.selectAll()
                 .where { ImageReaderSettingsTable.bookId.eq(defaultBookId) }
                 .firstOrNull()
@@ -36,7 +36,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
     }
 
     suspend fun save(settings: ImageReaderSettings) {
-        transactionOnDefaultDispatcher {
+        transaction {
             ImageReaderSettingsTable.upsert {
                 it[bookId] = defaultBookId
                 it[readerType] = settings.readerType.name

@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.platform.CommonParcelable
 import io.github.snd_r.komelia.platform.CommonParcelize
@@ -11,6 +12,8 @@ import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
@@ -29,8 +32,6 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 
 typealias SpreadIndex = Int
 
@@ -41,10 +42,12 @@ class ReaderState(
     private val settingsRepository: CommonSettingsRepository,
     private val readerSettingsRepository: ImageReaderSettingsRepository,
     private val decoderDescriptor: Flow<PlatformDecoderDescriptor>,
+    private val currentBookId: MutableStateFlow<KomgaBookId?>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
 ) {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
+    val expandImageSettings = MutableStateFlow(false)
 
     val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
     val decoderSettings = MutableStateFlow<PlatformDecoderSettings?>(null)
@@ -103,6 +106,7 @@ class ReaderState(
                 bookProgress == null || bookProgress.completed -> 1
                 else -> bookProgress.page
             }
+            currentBookId.value = bookId
             state.value = LoadState.Success(Unit)
         }.onFailure { state.value = LoadState.Error(it) }
     }
@@ -215,6 +219,7 @@ class ReaderState(
     }
 
     fun onDispose() {
+        currentBookId.value = null
     }
 }
 
@@ -229,14 +234,8 @@ data class PageMetadata(
         return size.width > size.height
     }
 
-    fun toCacheKey() = ImageCacheKey(bookId, pageNumber)
     fun toPageId() = PageId(bookId.value, pageNumber)
 }
-
-data class ImageCacheKey(
-    val bookId: KomgaBookId,
-    val pageNumber: Int
-)
 
 data class BookState(
     val currentBook: KomgaBook,
@@ -250,4 +249,13 @@ data class BookState(
 enum class ReaderType {
     PAGED,
     CONTINUOUS
+}
+
+sealed interface ReaderImageResult {
+    val image: ReaderImage?
+
+    data class Success(override val image: ReaderImage) : ReaderImageResult
+    data class Error(val throwable: Throwable) : ReaderImageResult {
+        override val image: ReaderImage? = null
+    }
 }

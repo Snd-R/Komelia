@@ -3,7 +3,6 @@ package io.github.snd_r.komelia
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
-import io.github.snd_r.komelia.curves.CurvesViewModel
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
@@ -11,6 +10,7 @@ import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
+import io.github.snd_r.komelia.ui.color.ColorCorrectionViewModel
 import io.github.snd_r.komelia.ui.common.menus.bulk.BookBulkActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.CollectionBulkActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.ReadListBulkActions
@@ -41,6 +41,7 @@ import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.oneshot.OneshotViewModel
 import io.github.snd_r.komelia.ui.reader.epub.EpubReaderViewModel
 import io.github.snd_r.komelia.ui.reader.image.ReaderViewModel
+import io.github.snd_r.komelia.ui.reader.image.settings.ImageSettingsDialogViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
@@ -100,6 +101,8 @@ class ViewModelFactory(
     private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
     private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
     private val releases = MutableStateFlow<List<AppRelease>>(emptyList())
+    private val imageReaderCurrentBook = MutableStateFlow<KomgaBookId?>(null)
+        .also { dependencies.colorCorrectionStep.setBookFlow(it) }
 
     private val komfConfigState = KomfConfigState(
         dependencies.komfClientFactory.configClient(),
@@ -109,8 +112,8 @@ class ViewModelFactory(
     private val komgaEventSource = ManagedKomgaEvents(
         authenticatedUser = authenticatedUser,
         eventSourceFactory = komgaClientFactory::sseSession,
-        memoryCache = dependencies.imageLoader.memoryCache,
-        diskCache = dependencies.imageLoader.diskCache,
+        memoryCache = dependencies.coilImageLoader.memoryCache,
+        diskCache = dependencies.coilImageLoader.diskCache,
         libraryClient = komgaClientFactory.libraryClient(),
         librariesFlow = libraries
     )
@@ -233,9 +236,12 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
-            imageLoader = dependencies.readerImageLoader,
+            imageLoader = dependencies.bookImageLoader,
             decoderDescriptor = dependencies.imageDecoderDescriptor,
             appStrings = dependencies.appStrings,
+            readerImageFactory = dependencies.readerImageFactory,
+            currentBookId = imageReaderCurrentBook,
+            colorCorrectionIsActive = dependencies.colorCorrectionStep.isActive,
             markReadProgress = markReadProgress,
         )
     }
@@ -605,8 +611,27 @@ class ViewModelFactory(
         return EpubReaderSettingsViewModel(dependencies.epubReaderSettingsRepository)
     }
 
-    fun getCurvesViewModel(): CurvesViewModel {
-        return CurvesViewModel()
+    fun getCurvesViewModel(
+        bookId: KomgaBookId,
+        pageNumber: Int,
+    ): ColorCorrectionViewModel {
+        return ColorCorrectionViewModel(
+            bookColorCorrectionRepository = dependencies.bookColorCorrectionRepository,
+            curvePresetRepository = dependencies.colorCurvesPresetsRepository,
+            levelsPresetRepository = dependencies.colorLevelsPresetRepository,
+            imageLoader = dependencies.bookImageLoader,
+            appNotifications = dependencies.appNotifications,
+            bookId = bookId,
+            pageNumber = pageNumber,
+        )
+    }
+
+    fun getImageSettingsDialogViewModel(): ImageSettingsDialogViewModel {
+        return ImageSettingsDialogViewModel(
+            settingsRepository = dependencies.settingsRepository,
+            readerSettingsRepository = dependencies.imageReaderSettingsRepository,
+            decoderDescriptor = dependencies.imageDecoderDescriptor,
+        )
     }
 
     fun getSeriesBulkActions() = SeriesBulkActions(

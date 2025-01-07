@@ -36,6 +36,7 @@ import io.github.snd_r.komelia.ui.LocalWindowState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
+import io.github.snd_r.komelia.ui.color.view.ColorCorrectionScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.TitleBarContent
 import io.github.snd_r.komelia.ui.reader.epub.EpubScreen
@@ -90,7 +91,7 @@ class ImageReaderScreen(
                     val isFullscreen = LocalWindowState.current.isFullscreen.collectAsState(false)
                     if (currentBook != null && !isFullscreen.value) {
                         TitleBarContent(
-                            title = "${currentBook.seriesTitle} - ${currentBook.metadata.title}",
+                            title = currentBook.metadata.title,
                             onExit = {
                                 navigator replace MainScreen(
                                     if (currentBook.oneshot) OneshotScreen(currentBook)
@@ -135,6 +136,13 @@ class ImageReaderScreen(
             onBookBackClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(bookScreen(book))
+                }
+            },
+            isColorCurvesActive = vm.colorCorrectionIsActive.collectAsState(false).value,
+            onColorCorrectionClick = {
+                vm.readerState.booksState.value?.currentBook?.let { book ->
+                    val page = vm.readerState.readProgressPage.value
+                    navigator push ColorCorrectionScreen(book.id, page)
                 }
             }
         )

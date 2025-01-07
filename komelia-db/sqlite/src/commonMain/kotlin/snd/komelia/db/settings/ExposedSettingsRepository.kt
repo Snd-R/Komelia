@@ -15,7 +15,7 @@ import snd.komelia.db.tables.AppSettingsTable
 class ExposedSettingsRepository(database: Database) : ExposedRepository(database) {
 
     suspend fun get(): AppSettings? {
-        return transactionOnDefaultDispatcher {
+        return transaction {
             AppSettingsTable.selectAll()
                 .firstOrNull()
                 ?.toAppSettings()
@@ -23,7 +23,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
     }
 
     suspend fun save(settings: AppSettings) {
-        transactionOnDefaultDispatcher {
+        transaction {
             AppSettingsTable.upsert {
                 it[version] = 1
                 it[username] = settings.username
