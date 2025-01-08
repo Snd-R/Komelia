@@ -17,7 +17,7 @@ data class ImageReaderSettings(
     val pagedReadingDirection: PagedReaderState.ReadingDirection = PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
     val pagedPageLayout: PageDisplayLayout = SINGLE_PAGE,
     val continuousReadingDirection: ContinuousReaderState.ReadingDirection = ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM,
-    val continuousPadding: Float = .3f,
+    val continuousPadding: Float = 0f,
     val continuousPageSpacing: Int = 0,
     val cropBorders: Boolean = false,
 )
