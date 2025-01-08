@@ -55,7 +55,7 @@ static pthread_mutex_t session_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 void throw_jvm_ort_exception(JNIEnv *env, const char *message) {
-    (*env)->ThrowNew(env, (*env)->FindClass(env, "io/github/snd_r/OnnxRuntimeUpscaler$OrtException"), message);
+    (*env)->ThrowNew(env, (*env)->FindClass(env, "snd/komelia/image/OnnxRuntimeUpscaler$OrtException"), message);
 }
 
 void release_resources(struct InferenceData resources) {
