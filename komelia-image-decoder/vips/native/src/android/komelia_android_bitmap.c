@@ -40,7 +40,7 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_snd_komelia_image_AndroidBitmap_createHardwareBitmap(JNIEnv *env, jobject this, jobject jvm_image) {
+Java_snd_komelia_image_AndroidBitmap_createHardwareBuffer(JNIEnv *env, jobject this, jobject jvm_image) {
     VipsImage *image = komelia_from_jvm_handle(env, jvm_image);
     if (image == NULL) return NULL;
 
@@ -117,14 +117,7 @@ Java_snd_komelia_image_AndroidBitmap_createHardwareBitmap(JNIEnv *env, jobject t
 
     jobject jvm_buffer = AHardwareBuffer_toHardwareBuffer(env, hardware_buffer);
     AHardwareBuffer_release(hardware_buffer);
-    jclass bitmap_class = (*env)->FindClass(env, "android/graphics/Bitmap");
-
-    jmethodID create_method = (*env)->GetStaticMethodID(env, bitmap_class,
-                                                        "wrapHardwareBuffer",
-                                                        "(Landroid/hardware/HardwareBuffer;Landroid/graphics/ColorSpace;)Landroid/graphics/Bitmap;");
-
-    jobject jvm_bitmap = (*env)->CallStaticObjectMethod(env, bitmap_class, create_method, jvm_buffer, NULL);
-    return jvm_bitmap;
+    return jvm_buffer;
 }
 
 JNIEXPORT jobject JNICALL

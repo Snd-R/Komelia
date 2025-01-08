@@ -7,6 +7,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     meson \
     nasm \
     autoconf \
+    automake \
+    autopoint \
+    autotools-dev \
     libtool \
     texinfo \
     pkg-config \
