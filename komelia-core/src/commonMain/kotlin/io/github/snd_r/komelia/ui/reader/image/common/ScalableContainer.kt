@@ -25,6 +25,7 @@ import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.onPointerEvent
 import io.github.snd_r.komelia.ui.LocalKeyEvents
@@ -58,8 +59,9 @@ fun ScalableContainer(
     val flingScope = rememberCoroutineScope()
     val flingSpec = rememberSplineBasedDecay<Offset>()
     var flingInProgress by remember { mutableStateOf(false) }
-    val scrollOrientation = scaleState.scrollOrientation.collectAsState().value
-
+    val scrollOrientation = scaleState.scrollOrientation.collectAsState().value ?: Vertical
+    val scrollConfig = remember { platformScrollConfig() }
+    val density = LocalDensity.current
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -100,18 +102,17 @@ fun ScalableContainer(
                     scaleState.multiplyZoom(zoom, centroid - areaCenter)
                 }
             }
-            .onPointerEvent(PointerEventType.Scroll) {
-                val delta = it.changes[0].scrollDelta
+            .onPointerEvent(PointerEventType.Scroll) { event ->
+                val delta = with(density) { with(scrollConfig) { calculateMouseWheelScroll(event, size) } }
                 if (isCtrlPressed) {
-                    val centroid = it.changes[0].position
-                    val zoomMultiplier = if (platform == WEB_KOMF) 0.002f else 0.2f
-                    scaleState.addZoom(zoomMultiplier * -delta.y, centroid - areaCenter)
+                    val centroid = event.changes[0].position
+                    val zoom = if (delta.y >= 0) 0.2f else -0.2f
+                    scaleState.addZoom(zoom, centroid - areaCenter)
                 } else {
                     val maxDelta = if (abs(delta.y) > abs(delta.x)) delta.y else delta.x
-                    val panMultiplier = if (platform == WEB_KOMF) 1 else 80
-                    val pan = (if (scaleState.scrollReversed.value) maxDelta else -maxDelta) * panMultiplier
+                    val pan = (if (scaleState.scrollReversed.value) -maxDelta else maxDelta)
                     when (scrollOrientation) {
-                        Vertical, null -> scaleState.addPan(Offset(0f, pan))
+                        Vertical -> scaleState.addPan(Offset(0f, pan))
                         Horizontal -> scaleState.addPan(Offset(pan, 0f))
                     }
 
@@ -119,6 +120,5 @@ fun ScalableContainer(
             }
     ) {
         content()
-
     }
 }
