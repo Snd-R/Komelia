@@ -92,38 +92,69 @@ class ColorCorrectionViewModel(
         originalImage.filterNotNull(),
         imageMaxSize.filterNotNull(),
         currentLut.debounceImageTransforms()
-    ) { image, targetSize, channelsLut ->
+    ) { image, targetSize, channelsLut -> processDisplayImage(image, targetSize, channelsLut) }
+        .mapNotNull { image ->
+            val bitmap = image.toImageBitmap()
+            if (image !== originalImage.value) {
+                image.close()
+            }
+            bitmap
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
+    private suspend fun processDisplayImage(
+        image: KomeliaImage,
+        targetSize: IntSize,
+        channelsLut: ChannelsLut
+    ): KomeliaImage {
+        suspend fun mapColor(image: KomeliaImage, colorLut: UByteArray?): KomeliaImage? {
+            return if (colorLut == null) null
+            else when (image.type) {
+                ImageFormat.GRAYSCALE_8 -> image.mapLookupTable(colorLut.asByteArray())
+                ImageFormat.RGBA_8888 -> image.mapLookupTable(RGBA8888LookupTable(colorLut).interleaved.asByteArray())
+                else -> null
+            }
+        }
+
+        suspend fun mapRGBA(image: KomeliaImage, rgbLut: RGBA8888LookupTable?): KomeliaImage? {
+            return if (rgbLut == null) null
+            else when (image.type) {
+                ImageFormat.RGBA_8888 -> image.mapLookupTable(rgbLut.interleaved.asByteArray())
+                else -> null
+            }
+        }
+
+        suspend fun scale(image: KomeliaImage, targetSize: IntSize): KomeliaImage? {
+            val heightFactor = image.height.toDouble() / targetSize.height
+            val widthFactor = image.width.toDouble() / targetSize.width
+            val scaleFactor = max(heightFactor, widthFactor)
+            return if (scaleFactor > 1.0) {
+                image.shrink(scaleFactor)
+            } else null
+        }
+
         val colorLut = channelsLut.colorLut
         val rgbLut = channelsLut.rgbaLut
-        val colorMapped = if (colorLut == null) image
-        else when (image.type) {
-            ImageFormat.GRAYSCALE_8 -> image.mapLookupTable(colorLut.asByteArray())
-            ImageFormat.RGBA_8888 -> image.mapLookupTable(RGBA8888LookupTable(colorLut).interleaved.asByteArray())
-            else -> image
-        }
-        val rgbaMapped = if (rgbLut == null) colorMapped
-        else when (colorMapped.type) {
-            ImageFormat.RGBA_8888 -> colorMapped.mapLookupTable(rgbLut.interleaved.asByteArray())
-            else -> colorMapped
-        }
-        val heightFactor = image.height.toDouble() / targetSize.height
-        val widthFactor = image.width.toDouble() / targetSize.width
-        val scaleFactor = max(heightFactor, widthFactor)
-        val resizedImage = if (scaleFactor > 1.0) {
-            rgbaMapped.shrink(scaleFactor)
-        } else null
+        val colorMapped = mapColor(image, colorLut)
+        val rgbaMapped = mapRGBA(colorMapped ?: image, rgbLut)
+        val resized = scale(rgbaMapped ?: colorMapped ?: image, targetSize)
 
-        if (colorMapped !== image) colorMapped.close()
-        if (rgbaMapped !== image) rgbaMapped.close()
+        when {
+            resized != null -> {
+                colorMapped?.close()
+                rgbaMapped?.close()
+                return resized
+            }
 
-        resizedImage ?: image
-    }.mapNotNull { image ->
-        val bitmap = image.toImageBitmap()
-        if (image !== originalImage.value) {
-            image.close()
+            rgbaMapped != null -> {
+                colorMapped?.close()
+                return rgbaMapped
+            }
+
+            colorMapped != null -> return colorMapped
+            else -> return image
         }
-        bitmap
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
+    }
 
     suspend fun initialize() {
         if (state.value !is LoadState.Uninitialized) return

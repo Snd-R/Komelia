@@ -42,6 +42,7 @@ fun HandleBar(
                             focusRequester.requestFocus()
                         }
                         state.onPointerEvent(event)
+                        event.changes.forEach { it.consume() }
                     }
                 }
             }

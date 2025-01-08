@@ -263,6 +263,7 @@ private fun Curve(
                             focusRequester.requestFocus()
                         }
                         onPointerEvent(event)
+                        event.changes.forEach { it.consume() }
                     }
                 }
             }
