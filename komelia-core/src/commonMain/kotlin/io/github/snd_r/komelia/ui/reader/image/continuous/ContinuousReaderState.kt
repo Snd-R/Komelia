@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -539,28 +540,22 @@ class ContinuousReaderState(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun getPageDisplaySize(page: PageMetadata): Flow<IntSize> {
-
+    suspend fun waitForImage(page: PageMetadata): ReaderImage? {
         val cached = imageCache.get(PageId(page.bookId.value, page.pageNumber))
         return if (cached != null) {
-            if (cached.isCompleted) {
-                when (val result = cached.getCompleted()) {
-                    is ReaderImageResult.Success -> result.image.displaySize.filterNotNull()
-                    is ReaderImageResult.Error -> MutableStateFlow(guessPageDisplaySize(page))
-                }
-            } else {
-                when (val result = cached.await()) {
-                    is ReaderImageResult.Success -> result.image.displaySize.filterNotNull()
-                    is ReaderImageResult.Error -> MutableStateFlow(guessPageDisplaySize(page))
-                }
+            when (val result = cached.await()) {
+                is ReaderImageResult.Success -> result.image
+                is ReaderImageResult.Error -> null
             }
-
         } else {
             val pageId = page.toPageId()
             val image = imageDisplayFlow.first { it.pageId == pageId }
-            return image.displaySize.filterNotNull()
+            return image
         }
+    }
+
+    suspend fun getPageDisplaySize(page: PageMetadata): Flow<IntSize> {
+        return waitForImage(page)?.displaySize?.filterNotNull() ?: flowOf(guessPageDisplaySize(page))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

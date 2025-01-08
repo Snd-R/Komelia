@@ -27,8 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.AppSliderDefaults
@@ -80,16 +80,18 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     )
 
 
-    var visiblePages by remember { mutableStateOf<List<PageMetadata>>(emptyList()) }
+    var visiblePages by remember { mutableStateOf<List<Pair<PageMetadata, ReaderImage?>>>(emptyList()) }
     LaunchedEffect(state.lazyListState) {
-        snapshotFlow { state.lazyListState.layoutInfo }.collect { layout ->
-            visiblePages = layout.visibleItemsInfo
-                .mapNotNull { lazyItem ->
-                    if (lazyItem.key is PageMetadata) lazyItem.key as PageMetadata
-                    else null
-                }
+        snapshotFlow { state.lazyListState.layoutInfo }
+            .collect { layout ->
+                visiblePages = layout.visibleItemsInfo
+                    .mapNotNull { lazyItem ->
+                        if (lazyItem.key is PageMetadata) lazyItem.key as PageMetadata
+                        else null
+                    }
+                    .map { it to state.waitForImage(it) }
 
-        }
+            }
     }
 
     var showPagesInfo by remember { mutableStateOf(false) }
@@ -109,15 +111,12 @@ fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     AnimatedVisibility(showPagesInfo) {
         Column {
             HorizontalDivider(Modifier.padding(vertical = 5.dp))
-            visiblePages.forEach { page ->
+            for ((page, image) in visiblePages) {
                 Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 
-                var displaySize by remember { mutableStateOf<IntSize?>(null) }
-                LaunchedEffect(Unit) {
-                    state.getPageDisplaySize(page).collect { displaySize = it }
-                }
-                displaySize?.let {
-                    Text("${readerStrings.pageDisplaySize} ${it.width} x ${it.height}")
+                val currentSize = image?.currentSize?.collectAsState()?.value
+                if (currentSize != null) {
+                    Text("${readerStrings.pageDisplaySize} ${currentSize.width} x ${currentSize.height}")
                 }
 
                 if (page.size != null) {
