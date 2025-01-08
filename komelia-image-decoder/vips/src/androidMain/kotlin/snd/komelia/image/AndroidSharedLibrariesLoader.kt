@@ -11,6 +11,7 @@ object AndroidSharedLibrariesLoader {
         "gobject-2.0",
         "gio-2.0",
         "lcms2",
+        "exif",
         "de265",
         "dav1d",
         "expat",

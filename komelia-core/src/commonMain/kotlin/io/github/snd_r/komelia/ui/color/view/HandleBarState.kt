@@ -23,11 +23,11 @@ import kotlin.math.sqrt
 class HandleBarState(
     coroutineScope: CoroutineScope,
     normalizedPointPositions: StateFlow<List<Float>>,
+    val density: StateFlow<Density>,
     private val onPositionChange: (index: Int, newValue: Float) -> Unit,
 ) {
     val hoverPointerIcon = MutableStateFlow(PointerIcon.Default)
     private val canvasSize = MutableStateFlow(Size.Zero)
-    private val density = MutableStateFlow(Density(1f, 1f))
     private val selectedPointIndex = MutableStateFlow<Int?>(null)
     private val canvasPoints = normalizedPointPositions.combine(canvasSize) { points, size ->
         points.map { it.toCanvasX(size) }
@@ -93,8 +93,8 @@ class HandleBarState(
 
     private fun trianglePath(x: Float, density: Density): Path {
         val path = Path()
-        val side = handleBarSize
-        val height = side * density.density * (sqrt(3f) / 2)
+        val side = handleBarSize * density.density
+        val height = side * (sqrt(3f) / 2)
         path.moveTo(x, 0f)
         path.lineTo(x + side / 2, height)
         path.lineTo(x - side / 2, height)

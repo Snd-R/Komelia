@@ -111,6 +111,7 @@ class LevelsState(
     val inputHandleBarState = HandleBarState(
         coroutineScope = coroutineScope,
         normalizedPointPositions = inputPointsPositions,
+        density = density,
         onPositionChange = { index, newValue ->
             presetsState.deselectCurrent()
             val levelsState = currentLevels.value
@@ -136,6 +137,7 @@ class LevelsState(
         coroutineScope = coroutineScope,
         normalizedPointPositions = combine(lowOutputPosition, highOutputPosition) { low, high -> listOf(low, high) }
             .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList()),
+        density = density,
         onPositionChange = { index, newValue ->
             presetsState.deselectCurrent()
             val levelsState = currentLevels.value

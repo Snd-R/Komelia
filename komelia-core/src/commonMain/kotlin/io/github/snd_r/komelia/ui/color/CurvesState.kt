@@ -33,7 +33,6 @@ import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
 import io.github.snd_r.komelia.ui.color.view.curvePointSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -240,7 +239,7 @@ class CurvesState(
 
         val currentPoints = controlPoints.value
         val selectedIndex = currentPoints.indexOfFirst {
-            Rect(it.toOffset(), curvePointSize * density * 1.3f).contains(position)
+            Rect(it.toOffset(), curvePointSize * density * 2.0f).contains(position)
         }
         if (selectedIndex != -1) {
             selectedPoint.value = SelectedPoint(index = selectedIndex, isMoving = true, isRemoved = false)
