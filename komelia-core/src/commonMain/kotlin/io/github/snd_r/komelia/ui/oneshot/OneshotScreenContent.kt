@@ -64,6 +64,7 @@ import snd.komga.client.series.KomgaSeries
 fun OneshotScreenContent(
     series: KomgaSeries,
     book: KomgaBook,
+    libraryIsDeleted: Boolean,
     oneshotMenuActions: BookMenuActions,
     onBackButtonClick: () -> Unit,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
@@ -109,7 +110,12 @@ fun OneshotScreenContent(
                             .widthIn(min = 300.dp, max = 500.dp)
                             .animateContentSize()
                     )
-                    OneshotMainInfo(series, book, onBookReadPress)
+                    OneshotMainInfo(
+                        series = series,
+                        book = book,
+                        libraryIsDeleted = libraryIsDeleted,
+                        onBookReadPress = onBookReadPress
+                    )
                 }
                 BookInfoColumn(
                     publisher = series.metadata.publisher,
@@ -202,8 +208,10 @@ private fun ToolbarOneshotActions(
 private fun FlowRowScope.OneshotMainInfo(
     series: KomgaSeries,
     book: KomgaBook,
+    libraryIsDeleted: Boolean,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
 ) {
+    val isDeleted = remember(series,libraryIsDeleted) { series.deleted || libraryIsDeleted }
     Column(
         modifier = Modifier.weight(1f, false).widthIn(min = 450.dp, max = 1200.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -214,7 +222,7 @@ private fun FlowRowScope.OneshotMainInfo(
             ageRating = series.metadata.ageRating,
             language = series.metadata.language,
             readingDirection = series.metadata.readingDirection,
-            deleted = series.deleted,
+            deleted = isDeleted,
             alternateTitles = series.metadata.alternateTitles,
             onFilterClick = {},
             modifier = Modifier.weight(1f, false).widthIn(min = 200.dp),
@@ -227,7 +235,7 @@ private fun FlowRowScope.OneshotMainInfo(
             releaseDate = book.metadata.releaseDate
         )
 
-        if (readIsSupported(book)) {
+        if (readIsSupported(book) && !isDeleted ) {
             BookReadButton(
                 onRead = { onBookReadPress(true) },
                 onIncognitoRead = { onBookReadPress(false) }

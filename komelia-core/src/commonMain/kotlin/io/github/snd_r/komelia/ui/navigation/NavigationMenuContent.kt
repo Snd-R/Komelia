@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
@@ -154,6 +153,7 @@ fun ColumnScope.LibrariesNavBarContent(
             onClick = { onLibraryClick(library.id) },
             icon = null,
             label = library.name,
+            errorLabel = if (library.unavailable) "Unavailable" else null,
             isSelected = currentScreen is LibraryScreen && currentScreen.libraryId == library.id,
             actionButton = {
                 var showMenu by remember { mutableStateOf(false) }
@@ -239,6 +239,7 @@ private fun NavButton(
     onClick: () -> Unit,
     icon: ImageVector?,
     label: String,
+    errorLabel: String? = null,
     actionButton: (@Composable () -> Unit)? = null,
     isSelected: Boolean,
 ) {
@@ -269,7 +270,16 @@ private fun NavButton(
                 Box(Modifier.padding(30.dp, 0.dp)) {}
             }
 
-            Text(label, fontSize = 14.sp, modifier = Modifier.weight(1.0f))
+            Column(modifier = Modifier.weight(1.0f)) {
+                Text(label, style = MaterialTheme.typography.labelLarge)
+                if (errorLabel != null) {
+                    Text(
+                        text = errorLabel,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
             if (actionButton != null) {
                 actionButton()
             }

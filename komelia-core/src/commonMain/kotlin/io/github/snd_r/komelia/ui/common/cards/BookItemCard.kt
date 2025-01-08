@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalLibraries
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.BookReadButton
 import io.github.snd_r.komelia.ui.common.NoPaddingChip
@@ -67,7 +68,10 @@ fun BookImageCard(
     showSeriesTitle: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-
+    val libraries = LocalLibraries.current
+    val libraryIsDeleted = remember {
+        libraries.value.firstOrNull { it.id == book.libraryId }?.unavailable ?: false
+    }
     ItemCard(
         modifier = modifier,
         onClick = onBookClick,
@@ -75,12 +79,17 @@ fun BookImageCard(
         image = {
             BookHoverOverlay(
                 book = book,
+                libraryIsDeleted = libraryIsDeleted,
                 bookMenuActions = bookMenuActions,
                 onBookReadClick = onBookReadClick,
                 onSelect = onSelect,
                 isSelected = isSelected,
             ) {
-                BookImageOverlay(book = book, showSeriesTitle = showSeriesTitle) {
+                BookImageOverlay(
+                    book = book,
+                    libraryIsDeleted = libraryIsDeleted,
+                    showSeriesTitle = showSeriesTitle,
+                ) {
                     BookThumbnail(
                         book.id,
                         modifier = Modifier.fillMaxSize(),
@@ -116,6 +125,7 @@ fun BookSimpleImageCard(
 @Composable
 private fun BookImageOverlay(
     book: KomgaBook,
+    libraryIsDeleted: Boolean,
     showTitle: Boolean = true,
     showSeriesTitle: Boolean = false,
     content: @Composable () -> Unit
@@ -146,8 +156,8 @@ private fun BookImageOverlay(
                         maxLines = 3
                     )
                 }
-                if (book.deleted) {
-                    CardOutlinedText(text = "Unavailable")
+                if (book.deleted || libraryIsDeleted) {
+                    CardOutlinedText(text = "Unavailable", textColor = MaterialTheme.colorScheme.error)
                 }
             }
 
@@ -187,6 +197,7 @@ private fun BookUnreadTick() {
 @Composable
 private fun BookHoverOverlay(
     book: KomgaBook,
+    libraryIsDeleted: Boolean,
     bookMenuActions: BookMenuActions?,
     onBookReadClick: ((Boolean) -> Unit)?,
     isSelected: Boolean,
@@ -224,7 +235,7 @@ private fun BookHoverOverlay(
                     modifier = Modifier.padding(vertical = 5.dp).fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
                 ) {
-                    if (onBookReadClick != null && readIsSupported(book)) {
+                    if (onBookReadClick != null && readIsSupported(book) && !libraryIsDeleted) {
                         BookReadButton(
                             modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
                             onRead = { onBookReadClick(true) },

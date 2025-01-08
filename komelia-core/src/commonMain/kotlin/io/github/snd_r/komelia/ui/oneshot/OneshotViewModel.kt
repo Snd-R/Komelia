@@ -39,6 +39,8 @@ import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 
 class OneshotViewModel(
     series: KomgaSeries?,
@@ -55,6 +57,9 @@ class OneshotViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val series = MutableStateFlow(series)
+    val libraryIsDeleted = libraries.combine(this.series.filterNotNull()) { libraries, series ->
+        libraries.firstOrNull { it.id == series.libraryId }?.unavailable ?: false
+    }.stateIn(screenModelScope, Eagerly, false)
     val book = MutableStateFlow(book)
     var library by mutableStateOf<KomgaLibrary?>(null)
         private set

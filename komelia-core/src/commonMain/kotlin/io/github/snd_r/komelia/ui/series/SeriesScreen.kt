@@ -70,6 +70,7 @@ class SeriesScreen(
             else -> {
                 SeriesContent(
                     series = vm.series.collectAsState().value,
+                    libraryIsDeleted = vm.libraryIsDeleted.collectAsState().value,
                     seriesMenuActions = vm.seriesMenuActions(),
                     onFilterClick = { filter ->
                         val series = requireNotNull(vm.series.value)

@@ -73,6 +73,7 @@ import snd.komga.client.series.KomgaSeries
 @Composable
 fun SeriesContent(
     series: KomgaSeries?,
+    libraryIsDeleted: Boolean,
     seriesMenuActions: SeriesMenuActions,
     onFilterClick: (SeriesScreenFilter) -> Unit,
 
@@ -113,7 +114,7 @@ fun SeriesContent(
                 modifier = contentPadding.verticalScroll(scrollState),
             ) {
 
-                if (series != null) Series(series, onFilterClick)
+                if (series != null) Series(series, libraryIsDeleted, onFilterClick)
 
                 TabRow(
                     currentTab = currentTab,
@@ -195,6 +196,7 @@ fun SeriesToolBar(
 @Composable
 fun Series(
     series: KomgaSeries,
+    libraryIsDeleted: Boolean,
     onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {
     val width = LocalWindowWidth.current
@@ -234,7 +236,7 @@ fun Series(
                     ageRating = series.metadata.ageRating,
                     language = series.metadata.language,
                     readingDirection = series.metadata.readingDirection,
-                    deleted = series.deleted,
+                    deleted = series.deleted || libraryIsDeleted,
                     alternateTitles = series.metadata.alternateTitles,
                     onFilterClick = onFilterClick,
                     modifier = Modifier,

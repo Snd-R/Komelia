@@ -11,7 +11,9 @@ import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.sse.KomgaEvent
 
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
@@ -25,3 +27,4 @@ val LocalStrings = staticCompositionLocalOf { EnStrings }
 val LocalPlatform = compositionLocalOf<PlatformType> { error("Platform type is not set") }
 val LocalTheme = compositionLocalOf { AppTheme.DARK }
 val LocalWindowState = compositionLocalOf<AppWindowState> { error("Window state was not initialized") }
+val LocalLibraries = compositionLocalOf<StateFlow<List<KomgaLibrary>>> { error("Libraries were not initialized") }

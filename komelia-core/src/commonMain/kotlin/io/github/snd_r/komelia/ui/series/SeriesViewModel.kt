@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -18,6 +19,9 @@ import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -25,15 +29,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.collection.KomgaCollectionClient
+import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.referential.KomgaReferentialClient
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class SeriesViewModel(
     series: KomgaSeries?,
+    libraries: StateFlow<List<KomgaLibrary>>,
     private val seriesId: KomgaSeriesId,
     private val notifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
@@ -46,6 +51,9 @@ class SeriesViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val series = MutableStateFlow(series)
+    val libraryIsDeleted = libraries.combine(this.series.filterNotNull()) { libraries, series ->
+        libraries.firstOrNull { it.id == series.libraryId }?.unavailable ?: false
+    }.stateIn(screenModelScope, Eagerly, false)
     var currentTab by mutableStateOf(defaultTab)
     val cardWidth = settingsRepository.getCardWidth().map { it.dp }
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)

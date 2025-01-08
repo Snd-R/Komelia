@@ -60,6 +60,7 @@ class OneshotScreen(
             else -> OneshotScreenContent(
                 series = series,
                 book = book,
+                libraryIsDeleted = vm.libraryIsDeleted.collectAsState().value,
                 oneshotMenuActions = vm.bookMenuActions,
                 onBackButtonClick = {
                     vm.series.value?.let { onBackPress(navigator, it.libraryId) }

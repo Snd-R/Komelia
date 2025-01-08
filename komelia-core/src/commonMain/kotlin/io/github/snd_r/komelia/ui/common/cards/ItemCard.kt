@@ -103,6 +103,7 @@ fun overlayBorderModifier() =
 @Composable
 fun CardOutlinedText(
     text: String,
+    textColor: Color = Color.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
     outlineDrawStyle: Stroke = Stroke(4f),
@@ -110,6 +111,7 @@ fun CardOutlinedText(
     OutlinedText(
         text = text,
         maxLines = maxLines,
+        fillColor = textColor,
         outlineColor = Color.Black,
         style = style,
         overflow = TextOverflow.Ellipsis,

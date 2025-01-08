@@ -24,6 +24,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -101,7 +103,7 @@ fun BookScreenContent(
                             .widthIn(min = 300.dp, max = 500.dp)
                             .animateContentSize()
                     )
-                    BookMainInfo(book, onBookReadPress)
+                    BookMainInfo(book = book, library = library, onBookReadPress = onBookReadPress)
                 }
 
                 BookInfoColumn(
@@ -181,6 +183,7 @@ private fun ToolbarBookActions(
 @Composable
 private fun FlowRowScope.BookMainInfo(
     book: KomgaBook,
+    library: KomgaLibrary,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
 ) {
     val maxWidth = when (LocalWindowWidth.current) {
@@ -200,11 +203,21 @@ private fun FlowRowScope.BookMainInfo(
             releaseDate = book.metadata.releaseDate
         )
 
-        if (readIsSupported(book))
+        if (readIsSupported(book) && !book.deleted && !library.unavailable) {
             BookReadButton(
                 onRead = { onBookReadPress(true) },
                 onIncognitoRead = { onBookReadPress(false) },
             )
+        }else{
+            SuggestionChip(
+                onClick = {},
+                label = { Text("Unavailable") },
+                border = null,
+                colors = SuggestionChipDefaults.suggestionChipColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            )
+        }
         HorizontalDivider()
         ExpandableText(
             text = book.metadata.summary,

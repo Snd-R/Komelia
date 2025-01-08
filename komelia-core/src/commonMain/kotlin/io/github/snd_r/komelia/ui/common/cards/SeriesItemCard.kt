@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalLibraries
 import io.github.snd_r.komelia.ui.common.NoPaddingChip
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
@@ -52,6 +53,10 @@ fun SeriesImageCard(
     seriesMenuActions: SeriesMenuActions? = null,
     modifier: Modifier = Modifier,
 ) {
+    val libraries = LocalLibraries.current
+    val libraryIsDeleted = remember {
+        libraries.value.firstOrNull { it.id == series.libraryId }?.unavailable ?: false
+    }
     ItemCard(
         modifier = modifier,
         onClick = onSeriesClick,
@@ -63,7 +68,7 @@ fun SeriesImageCard(
                 isSelected = isSelected,
                 seriesActions = seriesMenuActions,
             ) {
-                SeriesImageOverlay(series) {
+                SeriesImageOverlay(series = series, libraryIsDeleted = libraryIsDeleted) {
                     SeriesThumbnail(
                         series.id,
                         modifier = Modifier.fillMaxSize(),
@@ -162,6 +167,7 @@ private fun SeriesCardHoverOverlay(
 @Composable
 private fun SeriesImageOverlay(
     series: KomgaSeries,
+    libraryIsDeleted: Boolean,
     showTitle: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -197,9 +203,10 @@ private fun SeriesImageOverlay(
             verticalArrangement = Arrangement.Bottom
         ) {
             if (showTitle) {
+
                 CardOutlinedText(text = series.metadata.title, maxLines = 4)
-                if (series.deleted) {
-                    CardOutlinedText(text = "Unavailable")
+                if (series.deleted || libraryIsDeleted) {
+                    CardOutlinedText(text = "Unavailable", textColor = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -212,9 +219,10 @@ fun SeriesDetailedListCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier
-        .cursorForHand()
-        .clickable { onClick() }) {
+    Card(
+        modifier
+            .cursorForHand()
+            .clickable { onClick() }) {
         Row(
             Modifier
                 .fillMaxWidth()

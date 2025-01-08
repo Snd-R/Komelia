@@ -68,6 +68,8 @@ import io.github.snd_r.komelia.updates.StartupUpdateChecker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import snd.komf.api.MediaServer
@@ -172,6 +174,7 @@ class ViewModelFactory(
     ) = SeriesViewModel(
         seriesId = seriesId,
         series = series,
+        libraries = libraries,
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
         collectionClient = komgaClientFactory.collectionClient(),
@@ -653,6 +656,8 @@ class ViewModelFactory(
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
 
     fun getStartupUpdateChecker() = startupUpdateChecker
+
+    fun getLibraries(): StateFlow<List<KomgaLibrary>> = libraries.asStateFlow()
 
     private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
         if (id == null) return flowOf(null)
