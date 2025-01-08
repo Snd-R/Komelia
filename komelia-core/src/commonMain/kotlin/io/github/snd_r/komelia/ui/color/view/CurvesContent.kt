@@ -76,7 +76,7 @@ import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import kotlin.math.roundToInt
 
-const val curvePointSize = 7f
+const val curvePointSize = 10f
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
