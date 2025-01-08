@@ -149,37 +149,32 @@ internal class CanvasImageActor(workerScope: DedicatedWorkerGlobalScope) :
         val greenFrequencies = LongArray(256)
         val blueFrequencies = LongArray(256)
         val alphaFrequencies = LongArray(256)
+        val bandSize = bytes.size / 4
 
-        for (i in 0 until 256) {
+        for (i in 0 until bandSize) {
             val index = i * 4
             val redValue = bytes[index].toInt()
             val greenValue = bytes[index + 1].toInt()
             val blueValue = bytes[index + 2].toInt()
             val alphaValue = bytes[index + 3].toInt()
-            redFrequencies[redValue] = redFrequencies[redValue] + 1
-            greenFrequencies[greenValue] = greenFrequencies[greenValue] + 1
-            blueFrequencies[blueValue] = blueFrequencies[blueValue] + 1
-            alphaFrequencies[alphaValue] = alphaFrequencies[alphaValue] + 1
-
+            redFrequencies[redValue] += 1L
+            greenFrequencies[greenValue] += 1L
+            blueFrequencies[blueValue] += 1L
+            alphaFrequencies[alphaValue] += 1L
         }
 
-        val redMaxFreq = redFrequencies.max()
-        val greenMaxFreq = greenFrequencies.max()
-        val blueMaxFreq = blueFrequencies.max()
-        val alphaMaxFreq = alphaFrequencies.max()
-
-        val redRatio = 255.0 / redMaxFreq
-        val greenRatio = 255.0 / greenMaxFreq
-        val blueRatio = 255.0 / blueMaxFreq
-        val alphaRatio = 255.0 / alphaMaxFreq
+        val redMaxFreq = (redFrequencies.max() - 1).toDouble()
+        val greenMaxFreq = (greenFrequencies.max() - 1).toDouble()
+        val blueMaxFreq = (blueFrequencies.max() - 1).toDouble()
+        val alphaMaxFreq = (alphaFrequencies.max() - 1).toDouble()
 
         val histogram = UByteArray(1024)
         for (i in 0 until 256) {
             val index = i * 4
-            histogram[index] = (redFrequencies[i] * redRatio).roundToInt().toUByte()
-            histogram[index + 1] = (greenFrequencies[i] * greenRatio).roundToInt().toUByte()
-            histogram[index + 2] = (blueFrequencies[i] * blueRatio).roundToInt().toUByte()
-            histogram[index + 3] = (alphaFrequencies[i] * alphaRatio).roundToInt().toUByte()
+            histogram[index] = ((redFrequencies[i] / redMaxFreq) * 255).roundToInt().toUByte()
+            histogram[index + 1] = ((greenFrequencies[i] / greenMaxFreq) * 255).roundToInt().toUByte()
+            histogram[index + 2] = ((blueFrequencies[i] / blueMaxFreq) * 255).roundToInt().toUByte()
+            histogram[index + 3] = ((alphaFrequencies[i] / alphaMaxFreq) * 255).roundToInt().toUByte()
         }
 
         return histogram
