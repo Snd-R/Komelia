@@ -144,9 +144,9 @@ ULONG HandlerRelease(ICoreWebView2WebResourceRequestedEventHandler *This) {
 }
 
 HRESULT HandlerQueryInterface(
-    ICoreWebView2WebResourceRequestedEventHandler *This,
-    const IID *riid,
-    void **ppvObject
+        ICoreWebView2WebResourceRequestedEventHandler *This,
+        const IID *riid,
+        void **ppvObject
 ) {
     *ppvObject = This;
     return S_OK;
@@ -156,6 +156,7 @@ typedef struct {
     ICoreWebView2_2 *webview2;
     ICoreWebView2Environment *environment;
     IStream *memory_stream;
+    ICoreWebView2WebResourceRequest *request;
     ICoreWebView2WebResourceResponse *response;
     load_result_t *result;
     boolean result_data_taken;
@@ -166,6 +167,7 @@ void free_interceptor_resources(interceptor_resources resources) {
     if (resources.environment) resources.environment->lpVtbl->Release(resources.environment);
     if (resources.memory_stream) resources.memory_stream->lpVtbl->Release(resources.memory_stream);
     if (resources.response) resources.response->lpVtbl->Release(resources.response);
+    if (resources.request) resources.request->lpVtbl->Release(resources.request);
     if (resources.result) {
         free(resources.result->data);
         free(resources.result);
@@ -173,21 +175,23 @@ void free_interceptor_resources(interceptor_resources resources) {
 }
 
 HRESULT RequestHandlerInvoke(
-    ICoreWebView2WebResourceRequestedEventHandler *This,
-    ICoreWebView2 *sender,
-    ICoreWebView2WebResourceRequestedEventArgs *args
+        ICoreWebView2WebResourceRequestedEventHandler *This,
+        ICoreWebView2 *sender,
+        ICoreWebView2WebResourceRequestedEventArgs *args
 ) {
-    ICoreWebView2WebResourceRequest *request = NULL;
-    args->lpVtbl->get_Request(args, &request);
-
-    LPWSTR uri_wide = NULL;
-    request->lpVtbl->get_Uri(request, &uri_wide);
-    char *uri_utf8 = toUTF8(uri_wide, 0,NULL);
     if (static_interceptor == NULL) {
         return E_FAIL;
     }
 
     interceptor_resources resources = {0};
+    if (args->lpVtbl->get_Request(args, &resources.request)) {
+        return E_FAIL;
+    }
+
+    LPWSTR uri_wide = NULL;
+    resources.request->lpVtbl->get_Uri(resources.request, &uri_wide);
+    char *uri_utf8 = toUTF8(uri_wide, 0, NULL);
+
     if (sender->lpVtbl->QueryInterface(sender, &IID_ICoreWebView2_2, (void **) &resources.webview2) != S_OK) {
         free_interceptor_resources(resources);
         return E_FAIL;
@@ -215,7 +219,7 @@ HRESULT RequestHandlerInvoke(
     wchar_t *response_header = NULL;
     if (content_type != NULL) {
         char *content_type_header = "Content-Type: ";
-        char *tmp_content_type = malloc(sizeof(char) * (strlen(content_type_header) + strlen(content_type)));
+        char *tmp_content_type = malloc(sizeof(char) * (16 + strlen(content_type)));
         strcpy(tmp_content_type, content_type_header);
         strcat(tmp_content_type, content_type);
 
@@ -231,8 +235,8 @@ HRESULT RequestHandlerInvoke(
             L"OK",
             response_header,
             &resources.response
-        ) != S_OK
-    ) {
+    ) != S_OK
+            ) {
         free_interceptor_resources(resources);
         return E_FAIL;
     }
@@ -243,10 +247,10 @@ HRESULT RequestHandlerInvoke(
 }
 
 static ICoreWebView2WebResourceRequestedEventHandlerVtbl resource_requested_vtbl = {
-    HandlerQueryInterface,
-    HandlerAddRef,
-    HandlerRelease,
-    RequestHandlerInvoke
+        HandlerQueryInterface,
+        HandlerAddRef,
+        HandlerRelease,
+        RequestHandlerInvoke
 };
 static ICoreWebView2WebResourceRequestedEventHandler resource_requested_handler = {&resource_requested_vtbl};
 
@@ -262,6 +266,7 @@ void komelia_register_interceptor_cb(webview_t webview, void *) {
 
     webview2->lpVtbl->AddWebResourceRequestedFilter(webview2, L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
     webview2->lpVtbl->add_WebResourceRequested(webview2, &resource_requested_handler, NULL);
+    webview2->lpVtbl->Release(webview2);
 }
 
 void komelia_register_request_interceptor(komelia_webview_t webview, request_interceptor *interceptor) {
