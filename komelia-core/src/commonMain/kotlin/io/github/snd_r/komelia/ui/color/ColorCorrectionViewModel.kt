@@ -22,11 +22,14 @@ import io.github.snd_r.komelia.ui.color.ColorCorrectionType.COLOR_LEVELS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
@@ -91,13 +94,16 @@ class ColorCorrectionViewModel(
     val displayImage = combine(
         originalImage.filterNotNull(),
         imageMaxSize.filterNotNull(),
-        currentLut.debounceImageTransforms()
-    ) { image, targetSize, channelsLut -> processDisplayImage(image, targetSize, channelsLut) }
-        .mapNotNull { image ->
-            val bitmap = image.toImageBitmap()
-            if (image !== originalImage.value) {
-                image.close()
-            }
+        currentLut
+    ) { image, targetSize, channelsLut -> Triple(image, targetSize, channelsLut) }
+        .conflate()
+        .mapNotNull { (image, targetSize, channelsLut) ->
+            val throttleDelay = coroutineScope { async { delay(100) } }
+            val processed = processDisplayImage(image, targetSize, channelsLut)
+            val bitmap = processed.toImageBitmap()
+            if (image !== originalImage.value) processed.close()
+
+            throttleDelay.await()
             bitmap
         }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
@@ -250,6 +256,3 @@ enum class ColorCorrectionType {
     COLOR_CURVES,
     COLOR_LEVELS
 }
-
-// use debounce instead of conflate on wasmJs to avoid stuttering caused by large copies from js->wasm GC heap array(kotlin)->wasm linear memory array(skia)
-expect fun <T> Flow<T>.debounceImageTransforms(): Flow<T>
