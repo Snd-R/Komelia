@@ -63,8 +63,4 @@ class WasmSimpleReaderImage(
     override fun close() {
         currentImage?.close()
     }
-
-    override suspend fun getOriginalSize(): IntSize {
-        return IntSize(image.width, image.height)
-    }
 }

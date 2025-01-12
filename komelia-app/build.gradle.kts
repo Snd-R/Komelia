@@ -148,7 +148,7 @@ compose.desktop {
         }
 
         buildTypes.release.proguard {
-            version.set("7.5.0")
+            version.set("7.6.1")
             optimize.set(false)
             configurationFiles.from(project.file("no_icons.pro"))
         }

@@ -39,7 +39,6 @@ private const val tileThreshold1 = 2048 * 2048
 private const val tileThreshold2 = 4096 * 4096
 private const val tileThreshold3 = 6144 * 6144
 
-@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect class RenderImage
 
 private val logger = KotlinLogging.logger {}
@@ -127,10 +126,6 @@ abstract class TilingReaderImage(
             this.error.value = e
             imageAwaitScope.coroutineContext.cancelChildren()
         }
-    }
-
-    override suspend fun getOriginalSize(): IntSize {
-        return imageAwaitScope.async { originalSize.filterNotNull().first() }.await()
     }
 
     private suspend fun getCurrentImage(): KomeliaImage {
@@ -341,13 +336,11 @@ abstract class TilingReaderImage(
     }
 
     override fun close() {
-        processingScope.launch {
-            originalImage.close()
-            closeTileBitmaps(tiles.value)
-            image.value?.close()
-            processingScope.cancel()
-            imageAwaitScope.cancel()
-        }
+        originalImage.close()
+        closeTileBitmaps(tiles.value)
+        image.value?.close()
+        processingScope.cancel()
+        imageAwaitScope.cancel()
     }
 
     protected abstract fun closeTileBitmaps(tiles: List<ReaderImageTile>)

@@ -16,7 +16,6 @@ interface ReaderImage : AutoCloseable {
     val painter: StateFlow<Painter>
     val error: StateFlow<Throwable?>
 
-    suspend fun getOriginalSize(): IntSize
     fun calculateSizeForArea(maxDisplaySize: IntSize, allowUpscale: Boolean): IntSize {
         val imageSize = this.originalSize.value
         if (imageSize == IntSize.Zero) return maxDisplaySize
