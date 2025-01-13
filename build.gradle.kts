@@ -327,7 +327,7 @@ tasks.register<Sync>("cmakeSystemDepsCopyJniLibs") {
     group = "jni"
     dependsOn("cmakeSystemDepsBuild")
     inputs.dir("$projectDir/cmake-build/komelia-webview/native")
-    inputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
+    inputs.dir("$projectDir/cmake-build/komelia-image-decoder/vips/native")
     outputs.dir(resourcesDir)
 
     from(
