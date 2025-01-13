@@ -3,6 +3,8 @@ package io.github.snd_r.komelia.ui.settings.komf
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
@@ -27,6 +30,7 @@ import io.github.snd_r.komelia.ui.common.HttpTextField
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.PasswordTextField
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SavableTextField(
     currentValue: String,
@@ -38,7 +42,7 @@ fun SavableTextField(
     useEditButton: Boolean = false,
     isPassword: Boolean = false,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         var isChanged by remember { mutableStateOf(false) }
         var editable by remember { mutableStateOf(!useEditButton) }
         var textFieldValue by remember(currentValue) { mutableStateOf(currentValue) }
@@ -76,48 +80,54 @@ fun SavableTextField(
             )
         }
 
-        if (!editable) {
-            ElevatedButton(
-                onClick = {
-                    editable = true
-                    textFieldValue = ""
-                },
-                shape = RoundedCornerShape(5.dp),
-            ) {
-                Text("Edit")
-            }
-        }
-
-        AnimatedVisibility(editable) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.align(Alignment.CenterVertically)
+        ) {
+            if (!editable) {
                 ElevatedButton(
-                    enabled = useEditButton || isChanged,
                     onClick = {
-                        if (useEditButton) editable = false
-                        isChanged = false
-                        textFieldValue = currentValue
+                        editable = true
+                        textFieldValue = ""
                     },
                     shape = RoundedCornerShape(5.dp),
                 ) {
-                    Text("Discard")
-                }
-                FilledTonalButton(
-                    onClick = {
-                        onValueSave(textFieldValue)
-                        if (useEditButton) editable = false
-                        isChanged = false
-                    },
-                    enabled = isChanged,
-                    shape = RoundedCornerShape(5.dp),
-                ) {
-                    Text("Save")
+                    Text("Edit")
                 }
             }
-        }
 
+            AnimatedVisibility(editable) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ElevatedButton(
+                        enabled = useEditButton || isChanged,
+                        onClick = {
+                            if (useEditButton) editable = false
+                            isChanged = false
+                            textFieldValue = currentValue
+                        },
+                        shape = RoundedCornerShape(5.dp),
+                    ) {
+                        Text("Discard")
+                    }
+                    FilledTonalButton(
+                        onClick = {
+                            onValueSave(textFieldValue)
+                            if (useEditButton) editable = false
+                            isChanged = false
+                        },
+                        enabled = isChanged,
+                        shape = RoundedCornerShape(5.dp),
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
+
+        }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SavableHttpTextField(
     label: String,
@@ -127,9 +137,7 @@ fun SavableHttpTextField(
     isError: Boolean = false,
     supportingText: @Composable (() -> Unit)? = null,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         var isChanged by remember { mutableStateOf(false) }
         var textFieldValue by remember(currentValue) { mutableStateOf(currentValue) }
         HttpTextField(
@@ -144,7 +152,9 @@ fun SavableHttpTextField(
             supportingText = supportingText
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             ElevatedButton(
                 enabled = isChanged,
                 onClick = {

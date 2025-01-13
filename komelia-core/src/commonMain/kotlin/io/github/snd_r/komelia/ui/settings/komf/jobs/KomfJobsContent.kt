@@ -8,6 +8,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -247,15 +249,15 @@ private fun JobCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatusFilters(
     selectedStatus: KomfMetadataJobStatus?,
     onStatusSelect: (KomfMetadataJobStatus?) -> Unit,
     onDeleteAll: () -> Unit
 ) {
-    Row(
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
         FilterChip(
             selected = selectedStatus == null,

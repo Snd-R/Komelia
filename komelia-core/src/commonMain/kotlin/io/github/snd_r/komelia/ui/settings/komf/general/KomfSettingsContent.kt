@@ -150,20 +150,6 @@ private fun KomfConnectionDetails(
     onKomfUrlChange: (String) -> Unit,
     komfConnectionError: String?,
 ) {
-//    if (integrationToggleEnabled) {
-//        DropdownChoiceMenu(
-//            label = { Text("Mode") },
-//            selectedOption = remember { LabeledEntry(komfMode, "Remote server") },
-//            options = remember {
-//                listOf(
-//                    LabeledEntry(KomfMode.REMOTE, "Remote Server"),
-//                    LabeledEntry(KomfMode.EMBEDDED, "Embedded (Not Yet Implemented)"),
-//                )
-//            },
-//            onOptionChange = {},
-//            inputFieldModifier = Modifier.fillMaxWidth()
-//        )
-//    }
     SavableHttpTextField(
         label = "Komf Url",
         currentValue = komfUrl,
@@ -181,12 +167,9 @@ private fun KomfConnectionDetails(
                     Text("Connected", color = MaterialTheme.colorScheme.secondary)
                     Icon(Icons.Default.Check, null)
                 }
-
             }
-
         }
     )
-
 }
 
 @Composable

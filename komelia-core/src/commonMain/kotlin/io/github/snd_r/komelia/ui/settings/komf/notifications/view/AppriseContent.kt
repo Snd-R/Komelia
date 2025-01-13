@@ -5,6 +5,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +38,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.WindowSizeClass
+import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalPlatform
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.StateHolder
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
@@ -188,6 +194,7 @@ fun AddUrlDialog(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TemplatesEditor(
     titleTemplate: String,
@@ -239,8 +246,10 @@ private fun TemplatesEditor(
             )
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            Spacer(Modifier.weight(1f))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            if (LocalWindowWidth.current != COMPACT) {
+                Spacer(Modifier.weight(1f))
+            }
             ElevatedButton(
                 onClick = { showNotificationContextDialog = true },
                 shape = RoundedCornerShape(5.dp),

@@ -53,7 +53,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
+import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.HttpTextField
 import io.github.snd_r.komelia.ui.common.StateHolder
@@ -234,6 +236,7 @@ private fun AddDiscordWebhookDialog(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TemplatesContent(
     titleTemplate: StateHolder<String>,
@@ -337,8 +340,10 @@ private fun TemplatesContent(
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            Spacer(Modifier.weight(1f))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            if (LocalWindowWidth.current != COMPACT) {
+                Spacer(Modifier.weight(1f))
+            }
             ElevatedButton(
                 onClick = { showNotificationContextDialog = true },
                 shape = RoundedCornerShape(5.dp),
