@@ -298,7 +298,7 @@ tasks.register<Sync>("buildWebui") {
 tasks.register<Exec>("cmakeSystemDepsConfigure") {
     group = "jni"
     delete("$projectDir/cmake-build")
-    inputs.file("$projectDir/komelia-image-decoder/native/CMakeLists.txt")
+    inputs.file("$projectDir/komelia-image-decoder/vips/native/CMakeLists.txt")
     inputs.file("$projectDir/komelia-webview/native/CMakeLists.txt")
     commandLine(
         "cmake",

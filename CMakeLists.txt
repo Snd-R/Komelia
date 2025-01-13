@@ -96,7 +96,7 @@ if (KOMELIA_SUPERBUILD)
 
 else ()
     project(komelia C CXX)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-image-decoder/native)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-image-decoder/vips/native)
 
     if (NOT ANDROID)
         add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-webview/native)
