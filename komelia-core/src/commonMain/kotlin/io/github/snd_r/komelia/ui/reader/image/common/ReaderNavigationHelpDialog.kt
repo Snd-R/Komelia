@@ -76,7 +76,7 @@ private fun PagedDialogContent(
             listOf("Home") to "First page",
             listOf("End") to "Last page",
             if (platform == PlatformType.WEB_KOMF) {
-                listOf("Alt", "Scroll Wheel") to "Zoom"
+                listOf("Shift", "Scroll Wheel") to "Zoom"
             } else {
                 listOf("Ctrl", "Scroll Wheel") to "Zoom"
             }

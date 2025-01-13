@@ -21,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -47,7 +47,7 @@ fun ScalableContainer(
     LaunchedEffect(Unit) {
         keyEvents.collect { event ->
             isCtrlPressed =
-                if (platform == WEB_KOMF) event.isAltPressed
+                if (platform == WEB_KOMF) event.isShiftPressed
                 else event.isCtrlPressed
         }
     }
