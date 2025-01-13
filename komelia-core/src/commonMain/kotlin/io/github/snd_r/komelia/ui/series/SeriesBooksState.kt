@@ -151,7 +151,7 @@ class SeriesBooksState(
             }
         },
         markAsUnread = { books -> launchWithReloadLock { books.forEach { bookClient.deleteReadProgress(it.id) } } },
-        delete = { launchWithReloadLock { books.forEach { bookClient.deleteBook(it.id) } } }
+        delete = { books -> launchWithReloadLock { books.forEach { bookClient.deleteBook(it.id) } } }
     )
 
     private suspend fun launchWithReloadLock(block: suspend () -> Unit) {

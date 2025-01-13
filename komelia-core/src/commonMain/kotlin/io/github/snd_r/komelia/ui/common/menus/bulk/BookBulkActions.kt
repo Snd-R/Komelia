@@ -89,10 +89,30 @@ fun BooksBulkActionsContent(
     }
 
     if (showDeleteDialog) {
+        val textBody = remember(books.size) {
+            buildString {
+                if (books.size == 1) {
+                    append("Book ")
+                } else {
+                    append("${books.size} books ")
+                }
+                append("will be removed from this server alongside with stored media files. This cannot be undone. Continue?")
+            }
+        }
+        val confirmationText = remember(books.size) {
+            buildString {
+                append("Yes, delete ")
+                if (books.size == 1) {
+                    append("book and its files")
+                } else {
+                    append("${books.size} books and their files")
+                }
+            }
+        }
         ConfirmationDialog(
             title = "Delete Books",
-            body = "${books.size} books will be removed from this server alongside with stored media files. This cannot be undone. Continue?",
-            confirmText = "Yes, delete ${books.size} books and their files",
+            body = textBody,
+            confirmText = confirmationText,
             onDialogConfirm = {
                 coroutineScope.launch { actions.delete(books) }
                 showDeleteDialog = false
