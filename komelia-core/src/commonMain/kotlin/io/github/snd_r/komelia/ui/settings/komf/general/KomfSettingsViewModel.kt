@@ -8,6 +8,11 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.error.formatExceptionMessage
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -28,6 +33,7 @@ class KomfSettingsViewModel(
     private val settingsRepository: CommonSettingsRepository,
     val komfSharedState: KomfSharedState,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
+    private val configListenerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     val komfEnabled = MutableStateFlow(false)
     val komfMode = MutableStateFlow(KomfMode.REMOTE)
@@ -38,14 +44,14 @@ class KomfSettingsViewModel(
         .stateIn(screenModelScope, SharingStarted.Eagerly, null)
 
     val komgaConnectionState = KomgaConnectionState(
-        coroutineScope = screenModelScope,
+        coroutineScope = configListenerScope,
         komfMediaServerClient = komgaMediaServerClient,
         komfSharedState = komfSharedState,
         onConfigUpdate = this::updateConfig
     )
     val kavitaConnectionState = kavitaMediaServerClient?.let {
         KavitaConnectionState(
-            coroutineScope = screenModelScope,
+            coroutineScope = configListenerScope,
             komfMediaServerClient = kavitaMediaServerClient,
             komfSharedState = komfSharedState,
             onConfigUpdate = this::updateConfig
@@ -57,16 +63,22 @@ class KomfSettingsViewModel(
         komfMode.value = settingsRepository.getKomfMode().first()
         komfUrl.value = settingsRepository.getKomfUrl().first()
 
+        if (komfEnabled.value) {
+            launchConfigFlowListener()
+        }
+        mutableState.value = LoadState.Success(Unit)
+    }
+
+    private suspend fun launchConfigFlowListener() {
+        configListenerScope.coroutineContext.cancelChildren()
         komfSharedState.getConfig()
             .onEach {
-                komgaConnectionState.initFields(it)
+                komgaConnectionState.initialize(it)
                 komgaConnectionState.checkConnection()
-                kavitaConnectionState?.initFields(it)
+                kavitaConnectionState?.initialize(it)
                 kavitaConnectionState?.checkConnection()
             }
-            .launchIn(screenModelScope)
-        mutableState.value = LoadState.Success(Unit)
-
+            .launchIn(configListenerScope)
     }
 
     fun onKomfEnabledChange(enabled: Boolean) {
@@ -75,7 +87,9 @@ class KomfSettingsViewModel(
         screenModelScope.launch {
             settingsRepository.putKomfEnabled(enabled)
             if (enabled) {
-                komfSharedState.loadConfig()
+                launchConfigFlowListener()
+            } else {
+                configListenerScope.coroutineContext.cancelChildren()
             }
         }
     }
@@ -94,5 +108,9 @@ class KomfSettingsViewModel(
         appNotifications.runCatchingToNotifications {
             komfConfigClient.updateConfig(request)
         }.onFailure { mutableState.value = LoadState.Error(it) }
+    }
+
+    override fun onDispose() {
+        configListenerScope.cancel()
     }
 }

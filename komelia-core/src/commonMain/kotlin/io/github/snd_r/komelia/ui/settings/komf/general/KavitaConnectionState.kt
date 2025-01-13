@@ -7,6 +7,8 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import snd.komf.api.KomfErrorResponse
@@ -15,6 +17,7 @@ import snd.komf.api.config.EventListenerConfigUpdateRequest
 import snd.komf.api.config.KavitaConfigUpdateRequest
 import snd.komf.api.config.KomfConfig
 import snd.komf.api.config.KomfConfigUpdateRequest
+import snd.komf.api.mediaserver.KomfMediaServerLibrary
 import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 import snd.komf.client.KomfMediaServerClient
 
@@ -24,7 +27,7 @@ class KavitaConnectionState(
     private val komfSharedState: KomfSharedState,
     private val onConfigUpdate: suspend (KomfConfigUpdateRequest) -> Unit,
 ) {
-    val libraries = komfSharedState.getKavitaLibraries()
+    val libraries = MutableStateFlow<List<KomfMediaServerLibrary>>(emptyList())
 
     val baseUrl = MutableStateFlow("localhost:5000")
     val enableEventListener = MutableStateFlow(false)
@@ -32,13 +35,16 @@ class KavitaConnectionState(
     val notificationsLibraryFilters = MutableStateFlow(emptyList<KomfMediaServerLibraryId>())
     val connectionError = MutableStateFlow<String?>(null)
 
-    fun initFields(config: KomfConfig) {
+    fun initialize(config: KomfConfig) {
         enableEventListener.value = config.kavita.eventListener.enabled
         metadataLibraryFilters.value =
             config.kavita.eventListener.metadataLibraryFilter.map { KomfMediaServerLibraryId(it) }
         notificationsLibraryFilters.value =
             config.kavita.eventListener.notificationsLibraryFilter.map { KomfMediaServerLibraryId(it) }
         baseUrl.value = config.kavita.baseUri
+        komfSharedState.getKavitaLibraries()
+            .onEach { libraries.value = it }
+            .launchIn(coroutineScope)
     }
 
     fun onBaseUrlChange(url: String) {

@@ -7,6 +7,8 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import snd.komf.api.KomfErrorResponse
@@ -15,6 +17,7 @@ import snd.komf.api.config.EventListenerConfigUpdateRequest
 import snd.komf.api.config.KomfConfig
 import snd.komf.api.config.KomfConfigUpdateRequest
 import snd.komf.api.config.KomgaConfigUpdateRequest
+import snd.komf.api.mediaserver.KomfMediaServerLibrary
 import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 import snd.komf.client.KomfMediaServerClient
 
@@ -24,7 +27,7 @@ class KomgaConnectionState(
     private val komfSharedState: KomfSharedState,
     private val onConfigUpdate: suspend (KomfConfigUpdateRequest) -> Unit,
 ) {
-    val libraries = komfSharedState.getKomgaLibraries()
+    val libraries = MutableStateFlow<List<KomfMediaServerLibrary>>(emptyList())
 
     val baseUrl = MutableStateFlow("localhost:25600")
     val username = MutableStateFlow("")
@@ -33,7 +36,7 @@ class KomgaConnectionState(
     val notificationsLibraryFilters = MutableStateFlow(emptyList<KomfMediaServerLibraryId>())
     val connectionError = MutableStateFlow<String?>(null)
 
-    fun initFields(config: KomfConfig) {
+    fun initialize(config: KomfConfig) {
         baseUrl.value = config.komga.baseUri
         username.value = config.komga.komgaUser
         enableEventListener.value = config.komga.eventListener.enabled
@@ -41,6 +44,10 @@ class KomgaConnectionState(
             config.komga.eventListener.metadataLibraryFilter.map { KomfMediaServerLibraryId(it) }
         notificationsLibraryFilters.value =
             config.komga.eventListener.notificationsLibraryFilter.map { KomfMediaServerLibraryId(it) }
+
+        komfSharedState.getKomgaLibraries()
+            .onEach { libraries.value = it }
+            .launchIn(coroutineScope)
     }
 
     fun onKomgaBaseUrlChange(url: String) {
