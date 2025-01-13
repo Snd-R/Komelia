@@ -27,11 +27,13 @@ import androidx.compose.ui.window.PopupProperties
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.WindowSizeClass.EXPANDED
 import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
 import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.scrollbar
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowHeight
 import kotlinx.coroutines.flow.drop
 
@@ -80,20 +82,20 @@ fun ChipFieldWithSuggestions(
 
 
         val windowHeightClass = LocalWindowHeight.current
+        val platform = LocalPlatform.current
+        // TODO better way to account for keyboard on mobile
         val dropdownHeight = remember(windowHeightClass) {
             when (windowHeightClass) {
-                COMPACT, MEDIUM -> 200.dp
-                EXPANDED, FULL -> 400.dp
+                COMPACT, MEDIUM -> if (platform == PlatformType.MOBILE) 70.dp else 200.dp
+                EXPANDED -> if (platform == PlatformType.MOBILE) 200.dp else 400.dp
+                FULL -> 400.dp
             }
         }
         val scrollState = rememberScrollState()
         if (suggestedOptions.value.isNotEmpty()) {
             DropdownMenu(
                 expanded = isExpanded,
-                onDismissRequest = {
-                    isExpanded = false
-                    focusManager.clearFocus()
-                },
+                onDismissRequest = {},
                 properties = PopupProperties(focusable = false),
                 scrollState = scrollState,
                 modifier = Modifier
