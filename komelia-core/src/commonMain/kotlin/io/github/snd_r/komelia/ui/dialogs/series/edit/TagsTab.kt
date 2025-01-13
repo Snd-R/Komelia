@@ -2,11 +2,14 @@ package io.github.snd_r.komelia.ui.dialogs.series.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.LockableChipTextFieldWithSuggestions
@@ -62,5 +65,6 @@ private fun TagsContent(
             locked = genresLock.value,
             onLockChange = { genresLock.setValue(it) }
         )
+        Spacer(Modifier.height(30.dp))
     }
 }

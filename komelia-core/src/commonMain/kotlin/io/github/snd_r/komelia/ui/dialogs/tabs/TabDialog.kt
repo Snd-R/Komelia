@@ -1,12 +1,12 @@
 package io.github.snd_r.komelia.ui.dialogs.tabs
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -157,13 +157,14 @@ private fun CompactTabDialog(
             TabNavigationItems(currentIndex, tabs, onTabChange)
         }
 
-        Box(
+        Column(
             Modifier
                 .fillMaxSize()
                 .padding(5.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             currentTab.Content()
+            Spacer(Modifier.imePadding())
         }
     }
 
@@ -200,13 +201,14 @@ private fun TabColumnDialog(
                     onTabChange = onTabChange
                 )
 
-                Box(
+                Column(
                     Modifier
                         .verticalScroll(scrollState)
                         .heightIn(min = 500.dp)
                         .padding(bottom = 10.dp, start = 10.dp, end = 30.dp)
                 ) {
                     currentTab.Content()
+                    Spacer(Modifier.imePadding())
                 }
             }
         },
