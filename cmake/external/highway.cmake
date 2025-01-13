@@ -3,7 +3,8 @@ include(ExternalProject)
 ExternalProject_Add(ep_highway
         GIT_REPOSITORY https://github.com/google/highway
         GIT_TAG 1.2.0
-        #GIT_TAG ee098a4285a0b1347bb2af797534d62c9fa5d390
+        GIT_SHALLOW 1
+        GIT_PROGRESS 1
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DHWY_ENABLE_TESTS=OFF
