@@ -67,17 +67,19 @@ import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfNameMatchingMode
 import snd.komf.api.KomfProviders
 import snd.komf.api.MangaDexLink
+import snd.komf.api.mediaserver.KomfMediaServerLibrary
+import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 
 @Composable
 fun KomfProvidersSettingsContent(
     defaultProcessingState: ProvidersConfigState,
-    libraryProcessingState: Map<KomgaLibraryId, ProvidersConfigState>,
+    libraryProcessingState: Map<KomfMediaServerLibraryId, ProvidersConfigState>,
 
-    onLibraryConfigAdd: (libraryId: KomgaLibraryId) -> Unit,
-    onLibraryConfigRemove: (libraryId: KomgaLibraryId) -> Unit,
-    libraries: List<KomgaLibrary>,
+    onLibraryConfigAdd: (libraryId: KomfMediaServerLibraryId) -> Unit,
+    onLibraryConfigRemove: (libraryId: KomfMediaServerLibraryId) -> Unit,
+    libraries: List<KomfMediaServerLibrary>,
 
     nameMatchingMode: KomfNameMatchingMode,
     onNameMatchingModeChange: (KomfNameMatchingMode) -> Unit,

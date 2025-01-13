@@ -81,6 +81,8 @@ fun KomfSettingsContent(
                 urls = appriseState.appriseUrls,
                 onUrlAdd = appriseState::onUrlAdd,
                 onUrlRemove = appriseState::onUrlRemove,
+                uploadSeriesCover = appriseState.uploadSeriesCover,
+                onUploadSeriesCoverChange = appriseState::onSeriesCoverChange,
                 titleTemplate = appriseState.titleTemplate,
                 onTitleTemplateChange = appriseState::titleTemplate::set,
                 bodyTemplate = appriseState.bodyTemplate,

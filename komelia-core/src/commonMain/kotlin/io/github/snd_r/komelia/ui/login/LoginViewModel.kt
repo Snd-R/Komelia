@@ -15,6 +15,7 @@ import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.error.formatExceptionMessage
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
@@ -131,7 +132,7 @@ class LoginViewModel(
             else "Login error ${e::class.simpleName}: ${e.message}"
             mutableState.value = LoadState.Error(e)
         } catch (e: Throwable) {
-            userLoginError = "${e::class.simpleName} ${e.message}"
+            userLoginError = formatExceptionMessage(e)
             mutableState.value = LoadState.Error(e)
         }
     }

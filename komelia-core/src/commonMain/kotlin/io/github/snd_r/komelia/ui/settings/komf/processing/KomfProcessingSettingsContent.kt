@@ -24,17 +24,20 @@ import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSetting
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfReadingDirection
 import snd.komf.api.KomfUpdateMode
-import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.library.KomgaLibraryId
+import snd.komf.api.MediaServer
+import snd.komf.api.MediaServer.KOMGA
+import snd.komf.api.mediaserver.KomfMediaServerLibrary
+import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 
 @Composable
 fun KomfProcessingSettingsContent(
     defaultProcessingState: ProcessingConfigState,
-    libraryProcessingState: Map<KomgaLibraryId, ProcessingConfigState>,
+    libraryProcessingState: Map<KomfMediaServerLibraryId, ProcessingConfigState>,
 
-    onLibraryConfigAdd: (libraryId: KomgaLibraryId) -> Unit,
-    onLibraryConfigRemove: (libraryId: KomgaLibraryId) -> Unit,
-    libraries: List<KomgaLibrary>,
+    onLibraryConfigAdd: (libraryId: KomfMediaServerLibraryId) -> Unit,
+    onLibraryConfigRemove: (libraryId: KomfMediaServerLibraryId) -> Unit,
+    libraries: List<KomfMediaServerLibrary>,
+    serverType: MediaServer,
 ) {
     LibraryTabs(
         defaultProcessingState,
@@ -42,12 +45,15 @@ fun KomfProcessingSettingsContent(
         onLibraryConfigAdd, onLibraryConfigRemove, libraries
     ) {
 
-        ProcessingConfigContent(it)
+        ProcessingConfigContent(it, serverType)
     }
 }
 
 @Composable
-private fun ProcessingConfigContent(state: ProcessingConfigState) {
+private fun ProcessingConfigContent(
+    state: ProcessingConfigState,
+    serverType: MediaServer,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -215,16 +221,18 @@ private fun ProcessingConfigContent(state: ProcessingConfigState) {
         )
         HorizontalDivider()
         Text("Default values", style = MaterialTheme.typography.titleLarge)
-        DropdownChoiceMenu(
-            selectedOption = LabeledEntry(state.readingDirectionValue, state.readingDirectionValue?.name ?: "None"),
-            options = remember {
-                listOf(LabeledEntry<KomfReadingDirection?>(null, "None")) +
-                        KomfReadingDirection.entries.map { LabeledEntry(it, it.name) }
-            },
-            onOptionChange = { state.onReadingDirectionChange(it.value) },
-            label = { Text("Default series reading direction") },
-            inputFieldModifier = Modifier.fillMaxWidth(),
-        )
+        if (serverType == KOMGA) {
+            DropdownChoiceMenu(
+                selectedOption = LabeledEntry(state.readingDirectionValue, state.readingDirectionValue?.name ?: "None"),
+                options = remember {
+                    listOf(LabeledEntry<KomfReadingDirection?>(null, "None")) +
+                            KomfReadingDirection.entries.map { LabeledEntry(it, it.name) }
+                },
+                onOptionChange = { state.onReadingDirectionChange(it.value) },
+                label = { Text("Default series reading direction") },
+                inputFieldModifier = Modifier.fillMaxWidth(),
+            )
+        }
         LanguageSelectionField(
             label = "Default series language",
             languageValue = state.defaultLanguageValue ?: "",

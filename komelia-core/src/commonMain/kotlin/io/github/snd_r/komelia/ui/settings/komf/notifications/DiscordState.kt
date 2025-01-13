@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
+import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -25,7 +25,7 @@ class DiscordState(
     private val komfConfigClient: KomfConfigClient,
     private val komfNotificationClient: KomfNotificationClient,
     private val appNotifications: AppNotifications,
-    private val komfConfig: KomfConfigState,
+    private val komfConfig: KomfSharedState,
     private val coroutineScope: CoroutineScope,
     val notificationContext: NotificationContextState,
 ) {

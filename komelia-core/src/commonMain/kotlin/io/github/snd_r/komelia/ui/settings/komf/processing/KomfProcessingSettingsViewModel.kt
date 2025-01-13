@@ -7,17 +7,22 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
-import kotlinx.coroutines.flow.StateFlow
+import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfReadingDirection
 import snd.komf.api.KomfUpdateMode
+import snd.komf.api.MediaServer
+import snd.komf.api.MediaServer.KAVITA
+import snd.komf.api.MediaServer.KOMGA
 import snd.komf.api.PatchValue
 import snd.komf.api.PatchValue.Some
+import snd.komf.api.config.KavitaConfigUpdateRequest
 import snd.komf.api.config.KomfConfig
 import snd.komf.api.config.KomfConfigUpdateRequest
 import snd.komf.api.config.KomgaConfigUpdateRequest
@@ -25,24 +30,34 @@ import snd.komf.api.config.MetadataPostProcessingConfigUpdateRequest
 import snd.komf.api.config.MetadataProcessingConfigDto
 import snd.komf.api.config.MetadataProcessingConfigUpdateRequest
 import snd.komf.api.config.MetadataUpdateConfigUpdateRequest
+import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 import snd.komf.client.KomfConfigClient
-import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.library.KomgaLibraryId
 
 class KomfProcessingSettingsViewModel(
     private val komfConfigClient: KomfConfigClient,
     private val appNotifications: AppNotifications,
-    val komfConfig: KomfConfigState,
-    val libraries: StateFlow<List<KomgaLibrary>>,
+    private val serverType: MediaServer,
+    val komfSharedState: KomfSharedState,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
-    var defaultProcessingConfig by mutableStateOf(ProcessingConfigState(this::updateConfig, null, null))
-        private set
-    var libraryProcessingConfigs by mutableStateOf<Map<KomgaLibraryId, ProcessingConfigState>>(emptyMap())
-        private set
+    val libraries = when (serverType) {
+        KOMGA -> komfSharedState.getKomgaLibraries()
+        KAVITA -> komfSharedState.getKavitaLibraries()
+    }
+
+    val defaultProcessingConfig = MutableStateFlow(
+        ProcessingConfigState(
+            onMetadataUpdate = this::updateConfig,
+            libraryId = null,
+            serverType = serverType,
+            config = null,
+        )
+    )
+
+    val libraryProcessingConfigs = MutableStateFlow<Map<KomfMediaServerLibraryId, ProcessingConfigState>>(emptyMap())
 
     suspend fun initialize() {
-        appNotifications.runCatchingToNotifications { komfConfig.getConfig() }
+        appNotifications.runCatchingToNotifications { komfSharedState.getConfig() }
             .onFailure { mutableState.value = LoadState.Error(it) }
             .onSuccess { config ->
                 mutableState.value = LoadState.Success(Unit)
@@ -51,47 +66,70 @@ class KomfProcessingSettingsViewModel(
     }
 
     private fun initFields(config: KomfConfig) {
-        defaultProcessingConfig = ProcessingConfigState(this::updateConfig, null, config.komga.metadataUpdate.default)
-        libraryProcessingConfigs = config.komga.metadataUpdate.library
-            .map { (libraryId, config) ->
-                val komgaLibraryId = KomgaLibraryId(libraryId)
-                komgaLibraryId to ProcessingConfigState(this::updateConfig, komgaLibraryId, config)
-            }.toMap()
+        defaultProcessingConfig.value = ProcessingConfigState(
+            onMetadataUpdate = this::updateConfig,
+            libraryId = null,
+            serverType = serverType,
+            config = when (serverType) {
+                KOMGA -> config.komga.metadataUpdate.default
+                KAVITA -> config.kavita.metadataUpdate.default
+            }
+        )
+        libraryProcessingConfigs.value = when (serverType) {
+            KOMGA -> config.komga.metadataUpdate.library
+            KAVITA -> config.kavita.metadataUpdate.library
+        }.map { (libraryId, config) ->
+            val komfLibraryId = KomfMediaServerLibraryId(libraryId)
+            komfLibraryId to ProcessingConfigState(
+                onMetadataUpdate = this::updateConfig,
+                libraryId = komfLibraryId,
+                serverType = serverType,
+                config = config
+            )
+        }.toMap()
     }
 
     private fun updateConfig(request: KomfConfigUpdateRequest) {
         screenModelScope.launch {
             appNotifications.runCatchingToNotifications { komfConfigClient.updateConfig(request) }
-                .onFailure { initFields(komfConfig.getConfig().first()) }
+                .onFailure { initFields(komfSharedState.getConfig().first()) }
         }
     }
 
-    fun onNewLibraryTabAdd(libraryId: KomgaLibraryId) {
-        libraryProcessingConfigs = libraryProcessingConfigs.plus(
-            libraryId to ProcessingConfigState(this::updateConfig, libraryId, null)
-        )
+    fun onNewLibraryTabAdd(libraryId: KomfMediaServerLibraryId) {
+        libraryProcessingConfigs.update {
+            it.plus(
+                libraryId to ProcessingConfigState(
+                    onMetadataUpdate = this::updateConfig,
+                    libraryId = libraryId,
+                    serverType = serverType,
+                    config = null
+                )
+            )
+        }
 
         val metadataUpdate = MetadataUpdateConfigUpdateRequest(
             library = Some(mapOf(libraryId.value to MetadataProcessingConfigUpdateRequest()))
         )
-        val komgaUpdate = KomgaConfigUpdateRequest(metadataUpdate = Some(metadataUpdate))
-        updateConfig(KomfConfigUpdateRequest(komga = Some(komgaUpdate)))
+        val request = toKomfConfigUpdateRequest(metadataUpdate, serverType)
+        updateConfig(request)
     }
 
-    fun onLibraryTabRemove(libraryId: KomgaLibraryId) {
-        libraryProcessingConfigs = libraryProcessingConfigs.minus(libraryId)
+    fun onLibraryTabRemove(libraryId: KomfMediaServerLibraryId) {
+        libraryProcessingConfigs.update { it.minus(libraryId) }
 
         val metadataUpdate = MetadataUpdateConfigUpdateRequest(
             library = Some(mapOf(libraryId.value to null))
         )
-        val komgaUpdate = KomgaConfigUpdateRequest(metadataUpdate = Some(metadataUpdate))
-        updateConfig(KomfConfigUpdateRequest(komga = Some(komgaUpdate)))
+        val request = toKomfConfigUpdateRequest(metadataUpdate, serverType)
+        updateConfig(request)
     }
 
 
     class ProcessingConfigState(
         private val onMetadataUpdate: (KomfConfigUpdateRequest) -> Unit,
-        private val libraryId: KomgaLibraryId?,
+        private val libraryId: KomfMediaServerLibraryId?,
+        private val serverType: MediaServer,
         config: MetadataProcessingConfigDto?,
     ) {
         var libraryType by mutableStateOf(config?.libraryType ?: KomfMediaType.MANGA)
@@ -249,8 +287,8 @@ class KomfProcessingSettingsViewModel(
                 MetadataUpdateConfigUpdateRequest(default = Some(update))
             }
 
-            val komgaUpdate = KomgaConfigUpdateRequest(metadataUpdate = Some(metadataUpdateRequest))
-            onMetadataUpdate(KomfConfigUpdateRequest(komga = Some(komgaUpdate)))
+            val request = toKomfConfigUpdateRequest(metadataUpdateRequest, serverType)
+            onMetadataUpdate(request)
         }
 
         private fun <T> List<T>.addOrRemove(value: T): List<T> {
@@ -261,5 +299,24 @@ class KomfProcessingSettingsViewModel(
 
             return mutable
         }
+    }
+}
+
+private fun toKomfConfigUpdateRequest(
+    request: MetadataUpdateConfigUpdateRequest,
+    serverType: MediaServer
+): KomfConfigUpdateRequest {
+    return when (serverType) {
+        KOMGA -> KomfConfigUpdateRequest(
+            komga = Some(
+                KomgaConfigUpdateRequest(metadataUpdate = Some(request))
+            )
+        )
+
+        KAVITA -> KomfConfigUpdateRequest(
+            kavita = Some(
+                KavitaConfigUpdateRequest(metadataUpdate = Some(request))
+            )
+        )
     }
 }

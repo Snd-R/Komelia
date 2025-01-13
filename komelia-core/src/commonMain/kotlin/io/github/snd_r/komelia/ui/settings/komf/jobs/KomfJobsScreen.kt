@@ -12,10 +12,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.MainScreen
+import io.github.snd_r.komelia.ui.error.formatExceptionMessage
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 
-class KomfJobsScreen : Screen {
+class KomfJobsScreen(private val enableSeriesResolution: Boolean = true) : Screen {
 
     @OptIn(InternalVoyagerApi::class)
     @Composable
@@ -28,7 +29,7 @@ class KomfJobsScreen : Screen {
 
         SettingsScreenContainer(title = "Metadata Update Jobs") {
             when (state) {
-                is LoadState.Error -> Text("${state.exception::class.simpleName}: ${state.exception.message}")
+                is LoadState.Error -> Text(formatExceptionMessage(state.exception))
                 LoadState.Uninitialized, LoadState.Loading, is LoadState.Success -> KomfJobsContent(
                     jobs = vm.jobs,
                     totalPages = vm.totalPages,
@@ -36,7 +37,7 @@ class KomfJobsScreen : Screen {
                     onPageChange = vm::loadPage,
                     selectedStatus = vm.status,
                     onStatusSelect = vm::onStatusSelect,
-                    getSeries = vm::getSeries,
+                    getSeries = if (enableSeriesResolution) vm::getSeries else null,
                     onSeriesClick = {
                         rootNavigator.pop()
                         rootNavigator.dispose(rootNavigator.lastItem)

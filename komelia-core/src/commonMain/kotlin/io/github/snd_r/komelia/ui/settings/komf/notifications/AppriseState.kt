@@ -5,12 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
+import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import snd.komf.api.PatchValue.Some
 import snd.komf.api.config.AppriseConfigUpdateRequest
+import snd.komf.api.config.DiscordConfigUpdateRequest
 import snd.komf.api.config.KomfConfig
 import snd.komf.api.config.KomfConfigUpdateRequest
 import snd.komf.api.config.NotificationConfigUpdateRequest
@@ -23,12 +24,14 @@ class AppriseState(
     private val komfConfigClient: KomfConfigClient,
     private val komfNotificationClient: KomfNotificationClient,
     private val appNotifications: AppNotifications,
-    private val komfConfig: KomfConfigState,
+    private val komfConfig: KomfSharedState,
     private val coroutineScope: CoroutineScope,
     val notificationContext: NotificationContextState,
 ) {
 
     var appriseUrls by mutableStateOf(emptyList<String>())
+        private set
+    var uploadSeriesCover by mutableStateOf(false)
         private set
     var titleTemplate by mutableStateOf("")
     var bodyTemplate by mutableStateOf("")
@@ -56,6 +59,13 @@ class AppriseState(
         this.appriseUrls = appriseUrls.minus(url)
 
         val appriseUpdate = AppriseConfigUpdateRequest(urls = Some(mapOf(removeIndex to null)))
+        val notificationUpdate = NotificationConfigUpdateRequest(apprise = Some(appriseUpdate))
+        onConfigUpdate(KomfConfigUpdateRequest(notifications = Some(notificationUpdate)))
+    }
+
+    fun onSeriesCoverChange(seriesCover: Boolean) {
+        uploadSeriesCover = seriesCover
+        val appriseUpdate = AppriseConfigUpdateRequest(seriesCover = Some(seriesCover))
         val notificationUpdate = NotificationConfigUpdateRequest(apprise = Some(appriseUpdate))
         onConfigUpdate(KomfConfigUpdateRequest(notifications = Some(notificationUpdate)))
     }

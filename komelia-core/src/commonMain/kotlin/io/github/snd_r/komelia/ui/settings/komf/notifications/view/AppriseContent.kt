@@ -37,6 +37,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.common.StateHolder
+import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState
 import io.ktor.http.*
@@ -46,6 +48,8 @@ fun AppriseContent(
     urls: List<String>,
     onUrlAdd: (String) -> Unit,
     onUrlRemove: (String) -> Unit,
+    uploadSeriesCover: Boolean,
+    onUploadSeriesCoverChange: (Boolean) -> Unit,
 
     titleTemplate: String,
     onTitleTemplateChange: (String) -> Unit,
@@ -85,6 +89,11 @@ fun AppriseContent(
         ) {
             Text("Add Url")
         }
+        SwitchWithLabel(
+            checked = uploadSeriesCover,
+            onCheckedChange = onUploadSeriesCoverChange,
+            label = { Text("Upload series cover") }
+        )
 
         if (showAddUrlDialog) {
             AddUrlDialog(

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Error
@@ -74,7 +75,7 @@ fun KomfJobsContent(
     onPageChange: (Int) -> Unit,
     selectedStatus: KomfMetadataJobStatus?,
     onStatusSelect: (KomfMetadataJobStatus?) -> Unit,
-    getSeries: suspend (KomgaSeriesId) -> KomgaSeries?,
+    getSeries: (suspend (KomgaSeriesId) -> KomgaSeries?)?,
     onSeriesClick: (KomgaSeries) -> Unit,
     onDeleteAll: () -> Unit,
     isLoading: Boolean,
@@ -133,22 +134,27 @@ fun KomfJobsContent(
 @Composable
 private fun JobCard(
     job: KomfMetadataJob,
-    getSeries: suspend (KomgaSeriesId) -> KomgaSeries?,
+    getSeries: (suspend (KomgaSeriesId) -> KomgaSeries?)?,
     onSeriesClick: (KomgaSeries) -> Unit,
 ) {
     var loading by remember { mutableStateOf(true) }
     var series by remember { mutableStateOf<KomgaSeries?>(null) }
     var seriesTitle by remember { mutableStateOf("") }
-    LaunchedEffect(job) {
-        val seriesId = launch {
-            delay(100)
+    LaunchedEffect(job, getSeries) {
+        if (getSeries == null) {
             seriesTitle = job.seriesId.value
+            loading = false
+        } else {
+            val seriesId = launch {
+                delay(100)
+                seriesTitle = job.seriesId.value
+            }
+            loading = true
+            series = getSeries(KomgaSeriesId(job.seriesId.value))
+            seriesId.cancel()
+            seriesTitle = series?.metadata?.title ?: job.seriesId.value
+            loading = false
         }
-        loading = true
-        series = getSeries(KomgaSeriesId(job.seriesId.value))
-        seriesId.cancel()
-        seriesTitle = series?.metadata?.title ?: job.seriesId.value
-        loading = false
     }
 
     Row(
@@ -163,23 +169,39 @@ private fun JobCard(
         TooltipBox(
             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
             state = rememberTooltipState(isPersistent = true),
-            tooltip = { SeriesTooltip(series, loading) },
+            tooltip = { if (series != null) SeriesTooltip(series, loading) },
             modifier = Modifier
-                .clickable { series?.let { onSeriesClick(it) } }
+                .then(
+                    series?.let {
+                        Modifier
+                            .clickable { onSeriesClick(it) }
+                            .cursorForHand()
+                    } ?: Modifier
+                )
                 .padding(10.dp)
-                .cursorForHand()
                 .width(200.dp)
         ) {
             Crossfade(
                 targetState = seriesTitle,
                 animationSpec = tween(500),
             ) { title ->
-                Text(
-                    text = title,
-                    textDecoration = TextDecoration.Underline,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 2,
-                )
+                if (series != null) {
+                    Text(
+                        text = title,
+                        textDecoration = TextDecoration.Underline,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 2,
+                    )
+                } else {
+                    SelectionContainer {
+                        Text(
+                            text = title,
+                            textDecoration = TextDecoration.Underline,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 2,
+                        )
+                    }
+                }
             }
         }
         job.finishedAt?.let {

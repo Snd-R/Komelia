@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
+import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -39,7 +39,7 @@ class KomfIdentifyDialogViewModel(
     series: KomgaSeries,
     komfMetadataClient: KomfMetadataClient,
     komfJobClient: KomfJobClient,
-    private val komfConfig: KomfConfigState,
+    private val komfConfig: KomfSharedState,
     private val appNotifications: AppNotifications,
     onDismiss: () -> Unit,
 ) {

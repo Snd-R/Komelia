@@ -7,11 +7,11 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
+import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.AniListConfigState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.GenericProviderConfigState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.MangaDexConfigState
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -54,20 +54,28 @@ import snd.komf.api.config.ProviderConfigUpdateRequest
 import snd.komf.api.config.ProvidersConfigDto
 import snd.komf.api.config.ProvidersConfigUpdateRequest
 import snd.komf.api.config.SeriesMetadataConfigUpdateRequest
+import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 import snd.komf.client.KomfConfigClient
-import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.library.KomgaLibraryId
 
 class KomfProvidersSettingsViewModel(
     private val komfConfigClient: KomfConfigClient,
     private val appNotifications: AppNotifications,
-    val komfConfig: KomfConfigState,
-    val libraries: StateFlow<List<KomgaLibrary>>,
+    val komfSharedState: KomfSharedState,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
+    private val komgaLibraries = komfSharedState.getKomgaLibraries()
+    private val kavitaLibraries = komfSharedState.getKavitaLibraries()
+    val libraries = komgaLibraries.combine(kavitaLibraries) { komga, kavita ->
+        if (komga.isNotEmpty() && kavita.isNotEmpty()) {
+            komga.map { it.copy(name = "${it.name} (Komga)") }
+                .plus(kavita.map { it.copy(name = "${it.name} (Kavita)") })
+        } else {
+            komga.plus(kavita)
+        }
+    }
     var defaultProvidersConfig by mutableStateOf(ProvidersConfigState(this::updateConfig, null, null))
         private set
-    var libraryProvidersConfigs by mutableStateOf<Map<KomgaLibraryId, ProvidersConfigState>>(emptyMap())
+    var libraryProvidersConfigs by mutableStateOf<Map<KomfMediaServerLibraryId, ProvidersConfigState>>(emptyMap())
         private set
 
     var comicVineClientId by mutableStateOf<String?>(null)
@@ -78,7 +86,7 @@ class KomfProvidersSettingsViewModel(
         private set
 
     suspend fun initialize() {
-        appNotifications.runCatchingToNotifications { komfConfig.getConfig() }
+        appNotifications.runCatchingToNotifications { komfSharedState.getConfig() }
             .onFailure { mutableState.value = LoadState.Error(it) }
             .onSuccess { config ->
                 mutableState.value = LoadState.Success(Unit)
@@ -91,7 +99,7 @@ class KomfProvidersSettingsViewModel(
             ProvidersConfigState(this::updateConfig, null, config.metadataProviders.defaultProviders)
         libraryProvidersConfigs = config.metadataProviders.libraryProviders
             .map { (libraryId, config) ->
-                val komgaLibraryId = KomgaLibraryId(libraryId)
+                val komgaLibraryId = KomfMediaServerLibraryId(libraryId)
                 komgaLibraryId to ProvidersConfigState(this::updateConfig, komgaLibraryId, config)
             }.toMap()
         comicVineClientId = config.metadataProviders.comicVineClientId
@@ -103,11 +111,11 @@ class KomfProvidersSettingsViewModel(
         val configUpdate = KomfConfigUpdateRequest(metadataProviders = Some(request))
         screenModelScope.launch {
             appNotifications.runCatchingToNotifications { komfConfigClient.updateConfig(configUpdate) }
-                .onFailure { initFields(komfConfig.getConfig().first()) }
+                .onFailure { initFields(komfSharedState.getConfig().first()) }
         }
     }
 
-    fun onNewLibraryTabAdd(libraryId: KomgaLibraryId) {
+    fun onNewLibraryTabAdd(libraryId: KomfMediaServerLibraryId) {
         libraryProvidersConfigs = libraryProvidersConfigs.plus(
             libraryId to ProvidersConfigState(this::updateConfig, libraryId, null)
         )
@@ -117,7 +125,7 @@ class KomfProvidersSettingsViewModel(
         updateConfig(providersUpdate)
     }
 
-    fun onLibraryTabRemove(libraryId: KomgaLibraryId) {
+    fun onLibraryTabRemove(libraryId: KomfMediaServerLibraryId) {
         libraryProvidersConfigs = libraryProvidersConfigs.minus(libraryId)
 
         val providersUpdate = MetadataProvidersConfigUpdateRequest(
@@ -146,7 +154,7 @@ class KomfProvidersSettingsViewModel(
 
     class ProvidersConfigState(
         private val onMetadataUpdate: (MetadataProvidersConfigUpdateRequest) -> Unit,
-        private val libraryId: KomgaLibraryId?,
+        private val libraryId: KomfMediaServerLibraryId?,
         config: ProvidersConfigDto?,
     ) {
         private val aniList = AniListConfigState(ANILIST, config?.aniList, this::onAniListConfigUpdate)
@@ -523,14 +531,18 @@ class KomfProvidersSettingsViewModel(
             }
 
             override fun onMediaTypeSave(mediaType: KomfMediaType?) {
-                onMetadataUpdate(ProviderConfigUpdateRequest(mediaType = mediaType
-                    ?.let { Some(it) } ?: PatchValue.None))
+                onMetadataUpdate(
+                    ProviderConfigUpdateRequest(
+                        mediaType = mediaType
+                            ?.let { Some(it) } ?: PatchValue.None))
             }
 
             override fun onNameMatchingModeSave(nameMatchingMode: KomfNameMatchingMode?) {
-                onMetadataUpdate(ProviderConfigUpdateRequest(nameMatchingMode = nameMatchingMode
-                    ?.let { Some(nameMatchingMode) } ?: PatchValue.None
-                ))
+                onMetadataUpdate(
+                    ProviderConfigUpdateRequest(
+                        nameMatchingMode = nameMatchingMode
+                            ?.let { Some(nameMatchingMode) } ?: PatchValue.None
+                    ))
             }
 
             override fun onAuthorRolesSave(roles: List<KomfAuthorRole>) {
@@ -584,14 +596,18 @@ class KomfProvidersSettingsViewModel(
             }
 
             override fun onMediaTypeSave(mediaType: KomfMediaType?) {
-                onMetadataUpdate(AniListConfigUpdateRequest(mediaType = mediaType
-                    ?.let { Some(it) } ?: PatchValue.None))
+                onMetadataUpdate(
+                    AniListConfigUpdateRequest(
+                        mediaType = mediaType
+                            ?.let { Some(it) } ?: PatchValue.None))
             }
 
             override fun onNameMatchingModeSave(nameMatchingMode: KomfNameMatchingMode?) {
-                onMetadataUpdate(AniListConfigUpdateRequest(nameMatchingMode = nameMatchingMode
-                    ?.let { Some(nameMatchingMode) } ?: PatchValue.None
-                ))
+                onMetadataUpdate(
+                    AniListConfigUpdateRequest(
+                        nameMatchingMode = nameMatchingMode
+                            ?.let { Some(nameMatchingMode) } ?: PatchValue.None
+                    ))
             }
 
             override fun onAuthorRolesSave(roles: List<KomfAuthorRole>) {
@@ -639,14 +655,18 @@ class KomfProvidersSettingsViewModel(
             }
 
             override fun onMediaTypeSave(mediaType: KomfMediaType?) {
-                onMetadataUpdate(MangaDexConfigUpdateRequest(mediaType = mediaType
-                    ?.let { Some(it) } ?: PatchValue.None))
+                onMetadataUpdate(
+                    MangaDexConfigUpdateRequest(
+                        mediaType = mediaType
+                            ?.let { Some(it) } ?: PatchValue.None))
             }
 
             override fun onNameMatchingModeSave(nameMatchingMode: KomfNameMatchingMode?) {
-                onMetadataUpdate(MangaDexConfigUpdateRequest(nameMatchingMode = nameMatchingMode
-                    ?.let { Some(nameMatchingMode) } ?: PatchValue.None
-                ))
+                onMetadataUpdate(
+                    MangaDexConfigUpdateRequest(
+                        nameMatchingMode = nameMatchingMode
+                            ?.let { Some(nameMatchingMode) } ?: PatchValue.None
+                    ))
             }
 
             override fun onAuthorRolesSave(roles: List<KomfAuthorRole>) {

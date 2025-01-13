@@ -39,8 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
-import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.library.KomgaLibraryId
+import snd.komf.api.mediaserver.KomfMediaServerLibrary
+import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 
 private fun <T> tabTransitionSpec(): AnimatedContentTransitionScope<IndexedState<T>>.() -> ContentTransform = {
     if (targetState.index > initialState.index) {
@@ -56,11 +56,11 @@ private data class IndexedState<T>(val index: Int, val state: T)
 @Composable
 fun <T> LibraryTabs(
     defaultProcessingState: T,
-    libraryProcessingState: Map<KomgaLibraryId, T>,
+    libraryProcessingState: Map<KomfMediaServerLibraryId, T>,
 
-    onLibraryConfigAdd: (libraryId: KomgaLibraryId) -> Unit,
-    onLibraryConfigRemove: (libraryId: KomgaLibraryId) -> Unit,
-    libraries: List<KomgaLibrary>,
+    onLibraryConfigAdd: (libraryId: KomfMediaServerLibraryId) -> Unit,
+    onLibraryConfigRemove: (libraryId: KomfMediaServerLibraryId) -> Unit,
+    libraries: List<KomfMediaServerLibrary>,
     content: @Composable (T) -> Unit,
 ) {
 
@@ -96,9 +96,9 @@ fun <T> LibraryTabs(
                         modifier = Modifier.cursorForHand(),
                         shape = RoundedCornerShape(5.dp),
                         colors =
-                        if (selectedTabIndex == index + 1) ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ) else ButtonDefaults.textButtonColors(),
+                            if (selectedTabIndex == index + 1) ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ) else ButtonDefaults.textButtonColors(),
                         onClick = {
                             selectedTabIndex = index + 1
                             selectedState = state
@@ -111,7 +111,13 @@ fun <T> LibraryTabs(
                         )
                         Box(
                             Modifier
-                                .clickable { onLibraryConfigRemove(libraryId) }
+                                .clickable {
+                                    onLibraryConfigRemove(libraryId)
+                                    if (selectedTabIndex == index + 1) {
+                                        selectedTabIndex = 0
+                                        selectedState = defaultProcessingState
+                                    }
+                                }
                                 .padding(3.dp)
                         ) {
                             Icon(

@@ -53,6 +53,7 @@ import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsS
 import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
+import snd.komf.api.MediaServer.KOMGA
 import snd.webview.webviewIsAvailable
 
 @Composable
@@ -170,7 +171,7 @@ fun SettingsNavigationMenu(
             Column {
                 NavigationButton(
                     label = "Processing",
-                    onClick = { onNavigation(KomfProcessingSettingsScreen()) },
+                    onClick = { onNavigation(KomfProcessingSettingsScreen(KOMGA)) },
                     isSelected = currentScreen is KomfProcessingSettingsScreen,
                     color = contentColor,
                 )

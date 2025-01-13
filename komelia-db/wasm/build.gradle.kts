@@ -9,10 +9,6 @@ plugins {
 group = "io.github.snd_r"
 version = "unspecified"
 
-repositories {
-    mavenCentral()
-}
-
 kotlin {
     jvmToolchain(17)
 

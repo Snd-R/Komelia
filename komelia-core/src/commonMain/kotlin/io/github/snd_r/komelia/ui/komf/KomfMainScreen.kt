@@ -14,8 +14,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.CrossfadeTransition
 import io.github.snd_r.komelia.platform.PlatformTitleBar
-import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.ui.settings.SettingsScreenLayout
+import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsScreen
 import io.github.snd_r.komelia.ui.settings.settingsDesktopNavMenuWidth
 import io.github.snd_r.komelia.ui.settings.settingsDesktopTopPadding
 
@@ -24,7 +24,7 @@ class KomfMainScreen : Screen {
     @Composable
     override fun Content() {
         Navigator(
-            screen = LoginScreen(),
+            screen = KomfSettingsScreen(integrationToggleEnabled = false, showKavitaSettings = true),
             onBackPressed = null
         ) { navigator ->
             Column {

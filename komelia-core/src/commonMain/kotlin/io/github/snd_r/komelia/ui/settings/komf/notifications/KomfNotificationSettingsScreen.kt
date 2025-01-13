@@ -9,6 +9,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.error.formatExceptionMessage
 import io.github.snd_r.komelia.ui.settings.SettingsScreenContainer
 import io.github.snd_r.komelia.ui.settings.komf.notifications.view.KomfSettingsContent
 
@@ -19,18 +20,18 @@ class KomfNotificationSettingsScreen : Screen {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel { viewModelFactory.getKomfNotificationViewModel() }
         val vmState = vm.state.collectAsState().value
-        val komfConfigLoadError = vm.komfConfig.errorFlow.collectAsState().value
+        val komfConfigLoadError = vm.komfConfig.configError.collectAsState().value
         LaunchedEffect(Unit) { vm.initialize() }
 
-        SettingsScreenContainer(title = "Discord Notifications Settings") {
+        SettingsScreenContainer(title = "Notification Settings") {
 
             if (komfConfigLoadError != null) {
-                Text("${komfConfigLoadError::class.simpleName}: ${komfConfigLoadError.message}")
+                Text(formatExceptionMessage(komfConfigLoadError))
                 return@SettingsScreenContainer
             }
 
             when (vmState) {
-                is LoadState.Error -> Text("${vmState.exception::class.simpleName}: ${vmState.exception.message}")
+                is LoadState.Error -> Text(formatExceptionMessage(vmState.exception))
                 LoadState.Loading, LoadState.Uninitialized -> LoadingMaxSizeIndicator()
                 is LoadState.Success -> KomfSettingsContent(vm.discordState, vm.appriseState)
             }

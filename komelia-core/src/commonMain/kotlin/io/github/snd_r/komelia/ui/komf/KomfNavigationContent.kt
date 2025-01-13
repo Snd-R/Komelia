@@ -19,6 +19,8 @@ import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSe
 import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSettingsScreen
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsScreen
 import io.github.snd_r.komelia.ui.settings.navigation.NavigationButton
+import snd.komf.api.MediaServer.KAVITA
+import snd.komf.api.MediaServer.KOMGA
 
 @Composable
 fun KomfNavigationContent(
@@ -31,7 +33,7 @@ fun KomfNavigationContent(
         modifier = modifier.verticalScroll(rememberScrollState())
     ) {
         NavigationButton(
-            label = "Komga Login",
+            label = "Komga webui",
             onClick = { onNavigation(LoginScreen()) },
             isSelected = currentScreen is LoginScreen,
             color = contentColor,
@@ -41,14 +43,20 @@ fun KomfNavigationContent(
         Text("Komf Settings", style = MaterialTheme.typography.titleSmall)
         NavigationButton(
             label = "Connection",
-            onClick = { onNavigation(KomfSettingsScreen(false)) },
+            onClick = { onNavigation(KomfSettingsScreen(integrationToggleEnabled = false, showKavitaSettings = true)) },
             isSelected = currentScreen is KomfSettingsScreen,
             color = contentColor,
         )
         NavigationButton(
-            label = "Processing",
-            onClick = { onNavigation(KomfProcessingSettingsScreen()) },
-            isSelected = currentScreen is KomfProcessingSettingsScreen,
+            label = "Komga Processing",
+            onClick = { onNavigation(KomfProcessingSettingsScreen(KOMGA)) },
+            isSelected = currentScreen is KomfProcessingSettingsScreen && currentScreen.serverType == KOMGA,
+            color = contentColor,
+        )
+        NavigationButton(
+            label = "Kavita Processing",
+            onClick = { onNavigation(KomfProcessingSettingsScreen(KAVITA)) },
+            isSelected = currentScreen is KomfProcessingSettingsScreen && currentScreen.serverType == KAVITA,
             color = contentColor,
         )
         NavigationButton(
@@ -65,7 +73,7 @@ fun KomfNavigationContent(
         )
         NavigationButton(
             label = "Job History",
-            onClick = { onNavigation(KomfJobsScreen()) },
+            onClick = { onNavigation(KomfJobsScreen(false)) },
             isSelected = currentScreen is KomfJobsScreen,
             color = contentColor,
         )

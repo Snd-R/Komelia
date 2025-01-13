@@ -4,7 +4,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.settings.komf.KomfConfigState
+import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -16,7 +16,7 @@ class KomfNotificationSettingsViewModel(
     komfConfigClient: KomfConfigClient,
     komfNotificationClient: KomfNotificationClient,
     private val appNotifications: AppNotifications,
-    val komfConfig: KomfConfigState,
+    val komfConfig: KomfSharedState,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
     private val notificationContext = NotificationContextState()
