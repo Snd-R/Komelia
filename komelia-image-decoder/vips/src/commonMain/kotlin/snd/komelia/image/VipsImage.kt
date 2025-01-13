@@ -41,6 +41,14 @@ class VipsImage private constructor(
         ): VipsImage
 
         @JvmStatic
+        external fun thumbnailBuffer(
+            encoded: ByteArray,
+            scaleWidth: Int,
+            scaleHeight: Int,
+            crop: Boolean
+        ): VipsImage
+
+        @JvmStatic
         external fun vipsInit()
 
         @JvmStatic

@@ -36,7 +36,16 @@ class VipsImageDecoder : ImageDecoder {
         scaleHeight: Int,
         crop: Boolean
     ): KomeliaImage {
-        TODO("Not yet implemented")
+        return withContext(Dispatchers.Default) {
+            VipsBackedImage(
+                VipsImage.thumbnailBuffer(
+                    encoded = encoded,
+                    scaleWidth = scaleWidth.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
+                    scaleHeight = scaleHeight.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
+                    crop = crop
+                )
+            )
+        }
     }
 }
 

@@ -88,7 +88,52 @@ Java_snd_komelia_image_VipsImage_thumbnail(
 
     vips_thread_shutdown();
     jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, NULL);
-    if (jvm_handle == NULL) { g_object_unref(thumbnail); }
+    if (jvm_handle == NULL) {g_object_unref(thumbnail);}
+    return jvm_handle;
+}
+
+JNIEXPORT jobject JNICALL
+Java_snd_komelia_image_VipsImage_thumbnailBuffer(
+    JNIEnv *env,
+    jobject this,
+    jbyteArray encoded,
+    jint scaleWidth,
+    jint scaleHeight,
+    jboolean crop
+) {
+    jsize input_len = (*env)->GetArrayLength(env, encoded);
+    jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, NULL);
+
+    unsigned char *internal_buffer = malloc(input_len * sizeof(unsigned char));
+    memcpy(internal_buffer, input_bytes, input_len);
+    (*env)->ReleaseByteArrayElements(env, encoded, input_bytes, JNI_ABORT);
+
+    VipsImage *thumbnail = NULL;
+    if (crop) {
+        vips_thumbnail_buffer(internal_buffer, input_len, &thumbnail, scaleWidth,
+                       "height", scaleHeight,
+                       "crop", VIPS_INTERESTING_ENTROPY,
+                       NULL
+        );
+    } else {
+        vips_thumbnail_buffer(internal_buffer, input_len, &thumbnail, scaleWidth,
+            "height", scaleHeight, NULL);
+    }
+
+    if (!thumbnail) {
+        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+        vips_error_clear();
+        vips_thread_shutdown();
+        free(internal_buffer);
+        return NULL;
+    }
+
+    vips_thread_shutdown();
+    jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, internal_buffer);
+    if (jvm_handle == NULL) {
+        g_object_unref(thumbnail);
+        free(internal_buffer);
+    }
     return jvm_handle;
 }
 
