@@ -33,7 +33,7 @@ class ScreenScaleState {
     private var currentOffset = Offset.Zero
 
     val areaSize = MutableStateFlow(IntSize.Zero)
-    val targetSize = MutableStateFlow(Size(1f,1f))
+    val targetSize = MutableStateFlow(Size(1f, 1f))
 
     val offsetXLimits = MutableStateFlow(-1f..1f)
     val offsetYLimits = MutableStateFlow(-1f..1f)
@@ -170,8 +170,8 @@ class ScreenScaleState {
         }
     }
 
-    fun addPan(change: PointerInputChange, pan: Offset) {
-        velocityTracker.addPointerInputChange(change)
+    fun addPan(changes: List<PointerInputChange>, pan: Offset) {
+        changes.forEach { velocityTracker.addPointerInputChange(it) }
         addPan(pan)
     }
 

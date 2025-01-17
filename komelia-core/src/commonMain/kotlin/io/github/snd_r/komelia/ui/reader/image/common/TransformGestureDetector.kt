@@ -1,8 +1,5 @@
 package io.github.snd_r.komelia.ui.reader.image.common
 
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-
 /*
  * Copyright 2020 The Android Open Source Project
  *
@@ -20,6 +17,8 @@ import androidx.compose.foundation.gestures.awaitFirstDown
  */
 
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -49,7 +48,7 @@ import kotlin.math.atan2
  */
 suspend fun PointerInputScope.detectTransformGestures(
     panZoomLock: Boolean = false,
-    onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit
+    onGesture: (changes: List<PointerInputChange>, centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit
 ) {
     awaitEachGesture {
         var rotation = 0f
@@ -94,7 +93,7 @@ suspend fun PointerInputScope.detectTransformGestures(
                         zoomChange != 1f ||
                         panChange != Offset.Zero
                     ) {
-                        onGesture(centroid, panChange, zoomChange, effectiveRotation)
+                        onGesture(event.changes, centroid, panChange, zoomChange, effectiveRotation)
                     }
 //                    event.changes.fastForEach {
 //                        if (it.positionChanged()) {

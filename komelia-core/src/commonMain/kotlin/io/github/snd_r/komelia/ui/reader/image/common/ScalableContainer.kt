@@ -80,9 +80,7 @@ fun ScalableContainer(
                             flingInProgress = false
                         }
                     },
-                    onDrag = { change, dragAmount ->
-                        scaleState.addPan(change, dragAmount)
-                    }
+                    onDrag = { _, _ -> }
                 )
 
             }
@@ -98,8 +96,12 @@ fun ScalableContainer(
 
             }
             .pointerInput(areaSize) {
-                detectTransformGestures { centroid, _, zoom, _ ->
-                    scaleState.multiplyZoom(zoom, centroid - areaCenter)
+                detectTransformGestures { event, centroid, pan, zoom, _ ->
+                    if (zoom != 1.0f) {
+                        scaleState.multiplyZoom(zoom, centroid - areaCenter)
+                    } else {
+                        scaleState.addPan(event, pan)
+                    }
                 }
             }
             .onPointerEvent(PointerEventType.Scroll) { event ->
