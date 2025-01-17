@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -100,8 +98,13 @@ android {
         includeInBundle = false
     }
     buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "android.pro"
+            )
         }
     }
     compileOptions {
@@ -150,7 +153,7 @@ compose.desktop {
         buildTypes.release.proguard {
             version.set("7.6.1")
             optimize.set(false)
-            configurationFiles.from(project.file("no_icons.pro"))
+            configurationFiles.from(project.file("desktop.pro"))
         }
     }
 }
