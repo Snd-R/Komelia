@@ -53,6 +53,7 @@ import snd.komga.client.book.R2Device
 import snd.komga.client.book.R2Location
 import snd.komga.client.book.R2Locator
 import snd.komga.client.book.R2LocatorText
+import snd.komga.client.book.R2Positions
 import snd.komga.client.book.R2Progression
 import snd.komga.client.book.WPLink
 import snd.komga.client.book.WPPublication
@@ -156,9 +157,8 @@ class TtsuReaderState(
             epubSettingsRepository.putTtsuReaderSettings(it)
         }
         webview.bind<Unit, TtuBookmarkData>("getBookmark") { getBookmark() }
-        webview.bind<TtuBookmarkData, Unit>("putBookmark") {
-            putBookmark(it)
-        }
+
+        webview.bind<TtuBookmarkData, Unit>("putBookmark") { putBookmark(it) }
 
         webview.bind<Unit, Unit>("closeBook") { closeWebview() }
 
@@ -313,6 +313,19 @@ class TtsuReaderState(
                 else ((it - epubSection.startCharacter).toDouble() / epubSection.characters).toFloat()
             } ?: 0f
 
+        val chapterHref = bookmark.chapterReference.replace(resourceBaseUriRegex, "")
+        val matchingPositions = epubData.positions.positions.filter { it.href == chapterHref }
+        val before = matchingPositions
+            .filter { it.locations.progression != null && it.locations.position != null }
+            .filter { it.locations.progression!! <= chapterProgressPercentage }
+            .maxByOrNull { it.locations.position!! }
+        val after = matchingPositions
+            .filter { it.locations.progression != null && it.locations.position != null }
+            .filter { it.locations.progression!! > chapterProgressPercentage }
+            .minByOrNull { it.locations.position!! }
+
+        if (before == null || (after != null && before.locations.position!! > after.locations.position!!)) return
+
         val newProgression = R2Progression(
             modified = Instant.fromEpochMilliseconds(bookmark.lastBookmarkModified),
             device = R2Device("unused", "Komelia"),
@@ -322,8 +335,8 @@ class TtsuReaderState(
                 title = manifestLink.title,
                 locations = R2Location(
                     fragment = emptyList(),
-                    position = manifestIndex + 1,
-                    progression = chapterProgressPercentage,
+                    position = before.locations.position,
+                    progression = if (after == null) before.locations.progression else chapterProgressPercentage,
                     totalProgression = bookmark.exploredCharCount
                         ?.let { it.toDouble() / epubData.characterCount }?.toFloat()
                 ),
@@ -352,6 +365,7 @@ class TtsuReaderState(
 
     private suspend fun generateEpubHtml(bookId: KomgaBookId): TtuEpubData {
         val manifest = bookClient.getWebPubManifest(bookId)
+        val positions = bookClient.getReadiumPositions(bookId)
         val sectionData: MutableList<TtuSection> = mutableListOf()
         val result = Element("div")
 
@@ -458,8 +472,9 @@ class TtsuReaderState(
             stylesheet = combinedDirtyStyleString,
             characterCount = currentCharCount,
             sections = sectionData,
+            images = images,
             manifest = manifest,
-            images = images
+            positions = positions
         )
     }
 
@@ -613,8 +628,9 @@ class TtsuReaderState(
         val stylesheet: String,
         val characterCount: Long,
         val sections: List<TtuSection>,
+        val images: List<Url>,
         val manifest: WPPublication,
-        val images: List<Url>
+        val positions: R2Positions,
     )
 
     @Serializable

@@ -9,6 +9,7 @@ import snd.komga.client.book.KomgaBookPage
 import snd.komga.client.book.KomgaBookQuery
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.book.KomgaBookThumbnail
+import snd.komga.client.book.R2Positions
 import snd.komga.client.book.R2Progression
 import snd.komga.client.book.WPPublication
 import snd.komga.client.common.KomgaPageRequest
@@ -78,6 +79,10 @@ class OfflineBookClient: KomgaBookClient {
     }
 
     override suspend fun getLatestBooks(pageRequest: KomgaPageRequest?): Page<KomgaBook> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getReadiumPositions(bookId: KomgaBookId): R2Positions {
         TODO("Not yet implemented")
     }
 

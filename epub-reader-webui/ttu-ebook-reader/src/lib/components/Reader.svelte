@@ -484,7 +484,11 @@
     const bookId = getBookIdSync();
     if (!bookId || !bookmarkManager || !$sectionData$?.length) return;
 
-    const [, currentChapterIndex, referenceId] = getChapterData($sectionData$);
+    let currentSectionIndex = $sectionData$.findIndex((section) => section.progress < 100);
+    if (currentSectionIndex == -1) {
+      currentSectionIndex = $sectionData$.length - 1
+    }
+    let currentSection = $sectionData$[currentSectionIndex];
 
     let data: BookmarkData;
 
@@ -498,13 +502,13 @@
 
       pulseElement(bookmarkRange?.endContainer?.parentElement, 'add', 0.5, 500);
 
-      data = bookmarkManager.formatBookmarkDataByRange(bookId, currentChapterIndex, referenceId, bookmarkRange);
+      data = bookmarkManager.formatBookmarkDataByRange(bookId, currentSectionIndex, currentSection.reference, bookmarkRange);
 
       if (userSelectedRange) {
         clearRange(window);
       }
     } else {
-      data = bookmarkManager.formatBookmarkData(bookId, currentChapterIndex, referenceId, customReadingPointScrollOffset);
+      data = bookmarkManager.formatBookmarkData(bookId, currentSectionIndex, currentSection.reference, customReadingPointScrollOffset);
     }
 
     await externalFunctions.putBookmark(data);
