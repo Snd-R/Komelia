@@ -26,7 +26,6 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.canIntegrateWithSystemBar
 import io.github.snd_r.komelia.ui.LoadState
@@ -144,17 +143,16 @@ class ImageReaderScreen(
                     val page = vm.readerState.readProgressPage.value
                     navigator push ColorCorrectionScreen(book.id, page)
                 }
+            },
+            onExit = {
+                vm.readerState.booksState.value?.currentBook?.let { book ->
+                    navigator replace MainScreen(
+                        if (book.oneshot) OneshotScreen(book)
+                        else SeriesScreen(book.seriesId)
+                    )
+                }
             }
         )
-
-        BackPressHandler {
-            vm.readerState.booksState.value?.currentBook?.let { book ->
-                navigator replace MainScreen(
-                    if (book.oneshot) OneshotScreen(book)
-                    else SeriesScreen(book.seriesId)
-                )
-            }
-        }
     }
 
     @Composable

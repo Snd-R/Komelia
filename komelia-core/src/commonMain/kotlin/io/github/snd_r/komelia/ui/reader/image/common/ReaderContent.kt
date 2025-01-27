@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalPlatform
@@ -51,11 +52,13 @@ fun ReaderContent(
     onBookBackClick: () -> Unit,
     isColorCurvesActive: Boolean,
     onColorCorrectionClick: () -> Unit,
+    onExit: () -> Unit,
 ) {
     val book = commonReaderState.booksState.collectAsState().value?.currentBook
     var showHelpDialog by remember { mutableStateOf(false) }
     var showSettingsMenu by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
+    BackPressHandler { if (showSettingsMenu) showSettingsMenu = false else onExit() }
 
     if (LocalPlatform.current == MOBILE) {
         val windowState = LocalWindowState.current

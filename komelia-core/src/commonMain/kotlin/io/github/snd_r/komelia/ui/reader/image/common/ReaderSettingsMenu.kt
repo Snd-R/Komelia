@@ -81,7 +81,6 @@ fun SettingsMenu(
     onColorCorrectionClick: () -> Unit,
     readerSettingsContent: @Composable ColumnScope.() -> Unit,
 ) {
-//    var showImageSettings by remember { mutableStateOf(false) }
     if (!show) return
     Box(
         modifier = modifier.fillMaxSize(),
