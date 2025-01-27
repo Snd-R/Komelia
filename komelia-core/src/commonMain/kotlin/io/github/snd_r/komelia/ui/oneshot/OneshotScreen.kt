@@ -20,6 +20,7 @@ import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
+import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.library.KomgaLibraryId
@@ -92,7 +93,7 @@ class OneshotScreen(
     private fun onBackPress(navigator: Navigator, libraryId: KomgaLibraryId?) {
         val success = navigator.popUntil {
             (it is LibraryScreen && it.libraryId == libraryId)
-                    || it is CollectionScreen || it is ReadListScreen
+                    || it is CollectionScreen || it is ReadListScreen || it is SearchScreen
         }
         if (!success) {
             libraryId?.let { navigator replaceAll LibraryScreen(it) }

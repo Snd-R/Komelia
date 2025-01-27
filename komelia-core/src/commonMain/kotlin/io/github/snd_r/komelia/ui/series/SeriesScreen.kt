@@ -19,6 +19,7 @@ import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
+import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import snd.komga.client.library.KomgaLibraryId
@@ -111,7 +112,7 @@ class SeriesScreen(
 
     private fun onBackPress(navigator: Navigator, libraryId: KomgaLibraryId?) {
         val success = navigator.popUntil {
-            (it is LibraryScreen && it.libraryId == libraryId) || it is CollectionScreen
+            (it is LibraryScreen && it.libraryId == libraryId) || it is CollectionScreen || it is SearchScreen
         }
         if (!success) {
             libraryId?.let { navigator replaceAll LibraryScreen(it) }

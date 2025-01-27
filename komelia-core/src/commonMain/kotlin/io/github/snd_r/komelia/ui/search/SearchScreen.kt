@@ -64,13 +64,13 @@ class SearchScreen(
                         seriesCurrentPage = vm.seriesCurrentPage,
                         seriesTotalPages = vm.seriesTotalPages,
                         onSeriesPageChange = vm::onSeriesPageChange,
-                        onSeriesClick = { navigator.replaceAll(seriesScreen(it)) },
+                        onSeriesClick = { navigator.push(seriesScreen(it)) },
 
                         bookResults = vm.bookResults,
                         bookCurrentPage = vm.bookCurrentPage,
                         bookTotalPages = vm.bookTotalPages,
                         onBookPageChange = vm::onBookPageChange,
-                        onBookClick = { navigator.replaceAll(bookScreen(it)) },
+                        onBookClick = { navigator.push(bookScreen(it)) },
                     )
 
                 }
