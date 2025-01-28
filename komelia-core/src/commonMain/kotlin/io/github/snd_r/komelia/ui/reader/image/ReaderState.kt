@@ -51,7 +51,6 @@ class ReaderState(
 
     val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
     val decoderSettings = MutableStateFlow<PlatformDecoderSettings?>(null)
-
     val readerType = MutableStateFlow(CONTINUOUS)
     val imageStretchToFit = MutableStateFlow(true)
     val cropBorders = MutableStateFlow(false)
@@ -213,7 +212,7 @@ class ReaderState(
         stateScope.launch { readerSettingsRepository.putStretchToFit(stretch) }
     }
 
-    fun onTrimEdgesChange(trim: Boolean) {
+    fun onCropBordersChange(trim: Boolean) {
         cropBorders.value = trim
         stateScope.launch { readerSettingsRepository.putCropBorders(trim) }
     }

@@ -39,6 +39,7 @@ import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderConten
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderContent
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.settings.SettingsOverlay
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
@@ -48,13 +49,12 @@ fun ReaderContent(
     continuousReaderState: ContinuousReaderState,
     screenScaleState: ScreenScaleState,
 
-    onSeriesBackClick: () -> Unit,
-    onBookBackClick: () -> Unit,
-    isColorCurvesActive: Boolean,
+    onSeriesBackPress: () -> Unit,
+    onBookBackPress: () -> Unit,
+    isColorCorrectionActive: Boolean,
     onColorCorrectionClick: () -> Unit,
     onExit: () -> Unit,
 ) {
-    val book = commonReaderState.booksState.collectAsState().value?.currentBook
     var showHelpDialog by remember { mutableStateOf(false) }
     var showSettingsMenu by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
@@ -72,6 +72,7 @@ fun ReaderContent(
             }
             onDispose {
                 windowState.setSystemBarsColor(Color.Transparent)
+                windowState.setFullscreen(false)
             }
         }
     }
@@ -82,7 +83,7 @@ fun ReaderContent(
             showSettingsMenu = showSettingsMenu,
             setShowSettingsDialog = { showSettingsMenu = it },
             onShowHelpDialog = { showHelpDialog = !showHelpDialog },
-            onClose = onSeriesBackClick
+            onClose = onSeriesBackPress
         )
     }
     Box(Modifier.fillMaxSize().onSizeChanged { screenScaleState.setAreaSize(it) }) {
@@ -93,46 +94,42 @@ fun ReaderContent(
         }
 
         when (commonReaderState.readerType.collectAsState().value) {
-            PAGED -> PagedReaderContent(
-                showHelpDialog = showHelpDialog,
-                onShowHelpDialogChange = { showHelpDialog = it },
-                showSettingsMenu = showSettingsMenu,
-                onShowSettingsMenuChange = { showSettingsMenu = it },
-                expandImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
-                onExpandImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
+            PAGED -> {
+                PagedReaderContent(
+                    showHelpDialog = showHelpDialog,
+                    onShowHelpDialogChange = { showHelpDialog = it },
+                    showSettingsMenu = showSettingsMenu,
+                    onShowSettingsMenuChange = { showSettingsMenu = it },
+                    screenScaleState = screenScaleState,
+                    pagedReaderState = pagedReaderState,
+                )
+            }
 
-                screenScaleState = screenScaleState,
-                pagedReaderState = pagedReaderState,
-                readerState = commonReaderState,
-
-                book = book,
-                onBookBackClick = onBookBackClick,
-                onSeriesBackClick = onSeriesBackClick,
-                isColorCurvesActive = isColorCurvesActive,
-                onColorCurvesClick = onColorCorrectionClick,
-            )
-
-
-            CONTINUOUS -> ContinuousReaderContent(
-                showHelpDialog = showHelpDialog,
-                onShowHelpDialogChange = { showHelpDialog = it },
-
-                showSettingsMenu = showSettingsMenu,
-                onShowSettingsMenuChange = { showSettingsMenu = it },
-                expandImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
-                onExpandImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
-
-                screenScaleState = screenScaleState,
-                continuousReaderState = continuousReaderState,
-                readerState = commonReaderState,
-
-                book = book,
-                onBookBackClick = onBookBackClick,
-                onSeriesBackClick = onSeriesBackClick,
-                isColorCurvesActive = isColorCurvesActive,
-                onColorCurvesClick = onColorCorrectionClick,
-            )
+            CONTINUOUS -> {
+                ContinuousReaderContent(
+                    showHelpDialog = showHelpDialog,
+                    onShowHelpDialogChange = { showHelpDialog = it },
+                    showSettingsMenu = showSettingsMenu,
+                    onShowSettingsMenuChange = { showSettingsMenu = it },
+                    screenScaleState = screenScaleState,
+                    continuousReaderState = continuousReaderState,
+                )
+            }
         }
+
+        SettingsOverlay(
+            show = showSettingsMenu,
+            onDismiss = { showSettingsMenu = false },
+            commonReaderState = commonReaderState,
+            pagedReaderState = pagedReaderState,
+            continuousReaderState = continuousReaderState,
+            screenScaleState = screenScaleState,
+            isColorCorrectionsActive = isColorCorrectionActive,
+            onColorCorrectionClick = onColorCorrectionClick,
+            onSeriesPress = onSeriesBackPress,
+            onBookPress = onBookBackPress,
+            ohShowHelpDialogChange = { showHelpDialog = it }
+        )
     }
 }
 

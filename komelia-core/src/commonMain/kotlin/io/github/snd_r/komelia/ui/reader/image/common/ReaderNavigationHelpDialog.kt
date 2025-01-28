@@ -15,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +28,10 @@ import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
+import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
 
 @Composable
 fun PagedReaderHelpDialog(
@@ -47,9 +52,15 @@ fun PagedReaderHelpDialog(
 
 @Composable
 fun ContinuousReaderHelpDialog(
-    orientation: Orientation,
+    readingDirection: ContinuousReaderState.ReadingDirection,
     onDismissRequest: () -> Unit,
 ) {
+    val orientation = remember(readingDirection) {
+        when (readingDirection) {
+            TOP_TO_BOTTOM -> Vertical
+            LEFT_TO_RIGHT, RIGHT_TO_LEFT -> Horizontal
+        }
+    }
     AppDialog(
         modifier = Modifier.fillMaxWidth(.9f),
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -131,7 +142,7 @@ private fun ContinuousDialogContent(
             listOf("Home") to "First page",
             listOf("End") to "Last page",
             if (platform == PlatformType.WEB_KOMF) {
-                listOf("Alt", "Scroll Wheel") to "Zoom"
+                listOf("Shift", "Scroll Wheel") to "Zoom"
             } else {
                 listOf("Ctrl", "Scroll Wheel") to "Zoom"
             }

@@ -41,7 +41,6 @@ import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.oneshot.OneshotViewModel
 import io.github.snd_r.komelia.ui.reader.epub.EpubReaderViewModel
 import io.github.snd_r.komelia.ui.reader.image.ReaderViewModel
-import io.github.snd_r.komelia.ui.reader.image.settings.ImageSettingsDialogViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
@@ -630,14 +629,6 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             bookId = bookId,
             pageNumber = pageNumber,
-        )
-    }
-
-    fun getImageSettingsDialogViewModel(): ImageSettingsDialogViewModel {
-        return ImageSettingsDialogViewModel(
-            settingsRepository = dependencies.settingsRepository,
-            readerSettingsRepository = dependencies.imageReaderSettingsRepository,
-            decoderDescriptor = dependencies.imageDecoderDescriptor,
         )
     }
 

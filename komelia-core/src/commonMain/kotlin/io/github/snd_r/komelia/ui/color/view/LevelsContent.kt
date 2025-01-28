@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +39,7 @@ import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
 import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.color.LevelsState
+import io.github.snd_r.komelia.ui.common.NumberFieldWithIncrements
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -177,6 +179,7 @@ private fun InputFields(
             minValue = 0f,
             maxValue = 255f,
             digitsAfterDecimal = 0,
+            modifier = Modifier.widthIn(max = 115.dp),
         )
         NumberFieldWithIncrements(
             value = gammaValue,
@@ -186,7 +189,7 @@ private fun InputFields(
             minValue = 0.1f,
             maxValue = 10f,
             digitsAfterDecimal = 2,
-            modifier = Modifier.padding(start = 25.dp).weight(1f)
+            modifier = Modifier.widthIn(max = 115.dp).padding(start = 25.dp).weight(1f)
         )
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
@@ -196,6 +199,7 @@ private fun InputFields(
             minValue = 0f,
             maxValue = 255f,
             digitsAfterDecimal = 0,
+            modifier = Modifier.widthIn(max = 115.dp),
         )
     }
 }
@@ -219,6 +223,7 @@ private fun OutputFields(
             minValue = 0f,
             maxValue = 255f,
             digitsAfterDecimal = 0,
+            modifier = Modifier.widthIn(max = 115.dp),
         )
         Spacer(Modifier.weight(1f))
         NumberFieldWithIncrements(
@@ -229,6 +234,7 @@ private fun OutputFields(
             minValue = 0f,
             maxValue = 255f,
             digitsAfterDecimal = 0,
+            modifier = Modifier.widthIn(max = 115.dp),
         )
     }
 }

@@ -3,14 +3,21 @@ package io.github.snd_r.komelia.ui.common
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Visibility
@@ -27,13 +34,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Shape
@@ -43,6 +55,11 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,6 +67,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.platform.formatDecimal
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 
 @Composable
 fun PasswordTextField(
@@ -338,4 +360,100 @@ fun NumberField(
         shape = shape,
         colors = colors
     )
+}
+
+
+@Composable
+fun NumberFieldWithIncrements(
+    value: Float?,
+    onvValueChange: (Float) -> Unit,
+    label: String,
+    stepSize: Float,
+    minValue: Float,
+    maxValue: Float,
+    digitsAfterDecimal: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
+    ) {
+        var isTextFieldBlank by remember(value) { mutableStateOf(false) }
+        val valueString = remember(value) { value?.formatDecimal(digitsAfterDecimal) ?: "" }
+        OutlinedTextField(
+            value = if (isTextFieldBlank) "" else valueString,
+            onValueChange = { newValue ->
+                if (newValue.isBlank()) {
+                    isTextFieldBlank = true
+                    onvValueChange(minValue)
+                } else {
+                    isTextFieldBlank = false
+                    val newFloat = newValue.toFloatOrNull() ?: return@OutlinedTextField
+                    onvValueChange(newFloat.coerceIn(minValue, maxValue))
+                }
+            },
+            enabled = value != null,
+            label = { Text(label) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f, false)
+        )
+        Column(Modifier.widthIn(min = 25.dp)) {
+            val ripple = ripple()
+            Icon(
+                imageVector = Icons.Default.ArrowUpward,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(25.dp)
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .indication(remember { MutableInteractionSource() }, ripple)
+                    .doWhilePointerPressed { value?.let { onvValueChange((it + stepSize).coerceAtMost(maxValue)) } }
+                    .clip(RoundedCornerShape(5.dp))
+                    .clickable(enabled = value != null) { }
+            )
+            Icon(
+                imageVector = Icons.Default.ArrowDownward,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(25.dp)
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .indication(remember { MutableInteractionSource() }, ripple)
+                    .doWhilePointerPressed { value?.let { onvValueChange((it - stepSize).coerceAtLeast(minValue)) } }
+                    .clip(RoundedCornerShape(5.dp))
+                    .clickable(enabled = value != null) { }
+            )
+        }
+    }
+}
+
+private fun Modifier.doWhilePointerPressed(
+    action: () -> Unit,
+): Modifier = composed {
+    var isPointerPressed by remember { mutableStateOf(false) }
+    val currentAction by rememberUpdatedState(action)
+
+    LaunchedEffect(isPointerPressed) {
+        if (!isPointerPressed) return@LaunchedEffect
+        withContext(Dispatchers.Default) {
+            currentAction()
+            delay(200)
+            while (isActive) {
+                currentAction()
+                delay(10)
+            }
+        }
+    }
+
+    pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Main)
+                when (event.type) {
+                    PointerEventType.Press -> isPointerPressed = true
+                    PointerEventType.Release -> isPointerPressed = false
+
+                }
+            }
+        }
+    }
 }

@@ -31,13 +31,10 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
-import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
-import io.github.snd_r.komelia.ui.reader.image.common.PageSpreadProgressSlider
 import io.github.snd_r.komelia.ui.reader.image.common.PagedReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
 import io.github.snd_r.komelia.ui.reader.image.common.ScalableContainer
-import io.github.snd_r.komelia.ui.reader.image.common.SettingsMenu
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.Page
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
@@ -46,7 +43,6 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.Transition
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookEnd
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookStart
 import kotlinx.coroutines.flow.SharedFlow
-import snd.komga.client.book.KomgaBook
 
 @Composable
 fun BoxScope.PagedReaderContent(
@@ -54,21 +50,12 @@ fun BoxScope.PagedReaderContent(
     onShowHelpDialogChange: (Boolean) -> Unit,
     showSettingsMenu: Boolean,
     onShowSettingsMenuChange: (Boolean) -> Unit,
-    expandImageSettings: Boolean,
-    onExpandImageSettingsChange: (Boolean) -> Unit,
-
     screenScaleState: ScreenScaleState,
     pagedReaderState: PagedReaderState,
-    readerState: ReaderState,
-
-    book: KomgaBook?,
-    onBookBackClick: () -> Unit,
-    onSeriesBackClick: () -> Unit,
-    isColorCurvesActive: Boolean,
-    onColorCurvesClick: () -> Unit,
 ) {
-    if (showHelpDialog)
+    if (showHelpDialog) {
         PagedReaderHelpDialog(onDismissRequest = { onShowHelpDialogChange(false) })
+    }
 
     val readingDirection = pagedReaderState.readingDirection.collectAsState().value
     val layoutDirection = when (readingDirection) {
@@ -105,32 +92,6 @@ fun BoxScope.PagedReaderContent(
             }
         }
     }
-
-    SettingsMenu(
-        book = book,
-        onMenuDismiss = { onShowSettingsMenuChange(!showSettingsMenu) },
-        onShowHelpMenu = { onShowHelpDialogChange(true) },
-        show = showSettingsMenu,
-        settingsState = readerState,
-        screenScaleState = screenScaleState,
-        onSeriesPress = onSeriesBackClick,
-        onBookClick = onBookBackClick,
-        expandImageSettings = expandImageSettings,
-        onExpandImageSettingsChange = onExpandImageSettingsChange,
-        isColorCorrectionsActive = isColorCurvesActive,
-        onColorCorrectionClick = onColorCurvesClick,
-        readerSettingsContent = { PagedReaderSettingsContent(pagedReaderState) }
-    )
-
-
-    PageSpreadProgressSlider(
-        pageSpreads = pagedReaderState.pageSpreads.collectAsState().value,
-        currentSpreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value,
-        onPageNumberChange = pagedReaderState::onPageChange,
-        show = showSettingsMenu,
-        layoutDirection = layoutDirection,
-        modifier = Modifier.align(Alignment.BottomStart),
-    )
 }
 
 

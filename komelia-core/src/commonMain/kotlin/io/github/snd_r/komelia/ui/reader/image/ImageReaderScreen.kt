@@ -124,7 +124,7 @@ class ImageReaderScreen(
             pagedReaderState = vm.pagedReaderState,
             continuousReaderState = vm.continuousReaderState,
             screenScaleState = vm.screenScaleState,
-            onSeriesBackClick = {
+            onSeriesBackPress = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(
                         if (book.oneshot) OneshotScreen(book)
@@ -132,12 +132,12 @@ class ImageReaderScreen(
                     )
                 }
             },
-            onBookBackClick = {
+            onBookBackPress = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     navigator replace MainScreen(bookScreen(book))
                 }
             },
-            isColorCurvesActive = vm.colorCorrectionIsActive.collectAsState(false).value,
+            isColorCorrectionActive = vm.colorCorrectionIsActive.collectAsState(false).value,
             onColorCorrectionClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->
                     val page = vm.readerState.readProgressPage.value

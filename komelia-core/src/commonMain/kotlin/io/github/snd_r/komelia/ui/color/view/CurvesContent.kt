@@ -74,6 +74,7 @@ import io.github.snd_r.komelia.ui.color.CurvePresetsState
 import io.github.snd_r.komelia.ui.color.SelectedPoint
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
+import io.github.snd_r.komelia.ui.common.NumberFieldWithIncrements
 import kotlin.math.roundToInt
 
 const val curvePointSize = 10f
@@ -459,7 +460,8 @@ private fun ChannelValues(
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
-            digitsAfterDecimal = 0
+            digitsAfterDecimal = 0,
+            modifier = Modifier.widthIn(max = 115.dp)
         )
         NumberFieldWithIncrements(
             value = currentPointOffset?.y?.toFloat(),
@@ -470,7 +472,8 @@ private fun ChannelValues(
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
-            digitsAfterDecimal = 0
+            digitsAfterDecimal = 0,
+            modifier = Modifier.widthIn(max = 115.dp)
         )
     }
 }
