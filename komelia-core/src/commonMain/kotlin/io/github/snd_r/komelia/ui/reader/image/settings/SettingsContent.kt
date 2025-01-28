@@ -1,8 +1,11 @@
 package io.github.snd_r.komelia.ui.reader.image.settings
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -65,95 +68,97 @@ fun BoxScope.SettingsOverlay(
     val stretchToFit = commonReaderState.imageStretchToFit.collectAsState().value
     val cropBorders = commonReaderState.cropBorders.collectAsState().value
 
-    if ((windowWidth == COMPACT || windowWidth == MEDIUM) && platform != DESKTOP) {
-        BottomSheetSettingsOverlay(
-            book = book,
-            readerType = readerType,
-            onReaderTypeChange = commonReaderState::onReaderTypeChange,
-            isColorCorrectionsActive = isColorCorrectionsActive,
-            onColorCorrectionClick = onColorCorrectionClick,
-            onSeriesPress = onSeriesPress,
-            decoder = decoder,
-            decoderDescriptor = decoderDescriptor,
-            onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
-            stretchToFit = stretchToFit,
-            onStretchToFitChange = commonReaderState::onStretchToFitChange,
-            cropBorders = cropBorders,
-            onCropBordersChange = commonReaderState::onCropBordersChange,
-            zoom = zoom,
+    Box(Modifier.fillMaxSize().systemBarsPadding()) {
+        if ((windowWidth == COMPACT || windowWidth == MEDIUM) && platform != DESKTOP) {
+            BottomSheetSettingsOverlay(
+                book = book,
+                readerType = readerType,
+                onReaderTypeChange = commonReaderState::onReaderTypeChange,
+                isColorCorrectionsActive = isColorCorrectionsActive,
+                onColorCorrectionClick = onColorCorrectionClick,
+                onSeriesPress = onSeriesPress,
+                decoder = decoder,
+                decoderDescriptor = decoderDescriptor,
+                onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
+                stretchToFit = stretchToFit,
+                onStretchToFitChange = commonReaderState::onStretchToFitChange,
+                cropBorders = cropBorders,
+                onCropBordersChange = commonReaderState::onCropBordersChange,
+                zoom = zoom,
 
-            pagedReaderState = pagedReaderState,
-            continuousReaderState = continuousReaderState,
-        )
-    } else {
-        SettingsSideMenuOverlay(
-            book = book,
-            readerType = readerType,
-            onReaderTypeChange = commonReaderState::onReaderTypeChange,
-            isColorCorrectionsActive = isColorCorrectionsActive,
-            onColorCorrectionClick = onColorCorrectionClick,
-            onSeriesPress = onSeriesPress,
-            onBookPress = onBookPress,
-            decoder = decoder,
-            decoderDescriptor = decoderDescriptor,
-            onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
-            stretchToFit = stretchToFit,
-            onStretchToFitChange = commonReaderState::onStretchToFitChange,
-            cropBorders = cropBorders,
-            onCropBordersChange = commonReaderState::onCropBordersChange,
-            zoom = zoom,
-            showImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
-            onShowImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
-
-            pagedReaderState = pagedReaderState,
-            continuousReaderState = continuousReaderState,
-
-            onShowHelpMenu = { ohShowHelpDialogChange(true) },
-            onDismiss = onDismiss,
-        )
-    }
-
-    when (readerType) {
-        PAGED -> {
-            val readingDirection = pagedReaderState.readingDirection.collectAsState().value
-            val layoutDirection = remember(readingDirection) {
-                when (readingDirection) {
-                    PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> Ltr
-                    PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> Rtl
-                }
-            }
-            PageSpreadProgressSlider(
-                pageSpreads = pagedReaderState.pageSpreads.collectAsState().value,
-                currentSpreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value,
-                onPageNumberChange = pagedReaderState::onPageChange,
-                show = show,
-                layoutDirection = layoutDirection,
-                modifier = Modifier.align(Alignment.BottomStart),
+                pagedReaderState = pagedReaderState,
+                continuousReaderState = continuousReaderState,
             )
+        } else {
+            SettingsSideMenuOverlay(
+                book = book,
+                readerType = readerType,
+                onReaderTypeChange = commonReaderState::onReaderTypeChange,
+                isColorCorrectionsActive = isColorCorrectionsActive,
+                onColorCorrectionClick = onColorCorrectionClick,
+                onSeriesPress = onSeriesPress,
+                onBookPress = onBookPress,
+                decoder = decoder,
+                decoderDescriptor = decoderDescriptor,
+                onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
+                stretchToFit = stretchToFit,
+                onStretchToFitChange = commonReaderState::onStretchToFitChange,
+                cropBorders = cropBorders,
+                onCropBordersChange = commonReaderState::onCropBordersChange,
+                zoom = zoom,
+                showImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
+                onShowImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
 
+                pagedReaderState = pagedReaderState,
+                continuousReaderState = continuousReaderState,
 
+                onShowHelpMenu = { ohShowHelpDialogChange(true) },
+                onDismiss = onDismiss,
+            )
         }
 
-        CONTINUOUS -> {
-
-            val readingDirection = continuousReaderState.readingDirection.collectAsState().value
-            val layoutDirection = remember(readingDirection) {
-                when (readingDirection) {
-                    ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM -> Ltr
-                    ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT -> Ltr
-                    ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT -> Rtl
+        when (readerType) {
+            PAGED -> {
+                val readingDirection = pagedReaderState.readingDirection.collectAsState().value
+                val layoutDirection = remember(readingDirection) {
+                    when (readingDirection) {
+                        PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> Ltr
+                        PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> Rtl
+                    }
                 }
+                PageSpreadProgressSlider(
+                    pageSpreads = pagedReaderState.pageSpreads.collectAsState().value,
+                    currentSpreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value,
+                    onPageNumberChange = pagedReaderState::onPageChange,
+                    show = show,
+                    layoutDirection = layoutDirection,
+                    modifier = Modifier.align(Alignment.BottomStart),
+                )
+
+
             }
 
-            ProgressSlider(
-                pages = continuousReaderState.currentBookPages.collectAsState(emptyList()).value,
-                currentPageIndex = continuousReaderState.currentBookPageIndex.collectAsState(0).value,
-                onPageNumberChange = { coroutineScope.launch { continuousReaderState.scrollToBookPage(it + 1) } },
-                show = show,
-                layoutDirection = layoutDirection,
-                modifier = Modifier.align(Alignment.BottomStart),
-            )
+            CONTINUOUS -> {
 
+                val readingDirection = continuousReaderState.readingDirection.collectAsState().value
+                val layoutDirection = remember(readingDirection) {
+                    when (readingDirection) {
+                        ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM -> Ltr
+                        ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT -> Ltr
+                        ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT -> Rtl
+                    }
+                }
+
+                ProgressSlider(
+                    pages = continuousReaderState.currentBookPages.collectAsState(emptyList()).value,
+                    currentPageIndex = continuousReaderState.currentBookPageIndex.collectAsState(0).value,
+                    onPageNumberChange = { coroutineScope.launch { continuousReaderState.scrollToBookPage(it + 1) } },
+                    show = show,
+                    layoutDirection = layoutDirection,
+                    modifier = Modifier.align(Alignment.BottomStart),
+                )
+
+            }
         }
     }
 }
