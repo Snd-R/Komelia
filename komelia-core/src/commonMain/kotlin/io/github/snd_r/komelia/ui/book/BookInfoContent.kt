@@ -4,17 +4,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateTimeFormat
 import io.github.snd_r.komelia.ui.common.DescriptionChips
@@ -164,22 +171,28 @@ fun BookInfoRow(
     bookPagesCount: Int,
     bookNumber: String,
     releaseDate: LocalDate?,
+    onSeriesParentSeriesPress: (() -> Unit)? = null,
 ) {
 
-    SelectionContainer(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Column {
-                if (seriesTitle != null) {
-                    Text(
-                        text = "\"${seriesTitle}\" series",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-                Text(text = "Book #${bookNumber} · $bookPagesCount pages")
+    Column(
+        modifier = modifier,
+    ) {
+        if (seriesTitle != null) {
+            ElevatedButton(
+                onClick = { onSeriesParentSeriesPress?.let { it() } },
+                modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+            ) {
+                Icon(Icons.AutoMirrored.Outlined.LibraryBooks, null)
+                Spacer(Modifier.width(3.dp))
+                Text(text = seriesTitle, textDecoration = TextDecoration.Underline)
             }
+        }
+        SelectionContainer {
+            Text(text = "Book #${bookNumber} · $bookPagesCount pages")
+        }
 
+        Spacer(Modifier.heightIn(5.dp))
+        SelectionContainer {
             Column {
                 releaseDate?.let {
                     Row {

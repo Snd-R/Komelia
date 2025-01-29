@@ -79,7 +79,6 @@ fun BottomSheetSettingsOverlay(
     onReaderTypeChange: (ReaderType) -> Unit,
     isColorCorrectionsActive: Boolean,
     onColorCorrectionClick: () -> Unit,
-    onSeriesPress: () -> Unit,
     decoder: PlatformDecoderSettings?,
     decoderDescriptor: PlatformDecoderDescriptor?,
     onUpscaleMethodChange: (UpscaleOption) -> Unit,
@@ -100,6 +99,7 @@ fun BottomSheetSettingsOverlay(
 
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    onBackPress: () -> Unit,
 ) {
 
     val windowWidth = LocalWindowWidth.current
@@ -115,7 +115,7 @@ fun BottomSheetSettingsOverlay(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onSeriesPress) {
+        IconButton(onClick = onBackPress) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
         }
 

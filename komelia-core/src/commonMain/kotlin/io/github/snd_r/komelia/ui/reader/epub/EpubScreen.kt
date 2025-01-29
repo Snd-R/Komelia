@@ -81,7 +81,10 @@ class EpubScreen(
                     onExit = { navigator.replaceAll(MainScreen(book?.let { bookScreen(it) } ?: BookScreen(bookId))) }
                 )
 
-                is Success -> EpubContent(onWebviewCreated = { state.value.onWebviewCreated(it) })
+                is Success -> EpubContent(
+                    onWebviewCreated = { state.value.onWebviewCreated(it) },
+                    onBackButtonPress = state.value::onBackButtonPress
+                )
             }
         }
     }

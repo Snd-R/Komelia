@@ -29,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -41,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,9 +53,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
@@ -84,8 +86,6 @@ fun SettingsSideMenuOverlay(
     onReaderTypeChange: (ReaderType) -> Unit,
     isColorCorrectionsActive: Boolean,
     onColorCorrectionClick: () -> Unit,
-    onSeriesPress: () -> Unit,
-    onBookPress: () -> Unit,
     decoder: PlatformDecoderSettings?,
     decoderDescriptor: PlatformDecoderDescriptor?,
     onUpscaleMethodChange: (UpscaleOption) -> Unit,
@@ -109,8 +109,8 @@ fun SettingsSideMenuOverlay(
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
 
+    onBackPress: () -> Unit,
     onShowHelpMenu: () -> Unit,
-    onDismiss: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -126,24 +126,26 @@ fun SettingsSideMenuOverlay(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .pointerInput(Unit) {}
                 .width(350.dp)
-                .padding(10.dp)
+                .padding(horizontal = 10.dp)
                 .imePadding()
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Row {
-                IconButton(onClick = { onDismiss() }) { Icon(Icons.Default.Close, null) }
+                TextButton(
+                    onClick = { onBackPress() },
+                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    Spacer(Modifier.width(3.dp))
+                    Text("Close Book")
+                }
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = { onShowHelpMenu() }) { Icon(Icons.AutoMirrored.Default.Help, null) }
             }
             if (book != null) {
-                if (book.oneshot) {
-                    ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
-                } else {
-                    ReturnLink(Icons.AutoMirrored.Default.MenuBook, book.seriesTitle, onSeriesPress)
-                    ReturnLink(Icons.Default.Book, book.metadata.title, onBookPress)
-                }
+                BookTitles(book)
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
@@ -210,29 +212,6 @@ fun SettingsSideMenuOverlay(
         }
     }
 
-}
-
-@Composable
-private fun ReturnLink(icon: ImageVector, text: String, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clickable { onClick() }
-            .cursorForHand(),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(35.dp).padding(end = 10.dp)
-        )
-
-        Text(
-            text = text,
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
 }
 
 
@@ -351,5 +330,38 @@ private fun ColumnScope.PagedReaderSettingsContent(
 
         val currentSpread = pageState.currentSpread.collectAsState().value
         PagedReaderPagesInfo(currentSpread)
+    }
+}
+
+@Composable
+private fun BookTitles(book: KomgaBook) {
+    Column {
+        if (!book.oneshot) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.MenuBook,
+                    contentDescription = null,
+                    modifier = Modifier.size(35.dp).padding(end = 10.dp)
+                )
+
+                Text(
+                    text = book.seriesTitle,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.Book,
+                contentDescription = null,
+                modifier = Modifier.size(35.dp).padding(end = 10.dp)
+            )
+
+            Text(
+                text = book.metadata.title,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

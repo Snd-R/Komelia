@@ -48,7 +48,7 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
                     bookMenuActions = vm.bookMenuActions(),
                     onBookClick = { navigator push bookScreen(it) },
                     onBookReadClick = { book, markProgress ->
-                        navigator.parent?.replace(readerScreen(book, markProgress))
+                        navigator.parent?.push(readerScreen(book, markProgress))
                     },
                 )
             }

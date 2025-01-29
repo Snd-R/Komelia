@@ -243,8 +243,8 @@ class MainScreen(
         Surface(
             modifier = modifier,
             contentColor =
-            if (isSelected) MaterialTheme.colorScheme.secondary
-            else contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+                if (isSelected) MaterialTheme.colorScheme.secondary
+                else contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(
                 modifier = Modifier

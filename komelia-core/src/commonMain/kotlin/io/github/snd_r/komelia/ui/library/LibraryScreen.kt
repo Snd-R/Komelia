@@ -38,6 +38,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -70,10 +71,11 @@ class LibraryScreen(
     private val seriesFilter: SeriesScreenFilter? = null
 ) : Screen {
 
-    override val key: ScreenKey = libraryId.toString()
+    override val key: ScreenKey = "${libraryId}_${seriesFilter.hashCode()}"
 
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getLibraryViewModel(libraryId) }
 
@@ -103,6 +105,7 @@ class LibraryScreen(
                 }
             }
         }
+        BackPressHandler { navigator.pop() }
     }
 
     @Composable
@@ -419,8 +422,8 @@ private fun CompactNavButton(
         modifier = modifier,
         color = MaterialTheme.colorScheme.surfaceVariant,
         contentColor =
-        if (isSelected) MaterialTheme.colorScheme.secondary
-        else contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
+            if (isSelected) MaterialTheme.colorScheme.secondary
+            else contentColorFor(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
             modifier = Modifier

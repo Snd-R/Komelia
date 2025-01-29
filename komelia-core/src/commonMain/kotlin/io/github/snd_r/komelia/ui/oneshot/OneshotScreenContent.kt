@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.HorizontalDivider
@@ -56,6 +55,7 @@ import io.github.snd_r.komelia.ui.readlist.BookReadListsContent
 import io.github.snd_r.komelia.ui.series.view.SeriesDescriptionRow
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.readlist.KomgaReadList
 import snd.komga.client.series.KomgaSeries
 
@@ -64,10 +64,10 @@ import snd.komga.client.series.KomgaSeries
 fun OneshotScreenContent(
     series: KomgaSeries,
     book: KomgaBook,
-    libraryIsDeleted: Boolean,
+    library: KomgaLibrary,
+    onLibraryClick: (KomgaLibrary) -> Unit,
+    onBookReadClick: (markReadProgress: Boolean) -> Unit,
     oneshotMenuActions: BookMenuActions,
-    onBackButtonClick: () -> Unit,
-    onBookReadPress: (markReadProgress: Boolean) -> Unit,
 
     collections: Map<KomgaCollection, List<KomgaSeries>>,
     onCollectionClick: (KomgaCollection) -> Unit,
@@ -85,7 +85,6 @@ fun OneshotScreenContent(
             series = series,
             book = book,
             bookMenuActions = oneshotMenuActions,
-            onBackButtonClick = onBackButtonClick
         )
 
         val contentPadding = when (LocalWindowWidth.current) {
@@ -113,8 +112,9 @@ fun OneshotScreenContent(
                     OneshotMainInfo(
                         series = series,
                         book = book,
-                        libraryIsDeleted = libraryIsDeleted,
-                        onBookReadPress = onBookReadPress
+                        library = library,
+                        onLibraryClick = onLibraryClick,
+                        onBookReadClick = onBookReadClick
                     )
                 }
                 BookInfoColumn(
@@ -152,12 +152,11 @@ fun OneshotToolBar(
     series: KomgaSeries,
     book: KomgaBook,
     bookMenuActions: BookMenuActions,
-    onBackButtonClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = { onBackButtonClick() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
-        }
+    Row(
+        modifier = Modifier.padding(start = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             book.metadata.title,
             maxLines = 2,
@@ -208,15 +207,18 @@ private fun ToolbarOneshotActions(
 private fun FlowRowScope.OneshotMainInfo(
     series: KomgaSeries,
     book: KomgaBook,
-    libraryIsDeleted: Boolean,
-    onBookReadPress: (markReadProgress: Boolean) -> Unit,
+    library: KomgaLibrary,
+    onLibraryClick: (KomgaLibrary) -> Unit,
+    onBookReadClick: (markReadProgress: Boolean) -> Unit,
 ) {
-    val isDeleted = remember(series,libraryIsDeleted) { series.deleted || libraryIsDeleted }
+    val isDeleted = remember(series, library) { series.deleted || library.unavailable }
     Column(
         modifier = Modifier.weight(1f, false).widthIn(min = 450.dp, max = 1200.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         SeriesDescriptionRow(
+            library = library,
+            onLibraryClick = onLibraryClick,
             releaseDate = null,
             status = null,
             ageRating = series.metadata.ageRating,
@@ -235,10 +237,10 @@ private fun FlowRowScope.OneshotMainInfo(
             releaseDate = book.metadata.releaseDate
         )
 
-        if (readIsSupported(book) && !isDeleted ) {
+        if (readIsSupported(book) && !isDeleted) {
             BookReadButton(
-                onRead = { onBookReadPress(true) },
-                onIncognitoRead = { onBookReadPress(false) }
+                onRead = { onBookReadClick(true) },
+                onIncognitoRead = { onBookReadClick(false) }
             )
         }
         HorizontalDivider()

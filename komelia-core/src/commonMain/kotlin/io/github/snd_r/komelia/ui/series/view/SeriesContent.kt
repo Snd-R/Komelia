@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
@@ -68,12 +67,14 @@ import io.github.snd_r.komelia.ui.series.SeriesBooksState
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.collection.KomgaCollection
+import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesContent(
     series: KomgaSeries?,
-    libraryIsDeleted: Boolean,
+    library: KomgaLibrary?,
+    onLibraryClick: (KomgaLibrary) -> Unit,
     seriesMenuActions: SeriesMenuActions,
     onFilterClick: (SeriesScreenFilter) -> Unit,
 
@@ -87,8 +88,6 @@ fun SeriesContent(
     collectionsState: SeriesCollectionsState,
     onCollectionClick: (KomgaCollection) -> Unit,
     onSeriesClick: (KomgaSeries) -> Unit,
-
-    onBackButtonClick: () -> Unit,
 ) {
     val windowWidth = LocalWindowWidth.current
     val contentPadding = when (windowWidth) {
@@ -106,7 +105,7 @@ fun SeriesContent(
                 selectedBooks = booksState.selectedBooks,
                 onBookSelect = booksState::onBookSelect
             )
-        } else SeriesToolBar(series, seriesMenuActions, onBackButtonClick)
+        } else SeriesToolBar(series, seriesMenuActions)
 
         val scrollState = rememberScrollState()
         Box {
@@ -114,7 +113,14 @@ fun SeriesContent(
                 modifier = contentPadding.verticalScroll(scrollState),
             ) {
 
-                if (series != null) Series(series, libraryIsDeleted, onFilterClick)
+                if (series != null && library != null) {
+                    Series(
+                        series = series,
+                        library = library,
+                        onLibraryClick = onLibraryClick,
+                        onFilterClick = onFilterClick
+                    )
+                }
 
                 TabRow(
                     currentTab = currentTab,
@@ -148,14 +154,11 @@ fun SeriesContent(
 fun SeriesToolBar(
     series: KomgaSeries?,
     seriesMenuActions: SeriesMenuActions,
-    onBackButtonClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-
-        IconButton(onClick = { onBackButtonClick() }) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
-        }
-
+    Row(
+        modifier = Modifier.padding(start = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
         if (series != null) {
             Text(
@@ -196,7 +199,8 @@ fun SeriesToolBar(
 @Composable
 fun Series(
     series: KomgaSeries,
-    libraryIsDeleted: Boolean,
+    library: KomgaLibrary,
+    onLibraryClick: (KomgaLibrary) -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {
     val width = LocalWindowWidth.current
@@ -231,12 +235,14 @@ fun Series(
                     .fillMaxWidth(),
             ) {
                 SeriesDescriptionRow(
+                    library = library,
+                    onLibraryClick = onLibraryClick,
                     releaseDate = series.booksMetadata.releaseDate,
                     status = series.metadata.status,
                     ageRating = series.metadata.ageRating,
                     language = series.metadata.language,
                     readingDirection = series.metadata.readingDirection,
-                    deleted = series.deleted || libraryIsDeleted,
+                    deleted = series.deleted || library.unavailable,
                     alternateTitles = series.metadata.alternateTitles,
                     onFilterClick = onFilterClick,
                     modifier = Modifier,

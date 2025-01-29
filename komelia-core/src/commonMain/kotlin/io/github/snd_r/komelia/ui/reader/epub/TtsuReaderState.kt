@@ -120,12 +120,20 @@ class TtsuReaderState(
         coroutineScope.launch { loadEpub(webview) }
     }
 
+    override fun onBackButtonPress() {
+        closeWebview()
+    }
+
     override fun closeWebview() {
         webview.value?.close()
         if (platformType == PlatformType.MOBILE) windowState.setFullscreen(false)
-        navigator.value?.replaceAll(
-            MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value))
-        )
+
+        navigator.value?.let { nav ->
+            if (nav.canPop) nav.pop()
+            else nav.replaceAll(
+                MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value))
+            )
+        }
     }
 
     @OptIn(ExperimentalResourceApi::class)

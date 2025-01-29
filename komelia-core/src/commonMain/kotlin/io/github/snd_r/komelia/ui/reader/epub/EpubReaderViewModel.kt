@@ -102,5 +102,6 @@ interface EpubReaderState {
     val book: StateFlow<KomgaBook?>
     suspend fun initialize(navigator: Navigator)
     fun onWebviewCreated(webview: KomeliaWebview)
+    fun onBackButtonPress()
     fun closeWebview()
 }

@@ -19,7 +19,6 @@ import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
-import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.view.SeriesContent
 import snd.komga.client.library.KomgaLibraryId
@@ -71,13 +70,12 @@ class SeriesScreen(
             else -> {
                 SeriesContent(
                     series = vm.series.collectAsState().value,
-                    libraryIsDeleted = vm.libraryIsDeleted.collectAsState().value,
+                    library = vm.library.collectAsState().value,
+                    onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
                     seriesMenuActions = vm.seriesMenuActions(),
                     onFilterClick = { filter ->
                         val series = requireNotNull(vm.series.value)
-                        navigator.popUntilRoot()
-                        navigator.dispose(navigator.lastItem)
-                        navigator.replaceAll(LibraryScreen(series.libraryId, filter))
+                        navigator.push(LibraryScreen(series.libraryId, filter))
                     },
 
                     currentTab = vm.currentTab,
@@ -86,7 +84,7 @@ class SeriesScreen(
                     booksState = vm.booksState,
                     onBookClick = { navigator push bookScreen(it) },
                     onBookReadClick = { book, markProgress ->
-                        navigator.parent?.replace(readerScreen(book, markProgress))
+                        navigator.parent?.push(readerScreen(book, markProgress))
                     },
 
                     collectionsState = vm.collectionsState,
@@ -96,10 +94,6 @@ class SeriesScreen(
                             if (series.oneshot) OneshotScreen(series)
                             else SeriesScreen(series, vm.currentTab)
                         )
-                    },
-
-                    onBackButtonClick = {
-                        vm.series.value?.let { onBackPress(navigator, it.libraryId) }
                     },
                 )
             }
@@ -111,10 +105,9 @@ class SeriesScreen(
     }
 
     private fun onBackPress(navigator: Navigator, libraryId: KomgaLibraryId?) {
-        val success = navigator.popUntil {
-            (it is LibraryScreen && it.libraryId == libraryId) || it is CollectionScreen || it is SearchScreen
-        }
-        if (!success) {
+        if (navigator.canPop) {
+            navigator.pop()
+        } else {
             libraryId?.let { navigator replaceAll LibraryScreen(it) }
         }
     }

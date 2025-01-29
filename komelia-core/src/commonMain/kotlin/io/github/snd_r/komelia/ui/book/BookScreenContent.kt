@@ -62,12 +62,12 @@ fun BookScreenContent(
     library: KomgaLibrary?,
     book: KomgaBook?,
     bookMenuActions: BookMenuActions,
-    onBackButtonClick: () -> Unit,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
 
     readLists: Map<KomgaReadList, List<KomgaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
-    onBookClick: (KomgaBook) -> Unit,
+    onBookPress: (KomgaBook) -> Unit,
+    onParentSeriesPress: () -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
     cardWidth: Dp
 ) {
@@ -78,7 +78,6 @@ fun BookScreenContent(
         BookToolBar(
             book = book,
             bookMenuActions = bookMenuActions,
-            onBackButtonClick = onBackButtonClick
         )
 
         val contentPadding = when (LocalWindowWidth.current) {
@@ -103,7 +102,12 @@ fun BookScreenContent(
                             .widthIn(min = 300.dp, max = 500.dp)
                             .animateContentSize()
                     )
-                    BookMainInfo(book = book, library = library, onBookReadPress = onBookReadPress)
+                    BookMainInfo(
+                        book = book,
+                        library = library,
+                        onBookReadPress = onBookReadPress,
+                        onSeriesParentSeriesPress = onParentSeriesPress
+                    )
                 }
 
                 BookInfoColumn(
@@ -121,7 +125,7 @@ fun BookScreenContent(
                 BookReadListsContent(
                     readLists = readLists,
                     onReadListClick = onReadListClick,
-                    onBookClick = onBookClick,
+                    onBookClick = onBookPress,
                     cardWidth = cardWidth
                 )
             }
@@ -134,12 +138,11 @@ fun BookScreenContent(
 fun BookToolBar(
     book: KomgaBook,
     bookMenuActions: BookMenuActions,
-    onBackButtonClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = { onBackButtonClick() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
-        }
+    Row(
+        modifier = Modifier.padding(start = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
             book.metadata.title,
             maxLines = 2,
@@ -185,6 +188,7 @@ private fun FlowRowScope.BookMainInfo(
     book: KomgaBook,
     library: KomgaLibrary,
     onBookReadPress: (markReadProgress: Boolean) -> Unit,
+    onSeriesParentSeriesPress: () -> Unit,
 ) {
     val maxWidth = when (LocalWindowWidth.current) {
         FULL -> 1200.dp
@@ -200,7 +204,8 @@ private fun FlowRowScope.BookMainInfo(
             readProgress = book.readProgress,
             bookPagesCount = book.media.pagesCount,
             bookNumber = book.metadata.number,
-            releaseDate = book.metadata.releaseDate
+            releaseDate = book.metadata.releaseDate,
+            onSeriesParentSeriesPress = onSeriesParentSeriesPress,
         )
 
         if (readIsSupported(book) && !book.deleted && !library.unavailable) {
@@ -208,7 +213,7 @@ private fun FlowRowScope.BookMainInfo(
                 onRead = { onBookReadPress(true) },
                 onIncognitoRead = { onBookReadPress(false) },
             )
-        }else{
+        } else {
             SuggestionChip(
                 onClick = {},
                 label = { Text("Unavailable") },

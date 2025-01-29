@@ -59,7 +59,6 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
                         onPageChange = vm::onPageChange,
                         onPageSizeChange = vm::onPageSizeChange,
 
-                        onBackClick = { navigator.pop() },
                         cardMinSize = vm.cardWidth.collectAsState().value,
                     )
             }

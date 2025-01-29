@@ -38,7 +38,7 @@ import snd.komga.client.sse.KomgaEvent
 
 class SeriesViewModel(
     series: KomgaSeries?,
-    libraries: StateFlow<List<KomgaLibrary>>,
+    private val libraries: StateFlow<List<KomgaLibrary>>,
     private val seriesId: KomgaSeriesId,
     private val notifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
@@ -51,9 +51,7 @@ class SeriesViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val series = MutableStateFlow(series)
-    val libraryIsDeleted = libraries.combine(this.series.filterNotNull()) { libraries, series ->
-        libraries.firstOrNull { it.id == series.libraryId }?.unavailable ?: false
-    }.stateIn(screenModelScope, Eagerly, false)
+    val library = MutableStateFlow<KomgaLibrary?>(null)
     var currentTab by mutableStateOf(defaultTab)
     val cardWidth = settingsRepository.getCardWidth().map { it.dp }
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
@@ -81,8 +79,24 @@ class SeriesViewModel(
 
     suspend fun initialize() {
         if (state.value !is Uninitialized) return
-        if (series.value == null) loadSeries()
-        else mutableState.value = Success(Unit)
+
+        val providedSeries = series.value
+        if (providedSeries == null) loadSeries()
+        else {
+            runCatching {
+                library.value = getLibraryOrThrow(providedSeries)
+                mutableState.value = Success(Unit)
+            }.onFailure { mutableState.value = Error(it) }
+        }
+
+        series.filterNotNull().combine(libraries) { series, libraries ->
+            val newLibrary = libraries.firstOrNull { it.id == series.libraryId }
+            if (newLibrary == null) {
+                mutableState.value =
+                    Error(IllegalStateException("Failed to find library for series ${series.metadata.title}"))
+            }
+            library.value = newLibrary
+        }.launchIn(screenModelScope)
 
         booksState.initialize()
         collectionsState.initialize()
@@ -106,9 +120,22 @@ class SeriesViewModel(
     private suspend fun loadSeries() {
         notifications.runCatchingToNotifications {
             mutableState.value = Loading
-            series.value = seriesClient.getOneSeries(seriesId)
+            val series = seriesClient.getOneSeries(seriesId)
+            this.series.value = series
+            this.library.value = getLibraryOrThrow(series)
+
             mutableState.value = Success(Unit)
+
         }.onFailure { mutableState.value = Error(it) }
+    }
+
+    private fun getLibraryOrThrow(series: KomgaSeries): KomgaLibrary {
+        val library = this.libraries.value.firstOrNull { it.id == series.libraryId }
+        if (library == null) {
+            throw IllegalStateException("Failed to find library for series ${series.metadata.title}")
+        }
+        return library
+
     }
 
     private fun registerEventListener() {

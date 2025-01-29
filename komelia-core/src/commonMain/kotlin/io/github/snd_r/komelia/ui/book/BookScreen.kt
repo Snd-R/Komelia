@@ -17,7 +17,6 @@ import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.ImageReaderScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
-import io.github.snd_r.komelia.ui.search.SearchScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
@@ -35,7 +34,6 @@ class BookScreen(
 
     override val key: ScreenKey = bookId.toString()
 
-    @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
@@ -54,9 +52,8 @@ class BookScreen(
             library = vm.library,
             book = book,
             bookMenuActions = vm.bookMenuActions,
-            onBackButtonClick = { onBackPress(navigator, book?.seriesId) },
             onBookReadPress = { markReadProgress ->
-                navigator.parent?.replace(
+                navigator.parent?.push(
                     if (book != null) readerScreen(book, markReadProgress)
                     else ImageReaderScreen(bookId, markReadProgress)
                 )
@@ -64,12 +61,10 @@ class BookScreen(
 
             readLists = vm.readListsState.readLists,
             onReadListClick = { navigator.push(ReadListScreen(it.id)) },
-            onBookClick = { navigator.push(bookScreen(it)) },
+            onBookPress = { if (it.id != this.bookId) navigator.push(bookScreen(it)) },
+            onParentSeriesPress = { book?.seriesId?.let { seriesId -> navigator.push(SeriesScreen(seriesId)) } },
             onFilterClick = { filter ->
-                val libraryId = requireNotNull(book?.libraryId)
-                navigator.popUntilRoot()
-                navigator.dispose(navigator.lastItem)
-                navigator.replaceAll(LibraryScreen(libraryId, filter))
+                navigator.push(LibraryScreen(requireNotNull(book?.libraryId), filter))
             },
             cardWidth = vm.cardWidth.collectAsState().value
         )
@@ -78,10 +73,9 @@ class BookScreen(
     }
 
     private fun onBackPress(navigator: Navigator, seriesId: KomgaSeriesId?) {
-        val success = navigator.popUntil {
-            (it is SeriesScreen && it.seriesId == seriesId) || it is ReadListScreen || it is SearchScreen
-        }
-        if (!success) {
+        if (navigator.canPop) {
+            navigator.pop()
+        } else {
             seriesId?.let { navigator push SeriesScreen(it) }
         }
     }

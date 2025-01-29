@@ -42,15 +42,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun BoxScope.SettingsOverlay(
     show: Boolean,
-    onDismiss: () -> Unit,
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
     screenScaleState: ScreenScaleState,
     isColorCorrectionsActive: Boolean,
     onColorCorrectionClick: () -> Unit,
-    onSeriesPress: () -> Unit,
-    onBookPress: () -> Unit,
+    onBackPress: () -> Unit,
     ohShowHelpDialogChange: (Boolean) -> Unit,
 ) {
     if (!show) return
@@ -76,7 +74,6 @@ fun BoxScope.SettingsOverlay(
             onReaderTypeChange = commonReaderState::onReaderTypeChange,
             isColorCorrectionsActive = isColorCorrectionsActive,
             onColorCorrectionClick = onColorCorrectionClick,
-            onSeriesPress = onSeriesPress,
             decoder = decoder,
             decoderDescriptor = decoderDescriptor,
             onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
@@ -95,8 +92,9 @@ fun BoxScope.SettingsOverlay(
             flashEveryNPages = flashEveryNPages,
             onFlashEveryNPagesChange = commonReaderState::onFlashEveryNPagesChange,
             flashWith = flashWith,
-            onFlashWithChange = commonReaderState::onFlashWithChange
+            onFlashWithChange = commonReaderState::onFlashWithChange,
 
+            onBackPress = onBackPress,
         )
     } else {
         SettingsSideMenuOverlay(
@@ -105,8 +103,6 @@ fun BoxScope.SettingsOverlay(
             onReaderTypeChange = commonReaderState::onReaderTypeChange,
             isColorCorrectionsActive = isColorCorrectionsActive,
             onColorCorrectionClick = onColorCorrectionClick,
-            onSeriesPress = onSeriesPress,
-            onBookPress = onBookPress,
             decoder = decoder,
             decoderDescriptor = decoderDescriptor,
             onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
@@ -129,8 +125,8 @@ fun BoxScope.SettingsOverlay(
 
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+            onBackPress = onBackPress,
             onShowHelpMenu = { ohShowHelpDialogChange(true) },
-            onDismiss = onDismiss,
         )
     }
 

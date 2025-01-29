@@ -1,12 +1,10 @@
 package io.github.snd_r.komelia.ui.oneshot
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -20,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -38,9 +38,6 @@ import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 
 class OneshotViewModel(
     series: KomgaSeries?,
@@ -57,12 +54,8 @@ class OneshotViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     val series = MutableStateFlow(series)
-    val libraryIsDeleted = libraries.combine(this.series.filterNotNull()) { libraries, series ->
-        libraries.firstOrNull { it.id == series.libraryId }?.unavailable ?: false
-    }.stateIn(screenModelScope, Eagerly, false)
+    val library = MutableStateFlow<KomgaLibrary?>(null)
     val book = MutableStateFlow(book)
-    var library by mutableStateOf<KomgaLibrary?>(null)
-        private set
     val bookMenuActions = BookMenuActions(bookClient, notifications, screenModelScope)
 
     val cardWidth = settingsRepository.getCardWidth().map { it.dp }
@@ -88,9 +81,21 @@ class OneshotViewModel(
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return
-        mutableState.value = Loading
+        initState()
+        book.filterNotNull().combine(libraries) { book, libraries ->
+            val newLibrary = libraries.firstOrNull { it.id == book.libraryId }
+            if (newLibrary == null) {
+                mutableState.value =
+                    Error(IllegalStateException("Failed to find library for oneshot ${book.metadata.title}"))
+            }
+            library.value = newLibrary
+        }.launchIn(screenModelScope)
+        registerEventListener()
+    }
 
+    private suspend fun initState() {
         notifications.runCatchingToNotifications {
+            mutableState.value = Loading
             if (this.series.value == null) {
                 this.series.value = seriesClient.getOneSeries(seriesId)
             }
@@ -99,16 +104,14 @@ class OneshotViewModel(
                 ?: seriesClient.getAllBooksBySeries(seriesId).content
                     .first()
                     .also { this.book.value = it }
-            this.library = libraries.value.firstOrNull { it.id == currentBook.libraryId }
-            registerEventListener()
+            this.library.value = libraries.value.firstOrNull { it.id == currentBook.libraryId }
         }
             .onSuccess { mutableState.value = Success(Unit) }
             .onFailure { mutableState.value = Error(it) }
     }
 
     fun reload() {
-        mutableState.value = Uninitialized
-        screenModelScope.launch { initialize() }
+        screenModelScope.launch { initState() }
     }
 
     private suspend fun loadBook() {

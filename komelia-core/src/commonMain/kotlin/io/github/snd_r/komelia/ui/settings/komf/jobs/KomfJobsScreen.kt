@@ -39,7 +39,7 @@ class KomfJobsScreen(private val enableSeriesResolution: Boolean = true) : Scree
                     onStatusSelect = vm::onStatusSelect,
                     getSeries = if (enableSeriesResolution) vm::getSeries else null,
                     onSeriesClick = {
-                        rootNavigator.pop()
+                        rootNavigator.popUntilRoot()
                         rootNavigator.dispose(rootNavigator.lastItem)
                         rootNavigator.replaceAll(MainScreen(seriesScreen(it)))
                     },

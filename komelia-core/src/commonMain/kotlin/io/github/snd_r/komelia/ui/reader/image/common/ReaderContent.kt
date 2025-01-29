@@ -49,8 +49,6 @@ fun ReaderContent(
     continuousReaderState: ContinuousReaderState,
     screenScaleState: ScreenScaleState,
 
-    onSeriesBackPress: () -> Unit,
-    onBookBackPress: () -> Unit,
     isColorCorrectionActive: Boolean,
     onColorCorrectionClick: () -> Unit,
     onExit: () -> Unit,
@@ -77,13 +75,13 @@ fun ReaderContent(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(showSettingsMenu, showHelpDialog) {
         registerCommonKeyboardEvents(
             keyEvents = keyEvents,
             showSettingsMenu = showSettingsMenu,
             setShowSettingsDialog = { showSettingsMenu = it },
             onShowHelpDialog = { showHelpDialog = !showHelpDialog },
-            onClose = onSeriesBackPress
+            onClose = onExit
         )
     }
     Box(Modifier.fillMaxSize().onSizeChanged { screenScaleState.setAreaSize(it) }) {
@@ -119,15 +117,13 @@ fun ReaderContent(
 
         SettingsOverlay(
             show = showSettingsMenu,
-            onDismiss = { showSettingsMenu = false },
             commonReaderState = commonReaderState,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
             screenScaleState = screenScaleState,
             isColorCorrectionsActive = isColorCorrectionActive,
             onColorCorrectionClick = onColorCorrectionClick,
-            onSeriesPress = onSeriesBackPress,
-            onBookPress = onBookBackPress,
+            onBackPress = onExit,
             ohShowHelpDialogChange = { showHelpDialog = it }
         )
 

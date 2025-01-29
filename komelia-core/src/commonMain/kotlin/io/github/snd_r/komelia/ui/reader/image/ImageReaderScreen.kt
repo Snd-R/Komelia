@@ -34,7 +34,6 @@ import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.LocalWindowState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
-import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.color.view.ColorCorrectionScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.TitleBarContent
@@ -92,7 +91,8 @@ class ImageReaderScreen(
                         TitleBarContent(
                             title = currentBook.metadata.title,
                             onExit = {
-                                navigator replace MainScreen(
+                                if (navigator.canPop) navigator.pop()
+                                else navigator replace MainScreen(
                                     if (currentBook.oneshot) OneshotScreen(currentBook)
                                     else SeriesScreen(currentBook.seriesId)
                                 )
@@ -124,19 +124,6 @@ class ImageReaderScreen(
             pagedReaderState = vm.pagedReaderState,
             continuousReaderState = vm.continuousReaderState,
             screenScaleState = vm.screenScaleState,
-            onSeriesBackPress = {
-                vm.readerState.booksState.value?.currentBook?.let { book ->
-                    navigator replace MainScreen(
-                        if (book.oneshot) OneshotScreen(book)
-                        else SeriesScreen(book.seriesId)
-                    )
-                }
-            },
-            onBookBackPress = {
-                vm.readerState.booksState.value?.currentBook?.let { book ->
-                    navigator replace MainScreen(bookScreen(book))
-                }
-            },
             isColorCorrectionActive = vm.colorCorrectionIsActive.collectAsState(false).value,
             onColorCorrectionClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->

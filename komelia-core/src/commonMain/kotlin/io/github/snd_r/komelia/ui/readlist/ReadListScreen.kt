@@ -48,7 +48,7 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
                         bookMenuActions = vm.bookMenuActions(),
                         onBookClick = { navigator push bookScreen(it) },
                         onBookReadClick = { book, markProgress ->
-                            navigator.parent?.replace(readerScreen(book, markProgress))
+                            navigator.parent?.push(readerScreen(book, markProgress))
                         },
 
                         selectedBooks = vm.selectedBooks,
@@ -65,7 +65,6 @@ class ReadListScreen(val readListId: KomgaReadListId) : Screen {
                         onPageChange = vm::onPageChange,
                         onPageSizeChange = vm::onPageSizeChange,
 
-                        onBackClick = { navigator.pop() },
                         cardMinSize = vm.cardWidth.collectAsState().value,
                     )
             }

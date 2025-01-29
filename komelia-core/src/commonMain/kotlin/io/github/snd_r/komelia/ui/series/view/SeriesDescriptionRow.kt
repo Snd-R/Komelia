@@ -2,9 +2,17 @@ package io.github.snd_r.komelia.ui.series.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -13,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.snd_r.komelia.ui.LocalStrings
@@ -21,6 +32,7 @@ import io.github.snd_r.komelia.ui.common.ExpandableText
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import kotlinx.datetime.LocalDate
 import snd.komga.client.common.KomgaReadingDirection
+import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaAlternativeTitle
 import snd.komga.client.series.KomgaSeriesStatus
 import snd.komga.client.series.KomgaSeriesStatus.ABANDONED
@@ -28,8 +40,11 @@ import snd.komga.client.series.KomgaSeriesStatus.ENDED
 import snd.komga.client.series.KomgaSeriesStatus.HIATUS
 import snd.komga.client.series.KomgaSeriesStatus.ONGOING
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SeriesDescriptionRow(
+    library: KomgaLibrary,
+    onLibraryClick: (KomgaLibrary) -> Unit,
     releaseDate: LocalDate?,
     status: KomgaSeriesStatus?,
     ageRating: Int?,
@@ -50,7 +65,15 @@ fun SeriesDescriptionRow(
         if (releaseDate != null)
             Text("Release Year: ${releaseDate.year}", fontSize = 10.sp)
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ElevatedButton(
+                onClick = { onLibraryClick(library) },
+                modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+            ) {
+                Icon(Icons.AutoMirrored.Outlined.MenuBook, null)
+                Spacer(Modifier.width(3.dp))
+                Text(text = library.name, textDecoration = TextDecoration.Underline)
+            }
             if (status != null) {
                 SuggestionChip(
                     onClick = { onFilterClick(SeriesScreenFilter(publicationStatus = listOf(status))) },

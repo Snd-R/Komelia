@@ -65,7 +65,6 @@ fun CollectionContent(
     onPageChange: (Int) -> Unit,
     onPageSizeChange: (Int) -> Unit,
 
-    onBackClick: () -> Unit,
     cardMinSize: Dp,
 ) {
     Column {
@@ -86,8 +85,7 @@ fun CollectionContent(
             pageSize = pageSize,
             onPageSizeChange = onPageSizeChange,
 
-            onBackClick = onBackClick
-        )
+            )
 
         SeriesLazyCardGrid(
             series = series,
@@ -130,13 +128,11 @@ private fun CollectionToolbar(
     pageSize: Int,
     onPageSizeChange: (Int) -> Unit,
 
-    onBackClick: () -> Unit,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-
-        IconButton(onClick = { onBackClick() }) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, null)
-        }
+    ) {
+    Row(
+        modifier = Modifier.padding(start = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(

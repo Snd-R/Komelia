@@ -2,7 +2,9 @@ package io.github.snd_r.komelia.ui.navigation
 
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FullscreenExit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,6 +14,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
 import io.github.snd_r.komelia.ui.LocalWindowState
@@ -44,6 +48,22 @@ fun AppBar(
             onClick = { coroutineScope.launch { onMenuButtonPress() } },
         ) {
             Icon(Icons.Rounded.Menu, null)
+        }
+
+        val navigator = LocalNavigator.currentOrThrow
+        IconButton(
+            modifier = Modifier.align(Alignment.Start),
+            onClick = { navigator.pop() },
+            enabled = navigator.canPop
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+        }
+        IconButton(
+            modifier = Modifier.align(Alignment.Start),
+            onClick = { },
+            enabled = false
+        ) {
+            Icon(Icons.Default.Refresh, null)
         }
 
         val searchBarModifier = when (LocalWindowWidth.current) {
