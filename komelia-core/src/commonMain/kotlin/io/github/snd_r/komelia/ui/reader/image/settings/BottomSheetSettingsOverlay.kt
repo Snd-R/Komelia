@@ -352,6 +352,7 @@ private fun ContinuousModeSettings(
     state: ContinuousReaderState,
 ) {
     val strings = LocalStrings.current.continuousReader
+    val windowWidth = LocalWindowWidth.current
     Column {
         val readingDirection = state.readingDirection.collectAsState().value
         Text(strings.readingDirection)
@@ -393,17 +394,28 @@ private fun ContinuousModeSettings(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
-            Column(Modifier.width(90.dp)) {
+            Column(Modifier.width(100.dp)) {
                 Text("Page spacing", style = MaterialTheme.typography.labelLarge)
                 Text("$spacing", style = MaterialTheme.typography.labelMedium)
             }
-            Slider(
-                value = spacing.toFloat(),
-                onValueChange = { state.onPageSpacingChange(it.roundToInt()) },
-                steps = 99,
-                valueRange = 0f..1000f,
-                colors = AppSliderDefaults.colors()
-            )
+            when (windowWidth) {
+                COMPACT -> Slider(
+                    value = spacing.toFloat(),
+                    onValueChange = { state.onPageSpacingChange(it.roundToInt()) },
+                    steps = 24,
+                    valueRange = 0f..250f,
+                    colors = AppSliderDefaults.colors()
+                )
+
+                else -> Slider(
+                    value = spacing.toFloat(),
+                    onValueChange = { state.onPageSpacingChange(it.roundToInt()) },
+                    steps = 49,
+                    valueRange = 0f..500f,
+                    colors = AppSliderDefaults.colors()
+                )
+            }
+
         }
         Spacer(Modifier.heightIn(30.dp))
     }
