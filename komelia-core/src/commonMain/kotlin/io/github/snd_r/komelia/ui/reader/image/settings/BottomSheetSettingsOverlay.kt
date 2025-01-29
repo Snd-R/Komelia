@@ -60,6 +60,7 @@ import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.NumberFieldWithIncrements
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
+import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
@@ -86,6 +87,16 @@ fun BottomSheetSettingsOverlay(
     cropBorders: Boolean,
     onCropBordersChange: (Boolean) -> Unit,
     zoom: Float,
+
+    flashEnabled: Boolean,
+    onFlashEnabledChange: (Boolean) -> Unit,
+    flashEveryNPages: Int,
+    onFlashEveryNPagesChange: (Int) -> Unit,
+    flashWith: ReaderFlashColor,
+    onFlashWithChange: (ReaderFlashColor) -> Unit,
+    flashDuration: Long,
+    onFlashDurationChange: (Long) -> Unit,
+
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
 ) {
@@ -135,10 +146,7 @@ fun BottomSheetSettingsOverlay(
     BoxWithConstraints {
 
         val maxHeight = this.maxHeight
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = false,
-            confirmValueChange = { true }
-        )
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         if (showSettingsDialog) {
             ModalBottomSheet(
                 onDismissRequest = { showSettingsDialog = false },
@@ -176,10 +184,10 @@ fun BottomSheetSettingsOverlay(
                     Modifier
                         .padding(contentPadding)
                         .heightIn(max = maxHeight * 0.8f)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                         .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
                 ) {
-
 
                     when (selectedTab) {
                         0 -> {
@@ -204,7 +212,15 @@ fun BottomSheetSettingsOverlay(
                             onCropBordersChange = onCropBordersChange,
                             isColorCorrectionsActive = isColorCorrectionsActive,
                             onColorCorrectionClick = onColorCorrectionClick,
-                            zoom = zoom
+                            zoom = zoom,
+                            flashEnabled = flashEnabled,
+                            onFlashEnabledChange = onFlashEnabledChange,
+                            flashEveryNPages = flashEveryNPages,
+                            onFlashEveryNPagesChange = onFlashEveryNPagesChange,
+                            flashWith = flashWith,
+                            onFlashWithChange = onFlashWithChange,
+                            flashDuration = flashDuration,
+                            onFlashDurationChange = onFlashDurationChange
                         )
                     }
                 }
@@ -402,6 +418,15 @@ private fun BottomSheetImageSettings(
     onColorCorrectionClick: () -> Unit,
     zoom: Float,
 
+    flashEnabled: Boolean,
+    onFlashEnabledChange: (Boolean) -> Unit,
+    flashEveryNPages: Int,
+    onFlashEveryNPagesChange: (Int) -> Unit,
+    flashWith: ReaderFlashColor,
+    onFlashWithChange: (ReaderFlashColor) -> Unit,
+    flashDuration: Long,
+    onFlashDurationChange: (Long) -> Unit,
+
     ) {
     Column {
         CommonImageSettings(
@@ -413,7 +438,15 @@ private fun BottomSheetImageSettings(
             cropBorders = cropBorders,
             onCropBordersChange = onCropBordersChange,
             isColorCorrectionsActive = isColorCorrectionsActive,
-            onColorCorrectionClick = onColorCorrectionClick
+            onColorCorrectionClick = onColorCorrectionClick,
+            flashEnabled = flashEnabled,
+            onFlashEnabledChange = onFlashEnabledChange,
+            flashEveryNPages = flashEveryNPages,
+            onFlashEveryNPagesChange = onFlashEveryNPagesChange,
+            flashWith = flashWith,
+            onFlashWithChange = onFlashWithChange,
+            flashDuration = flashDuration,
+            onFlashDurationChange = onFlashDurationChange
         )
 
         val strings = LocalStrings.current.reader

@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,31 +60,31 @@ fun KomfSettingsContent(
         val coroutineScope = rememberCoroutineScope()
         var komfEnabledConfirmed by remember { mutableStateOf(komfEnabled || !integrationToggleEnabled) }
         if (integrationToggleEnabled) {
-            SwitchWithLabel(
-                checked = komfEnabled,
-                onCheckedChange = {
-                    coroutineScope.launch {
-                        onKomfEnabledChange(it)
-                        komfEnabledConfirmed = true
-                    }
-                },
-                label = { Text("Enable Komf Integration") },
-                supportingText = {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("Adds features aimed at metadata updates and editing")
-                        Spacer(Modifier.weight(1f))
-                        ElevatedButton(
-                            onClick = { uriHandler.openUri("https://github.com/Snd-R/komf") },
-                            shape = RoundedCornerShape(5.dp),
-                        ) {
-                            Text("Project Link")
+            Column {
+                SwitchWithLabel(
+                    checked = komfEnabled,
+                    onCheckedChange = {
+                        coroutineScope.launch {
+                            onKomfEnabledChange(it)
+                            komfEnabledConfirmed = true
                         }
+                    },
+                    label = { Text("Enable Komf Integration") },
+                    supportingText = {
+                        Text("Adds features aimed at metadata updates and editing")
+                    }
+                )
+
+                Row {
+                    Spacer(Modifier.weight(1f))
+                    ElevatedButton(
+                        onClick = { uriHandler.openUri("https://github.com/Snd-R/komf") },
+                        shape = RoundedCornerShape(5.dp),
+                    ) {
+                        Text("Project Link")
                     }
                 }
-            )
+            }
         }
 
         AnimatedVisibility(komfEnabled || !integrationToggleEnabled) {

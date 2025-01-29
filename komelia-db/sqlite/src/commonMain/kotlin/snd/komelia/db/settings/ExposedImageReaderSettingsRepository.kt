@@ -1,5 +1,6 @@
 package snd.komelia.db.settings
 
+import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
@@ -30,6 +31,10 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         continuousPadding = it[ImageReaderSettingsTable.continuousPadding],
                         continuousPageSpacing = it[ImageReaderSettingsTable.continuousPageSpacing],
                         cropBorders = it[ImageReaderSettingsTable.cropBorders],
+                        flashOnPageChange = it[ImageReaderSettingsTable.flashOnPageChange],
+                        flashDuration = it[ImageReaderSettingsTable.flashDuration],
+                        flashEveryNPages = it[ImageReaderSettingsTable.flashEveryNPages],
+                        flashWith = ReaderFlashColor.valueOf(it[ImageReaderSettingsTable.flashWith]),
                     )
                 }
         }
@@ -48,6 +53,10 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[continuousPadding] = settings.continuousPadding
                 it[continuousPageSpacing] = settings.continuousPageSpacing
                 it[cropBorders] = settings.cropBorders
+                it[flashOnPageChange] = settings.flashOnPageChange
+                it[flashDuration] = settings.flashDuration
+                it[flashEveryNPages] = settings.flashEveryNPages
+                it[flashWith] = settings.flashWith.name
             }
         }
     }

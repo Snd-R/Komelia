@@ -64,6 +64,11 @@ fun BoxScope.SettingsOverlay(
     val decoderDescriptor = commonReaderState.currentDecoderDescriptor.collectAsState().value
     val stretchToFit = commonReaderState.imageStretchToFit.collectAsState().value
     val cropBorders = commonReaderState.cropBorders.collectAsState().value
+    val flashEnabled = commonReaderState.flashOnPageChange.collectAsState().value
+    val flashDuration = commonReaderState.flashDuration.collectAsState().value
+    val flashEveryNPages = commonReaderState.flashEveryNPages.collectAsState().value
+    val flashWith = commonReaderState.flashWith.collectAsState().value
+
     if ((windowWidth == COMPACT || windowWidth == MEDIUM) && platform != DESKTOP) {
         BottomSheetSettingsOverlay(
             book = book,
@@ -82,6 +87,16 @@ fun BoxScope.SettingsOverlay(
             zoom = zoom,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+
+            flashEnabled = flashEnabled,
+            onFlashEnabledChange = commonReaderState::onFlashEnabledChange,
+            flashDuration = flashDuration,
+            onFlashDurationChange = commonReaderState::onFlashDurationChange,
+            flashEveryNPages = flashEveryNPages,
+            onFlashEveryNPagesChange = commonReaderState::onFlashEveryNPagesChange,
+            flashWith = flashWith,
+            onFlashWithChange = commonReaderState::onFlashWithChange
+
         )
     } else {
         SettingsSideMenuOverlay(
@@ -102,6 +117,16 @@ fun BoxScope.SettingsOverlay(
             zoom = zoom,
             showImageSettings = commonReaderState.expandImageSettings.collectAsState().value,
             onShowImageSettingsChange = { commonReaderState.expandImageSettings.value = it },
+
+            flashEnabled = flashEnabled,
+            onFlashEnabledChange = commonReaderState::onFlashEnabledChange,
+            flashDuration = flashDuration,
+            onFlashDurationChange = commonReaderState::onFlashDurationChange,
+            flashEveryNPages = flashEveryNPages,
+            onFlashEveryNPagesChange = commonReaderState::onFlashEveryNPagesChange,
+            flashWith = flashWith,
+            onFlashWithChange = commonReaderState::onFlashWithChange,
+
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
             onShowHelpMenu = { ohShowHelpDialogChange(true) },

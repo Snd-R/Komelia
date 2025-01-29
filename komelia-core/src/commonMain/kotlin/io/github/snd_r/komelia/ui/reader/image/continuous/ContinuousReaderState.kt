@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -72,6 +73,7 @@ class ContinuousReaderState(
     private val notifications: AppNotifications,
     private val appStrings: Flow<AppStrings>,
     private val readerImageFactory: ReaderImageFactory,
+    private val pageChangeFlow: MutableSharedFlow<Unit>,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -226,6 +228,8 @@ class ContinuousReaderState(
                 updateVisibleImages()
                 delay(100)
             }.launchIn(stateScope)
+
+        imageDisplayFlow.drop(1).onEach { pageChangeFlow.emit(Unit) }.launchIn(stateScope)
 
         val strings = appStrings.first().continuousReader
         notifications.add(AppNotification.Normal("Continuous ${strings.forReadingDirection(readingDirection.value)}"))

@@ -37,27 +37,27 @@ fun SwitchWithLabel(
         checkedThumbColor = MaterialTheme.colorScheme.onSecondary
     )
     CompositionLocalProvider(LocalContentColor provides contentColor) {
-        Column(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = modifier.clickable(
                 enabled = enabled,
                 onClick = { onCheckedChange(!checked) }
             ).cursorForHand().padding(contentPadding),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
                 label()
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange,
-                    enabled = enabled,
-                    colors = colors,
-                    modifier = Modifier.scale(1f, .9f)
-                )
+                CompositionLocalProvider(LocalContentColor provides actualSupportingTextColor) {
+                    supportingText()
+                }
             }
-
-            CompositionLocalProvider(LocalContentColor provides actualSupportingTextColor) {
-                supportingText()
-            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                enabled = enabled,
+                colors = colors,
+                modifier = Modifier.scale(1f, .9f)
+            )
         }
+
     }
 }

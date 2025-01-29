@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.settings
 
+import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
@@ -32,4 +33,16 @@ interface ImageReaderSettingsRepository {
 
     fun getContinuousReaderPageSpacing(): Flow<Int>
     suspend fun putContinuousReaderPageSpacing(spacing: Int)
+
+    fun getFlashOnPageChange(): Flow<Boolean>
+    suspend fun putFlashOnPageChange(flash: Boolean)
+
+    fun getFlashDuration(): Flow<Long>
+    suspend fun putFlashDuration(duration: Long)
+
+    fun getFlashEveryNPages(): Flow<Int>
+    suspend fun putFlashEveryNPages(pages: Int)
+
+    fun getFlashWith(): Flow<ReaderFlashColor>
+    suspend fun putFlashWith(color: ReaderFlashColor)
 }

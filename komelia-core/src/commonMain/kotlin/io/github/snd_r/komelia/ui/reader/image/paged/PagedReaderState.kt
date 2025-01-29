@@ -39,6 +39,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
@@ -47,7 +48,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
 import snd.komga.client.book.KomgaBook
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -62,6 +62,7 @@ class PagedReaderState(
     private val imageLoader: BookImageLoader,
     private val appStrings: Flow<AppStrings>,
     private val readerImageFactory: ReaderImageFactory,
+    private val pageChangeFlow: MutableSharedFlow<Unit>,
     val screenScaleState: ScreenScaleState,
 ) {
     private val stateScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -283,6 +284,7 @@ class PagedReaderState(
 
     fun onPageChange(page: Int) {
         if (currentSpreadIndex.value == page) return
+        pageChangeFlow.tryEmit(Unit)
         loadPage(page)
     }
 

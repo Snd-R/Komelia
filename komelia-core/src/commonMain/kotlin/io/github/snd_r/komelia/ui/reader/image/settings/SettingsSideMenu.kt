@@ -32,14 +32,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -54,24 +52,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
+import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
@@ -102,6 +96,15 @@ fun SettingsSideMenuOverlay(
     zoom: Float,
     showImageSettings: Boolean,
     onShowImageSettingsChange: (Boolean) -> Unit,
+
+    flashEnabled: Boolean,
+    onFlashEnabledChange: (Boolean) -> Unit,
+    flashEveryNPages: Int,
+    onFlashEveryNPagesChange: (Int) -> Unit,
+    flashWith: ReaderFlashColor,
+    onFlashWithChange: (ReaderFlashColor) -> Unit,
+    flashDuration: Long,
+    onFlashDurationChange: (Long) -> Unit,
 
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
@@ -174,7 +177,15 @@ fun SettingsSideMenuOverlay(
                     cropBorders = cropBorders,
                     onCropBordersChange = onCropBordersChange,
                     isColorCorrectionsActive = isColorCorrectionsActive,
-                    onColorCorrectionClick = onColorCorrectionClick
+                    onColorCorrectionClick = onColorCorrectionClick,
+                    flashEnabled = flashEnabled,
+                    onFlashEnabledChange = onFlashEnabledChange,
+                    flashEveryNPages = flashEveryNPages,
+                    onFlashEveryNPagesChange = onFlashEveryNPagesChange,
+                    flashWith = flashWith,
+                    onFlashWithChange = onFlashWithChange,
+                    flashDuration = flashDuration,
+                    onFlashDurationChange = onFlashDurationChange,
                 )
 
             }
@@ -224,75 +235,6 @@ private fun ReturnLink(icon: ImageVector, text: String, onClick: () -> Unit) {
     }
 }
 
-@Composable
-fun CommonImageSettings(
-    decoder: PlatformDecoderSettings?,
-    decoderDescriptor: PlatformDecoderDescriptor?,
-    onUpscaleMethodChange: (UpscaleOption) -> Unit,
-
-    stretchToFit: Boolean,
-    onStretchToFitChange: (Boolean) -> Unit,
-    cropBorders: Boolean,
-    onCropBordersChange: (Boolean) -> Unit,
-
-    isColorCorrectionsActive: Boolean,
-    onColorCorrectionClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val strings = LocalStrings.current.reader
-    Column(modifier = modifier) {
-        if (decoder != null && decoderDescriptor != null && decoderDescriptor.upscaleOptions.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = LabeledEntry(decoder.upscaleOption, decoder.upscaleOption.value),
-                options = remember { decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) } },
-                onOptionChange = { onUpscaleMethodChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text("Upscale method") },
-                inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        }
-
-        SwitchWithLabel(
-            checked = stretchToFit,
-            onCheckedChange = onStretchToFitChange,
-            label = { Text(strings.stretchToFit) },
-            contentPadding = PaddingValues(horizontal = 10.dp)
-        )
-
-        if (LocalPlatform.current != PlatformType.WEB_KOMF) {
-            SwitchWithLabel(
-                checked = cropBorders,
-                onCheckedChange = onCropBordersChange,
-                label = { Text("Crop borders") },
-                contentPadding = PaddingValues(horizontal = 10.dp)
-            )
-        }
-        Row(
-            modifier = Modifier
-                .clickable { onColorCorrectionClick() }
-                .pointerHoverIcon(PointerIcon.Hand)
-                .padding(horizontal = 10.dp, vertical = 15.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Color Correction")
-            Spacer(Modifier.width(10.dp))
-            Icon(
-                imageVector = Icons.Default.BarChart,
-                contentDescription = null,
-                tint = if (isColorCorrectionsActive) MaterialTheme.colorScheme.secondary
-                else LocalContentColor.current
-            )
-            if (isColorCorrectionsActive) {
-                Text(
-                    "active",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {

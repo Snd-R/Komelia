@@ -19,7 +19,9 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
@@ -44,6 +46,10 @@ class ReaderViewModel(
     val colorCorrectionIsActive: Flow<Boolean>
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
+    private val pageChangeFlow = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
     val readerState: ReaderState = ReaderState(
         bookClient = bookClient,
@@ -55,6 +61,7 @@ class ReaderViewModel(
         currentBookId = currentBookId,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,
+        pageChangeFlow = pageChangeFlow,
     )
 
     val pagedReaderState = PagedReaderState(
@@ -65,6 +72,7 @@ class ReaderViewModel(
         imageLoader = imageLoader,
         appStrings = appStrings,
         readerImageFactory = readerImageFactory,
+        pageChangeFlow = pageChangeFlow,
         screenScaleState = screenScaleState,
     )
     val continuousReaderState = ContinuousReaderState(
@@ -75,6 +83,7 @@ class ReaderViewModel(
         notifications = appNotifications,
         appStrings = appStrings,
         readerImageFactory = readerImageFactory,
+        pageChangeFlow = pageChangeFlow,
         screenScaleState = screenScaleState,
     )
 

@@ -130,6 +130,14 @@ fun ReaderContent(
             onBookPress = onBookBackPress,
             ohShowHelpDialogChange = { showHelpDialog = it }
         )
+
+        EInkFlashOverlay(
+            enabled = commonReaderState.flashOnPageChange.collectAsState().value,
+            pageChangeFlow = commonReaderState.pageChangeFlow,
+            flashEveryNPages = commonReaderState.flashEveryNPages.collectAsState().value,
+            flashWith = commonReaderState.flashWith.collectAsState().value,
+            flashDuration = commonReaderState.flashDuration.collectAsState().value
+        )
     }
 }
 

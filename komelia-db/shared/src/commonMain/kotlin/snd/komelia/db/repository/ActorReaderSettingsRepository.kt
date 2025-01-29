@@ -1,6 +1,7 @@
 package snd.komelia.db.repository
 
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
+import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
@@ -86,5 +87,37 @@ class ActorReaderSettingsRepository(
 
     override suspend fun putContinuousReaderPageSpacing(spacing: Int) {
         actor.transform { it.copy(continuousPageSpacing = spacing) }
+    }
+
+    override fun getFlashOnPageChange(): Flow<Boolean> {
+        return actor.state.map { it.flashOnPageChange }.distinctUntilChanged()
+    }
+
+    override suspend fun putFlashOnPageChange(flash: Boolean) {
+        actor.transform { it.copy(flashOnPageChange = flash) }
+    }
+
+    override fun getFlashDuration(): Flow<Long> {
+        return actor.state.map { it.flashDuration }.distinctUntilChanged()
+    }
+
+    override suspend fun putFlashDuration(duration: Long) {
+        actor.transform { it.copy(flashDuration = duration) }
+    }
+
+    override fun getFlashEveryNPages(): Flow<Int> {
+        return actor.state.map { it.flashEveryNPages }.distinctUntilChanged()
+    }
+
+    override suspend fun putFlashEveryNPages(pages: Int) {
+        actor.transform { it.copy(flashEveryNPages = pages) }
+    }
+
+    override fun getFlashWith(): Flow<ReaderFlashColor> {
+        return actor.state.map { it.flashWith }.distinctUntilChanged()
+    }
+
+    override suspend fun putFlashWith(color: ReaderFlashColor) {
+        actor.transform { it.copy(flashWith = color) }
     }
 }

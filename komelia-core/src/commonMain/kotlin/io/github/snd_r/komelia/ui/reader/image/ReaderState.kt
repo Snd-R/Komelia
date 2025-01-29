@@ -24,6 +24,7 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -45,6 +46,7 @@ class ReaderState(
     private val currentBookId: MutableStateFlow<KomgaBookId?>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
+    val pageChangeFlow: SharedFlow<Unit>,
 ) {
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val expandImageSettings = MutableStateFlow(false)
@@ -57,12 +59,20 @@ class ReaderState(
     val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
 
-    suspend fun initialize(bookId: KomgaBookId) {
+    val flashOnPageChange = MutableStateFlow(false)
+    val flashDuration = MutableStateFlow(100L)
+    val flashEveryNPages = MutableStateFlow(1)
+    val flashWith = MutableStateFlow(ReaderFlashColor.BLACK)
 
+    suspend fun initialize(bookId: KomgaBookId) {
         decoderSettings.value = settingsRepository.getDecoderSettings().first()
         readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
         cropBorders.value = readerSettingsRepository.getCropBorders().first()
+        flashOnPageChange.value = readerSettingsRepository.getFlashOnPageChange().first()
+        flashDuration.value = readerSettingsRepository.getFlashDuration().first()
+        flashEveryNPages.value = readerSettingsRepository.getFlashEveryNPages().first()
+        flashWith.value = readerSettingsRepository.getFlashWith().first()
 
         decoderDescriptor.onEach { currentDecoderDescriptor.value = it }.launchIn(stateScope)
         loadBook(bookId)
@@ -217,6 +227,26 @@ class ReaderState(
         stateScope.launch { readerSettingsRepository.putCropBorders(trim) }
     }
 
+    fun onFlashEnabledChange(enabled: Boolean) {
+        flashOnPageChange.value = enabled
+        stateScope.launch { readerSettingsRepository.putFlashOnPageChange(enabled) }
+    }
+
+    fun onFlashDurationChange(duration: Long) {
+        flashDuration.value = duration
+        stateScope.launch { readerSettingsRepository.putFlashDuration(duration) }
+    }
+
+    fun onFlashEveryNPagesChange(pages: Int) {
+        flashEveryNPages.value = pages
+        stateScope.launch { readerSettingsRepository.putFlashEveryNPages(pages) }
+    }
+
+    fun onFlashWithChange(flashWith: ReaderFlashColor) {
+        this.flashWith.value = flashWith
+        stateScope.launch { readerSettingsRepository.putFlashWith(flashWith) }
+    }
+
     fun onDispose() {
         currentBookId.value = null
     }
@@ -257,4 +287,10 @@ sealed interface ReaderImageResult {
     data class Error(val throwable: Throwable) : ReaderImageResult {
         override val image: ReaderImage? = null
     }
+}
+
+enum class ReaderFlashColor {
+    BLACK,
+    WHITE,
+    WHITE_AND_BLACK,
 }

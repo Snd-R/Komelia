@@ -1,5 +1,6 @@
 package snd.komelia.db
 
+import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
@@ -20,4 +21,9 @@ data class ImageReaderSettings(
     val continuousPadding: Float = 0f,
     val continuousPageSpacing: Int = 0,
     val cropBorders: Boolean = false,
+
+    val flashOnPageChange: Boolean = false,
+    val flashDuration: Long = 100L,
+    val flashEveryNPages: Int = 1,
+    val flashWith: ReaderFlashColor = ReaderFlashColor.BLACK
 )
