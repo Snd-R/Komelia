@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -58,7 +59,7 @@ import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.NumberFieldWithIncrements
+import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
@@ -299,14 +300,14 @@ private fun PagedModeSettings(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             InputChip(
-                selected = readingDirection == PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
-                onClick = { pageState.onReadingDirectionChange(PagedReaderState.ReadingDirection.LEFT_TO_RIGHT) },
-                label = { Text(strings.forReadingDirection(PagedReaderState.ReadingDirection.LEFT_TO_RIGHT)) }
-            )
-            InputChip(
                 selected = readingDirection == PagedReaderState.ReadingDirection.RIGHT_TO_LEFT,
                 onClick = { pageState.onReadingDirectionChange(PagedReaderState.ReadingDirection.RIGHT_TO_LEFT) },
                 label = { Text(strings.forReadingDirection(PagedReaderState.ReadingDirection.RIGHT_TO_LEFT)) }
+            )
+            InputChip(
+                selected = readingDirection == PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
+                onClick = { pageState.onReadingDirectionChange(PagedReaderState.ReadingDirection.LEFT_TO_RIGHT) },
+                label = { Text(strings.forReadingDirection(PagedReaderState.ReadingDirection.LEFT_TO_RIGHT)) }
             )
         }
 
@@ -374,28 +375,34 @@ private fun ContinuousModeSettings(
             )
         }
 
-        val sidePadding = state.sidePaddingFraction.collectAsState().value
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            NumberFieldWithIncrements(
-                modifier = Modifier.widthIn(max = 150.dp),
-                value = sidePadding * 200,
-                onvValueChange = { state.onSidePaddingChange(it / 200f) },
-                label = "Side Padding",
-                stepSize = 1f,
-                minValue = 0f,
-                maxValue = 80f,
-                digitsAfterDecimal = 0,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val sidePadding = state.sidePaddingFraction.collectAsState().value
+            val paddingPercentage = remember(sidePadding) { (sidePadding * 200).roundToInt() }
+            Column(Modifier.width(100.dp)) {
+                Text("Side padding", style = MaterialTheme.typography.labelLarge)
+                Text("$paddingPercentage%", style = MaterialTheme.typography.labelMedium)
+            }
+            Slider(
+                value = sidePadding,
+                onValueChange = state::onSidePaddingChange,
+                steps = 15,
+                valueRange = 0f..0.4f,
+                colors = AppSliderDefaults.colors()
             )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
             val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
-            NumberFieldWithIncrements(
-                modifier = Modifier.widthIn(max = 150.dp),
+            Column(Modifier.width(90.dp)) {
+                Text("Page spacing", style = MaterialTheme.typography.labelLarge)
+                Text("$spacing", style = MaterialTheme.typography.labelMedium)
+            }
+            Slider(
                 value = spacing.toFloat(),
-                onvValueChange = { state.onPageSpacingChange(it.toInt()) },
-                label = "Page Spacing",
-                stepSize = 1f,
-                minValue = 0f,
-                maxValue = 1000f,
-                digitsAfterDecimal = 0,
+                onValueChange = { state.onPageSpacingChange(it.roundToInt()) },
+                steps = 99,
+                valueRange = 0f..1000f,
+                colors = AppSliderDefaults.colors()
             )
         }
         Spacer(Modifier.heightIn(30.dp))

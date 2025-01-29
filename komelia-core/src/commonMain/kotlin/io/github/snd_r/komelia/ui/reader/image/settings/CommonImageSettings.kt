@@ -136,7 +136,7 @@ fun CommonImageSettings(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.width(100.dp)) {
-                            Text("Flash Duration")
+                            Text("Flash Duration", style = MaterialTheme.typography.labelLarge)
                             Text("$flashDuration ms", style = MaterialTheme.typography.labelMedium)
                         }
                         Slider(
@@ -150,7 +150,7 @@ fun CommonImageSettings(
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.width(100.dp)) {
-                            Text("Flash every")
+                            Text("Flash every", style = MaterialTheme.typography.labelLarge)
                             val pagesText = remember(flashEveryNPages) {
                                 if (flashEveryNPages == 1) "$flashEveryNPages page"
                                 else "$flashEveryNPages pages"
