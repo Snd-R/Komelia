@@ -386,7 +386,6 @@ fun NumberFieldWithIncrements(
             onValueChange = { newValue ->
                 if (newValue.isBlank()) {
                     isTextFieldBlank = true
-                    onvValueChange(minValue)
                 } else {
                     isTextFieldBlank = false
                     val newFloat = newValue.toFloatOrNull() ?: return@OutlinedTextField

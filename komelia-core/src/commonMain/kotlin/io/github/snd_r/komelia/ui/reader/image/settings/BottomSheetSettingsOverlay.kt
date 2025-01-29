@@ -12,10 +12,17 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
@@ -28,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -52,7 +58,6 @@ import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.common.NumberFieldWithIncrements
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
@@ -90,7 +95,12 @@ fun BottomSheetSettingsOverlay(
     Row(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .pointerInput(Unit) {}
+            .windowInsetsPadding(
+                WindowInsets.statusBars
+                    .add(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onSeriesPress) {
@@ -325,7 +335,6 @@ private fun ContinuousModeSettings(
     state: ContinuousReaderState,
 ) {
     val strings = LocalStrings.current.continuousReader
-    val padding = state.sidePaddingFraction.collectAsState().value
     Column {
         val readingDirection = state.readingDirection.collectAsState().value
         Text(strings.readingDirection)
@@ -349,27 +358,30 @@ private fun ContinuousModeSettings(
             )
         }
 
-        Text("${strings.sidePadding} ${(padding * 200).roundToInt()}%")
-        Slider(
-            value = padding,
-            onValueChange = state::onSidePaddingChange,
-            steps = 7,
-            valueRange = 0f..0.4f,
-            modifier = Modifier.cursorForHand(),
-            colors = AppSliderDefaults.colors()
-        )
-
-        val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
-        NumberFieldWithIncrements(
-            modifier = Modifier.widthIn(max = 150.dp),
-            value = spacing.toFloat(),
-            onvValueChange = { state.onPageSpacingChange(it.toInt()) },
-            label = "Page Spacing",
-            stepSize = 1f,
-            minValue = 0f,
-            maxValue = 1000f,
-            digitsAfterDecimal = 0,
-        )
+        val sidePadding = state.sidePaddingFraction.collectAsState().value
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            NumberFieldWithIncrements(
+                modifier = Modifier.widthIn(max = 150.dp),
+                value = sidePadding * 200,
+                onvValueChange = { state.onSidePaddingChange(it / 200f) },
+                label = "Side Padding",
+                stepSize = 1f,
+                minValue = 0f,
+                maxValue = 80f,
+                digitsAfterDecimal = 0,
+            )
+            val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
+            NumberFieldWithIncrements(
+                modifier = Modifier.widthIn(max = 150.dp),
+                value = spacing.toFloat(),
+                onvValueChange = { state.onPageSpacingChange(it.toInt()) },
+                label = "Page Spacing",
+                stepSize = 1f,
+                minValue = 0f,
+                maxValue = 1000f,
+                digitsAfterDecimal = 0,
+            )
+        }
         Spacer(Modifier.heightIn(30.dp))
     }
 }

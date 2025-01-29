@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -79,15 +79,20 @@ fun PageSpreadProgressSlider(
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered = interactionSource.collectIsHoveredAsState()
 
-    Box(modifier = modifier.then(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 70.dp)
-            .pointerInput(Unit) {}
-            .hoverable(interactionSource)
-    )) {
+    Box(
+        modifier = modifier.then(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 70.dp)
+                .pointerInput(Unit) {}
+                .hoverable(interactionSource)
+        )) {
         if (show || isHovered.value) {
-            Column(modifier = Modifier.align(Alignment.BottomStart)) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
                 SliderWithLabel(
                     value = currentSpreadIndex.toFloat(),
                     valueRange = 0f..(pageSpreads.size - 1).toFloat(),
@@ -100,9 +105,10 @@ fun PageSpreadProgressSlider(
                 )
 
                 Spacer(
-                    Modifier.windowInsetsBottomHeight(WindowInsets.systemBars)
+                    Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
                 )
             }
         }
