@@ -2,7 +2,9 @@ package io.github.snd_r.komelia.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -18,8 +20,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
@@ -37,6 +42,8 @@ import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.toToast
+import io.github.snd_r.komelia.ui.KomgaSharedState.DataState.AuthenticationRequired
+import io.github.snd_r.komelia.ui.KomgaSharedState.DataState.Loaded
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.dialogs.update.UpdateDialog
@@ -105,17 +112,9 @@ fun MainView(
                 LocalWindowHeight provides windowHeight,
                 LocalLibraries provides viewModelFactory.getLibraries()
             ) {
-
-                Navigator(
-                    screen = when (platformType) {
-                        MOBILE, DESKTOP -> LoginScreen()
-                        WEB_KOMF -> KomfMainScreen()
-                    },
-                    onBackPressed = null
-                )
+                MainContent(platformType, viewModelFactory.komgaSharedState)
 
                 AppNotifications(dependencies.appNotifications, theme)
-
                 val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }
                 if (updateChecker != null) {
                     StartupUpdateChecker(updateChecker)
@@ -125,6 +124,57 @@ fun MainView(
             BackPressHandler {}
         }
     }
+}
+
+@Composable
+private fun MainContent(
+    platformType: PlatformType,
+    komgaSharedState: KomgaSharedState
+) {
+    val loginScreen = remember(platformType) {
+        when (platformType) {
+            MOBILE, DESKTOP -> LoginScreen()
+            WEB_KOMF -> KomfMainScreen()
+        }
+    }
+
+    Navigator(
+        screen = loginScreen,
+        onBackPressed = null
+    ) { navigator ->
+        var canProceed by remember { mutableStateOf(komgaSharedState.state.value == Loaded) }
+        // FIXME this looks like a hack. Find a multiplatform way to handle this outside of composition?
+        // variable to track if Android app was killed in background and later restored
+        var wasInitializedBefore by rememberSaveable { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            if (canProceed) return@LaunchedEffect
+
+            // not really necessary since Voyager navigator doesn't dispose existing MainScreen when it's replaced with LoginScreen
+            // when LoginScreen replaces itself back to MainScreen, it's restored to old state
+            // not sure if it's intended, do proper initialization here to avoid loading LoginScreen
+            if (wasInitializedBefore) {
+                komgaSharedState.tryReloadState()
+            }
+
+            val currentState = komgaSharedState.state.value
+            when (currentState) {
+                AuthenticationRequired -> navigator.replaceAll(loginScreen)
+                Loaded -> {}
+            }
+            canProceed = true
+
+            komgaSharedState.state.collect {
+                wasInitializedBefore = when (it) {
+                    AuthenticationRequired -> false
+                    Loaded -> true
+                }
+            }
+        }
+
+        if (canProceed) CurrentScreen()
+    }
+
 }
 
 
@@ -153,7 +203,12 @@ fun AppNotifications(
                 null -> {}
                 else -> {}
             }
-        }
+        },
+        //FIXME: on Android API 35 popup is shown under nav bar due to enforced edge to edge mode.
+        // WindowInsets doesn't seem to provide any values inside dialogs
+        // add offset from main window as workaround, as a side effect, on lower apis it's drawn higher than usual
+        // there's no simple way to enable edge to edge in compose dialogs on lower apis
+        offset = IntOffset(0, -WindowInsets.navigationBars.getBottom(LocalDensity.current))
     )
 }
 

@@ -101,10 +101,9 @@ class OneshotViewModel(
             }
 
             val currentBook = this.book.value
-                ?: seriesClient.getAllBooksBySeries(seriesId).content
-                    .first()
+                ?: seriesClient.getAllBooksBySeries(seriesId).content.first()
                     .also { this.book.value = it }
-            this.library.value = libraries.value.firstOrNull { it.id == currentBook.libraryId }
+            this.library.value = getLibraryOrThrow(currentBook)
         }
             .onSuccess { mutableState.value = Success(Unit) }
             .onFailure { mutableState.value = Error(it) }
@@ -127,6 +126,14 @@ class OneshotViewModel(
         }.onFailure { mutableState.value = Error(it) }
     }
 
+    private fun getLibraryOrThrow(book: KomgaBook): KomgaLibrary {
+        val library = this.libraries.value.firstOrNull { it.id == book.libraryId }
+        if (library == null) {
+            throw IllegalStateException("Failed to find library for oneshot ${book.metadata.title}")
+        }
+        return library
+
+    }
 
     private fun registerEventListener() {
         events.onEach { event ->

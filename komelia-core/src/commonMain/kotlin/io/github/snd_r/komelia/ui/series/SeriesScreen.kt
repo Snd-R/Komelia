@@ -35,7 +35,7 @@ class SeriesScreen(
     @Transient
     private val series: KomgaSeries? = null,
     @Transient
-    private val startingTab: SeriesTab = SeriesTab.BOOKS
+    private val startingTab: SeriesTab? = SeriesTab.BOOKS
 ) : Screen {
 
     constructor(series: KomgaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(
@@ -46,7 +46,6 @@ class SeriesScreen(
 
     override val key: ScreenKey = seriesId.toString()
 
-    @OptIn(InternalVoyagerApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow

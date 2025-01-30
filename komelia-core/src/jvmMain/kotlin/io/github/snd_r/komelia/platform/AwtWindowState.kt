@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.platform
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -18,6 +17,4 @@ class AwtWindowState(
             placementFlow.value = WindowPlacement.Floating
         }
     }
-
-    override fun setSystemBarsColor(color: Color) = Unit
 }

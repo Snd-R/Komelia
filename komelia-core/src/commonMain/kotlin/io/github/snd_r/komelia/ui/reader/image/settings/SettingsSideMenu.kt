@@ -4,24 +4,20 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -34,7 +30,6 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.HorizontalDivider
@@ -112,15 +107,12 @@ fun SettingsSideMenuOverlay(
     onBackPress: () -> Unit,
     onShowHelpMenu: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(
-                WindowInsets.systemBars.only(WindowInsetsSides.Vertical)
-                    .add(WindowInsets.systemBars.only(WindowInsetsSides.End))
-            ),
-        contentAlignment = Alignment.CenterEnd,
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Spacer(
+            Modifier.fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .windowInsetsPadding(WindowInsets.statusBars)
+        )
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -129,6 +121,7 @@ fun SettingsSideMenuOverlay(
                 .padding(horizontal = 10.dp)
                 .imePadding()
                 .fillMaxHeight()
+                .align(Alignment.End)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
@@ -208,7 +201,7 @@ fun SettingsSideMenuOverlay(
                 }
             }
 
-            Spacer(Modifier.height(60.dp))
+            Spacer(Modifier.padding(bottom = 60.dp).navigationBarsPadding())
         }
     }
 

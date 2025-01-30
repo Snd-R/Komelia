@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
+import io.github.snd_r.komelia.ui.KomgaSharedState
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.error.formatExceptionMessage
@@ -21,12 +22,9 @@ import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.utils.io.*
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
-import snd.komga.client.user.KomgaUser
 import snd.komga.client.user.KomgaUserClient
 
 class LoginViewModel(
@@ -34,10 +32,9 @@ class LoginViewModel(
     private val secretsRepository: SecretsRepository,
     private val komgaUserClient: KomgaUserClient,
     private val komgaLibraryClient: KomgaLibraryClient,
-    private val authenticatedUserFlow: MutableStateFlow<KomgaUser?>,
-    private val availableLibrariesFlow: MutableStateFlow<List<KomgaLibrary>>,
+    private val komgaSharedState: KomgaSharedState,
     private val notifications: AppNotifications,
-    private val platform: PlatformType
+    private val platform: PlatformType,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     var url by mutableStateOf("")
@@ -146,8 +143,7 @@ class LoginViewModel(
             else komgaUserClient.getMe()
 
         val libraries = komgaLibraryClient.getLibraries()
-        authenticatedUserFlow.value = user
-        availableLibrariesFlow.value = libraries
+        komgaSharedState.setStateValues(user, libraries)
         mutableState.value = LoadState.Success(Unit)
     }
 }

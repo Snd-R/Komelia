@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -32,7 +33,6 @@ import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class BookViewModel(
     book: KomgaBook?,

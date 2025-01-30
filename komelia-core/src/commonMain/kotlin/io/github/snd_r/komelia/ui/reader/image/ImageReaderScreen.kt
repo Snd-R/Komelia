@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,16 +43,16 @@ import io.github.snd_r.komelia.ui.reader.image.common.ReaderContent
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile.DIVINA
 import snd.komga.client.book.MediaProfile.EPUB
 import snd.komga.client.book.MediaProfile.PDF
-import kotlin.jvm.Transient
 
 fun readerScreen(book: KomgaBook, markReadProgress: Boolean): Screen {
     return when (book.media.mediaProfile) {
-        DIVINA, PDF -> ImageReaderScreen(book.id, markReadProgress, book)
+        DIVINA, PDF -> ImageReaderScreen(book.id, markReadProgress)
         EPUB -> EpubScreen(book.id, markReadProgress, book)
         null -> error("Unsupported book format")
     }
@@ -60,8 +61,6 @@ fun readerScreen(book: KomgaBook, markReadProgress: Boolean): Screen {
 class ImageReaderScreen(
     private val bookId: KomgaBookId,
     private val markReadProgress: Boolean = true,
-    @Transient
-    private val book: KomgaBook? = null,
 ) : Screen {
 
     @Composable
@@ -72,12 +71,18 @@ class ImageReaderScreen(
             viewModelFactory.getBookReaderViewModel(navigator, markReadProgress)
         }
 
-        LaunchedEffect(bookId) {
+        //FIXME: do outside of composition? No proper multiplatform way to do it in viewmodel
+        // restore current book when app process is killed in background on Android
+        var currentBookId by rememberSaveable { mutableStateOf(bookId.value) }
+        LaunchedEffect(Unit) {
+            val bookId = KomgaBookId(currentBookId)
             vm.initialize(bookId)
             val book = vm.readerState.booksState.value?.currentBook
             if (book != null && (book.media.mediaProfile != DIVINA || book.media.mediaProfile != PDF)) {
                 navigator.replace(readerScreen(book, markReadProgress))
             }
+            vm.readerState.booksState.filterNotNull()
+                .collect { currentBookId = it.currentBook.id.value }
         }
 
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
@@ -105,7 +110,12 @@ class ImageReaderScreen(
             when (val result = vmState.value) {
                 is LoadState.Error -> ErrorContent(
                     exception = result.exception,
-                    onReturn = { navigator.replaceAll(MainScreen(BookScreen(bookId))) },
+                    onReturn = {
+                        if (navigator.canPop) navigator.pop()
+                        else {
+                            navigator.replaceAll(MainScreen(BookScreen(bookId)))
+                        }
+                    },
                     onRetry = { vm.initialize(bookId) }
                 )
 
@@ -132,11 +142,14 @@ class ImageReaderScreen(
                 }
             },
             onExit = {
-                vm.readerState.booksState.value?.currentBook?.let { book ->
-                    navigator replace MainScreen(
-                        if (book.oneshot) OneshotScreen(book)
-                        else SeriesScreen(book.seriesId)
-                    )
+                if (navigator.canPop) navigator.pop()
+                else {
+                    vm.readerState.booksState.value?.currentBook?.let { book ->
+                        navigator replace MainScreen(
+                            if (book.oneshot) OneshotScreen(book)
+                            else SeriesScreen(book.seriesId)
+                        )
+                    }
                 }
             }
         )

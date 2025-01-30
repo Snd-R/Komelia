@@ -1,8 +1,6 @@
 package io.github.snd_r.komelia.platform
 
 import android.app.Activity
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowInsetsCompat.Type.navigationBars
 import androidx.core.view.WindowInsetsCompat.Type.statusBars
 import androidx.core.view.WindowInsetsControllerCompat
@@ -29,11 +27,5 @@ class AndroidWindowState(
             isFullscreen.value = false
 
         }
-    }
-
-    override fun setSystemBarsColor(color: Color) {
-        val window = activity.value?.window ?: return
-        window.statusBarColor = color.toArgb()
-        window.navigationBarColor = color.toArgb()
     }
 }

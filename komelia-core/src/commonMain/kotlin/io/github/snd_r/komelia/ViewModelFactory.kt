@@ -7,6 +7,7 @@ import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
+import io.github.snd_r.komelia.ui.KomgaSharedState
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
 import io.github.snd_r.komelia.ui.collection.CollectionViewModel
@@ -44,6 +45,7 @@ import io.github.snd_r.komelia.ui.reader.image.ReaderViewModel
 import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
+import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel
 import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
@@ -68,7 +70,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import snd.komf.api.MediaServer
@@ -101,8 +102,6 @@ class ViewModelFactory(
     private val secretsRepository: SecretsRepository
         get() = dependencies.secretsRepository
 
-    private val authenticatedUser = MutableStateFlow<KomgaUser?>(null)
-    private val libraries = MutableStateFlow<List<KomgaLibrary>>(emptyList())
     private val releases = MutableStateFlow<List<AppRelease>>(emptyList())
     private val imageReaderCurrentBook = MutableStateFlow<KomgaBookId?>(null)
         .also { dependencies.colorCorrectionStep.setBookFlow(it) }
@@ -113,14 +112,17 @@ class ViewModelFactory(
         kavitaServerClient = dependencies.komfClientFactory.mediaServerClient(KAVITA),
         notifications = dependencies.appNotifications,
     )
+    val komgaSharedState = KomgaSharedState(
+        userClient = komgaClientFactory.userClient(),
+        libraryClient = komgaClientFactory.libraryClient(),
+    )
 
     private val komgaEventSource = ManagedKomgaEvents(
-        authenticatedUser = authenticatedUser,
         eventSourceFactory = komgaClientFactory::sseSession,
         memoryCache = dependencies.coilImageLoader.memoryCache,
         diskCache = dependencies.coilImageLoader.diskCache,
         libraryClient = komgaClientFactory.libraryClient(),
-        librariesFlow = libraries
+        komgaSharedState = komgaSharedState
     )
 
     private val startupUpdateChecker = dependencies.appUpdater?.let { updater ->
@@ -164,20 +166,20 @@ class ViewModelFactory(
                 seriesClient = komgaClientFactory.seriesClient(),
                 bookClient = komgaClientFactory.bookClient(),
                 appNotifications = dependencies.appNotifications,
-                libraries = libraries
+                libraries = komgaSharedState.libraries
             ),
-            libraries = libraries,
+            libraries = komgaSharedState.libraries,
         )
     }
 
     fun getSeriesViewModel(
         seriesId: KomgaSeriesId,
         series: KomgaSeries? = null,
-        defaultTab: SeriesViewModel.SeriesTab,
+        defaultTab: SeriesTab? = null,
     ) = SeriesViewModel(
         seriesId = seriesId,
         series = series,
-        libraries = libraries,
+        libraries = komgaSharedState.libraries,
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
         collectionClient = komgaClientFactory.collectionClient(),
@@ -185,7 +187,7 @@ class ViewModelFactory(
         events = komgaEventSource.events,
         settingsRepository = settingsRepository,
         referentialClient = komgaClientFactory.referentialClient(),
-        defaultTab = defaultTab,
+        defaultTab = defaultTab ?: SeriesTab.BOOKS,
     )
 
     fun getBookViewModel(bookId: KomgaBookId, book: KomgaBook?): BookViewModel {
@@ -195,7 +197,7 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             notifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
-            libraries = libraries,
+            libraries = komgaSharedState.libraries,
             settingsRepository = settingsRepository,
             readListClient = komgaClientFactory.readListClient(),
         )
@@ -213,7 +215,7 @@ class ViewModelFactory(
         bookClient = komgaClientFactory.bookClient(),
         events = komgaEventSource.events,
         notifications = dependencies.appNotifications,
-        libraries = libraries,
+        libraries = komgaSharedState.libraries,
         settingsRepository = settingsRepository,
         readListClient = komgaClientFactory.readListClient(),
         collectionClient = komgaClientFactory.collectionClient(),
@@ -258,8 +260,7 @@ class ViewModelFactory(
             secretsRepository = secretsRepository,
             komgaUserClient = komgaClientFactory.userClient(),
             komgaLibraryClient = komgaClientFactory.libraryClient(),
-            authenticatedUserFlow = authenticatedUser,
-            availableLibrariesFlow = libraries,
+            komgaSharedState = komgaSharedState,
             notifications = dependencies.appNotifications,
             platform = platformType
         )
@@ -372,12 +373,12 @@ class ViewModelFactory(
         seriesClient = komgaClientFactory.seriesClient(),
         bookClient = komgaClientFactory.bookClient(),
         appNotifications = dependencies.appNotifications,
-        libraries = libraries,
+        libraries = komgaSharedState.libraries,
     )
 
 
     fun getAccountViewModel(): AccountSettingsViewModel {
-        val user = requireNotNull(authenticatedUser.value)
+        val user = requireNotNull(komgaSharedState.authenticatedUser.value)
         return AccountSettingsViewModel(user)
     }
 
@@ -390,7 +391,7 @@ class ViewModelFactory(
     }
 
     fun getUsersViewModel(): UsersViewModel {
-        val user = requireNotNull(authenticatedUser.value)
+        val user = requireNotNull(komgaSharedState.authenticatedUser.value)
         return UsersViewModel(dependencies.appNotifications, komgaClientFactory.userClient(), user)
     }
 
@@ -408,7 +409,7 @@ class ViewModelFactory(
     }
 
     fun getUserEditDialogViewModel(user: KomgaUser): UserEditDialogViewModel {
-        val libraries = requireNotNull(libraries.value)
+        val libraries = requireNotNull(komgaSharedState.libraries.value)
         return UserEditDialogViewModel(
             dependencies.appNotifications,
             user,
@@ -423,7 +424,7 @@ class ViewModelFactory(
             settingsClient = komgaClientFactory.settingsClient(),
             bookClient = komgaClientFactory.bookClient(),
             libraryClient = komgaClientFactory.libraryClient(),
-            libraries = libraries,
+            libraries = komgaSharedState.libraries,
             taskClient = komgaClientFactory.taskClient(),
             actuatorClient = komgaClientFactory.actuatorClient()
         )
@@ -438,7 +439,7 @@ class ViewModelFactory(
             rootNavigator = rootNavigator,
             appNotifications = dependencies.appNotifications,
             userClient = komgaClientFactory.userClient(),
-            authenticatedUser = authenticatedUser,
+            komgaSharedState = komgaSharedState,
             secretsRepository = secretsRepository,
             currentServerUrl = settingsRepository.getServerUrl(),
             bookClient = komgaClientFactory.bookClient(),
@@ -652,11 +653,11 @@ class ViewModelFactory(
 
     fun getStartupUpdateChecker() = startupUpdateChecker
 
-    fun getLibraries(): StateFlow<List<KomgaLibrary>> = libraries.asStateFlow()
+    fun getLibraries(): StateFlow<List<KomgaLibrary>> = komgaSharedState.libraries
 
     private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
         if (id == null) return flowOf(null)
-        return libraries.map { libraries -> libraries.firstOrNull { it.id == id } }
+        return komgaSharedState.libraries.map { libraries -> libraries.firstOrNull { it.id == id } }
     }
 
     private fun getGridCardWidth(): Flow<Dp> {

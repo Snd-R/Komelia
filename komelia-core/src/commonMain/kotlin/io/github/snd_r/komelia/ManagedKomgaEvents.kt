@@ -3,22 +3,19 @@ package io.github.snd_r.komelia
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.ui.KomgaSharedState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.collection.KomgaCollectionId
-import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
 import snd.komga.client.readlist.KomgaReadListId
 import snd.komga.client.series.KomgaSeriesId
@@ -32,21 +29,18 @@ import snd.komga.client.sse.KomgaEvent.ThumbnailReadListEvent
 import snd.komga.client.sse.KomgaEvent.ThumbnailSeriesAdded
 import snd.komga.client.sse.KomgaEvent.ThumbnailSeriesDeleted
 import snd.komga.client.sse.KomgaSSESession
-import snd.komga.client.user.KomgaUser
 import kotlin.concurrent.Volatile
 
 private val logger = KotlinLogging.logger {}
 
 class ManagedKomgaEvents(
-    authenticatedUser: StateFlow<KomgaUser?>,
     private val eventSourceFactory: suspend () -> KomgaSSESession,
     private val memoryCache: MemoryCache?,
     private val diskCache: DiskCache?,
 
     private val libraryClient: KomgaLibraryClient,
-    private val librariesFlow: MutableStateFlow<List<KomgaLibrary>>
+    private val komgaSharedState: KomgaSharedState,
 ) {
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val manageScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
     private val broadcastScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -54,7 +48,7 @@ class ManagedKomgaEvents(
     private var session: KomgaSSESession? = null
 
     init {
-        authenticatedUser.onEach { newUser ->
+        komgaSharedState.authenticatedUser.onEach { newUser ->
             broadcastScope.coroutineContext.cancelChildren()
             session?.cancel()
 
@@ -95,7 +89,7 @@ class ManagedKomgaEvents(
 
     private fun updateLibraries() {
         manageScope.launch {
-            librariesFlow.value = libraryClient.getLibraries()
+            komgaSharedState.updateLibraries(libraryClient.getLibraries())
         }
     }
 

@@ -91,7 +91,6 @@ fun PageSpreadProgressSlider(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 SliderWithLabel(
                     value = currentSpreadIndex.toFloat(),

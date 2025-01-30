@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.platform
 
-import androidx.compose.ui.graphics.Color
 import kotlinx.browser.document
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -21,6 +20,4 @@ class BrowserWindowState : AppWindowState {
             document.exitFullscreen()
         }
     }
-
-    override fun setSystemBarsColor(color: Color) = Unit
 }
