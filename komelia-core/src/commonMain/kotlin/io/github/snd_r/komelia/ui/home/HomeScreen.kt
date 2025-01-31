@@ -1,28 +1,36 @@
 package io.github.snd_r.komelia.ui.home
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.ui.LoadState
+import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.library.KomgaLibraryId
 
-class HomeScreen(private val libraryId: KomgaLibraryId? = null) : Screen {
+class HomeScreen(private val libraryId: KomgaLibraryId? = null) : ReloadableScreen {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getHomeViewModel() }
         val navigator = LocalNavigator.currentOrThrow
-        LaunchedEffect(Unit) { vm.initialize() }
+        val reloadEvents = LocalReloadEvents.current
+        LaunchedEffect(Unit) {
+            vm.initialize()
+            reloadEvents.collect { vm.reload() }
+        }
+
         when (val state = vm.state.collectAsState().value) {
             is LoadState.Error -> ErrorContent(
                 message = state.exception.message ?: "Unknown Error",

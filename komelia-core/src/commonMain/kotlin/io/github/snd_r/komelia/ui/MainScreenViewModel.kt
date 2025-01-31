@@ -15,6 +15,7 @@ import io.github.snd_r.komelia.ui.navigation.SearchBarState
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
 import io.github.snd_r.komelia.ui.series.SeriesScreen
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,7 @@ class MainScreenViewModel(
     private val appNotifications: AppNotifications,
     private val navigator: Navigator,
     private val komgaEvents: SharedFlow<KomgaEvent>,
+    private val screenReloadFlow: MutableSharedFlow<Unit>,
     val searchBarState: SearchBarState,
     val libraries: StateFlow<List<KomgaLibrary>>,
 ) : ScreenModel {
@@ -53,6 +55,10 @@ class MainScreenViewModel(
 
     fun getLibraryActions(): LibraryMenuActions {
         return LibraryMenuActions(libraryClient, appNotifications, screenModelScope)
+    }
+
+    fun onScreenReload() {
+        screenReloadFlow.tryEmit(Unit)
     }
 
     //Assuming that delete events come from bottom (book->series->library)

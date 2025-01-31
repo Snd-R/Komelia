@@ -34,8 +34,6 @@ import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.home.HomeViewModel
-import io.github.snd_r.komelia.ui.library.LibraryCollectionsViewModel
-import io.github.snd_r.komelia.ui.library.LibraryReadListsViewModel
 import io.github.snd_r.komelia.ui.library.LibraryViewModel
 import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
@@ -46,8 +44,6 @@ import io.github.snd_r.komelia.ui.readlist.ReadListViewModel
 import io.github.snd_r.komelia.ui.search.SearchViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
-import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel
-import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import io.github.snd_r.komelia.ui.settings.account.AccountSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisViewModel
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
@@ -66,7 +62,9 @@ import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesViewModel
 import io.github.snd_r.komelia.ui.settings.users.UsersViewModel
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.StartupUpdateChecker
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -132,17 +130,22 @@ class ViewModelFactory(
             releases
         )
     }
+    val screenReloadEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = DROP_OLDEST)
 
     fun getLibraryViewModel(
         libraryId: KomgaLibraryId?,
     ): LibraryViewModel {
         return LibraryViewModel(
-            libraryFlow = libraryId?.let { getLibraryFlow(it) },
             libraryClient = komgaClientFactory.libraryClient(),
             collectionClient = komgaClientFactory.collectionClient(),
             readListsClient = komgaClientFactory.readListClient(),
+            seriesClient = komgaClientFactory.seriesClient(),
+            referentialClient = komgaClientFactory.referentialClient(),
+
             appNotifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
+            libraryFlow = getLibraryFlow(libraryId),
+            settingsRepository = dependencies.settingsRepository,
         )
     }
 
@@ -162,6 +165,7 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             navigator = navigator,
             komgaEvents = komgaEventSource.events,
+            screenReloadFlow = screenReloadEvents,
             searchBarState = SearchBarState(
                 seriesClient = komgaClientFactory.seriesClient(),
                 bookClient = komgaClientFactory.bookClient(),
@@ -220,22 +224,6 @@ class ViewModelFactory(
         readListClient = komgaClientFactory.readListClient(),
         collectionClient = komgaClientFactory.collectionClient(),
     )
-
-    fun getSeriesBrowseViewModel(
-        libraryId: KomgaLibraryId?,
-        sort: SeriesSort = SeriesSort.TITLE_ASC,
-    ): SeriesListViewModel {
-        return SeriesListViewModel(
-            seriesClient = komgaClientFactory.seriesClient(),
-            referentialClient = komgaClientFactory.referentialClient(),
-            notifications = dependencies.appNotifications,
-            komgaEvents = komgaEventSource.events,
-            settingsRepository = settingsRepository,
-            libraryFlow = getLibraryFlow(libraryId),
-            cardWidthFlow = getGridCardWidth(),
-            defaultSort = sort
-        )
-    }
 
     fun getBookReaderViewModel(navigator: Navigator, markReadProgress: Boolean): ReaderViewModel {
         return ReaderViewModel(
@@ -461,27 +449,6 @@ class ViewModelFactory(
             settings = settingsRepository,
             notifications = dependencies.appNotifications,
         )
-    }
-
-    fun getLibraryCollectionsViewModel(libraryId: KomgaLibraryId?): LibraryCollectionsViewModel {
-        return LibraryCollectionsViewModel(
-            collectionClient = komgaClientFactory.collectionClient(),
-            appNotifications = dependencies.appNotifications,
-            events = komgaEventSource.events,
-            libraryFlow = libraryId?.let { getLibraryFlow(it) },
-            cardWidthFlow = getGridCardWidth(),
-        )
-    }
-
-    fun getLibraryReadListsViewModel(libraryId: KomgaLibraryId?): LibraryReadListsViewModel {
-        return LibraryReadListsViewModel(
-            readListClient = komgaClientFactory.readListClient(),
-            appNotifications = dependencies.appNotifications,
-            komgaEvents = komgaEventSource.events,
-            libraryFlow = libraryId?.let { getLibraryFlow(it) },
-            cardWidthFlow = getGridCardWidth(),
-        )
-
     }
 
     fun getCollectionViewModel(collectionId: KomgaCollectionId): CollectionViewModel {

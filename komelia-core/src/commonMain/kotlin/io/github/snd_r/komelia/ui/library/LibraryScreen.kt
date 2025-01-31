@@ -28,13 +28,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -44,7 +42,9 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.ErrorContent
@@ -69,7 +69,7 @@ class LibraryScreen(
     val libraryId: KomgaLibraryId? = null,
     @Transient
     private val seriesFilter: SeriesScreenFilter? = null
-) : Screen {
+) : ReloadableScreen {
 
     override val key: ScreenKey = "${libraryId}_${seriesFilter.hashCode()}"
 
@@ -78,17 +78,20 @@ class LibraryScreen(
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getLibraryViewModel(libraryId) }
+        val reloadEvents = LocalReloadEvents.current
 
-        LaunchedEffect(libraryId) { vm.initialize(seriesFilter) }
+        LaunchedEffect(libraryId) {
+            vm.initialize(seriesFilter)
+            reloadEvents.collect { vm.reload() }
+        }
 
         when (val state = vm.state.collectAsState().value) {
             is Error -> ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
             Uninitialized, Loading, is Success -> {
-                var showToolbar by remember { mutableStateOf(true) }
                 Column {
-                    if (showToolbar) {
+                    if (vm.showToolbar.collectAsState().value) {
                         LibraryToolBar(
-                            library = vm.library?.value,
+                            library = vm.library.collectAsState().value,
                             currentTab = vm.currentTab,
                             libraryActions = vm.libraryActions(),
                             collectionsCount = vm.collectionsCount,
@@ -98,10 +101,12 @@ class LibraryScreen(
                             onReadListsClick = vm::toReadListsTab
                         )
                     }
-                    CurrentTab(
-                        tab = vm.currentTab,
-                        onLibraryToolbarToggle = { showToolbar = it }
-                    )
+
+                    when (vm.currentTab) {
+                        SERIES -> BrowseTab(vm.seriesTabState)
+                        COLLECTIONS -> CollectionsTab(vm.collectionsTabState)
+                        READ_LISTS -> ReadListsTab(vm.readListsTabState)
+                    }
                 }
             }
         }
@@ -109,105 +114,72 @@ class LibraryScreen(
     }
 
     @Composable
-    private fun CurrentTab(
-        tab: LibraryTab,
-        onLibraryToolbarToggle: (show: Boolean) -> Unit,
-        modifier: Modifier = Modifier
-    ) {
-        Box(modifier) {
-            when (tab) {
-                SERIES -> BrowseTab(onLibraryToolbarToggle)
-                COLLECTIONS -> CollectionsTab()
-                READ_LISTS -> ReadListsTab()
-            }
-        }
-
-    }
-
-    @Composable
-    private fun BrowseTab(
-        onLibraryToolbarToggle: (show: Boolean) -> Unit,
-    ) {
+    private fun BrowseTab(seriesTabState: LibrarySeriesTabState) {
         val navigator = LocalNavigator.currentOrThrow
-        val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel("browse_${libraryId?.value}") {
-            viewModelFactory.getSeriesBrowseViewModel(libraryId)
-        }
-        LaunchedEffect(libraryId) { vm.initialize(seriesFilter) }
+        LaunchedEffect(libraryId) { seriesTabState.initialize(seriesFilter) }
 
-        LaunchedEffect(Unit) {
-            snapshotFlow { vm.isInEditMode }
-                .collect { editMode -> onLibraryToolbarToggle(!editMode) }
-        }
-
-        when (val state = vm.state.collectAsState().value) {
+        when (val state = seriesTabState.state.collectAsState().value) {
             is Error -> ErrorContent(
                 message = state.exception.message ?: "Unknown Error",
-                onReload = vm::reload
+                onReload = seriesTabState::reload
             )
 
             else -> {
                 val loading = state is Loading || state is Uninitialized
                 SeriesListContent(
-                    series = vm.series,
-                    seriesActions = vm.seriesMenuActions(),
-                    seriesTotalCount = vm.totalSeriesCount,
+                    series = seriesTabState.series,
+                    seriesActions = seriesTabState.seriesMenuActions(),
+                    seriesTotalCount = seriesTabState.totalSeriesCount,
                     onSeriesClick = { navigator.push(seriesScreen(it)) },
 
-                    editMode = vm.isInEditMode,
-                    onEditModeChange = vm::onEditModeChange,
-                    selectedSeries = vm.selectedSeries,
-                    onSeriesSelect = vm::onSeriesSelect,
+                    editMode = seriesTabState.isInEditMode.collectAsState().value,
+                    onEditModeChange = seriesTabState::onEditModeChange,
+                    selectedSeries = seriesTabState.selectedSeries,
+                    onSeriesSelect = seriesTabState::onSeriesSelect,
 
                     isLoading = loading,
-                    filterState = vm.filterState,
+                    filterState = seriesTabState.filterState,
 
-                    currentPage = vm.currentSeriesPage,
-                    totalPages = vm.totalSeriesPages,
-                    pageSize = vm.pageLoadSize.collectAsState().value,
-                    onPageSizeChange = vm::onPageSizeChange,
-                    onPageChange = vm::onPageChange,
+                    currentPage = seriesTabState.currentSeriesPage,
+                    totalPages = seriesTabState.totalSeriesPages,
+                    pageSize = seriesTabState.pageLoadSize.collectAsState().value,
+                    onPageSizeChange = seriesTabState::onPageSizeChange,
+                    onPageChange = seriesTabState::onPageChange,
 
-                    minSize = vm.cardWidth.collectAsState().value,
+                    minSize = seriesTabState.cardWidth.collectAsState().value,
                 )
             }
         }
     }
 
     @Composable
-    private fun CollectionsTab() {
-        val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel("collections_${libraryId?.value}") {
-            viewModelFactory.getLibraryCollectionsViewModel(libraryId)
-        }
-
+    private fun CollectionsTab(collectionsTabState: LibraryCollectionsTabState) {
         val navigator = LocalNavigator.currentOrThrow
-        LaunchedEffect(libraryId) { vm.initialize() }
+        LaunchedEffect(libraryId) { collectionsTabState.initialize() }
 
-        when (val state = vm.state.collectAsState().value) {
-
+        when (val state = collectionsTabState.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
             is Error -> ErrorContent(
                 message = state.exception.message ?: "Unknown Error",
-                onReload = vm::reload
+                onReload = collectionsTabState::reload
             )
 
             else -> {
                 val loading = state is Loading
                 LibraryCollectionsContent(
-                    collections = vm.collections,
-                    collectionsTotalCount = vm.totalCollections,
+                    collections = collectionsTabState.collections,
+                    collectionsTotalCount = collectionsTabState.totalCollections,
                     onCollectionClick = { navigator push CollectionScreen(it) },
-                    onCollectionDelete = vm::onCollectionDelete,
+                    onCollectionDelete = collectionsTabState::onCollectionDelete,
                     isLoading = loading,
 
-                    totalPages = vm.totalPages,
-                    currentPage = vm.currentPage,
-                    pageSize = vm.pageSize,
-                    onPageChange = vm::onPageChange,
-                    onPageSizeChange = vm::onPageSizeChange,
+                    totalPages = collectionsTabState.totalPages,
+                    currentPage = collectionsTabState.currentPage,
+                    pageSize = collectionsTabState.pageSize,
+                    onPageChange = collectionsTabState::onPageChange,
+                    onPageSizeChange = collectionsTabState::onPageSizeChange,
 
-                    minSize = vm.cardWidth.collectAsState().value
+                    minSize = collectionsTabState.cardWidth.collectAsState().value
                 )
 
             }
@@ -216,33 +188,29 @@ class LibraryScreen(
     }
 
     @Composable
-    private fun ReadListsTab() {
-        val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel("readLists_${libraryId?.value}") {
-            viewModelFactory.getLibraryReadListsViewModel(libraryId)
-        }
-        LaunchedEffect(libraryId) { vm.initialize() }
+    private fun ReadListsTab(readListTabState: LibraryReadListsTabState) {
+        LaunchedEffect(libraryId) { readListTabState.initialize() }
         val navigator = LocalNavigator.currentOrThrow
 
-        when (val state = vm.state.collectAsState().value) {
+        when (val state = readListTabState.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
             is Error -> Text("Error")
             else -> {
                 val loading = state is Loading
                 LibraryReadListsContent(
-                    readLists = vm.readLists,
-                    readListsTotalCount = vm.totalReadLists,
+                    readLists = readListTabState.readLists,
+                    readListsTotalCount = readListTabState.totalReadLists,
                     onReadListClick = { navigator push ReadListScreen(it) },
-                    onReadListDelete = vm::onReadListDelete,
+                    onReadListDelete = readListTabState::onReadListDelete,
                     isLoading = loading,
 
-                    totalPages = vm.totalPages,
-                    currentPage = vm.currentPage,
-                    pageSize = vm.pageSize,
-                    onPageChange = vm::onPageChange,
-                    onPageSizeChange = vm::onPageSizeChange,
+                    totalPages = readListTabState.totalPages,
+                    currentPage = readListTabState.currentPage,
+                    pageSize = readListTabState.pageSize,
+                    onPageChange = readListTabState::onPageChange,
+                    onPageSizeChange = readListTabState::onPageSizeChange,
 
-                    minSize = vm.cardWidth.collectAsState().value
+                    minSize = readListTabState.cardWidth.collectAsState().value
                 )
             }
         }

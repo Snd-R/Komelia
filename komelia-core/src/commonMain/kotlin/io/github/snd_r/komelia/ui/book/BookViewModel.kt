@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
@@ -72,6 +73,14 @@ class BookViewModel(
         readListsState.initialize()
     }
 
+    fun reload() {
+        screenModelScope.launch {
+            loadBook()
+            loadLibrary()
+            readListsState.reload()
+        }
+    }
+
     private suspend fun loadBook() {
         notifications.runCatchingToNotifications {
             mutableState.value = Loading
@@ -91,9 +100,9 @@ class BookViewModel(
     private fun registerEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
-                is BookChanged -> if (event.bookId == bookId) loadBook()
-                is ReadProgressChanged -> if (event.bookId == bookId) loadBook()
-                is ReadProgressDeleted -> if (event.bookId == bookId) loadBook()
+                is BookChanged -> if (event.bookId == bookId) reload()
+                is ReadProgressChanged -> if (event.bookId == bookId) reload()
+                is ReadProgressDeleted -> if (event.bookId == bookId) reload()
                 else -> {}
             }
         }.launchIn(screenModelScope)

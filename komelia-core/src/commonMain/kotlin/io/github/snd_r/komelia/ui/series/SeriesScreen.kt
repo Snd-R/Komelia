@@ -3,7 +3,6 @@ package io.github.snd_r.komelia.ui.series
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
@@ -12,7 +11,9 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LoadState.Error
+import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
@@ -35,8 +36,8 @@ class SeriesScreen(
     @Transient
     private val series: KomgaSeries? = null,
     @Transient
-    private val startingTab: SeriesTab? = SeriesTab.BOOKS
-) : Screen {
+    private val startingTab: SeriesTab? = SeriesTab.BOOKS,
+) : ReloadableScreen {
 
     constructor(series: KomgaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(
         series.id,
@@ -53,11 +54,15 @@ class SeriesScreen(
         val vm = rememberScreenModel(seriesId.value) {
             viewModelFactory.getSeriesViewModel(seriesId, series, startingTab)
         }
+        val reloadEvents = LocalReloadEvents.current
         LaunchedEffect(seriesId) {
             vm.initialize()
-            vm.series.value?.let {
-                if (it.oneshot) navigator.replace(OneshotScreen(it))
+            val series = vm.series.value
+            if (series != null && series.oneshot) {
+                navigator.replace(OneshotScreen(series))
+                return@LaunchedEffect
             }
+            reloadEvents.collect { vm.reload() }
         }
 
         when (val state = vm.state.collectAsState().value) {

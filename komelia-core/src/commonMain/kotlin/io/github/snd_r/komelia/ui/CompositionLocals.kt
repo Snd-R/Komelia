@@ -28,3 +28,4 @@ val LocalPlatform = compositionLocalOf<PlatformType> { error("Platform type is n
 val LocalTheme = compositionLocalOf { AppTheme.DARK }
 val LocalWindowState = compositionLocalOf<AppWindowState> { error("Window state was not initialized") }
 val LocalLibraries = compositionLocalOf<StateFlow<List<KomgaLibrary>>> { error("Libraries were not initialized") }
+val LocalReloadEvents = staticCompositionLocalOf<SharedFlow<Unit>> { error("Reload event flow was not initialized") }

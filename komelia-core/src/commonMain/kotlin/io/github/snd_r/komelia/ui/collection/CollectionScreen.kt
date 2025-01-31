@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
@@ -13,19 +12,23 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.collection.KomgaCollectionId
 
-class CollectionScreen(val collectionId: KomgaCollectionId) : Screen {
+class CollectionScreen(val collectionId: KomgaCollectionId) : ReloadableScreen {
 
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
         val vm = rememberScreenModel(collectionId.value) { viewModelFactory.getCollectionViewModel(collectionId) }
+        val reloadEvents = LocalReloadEvents.current
         LaunchedEffect(collectionId) {
             vm.initialize()
+            reloadEvents.collect { vm.reload() }
         }
         val navigator = LocalNavigator.currentOrThrow
 

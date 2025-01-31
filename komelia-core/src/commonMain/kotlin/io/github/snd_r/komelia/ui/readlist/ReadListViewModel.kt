@@ -80,18 +80,7 @@ class ReadListViewModel(
         }
 
         reloadJobsFlow.onEach {
-            isAnyItemDragging.first { !it } // suspend while drag is in progress
-
-            loadReadList()
-
-            if (isInEditMode) loadAllBooks()
-            else loadBooks(currentBookPage)
-
-            if (selectedBooks.isNotEmpty()) {
-                val selectedIds = selectedBooks.map { it.id }
-                selectedBooks = books.filter { it.id in selectedIds }
-            }
-
+            reload()
             delay(1000)
         }.launchIn(screenModelScope)
 
@@ -106,6 +95,21 @@ class ReadListViewModel(
                 }
             }.launchIn(screenModelScope)
         screenModelScope.launch { startEventListener() }
+    }
+
+    suspend fun reload() {
+        isAnyItemDragging.first { !it } // suspend while drag is in progress
+
+        loadReadList()
+
+        if (isInEditMode) loadAllBooks()
+        else loadBooks(currentBookPage)
+
+        if (selectedBooks.isNotEmpty()) {
+            val selectedIds = selectedBooks.map { it.id }
+            selectedBooks = books.filter { it.id in selectedIds }
+        }
+
     }
 
     fun bookMenuActions() = BookMenuActions(bookClient, notifications, screenModelScope)
@@ -206,8 +210,8 @@ class ReadListViewModel(
         }
     }
 
-    private suspend fun onReadListChange(event: ReadListChanged) {
-        if (event.readListId == readListId) loadReadList()
+    private fun onReadListChange(event: ReadListChanged) {
+        if (event.readListId == readListId) reloadJobsFlow.tryEmit(Unit)
     }
 
     private fun onBookChange(event: KomgaEvent.BookEvent) {

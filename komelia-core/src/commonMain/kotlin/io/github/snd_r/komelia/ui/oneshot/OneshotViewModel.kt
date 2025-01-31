@@ -110,7 +110,18 @@ class OneshotViewModel(
     }
 
     fun reload() {
-        screenModelScope.launch { initState() }
+        screenModelScope.launch {
+            notifications.runCatchingToNotifications {
+                mutableState.value = Loading
+                val currentBook = book.value
+                    ?: seriesClient.getAllBooksBySeries(seriesId).content.first().also { book.value = it }
+                book.value = bookClient.getBook(currentBook.id)
+                series.value = seriesClient.getOneSeries(seriesId)
+                library.value = getLibraryOrThrow(currentBook)
+            }
+                .onSuccess { mutableState.value = Success(Unit) }
+                .onFailure { mutableState.value = Error(it) }
+        }
     }
 
     private suspend fun loadBook() {

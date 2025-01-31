@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -14,22 +13,27 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import snd.komga.client.readlist.KomgaReadListId
 
-class ReadListScreen(val readListId: KomgaReadListId) : Screen {
+class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
 
     override val key: ScreenKey = readListId.toString()
 
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm =
-            rememberScreenModel(readListId.value) { viewModelFactory.getReadListViewModel(readListId) }
-        LaunchedEffect(readListId) { vm.initialize() }
+        val vm = rememberScreenModel(readListId.value) { viewModelFactory.getReadListViewModel(readListId) }
+        val reloadEvents = LocalReloadEvents.current
+        LaunchedEffect(readListId) {
+            vm.initialize()
+            reloadEvents.collect { vm.reload() }
+        }
 
         val navigator = LocalNavigator.currentOrThrow
 

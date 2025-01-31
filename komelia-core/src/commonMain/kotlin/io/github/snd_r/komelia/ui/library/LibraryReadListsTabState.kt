@@ -4,23 +4,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
-import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.library.KomgaLibrary
@@ -29,15 +25,13 @@ import snd.komga.client.readlist.KomgaReadListClient
 import snd.komga.client.readlist.KomgaReadListId
 import snd.komga.client.sse.KomgaEvent
 
-class LibraryReadListsViewModel(
+class LibraryReadListsTabState(
     private val readListClient: KomgaReadListClient,
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
-    libraryFlow: Flow<KomgaLibrary?>?,
-    cardWidthFlow: Flow<Dp>,
+    val library: StateFlow<KomgaLibrary?>?,
+    val cardWidth: StateFlow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-    val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
-    val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
 
     var readLists: List<KomgaReadList> by mutableStateOf(emptyList())
         private set
@@ -62,6 +56,10 @@ class LibraryReadListsViewModel(
             delay(1000)
         }.launchIn(screenModelScope)
 
+        screenModelScope.launch { loadReadLists(1) }
+    }
+
+    fun reload() {
         screenModelScope.launch { loadReadLists(1) }
     }
 

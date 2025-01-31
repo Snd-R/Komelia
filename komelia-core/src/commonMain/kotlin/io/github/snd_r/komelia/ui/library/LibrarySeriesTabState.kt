@@ -1,37 +1,27 @@
-package io.github.snd_r.komelia.ui.series.list
+package io.github.snd_r.komelia.ui.library
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.LoadState.Error
-import io.github.snd_r.komelia.ui.LoadState.Loading
-import io.github.snd_r.komelia.ui.LoadState.Success
-import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
-import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion
-import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.Page
@@ -42,29 +32,16 @@ import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesQuery
 import snd.komga.client.series.KomgaSeriesSort
 import snd.komga.client.sse.KomgaEvent
-import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesChanged
-import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesDeleted
-import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesEvent
-import snd.komga.client.sse.KomgaEvent.SeriesAdded
-import snd.komga.client.sse.KomgaEvent.SeriesChanged
-import snd.komga.client.sse.KomgaEvent.SeriesDeleted
-import snd.komga.client.sse.KomgaEvent.SeriesEvent
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
-private val logger = KotlinLogging.logger {}
-
-class SeriesListViewModel(
+class LibrarySeriesTabState(
     private val seriesClient: KomgaSeriesClient,
     referentialClient: KomgaReferentialClient,
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val settingsRepository: CommonSettingsRepository,
-    defaultSort: SeriesSort,
-    libraryFlow: Flow<KomgaLibrary?>,
-    cardWidthFlow: Flow<Dp>,
+    private val library: StateFlow<KomgaLibrary?>,
+    val cardWidth: StateFlow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
-    val library = libraryFlow.stateIn(screenModelScope, SharingStarted.Eagerly, null)
-    val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
     val pageLoadSize = MutableStateFlow(50)
     var series by mutableStateOf<List<KomgaSeries>>(emptyList())
         private set
@@ -75,20 +52,19 @@ class SeriesListViewModel(
     var currentSeriesPage by mutableStateOf(1)
         private set
 
-    var isInEditMode by mutableStateOf(false)
-        private set
+    val isInEditMode = MutableStateFlow(false)
     var selectedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
         private set
 
     val filterState: SeriesFilterState = SeriesFilterState(
-        defaultSort = defaultSort,
+        defaultSort = SeriesSort.TITLE_ASC,
         library = library,
         referentialClient = referentialClient,
         appNotifications = notifications,
         onChange = { screenModelScope.launch { loadSeriesPage(1) } },
     )
 
-    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
     fun initialize(filter: SeriesScreenFilter? = null) {
         if (state.value !is LoadState.Uninitialized) return
 
@@ -117,7 +93,9 @@ class SeriesListViewModel(
     }
 
     fun reload() {
-        screenModelScope.launch { loadSeriesPage(1) }
+        screenModelScope.launch {
+            loadSeriesPage(1)
+        }
     }
 
     fun seriesMenuActions() = SeriesMenuActions(seriesClient, notifications, screenModelScope)
@@ -136,8 +114,10 @@ class SeriesListViewModel(
     }
 
     fun onEditModeChange(editMode: Boolean) {
-        this.isInEditMode = editMode
-        if (!editMode) selectedSeries = emptyList()
+        this.isInEditMode.value = editMode
+        if (!editMode) {
+            selectedSeries = emptyList()
+        }
 
     }
 
@@ -146,7 +126,7 @@ class SeriesListViewModel(
             selectedSeries = selectedSeries.filter { it.id != series.id }
         } else this.selectedSeries += series
 
-        if (selectedSeries.isNotEmpty() && !isInEditMode) onEditModeChange(true)
+        if (selectedSeries.isNotEmpty() && !isInEditMode.value) onEditModeChange(true)
     }
 
     private suspend fun loadSeriesPage(page: Int) {
@@ -161,8 +141,8 @@ class SeriesListViewModel(
             totalSeriesPages = seriesPage.totalPages
             totalSeriesCount = seriesPage.totalElements
             series = seriesPage.content
-            mutableState.value = Success(Unit)
-        }.onFailure { mutableState.value = Error(it) }
+            mutableState.value = LoadState.Success(Unit)
+        }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
     private suspend fun getAllSeries(page: Int): Page<KomgaSeries> {
@@ -179,14 +159,14 @@ class SeriesListViewModel(
             releaseYears = filterState.releaseDates,
             authors = filterState.authors,
             complete = when (filterState.complete) {
-                Completion.ANY -> null
-                Completion.COMPLETE -> true
-                Completion.INCOMPLETE -> false
+                SeriesFilterState.Completion.ANY -> null
+                SeriesFilterState.Completion.COMPLETE -> true
+                SeriesFilterState.Completion.INCOMPLETE -> false
             },
             oneshot = when (filterState.oneshot) {
-                Format.ANY -> null
-                Format.ONESHOT -> true
-                Format.NOT_ONESHOT -> false
+                SeriesFilterState.Format.ANY -> null
+                SeriesFilterState.Format.ONESHOT -> true
+                SeriesFilterState.Format.NOT_ONESHOT -> false
             }
         )
         val pageRequest = KomgaPageRequest(
@@ -200,30 +180,30 @@ class SeriesListViewModel(
     private fun delayLoadState(): Deferred<Unit> {
         return screenModelScope.async {
             delay(200)
-            if (state.value !is Error) mutableState.value = Loading
+            if (state.value !is LoadState.Error) mutableState.value = LoadState.Loading
         }
     }
 
     private suspend fun startEventListener() {
         komgaEvents.collect { event ->
             when (event) {
-                is SeriesChanged -> onSeriesChange(event)
-                is SeriesAdded -> onSeriesChange(event)
-                is SeriesDeleted -> onSeriesChange(event)
-                is ReadProgressSeriesChanged -> onReadProgressChange(event)
-                is ReadProgressSeriesDeleted -> onReadProgressChange(event)
+                is KomgaEvent.SeriesChanged -> onSeriesChange(event)
+                is KomgaEvent.SeriesAdded -> onSeriesChange(event)
+                is KomgaEvent.SeriesDeleted -> onSeriesChange(event)
+                is KomgaEvent.ReadProgressSeriesChanged -> onReadProgressChange(event)
+                is KomgaEvent.ReadProgressSeriesDeleted -> onReadProgressChange(event)
                 else -> {}
             }
         }
     }
 
-    private fun onSeriesChange(event: SeriesEvent) {
+    private fun onSeriesChange(event: KomgaEvent.SeriesEvent) {
         if (event.libraryId == library.value?.id) {
             reloadJobsFlow.tryEmit(Unit)
         }
     }
 
-    private fun onReadProgressChange(event: ReadProgressSeriesEvent) {
+    private fun onReadProgressChange(event: KomgaEvent.ReadProgressSeriesEvent) {
         if (series.any { it.id == event.seriesId }) {
             reloadJobsFlow.tryEmit(Unit)
         }

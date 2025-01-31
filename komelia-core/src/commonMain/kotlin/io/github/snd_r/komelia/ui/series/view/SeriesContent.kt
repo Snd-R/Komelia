@@ -120,28 +120,28 @@ fun SeriesContent(
                         onLibraryClick = onLibraryClick,
                         onFilterClick = onFilterClick
                     )
-                }
 
-                TabRow(
-                    currentTab = currentTab,
-                    onTabChange = onTabChange,
-                    showCollectionsTab = collectionsState.collections.isNotEmpty() && !booksState.booksSelectionMode
-                )
-
-                when (currentTab) {
-                    SeriesTab.BOOKS -> SeriesBooksContent(
-                        booksState = booksState,
-                        onBookClick = onBookClick,
-                        onBookReadClick = onBookReadClick,
-                        scrollState = scrollState
+                    TabRow(
+                        currentTab = currentTab,
+                        onTabChange = onTabChange,
+                        showCollectionsTab = collectionsState.collections.isNotEmpty() && !booksState.booksSelectionMode
                     )
 
-                    SeriesTab.COLLECTIONS -> SeriesCollectionsContent(
-                        collections = collectionsState.collections,
-                        onCollectionClick = onCollectionClick,
-                        onSeriesClick = onSeriesClick,
-                        cardWidth = collectionsState.cardWidth.collectAsState().value
-                    )
+                    when (currentTab) {
+                        SeriesTab.BOOKS -> SeriesBooksContent(
+                            booksState = booksState,
+                            onBookClick = onBookClick,
+                            onBookReadClick = onBookReadClick,
+                            scrollState = scrollState
+                        )
+
+                        SeriesTab.COLLECTIONS -> SeriesCollectionsContent(
+                            collections = collectionsState.collections,
+                            onCollectionClick = onCollectionClick,
+                            onSeriesClick = onSeriesClick,
+                            cardWidth = collectionsState.cardWidth.collectAsState().value
+                        )
+                    }
                 }
 
             }

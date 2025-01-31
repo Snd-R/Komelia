@@ -43,7 +43,6 @@ import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_R
 import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_UPDATED_SERIES
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
-import snd.komga.client.book.KomgaBookId
 import snd.komga.client.series.KomgaSeries
 
 @Composable

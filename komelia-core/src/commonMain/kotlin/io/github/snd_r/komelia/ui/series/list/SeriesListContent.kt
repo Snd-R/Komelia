@@ -1,13 +1,13 @@
 package io.github.snd_r.komelia.ui.series.list
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Icon
@@ -157,52 +157,52 @@ private fun ToolBar(
     isLoading: Boolean,
     filterState: SeriesFilterState?,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        var showFilters by remember { mutableStateOf(false) }
+    Box {
         if (isLoading) {
             LinearProgressIndicator(
                 color = MaterialTheme.colorScheme.tertiaryContainer,
                 trackColor = Color.Transparent,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().animateContentSize(),
             )
-        } else {
-            Spacer(Modifier.size(4.dp))
         }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            var showFilters by remember { mutableStateOf(false) }
 
-        if (filterState != null) {
-            AnimatedVisibility(visible = showFilters) {
-                SeriesFilterContent(
-                    filterState = filterState,
-                    onDismiss = { showFilters = false }
-                )
-            }
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
-        ) {
-
-            if (seriesTotalCount != 0) {
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text("$seriesTotalCount series") },
-                )
-
-                Spacer(Modifier.weight(1f))
-
-                if (filterState != null) {
-                    val color =
-                        if (filterState.isChanged) MaterialTheme.colorScheme.tertiary
-                        else MaterialTheme.colorScheme.primary
-
-                    IconButton(onClick = { showFilters = !showFilters }, modifier = Modifier.cursorForHand()) {
-                        Icon(Icons.Default.FilterList, null, tint = color)
-                    }
+            if (filterState != null) {
+                AnimatedVisibility(visible = showFilters) {
+                    SeriesFilterContent(
+                        filterState = filterState,
+                        onDismiss = { showFilters = false }
+                    )
                 }
+            }
 
-                PageSizeSelectionDropdown(pageSize, onPageSizeChange)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                if (seriesTotalCount != 0) {
+                    SuggestionChip(
+                        onClick = {},
+                        label = { Text("$seriesTotalCount series") },
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    if (filterState != null) {
+                        val color =
+                            if (filterState.isChanged) MaterialTheme.colorScheme.tertiary
+                            else MaterialTheme.colorScheme.primary
+
+                        IconButton(onClick = { showFilters = !showFilters }, modifier = Modifier.cursorForHand()) {
+                            Icon(Icons.Default.FilterList, null, tint = color)
+                        }
+                    }
+
+                    PageSizeSelectionDropdown(pageSize, onPageSizeChange)
+                }
             }
         }
     }

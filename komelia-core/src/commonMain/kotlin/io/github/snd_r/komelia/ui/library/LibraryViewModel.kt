@@ -3,14 +3,18 @@ package io.github.snd_r.komelia.ui.library
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
 import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
@@ -22,6 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,6 +35,8 @@ import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
 import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.CollectionAdded
 import snd.komga.client.sse.KomgaEvent.CollectionDeleted
@@ -37,23 +44,55 @@ import snd.komga.client.sse.KomgaEvent.ReadListAdded
 import snd.komga.client.sse.KomgaEvent.ReadListDeleted
 
 class LibraryViewModel(
-    libraryFlow: Flow<KomgaLibrary?>?,
     private val libraryClient: KomgaLibraryClient,
     private val collectionClient: KomgaCollectionClient,
     private val readListsClient: KomgaReadListClient,
+    seriesClient: KomgaSeriesClient,
+    referentialClient: KomgaReferentialClient,
+
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
-) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-    val library = libraryFlow?.stateIn(screenModelScope, SharingStarted.Eagerly, null)
+    libraryFlow: Flow<KomgaLibrary?>,
+    settingsRepository: CommonSettingsRepository,
+
+    ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
+    val library = libraryFlow.stateIn(screenModelScope, SharingStarted.Eagerly, null)
+    val cardWidth = settingsRepository.getCardWidth().map { Dp(it.toFloat()) }
+        .stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
 
     var currentTab by mutableStateOf(SERIES)
-
     var collectionsCount by mutableStateOf(0)
         private set
     var readListsCount by mutableStateOf(0)
         private set
 
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+
+    val seriesTabState = LibrarySeriesTabState(
+        seriesClient = seriesClient,
+        referentialClient = referentialClient,
+        notifications = appNotifications,
+        komgaEvents = komgaEvents,
+        settingsRepository = settingsRepository,
+        library = library,
+        cardWidth = cardWidth,
+    )
+    val collectionsTabState = LibraryCollectionsTabState(
+        collectionClient = collectionClient,
+        appNotifications = appNotifications,
+        events = komgaEvents,
+        library = library,
+        cardWidth = cardWidth
+    )
+    val readListsTabState = LibraryReadListsTabState(
+        readListClient = readListsClient,
+        appNotifications = appNotifications,
+        komgaEvents = komgaEvents,
+        library = library,
+        cardWidth = cardWidth
+    )
+    val showToolbar = seriesTabState.isInEditMode.map { !it }
+        .stateIn(screenModelScope, SharingStarted.Eagerly, true)
 
     fun initialize(seriesFilter: SeriesScreenFilter? = null) {
         if (state.value !is Uninitialized) return
@@ -72,7 +111,14 @@ class LibraryViewModel(
 
     fun reload() {
         mutableState.value = Loading
-        screenModelScope.launch { loadItemCounts() }
+        screenModelScope.launch {
+            loadItemCounts()
+            when (currentTab) {
+                SERIES -> seriesTabState.reload()
+                COLLECTIONS -> collectionsTabState.reload()
+                READ_LISTS -> readListsTabState.reload()
+            }
+        }
     }
 
     private suspend fun loadItemCounts() {
@@ -81,7 +127,7 @@ class LibraryViewModel(
         appNotifications.runCatchingToNotifications {
             mutableState.value = Loading
             val pageRequest = KomgaPageRequest(size = 0)
-            val libraryIds = library?.value?.let { listOf(it.id) } ?: emptyList()
+            val libraryIds = listOfNotNull(library.value?.id)
             collectionsCount = collectionClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest).totalElements
             readListsCount = readListsClient.getAll(libraryIds = libraryIds, pageRequest = pageRequest).totalElements
 
@@ -90,11 +136,6 @@ class LibraryViewModel(
             mutableState.value = Success(Unit)
         }.onFailure { mutableState.value = Error(it) }
     }
-
-//    fun toRecommendedTab() {
-//        if (library == null) return
-//        currentTab = RECOMMENDED
-//    }
 
     fun toBrowseTab() {
         currentTab = SERIES
@@ -124,7 +165,6 @@ class LibraryViewModel(
 
 enum class LibraryTab {
     SERIES,
-//    RECOMMENDED,
     COLLECTIONS,
     READ_LISTS
 }

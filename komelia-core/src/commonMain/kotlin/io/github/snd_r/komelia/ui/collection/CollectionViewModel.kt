@@ -83,17 +83,7 @@ class CollectionViewModel(
         screenModelScope.launch { startEventListener() }
 
         reloadJobsFlow.onEach {
-            isAnyItemDragging.first { !it } // suspend while drag is in progress
-
-            loadCollection()
-            if (isInEditMode) loadAllSeries()
-            else loadSeriesPage(currentSeriesPage)
-
-            if (selectedSeries.isNotEmpty()) {
-                val selectedIds = selectedSeries.map { it.id }
-                selectedSeries = series.filter { it.id in selectedIds }
-            }
-
+            reload()
             delay(1000)
         }.launchIn(screenModelScope)
 
@@ -107,6 +97,20 @@ class CollectionViewModel(
                     )
                 }
             }.launchIn(screenModelScope)
+    }
+
+    suspend fun reload() {
+        isAnyItemDragging.first { !it } // suspend while drag is in progress
+
+        loadCollection()
+        if (isInEditMode) loadAllSeries()
+        else loadSeriesPage(currentSeriesPage)
+
+        if (selectedSeries.isNotEmpty()) {
+            val selectedIds = selectedSeries.map { it.id }
+            selectedSeries = series.filter { it.id in selectedIds }
+        }
+
     }
 
     fun seriesMenuActions() = SeriesMenuActions(seriesClient, notifications, screenModelScope)

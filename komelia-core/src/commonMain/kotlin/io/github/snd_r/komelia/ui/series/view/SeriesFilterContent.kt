@@ -46,12 +46,12 @@ import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.stringEntry
 import io.github.snd_r.komelia.ui.common.NoPaddingTextField
 import io.github.snd_r.komelia.ui.common.TagFiltersDropdownMenu
+import io.github.snd_r.komelia.ui.library.LibrarySeriesTabState
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.ANY
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.COMPLETE
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion.INCOMPLETE
 import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
-import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel
 import kotlinx.coroutines.delay
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.series.KomgaSeriesStatus
@@ -134,7 +134,7 @@ fun SeriesFilterContent(
         ) {
             FilterDropdownChoice(
                 selectedOption = LabeledEntry(filterState.sortOrder, strings.forSeriesSort(filterState.sortOrder)),
-                options = SeriesListViewModel.SeriesSort.entries.map { LabeledEntry(it, strings.forSeriesSort(it)) },
+                options = LibrarySeriesTabState.SeriesSort.entries.map { LabeledEntry(it, strings.forSeriesSort(it)) },
                 onOptionChange = { filterState.onSortOrderChange(it.value) },
                 label = strings.sort,
                 modifier = Modifier.width(width)

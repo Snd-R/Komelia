@@ -4,8 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.ui.library.LibrarySeriesTabState.SeriesSort
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
-import io.github.snd_r.komelia.ui.series.list.SeriesListViewModel.SeriesSort
 import kotlinx.coroutines.flow.StateFlow
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.common.KomgaAuthor

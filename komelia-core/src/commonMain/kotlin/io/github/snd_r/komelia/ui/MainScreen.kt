@@ -124,6 +124,7 @@ class MainScreen(
                 onSeriesClick = {
                     navigator.replaceAll(seriesScreen(it))
                 },
+                onRefreshClick = vm::onScreenReload
             )
 
             when (width) {

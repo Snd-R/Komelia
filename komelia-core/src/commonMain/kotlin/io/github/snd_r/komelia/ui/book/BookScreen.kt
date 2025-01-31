@@ -3,15 +3,15 @@ package io.github.snd_r.komelia.ui.book
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
+import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.ImageReaderScreen
@@ -29,7 +29,7 @@ class BookScreen(
     val bookId: KomgaBookId,
     @Transient
     val book: KomgaBook? = null,
-) : Screen {
+) : ReloadableScreen {
     constructor(book: KomgaBook) : this(book.id, book)
 
     override val key: ScreenKey = bookId.toString()
@@ -37,14 +37,14 @@ class BookScreen(
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm =
-            rememberScreenModel(bookId.value) { viewModelFactory.getBookViewModel(bookId, book) }
-
+        val vm = rememberScreenModel(bookId.value) { viewModelFactory.getBookViewModel(bookId, book) }
         val navigator = LocalNavigator.currentOrThrow
+        val reloadEvents = LocalReloadEvents.current
 
         LaunchedEffect(Unit) {
             vm.initialize()
             vm.book.value?.let { if (it.oneshot) navigator.replace(OneshotScreen(it)) }
+            reloadEvents.collect { vm.reload() }
         }
         val book = vm.book.collectAsState().value
 

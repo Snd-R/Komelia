@@ -110,7 +110,8 @@ fun MainView(
                 LocalWindowState provides dependencies.windowState,
                 LocalWindowWidth provides windowWidth,
                 LocalWindowHeight provides windowHeight,
-                LocalLibraries provides viewModelFactory.getLibraries()
+                LocalLibraries provides viewModelFactory.getLibraries(),
+                LocalReloadEvents provides viewModelFactory.screenReloadEvents
             ) {
                 MainContent(platformType, viewModelFactory.komgaSharedState)
 

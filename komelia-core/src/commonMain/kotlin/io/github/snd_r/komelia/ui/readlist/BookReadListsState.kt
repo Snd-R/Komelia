@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.common.KomgaPageRequest
@@ -46,6 +47,10 @@ class BookReadListsState(
 
         loadReadLists()
         registerEventListener()
+    }
+
+    fun reload() {
+        stateScope.launch { loadReadLists() }
     }
 
     private suspend fun loadReadLists() {
