@@ -111,7 +111,11 @@ fun BookSimpleImageCard(
         modifier = modifier,
         onClick = onBookClick,
         image = {
-            BookImageOverlay(book, false) {
+            BookImageOverlay(
+                book = book,
+                libraryIsDeleted = false,
+                showTitle = false
+            ) {
                 BookThumbnail(
                     book.id,
                     modifier = Modifier.fillMaxSize(),

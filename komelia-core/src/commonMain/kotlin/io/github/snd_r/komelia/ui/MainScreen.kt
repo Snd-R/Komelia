@@ -117,7 +117,10 @@ class MainScreen(
                 query = vm.searchBarState.currentQuery(),
                 onQueryChange = vm.searchBarState::onQueryChange,
                 isLoading = vm.searchBarState.isLoading,
-                onSearchAllClick = { navigator.push(SearchScreen(it)) },
+                onSearchAllClick = {
+                    if (navigator.lastItem is SearchScreen) navigator.replace(SearchScreen(it))
+                    else navigator.push(SearchScreen(it))
+                },
                 searchResults = vm.searchBarState.searchResults(),
                 libraryById = vm.searchBarState::getLibraryById,
                 onBookClick = { navigator.replaceAll(bookScreen(it)) },

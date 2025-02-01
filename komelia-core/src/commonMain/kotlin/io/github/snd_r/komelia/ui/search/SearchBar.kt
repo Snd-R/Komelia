@@ -56,8 +56,6 @@ import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 
-val expandedSearchBarWidth = 600.dp
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(

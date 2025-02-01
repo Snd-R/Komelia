@@ -90,7 +90,11 @@ fun SeriesSimpleImageCard(
         modifier = modifier,
         onClick = onSeriesClick,
         image = {
-            SeriesImageOverlay(series, false) {
+            SeriesImageOverlay(
+                series = series,
+                libraryIsDeleted = false,
+                showTitle = false,
+            ) {
                 SeriesThumbnail(
                     series.id,
                     modifier = Modifier.fillMaxSize(),
