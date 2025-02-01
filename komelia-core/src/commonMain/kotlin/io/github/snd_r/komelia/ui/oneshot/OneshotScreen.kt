@@ -18,6 +18,7 @@ import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.readlist.ReadListScreen
@@ -57,40 +58,42 @@ class OneshotScreen(
         val book = vm.book.collectAsState().value
         val library = vm.library.collectAsState().value
         val series = vm.series.collectAsState().value
-        when {
-            state is LoadState.Error -> ErrorContent(
-                message = state.exception.message ?: "Unknown Error",
-                onReload = vm::reload
-            )
+        ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
+            when {
+                state is LoadState.Error -> ErrorContent(
+                    message = state.exception.message ?: "Unknown Error",
+                    onReload = vm::reload
+                )
 
-            book == null || series == null || library == null -> LoadingMaxSizeIndicator()
-            else -> OneshotScreenContent(
-                series = series,
-                book = book,
-                library = library,
-                onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
-                onBookReadClick = { markReadProgress ->
-                    navigator.parent?.push(readerScreen(book, markReadProgress))
-                },
-                oneshotMenuActions = vm.bookMenuActions,
-                collections = vm.collectionsState.collections,
-                onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
-                onSeriesClick = { navigator.push(seriesScreen(it)) },
+                book == null || series == null || library == null -> LoadingMaxSizeIndicator()
+                else -> OneshotScreenContent(
+                    series = series,
+                    book = book,
+                    library = library,
+                    onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
+                    onBookReadClick = { markReadProgress ->
+                        navigator.parent?.push(readerScreen(book, markReadProgress))
+                    },
+                    oneshotMenuActions = vm.bookMenuActions,
+                    collections = vm.collectionsState.collections,
+                    onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
+                    onSeriesClick = { navigator.push(seriesScreen(it)) },
 
-                readLists = vm.readListsState.readLists,
-                onReadListClick = { navigator.push(ReadListScreen(it.id)) },
-                onBookClick = { navigator push bookScreen(it) },
-                onFilterClick = { filter ->
-                    navigator.popUntilRoot()
-                    navigator.dispose(navigator.lastItem)
-                    navigator.replaceAll(LibraryScreen(book.libraryId, filter))
-                },
+                    readLists = vm.readListsState.readLists,
+                    onReadListClick = { navigator.push(ReadListScreen(it.id)) },
+                    onBookClick = { navigator push bookScreen(it) },
+                    onFilterClick = { filter ->
+                        navigator.popUntilRoot()
+                        navigator.dispose(navigator.lastItem)
+                        navigator.replaceAll(LibraryScreen(book.libraryId, filter))
+                    },
 
-                cardWidth = vm.cardWidth.collectAsState().value,
-            )
-        }
-        BackPressHandler {
-            vm.series.value?.let { onBackPress(navigator, it.libraryId) }
+                    cardWidth = vm.cardWidth.collectAsState().value,
+                )
+            }
+            BackPressHandler {
+                vm.series.value?.let { onBackPress(navigator, it.libraryId) }
+            }
         }
     }
 

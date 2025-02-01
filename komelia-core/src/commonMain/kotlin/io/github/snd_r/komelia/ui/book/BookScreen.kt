@@ -12,6 +12,7 @@ import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.ReloadableScreen
+import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.ImageReaderScreen
@@ -48,28 +49,30 @@ class BookScreen(
         }
         val book = vm.book.collectAsState().value
 
-        BookScreenContent(
-            library = vm.library,
-            book = book,
-            bookMenuActions = vm.bookMenuActions,
-            onBookReadPress = { markReadProgress ->
-                navigator.parent?.push(
-                    if (book != null) readerScreen(book, markReadProgress)
-                    else ImageReaderScreen(bookId, markReadProgress)
-                )
-            },
+        ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
+            BookScreenContent(
+                library = vm.library,
+                book = book,
+                bookMenuActions = vm.bookMenuActions,
+                onBookReadPress = { markReadProgress ->
+                    navigator.parent?.push(
+                        if (book != null) readerScreen(book, markReadProgress)
+                        else ImageReaderScreen(bookId, markReadProgress)
+                    )
+                },
 
-            readLists = vm.readListsState.readLists,
-            onReadListClick = { navigator.push(ReadListScreen(it.id)) },
-            onBookPress = { if (it.id != this.bookId) navigator.push(bookScreen(it)) },
-            onParentSeriesPress = { book?.seriesId?.let { seriesId -> navigator.push(SeriesScreen(seriesId)) } },
-            onFilterClick = { filter ->
-                navigator.push(LibraryScreen(requireNotNull(book?.libraryId), filter))
-            },
-            cardWidth = vm.cardWidth.collectAsState().value
-        )
+                readLists = vm.readListsState.readLists,
+                onReadListClick = { navigator.push(ReadListScreen(it.id)) },
+                onBookPress = { if (it.id != bookId) navigator.push(bookScreen(it)) },
+                onParentSeriesPress = { book?.seriesId?.let { seriesId -> navigator.push(SeriesScreen(seriesId)) } },
+                onFilterClick = { filter ->
+                    navigator.push(LibraryScreen(requireNotNull(book?.libraryId), filter))
+                },
+                cardWidth = vm.cardWidth.collectAsState().value
+            )
 
-        BackPressHandler { onBackPress(navigator, book?.seriesId) }
+            BackPressHandler { onBackPress(navigator, book?.seriesId) }
+        }
     }
 
     private fun onBackPress(navigator: Navigator, seriesId: KomgaSeriesId?) {

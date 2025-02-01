@@ -80,7 +80,7 @@ class ReadListViewModel(
         }
 
         reloadJobsFlow.onEach {
-            reload()
+            reloadData()
             delay(1000)
         }.launchIn(screenModelScope)
 
@@ -97,7 +97,11 @@ class ReadListViewModel(
         screenModelScope.launch { startEventListener() }
     }
 
-    suspend fun reload() {
+    fun reload() {
+        screenModelScope.launch { reloadData() }
+    }
+
+    private suspend fun reloadData() {
         isAnyItemDragging.first { !it } // suspend while drag is in progress
 
         loadReadList()

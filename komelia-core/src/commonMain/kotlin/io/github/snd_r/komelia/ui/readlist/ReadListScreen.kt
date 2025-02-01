@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.ui.readlist
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,7 +16,9 @@ import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
+import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import snd.komga.client.readlist.KomgaReadListId
 
@@ -37,44 +38,49 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
 
         val navigator = LocalNavigator.currentOrThrow
 
-        when (vm.state.collectAsState().value) {
-            Uninitialized -> LoadingMaxSizeIndicator()
-            is Error -> Text("Error")
-            is LoadState.Success, Loading -> {
-                val readList = vm.readList
-                if (readList == null) LoadingMaxSizeIndicator()
-                else
-                    ReadListContent(
-                        readList = readList,
-                        onReadListDelete = vm::onReadListDelete,
+        ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
+            when (val state =vm.state.collectAsState().value) {
+                Uninitialized -> LoadingMaxSizeIndicator()
+                is Error -> ErrorContent(
+                    message = state.exception.message ?: "Unknown Error",
+                    onReload = vm::reload
+                )
+                is LoadState.Success, Loading -> {
+                    val readList = vm.readList
+                    if (readList == null) LoadingMaxSizeIndicator()
+                    else
+                        ReadListContent(
+                            readList = readList,
+                            onReadListDelete = vm::onReadListDelete,
 
-                        books = vm.books,
-                        bookMenuActions = vm.bookMenuActions(),
-                        onBookClick = { navigator push bookScreen(it) },
-                        onBookReadClick = { book, markProgress ->
-                            navigator.parent?.push(readerScreen(book, markProgress))
-                        },
+                            books = vm.books,
+                            bookMenuActions = vm.bookMenuActions(),
+                            onBookClick = { navigator push bookScreen(it) },
+                            onBookReadClick = { book, markProgress ->
+                                navigator.parent?.push(readerScreen(book, markProgress))
+                            },
 
-                        selectedBooks = vm.selectedBooks,
-                        onBookSelect = vm::onBookSelect,
+                            selectedBooks = vm.selectedBooks,
+                            onBookSelect = vm::onBookSelect,
 
-                        editMode = vm.isInEditMode,
-                        onEditModeChange = vm::setEditMode,
-                        onReorder = vm::onBookReorder,
-                        onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
+                            editMode = vm.isInEditMode,
+                            onEditModeChange = vm::setEditMode,
+                            onReorder = vm::onBookReorder,
+                            onReorderDragStateChange = vm::onSeriesReorderDragStateChange,
 
-                        totalPages = vm.totalBookPages,
-                        currentPage = vm.currentBookPage,
-                        pageSize = vm.pageLoadSize,
-                        onPageChange = vm::onPageChange,
-                        onPageSizeChange = vm::onPageSizeChange,
+                            totalPages = vm.totalBookPages,
+                            currentPage = vm.currentBookPage,
+                            pageSize = vm.pageLoadSize,
+                            onPageChange = vm::onPageChange,
+                            onPageSizeChange = vm::onPageSizeChange,
 
-                        cardMinSize = vm.cardWidth.collectAsState().value,
-                    )
+                            cardMinSize = vm.cardWidth.collectAsState().value,
+                        )
+                }
             }
+
+            BackPressHandler { navigator.pop() }
+
         }
-
-        BackPressHandler { navigator.pop() }
-
     }
 }

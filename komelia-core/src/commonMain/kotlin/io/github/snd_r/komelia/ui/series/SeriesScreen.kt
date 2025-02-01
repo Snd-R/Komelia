@@ -17,6 +17,7 @@ import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
+import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
 import io.github.snd_r.komelia.ui.library.LibraryScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
@@ -65,46 +66,48 @@ class SeriesScreen(
             reloadEvents.collect { vm.reload() }
         }
 
-        when (val state = vm.state.collectAsState().value) {
-            is Error -> ErrorContent(
-                message = state.exception.message ?: "Unknown Error",
-                onReload = vm::reload
-            )
-
-            else -> {
-                SeriesContent(
-                    series = vm.series.collectAsState().value,
-                    library = vm.library.collectAsState().value,
-                    onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
-                    seriesMenuActions = vm.seriesMenuActions(),
-                    onFilterClick = { filter ->
-                        val series = requireNotNull(vm.series.value)
-                        navigator.push(LibraryScreen(series.libraryId, filter))
-                    },
-
-                    currentTab = vm.currentTab,
-                    onTabChange = vm::onTabChange,
-
-                    booksState = vm.booksState,
-                    onBookClick = { navigator push bookScreen(it) },
-                    onBookReadClick = { book, markProgress ->
-                        navigator.parent?.push(readerScreen(book, markProgress))
-                    },
-
-                    collectionsState = vm.collectionsState,
-                    onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
-                    onSeriesClick = { series ->
-                        navigator.push(
-                            if (series.oneshot) OneshotScreen(series)
-                            else SeriesScreen(series, vm.currentTab)
-                        )
-                    },
+        ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
+            when (val state = vm.state.collectAsState().value) {
+                is Error -> ErrorContent(
+                    message = state.exception.message ?: "Unknown Error",
+                    onReload = vm::reload
                 )
-            }
-        }
 
-        BackPressHandler {
-            vm.series.value?.let { onBackPress(navigator, it.libraryId) }
+                else -> {
+                    SeriesContent(
+                        series = vm.series.collectAsState().value,
+                        library = vm.library.collectAsState().value,
+                        onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
+                        seriesMenuActions = vm.seriesMenuActions(),
+                        onFilterClick = { filter ->
+                            val series = requireNotNull(vm.series.value)
+                            navigator.push(LibraryScreen(series.libraryId, filter))
+                        },
+
+                        currentTab = vm.currentTab,
+                        onTabChange = vm::onTabChange,
+
+                        booksState = vm.booksState,
+                        onBookClick = { navigator push bookScreen(it) },
+                        onBookReadClick = { book, markProgress ->
+                            navigator.parent?.push(readerScreen(book, markProgress))
+                        },
+
+                        collectionsState = vm.collectionsState,
+                        onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
+                        onSeriesClick = { series ->
+                            navigator.push(
+                                if (series.oneshot) OneshotScreen(series)
+                                else SeriesScreen(series, vm.currentTab)
+                            )
+                        },
+                    )
+                }
+            }
+
+            BackPressHandler {
+                vm.series.value?.let { onBackPress(navigator, it.libraryId) }
+            }
         }
     }
 

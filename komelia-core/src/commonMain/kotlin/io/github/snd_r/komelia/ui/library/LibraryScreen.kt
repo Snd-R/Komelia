@@ -49,6 +49,7 @@ import io.github.snd_r.komelia.ui.collection.CollectionScreen
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
 import io.github.snd_r.komelia.ui.common.menus.LibraryActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
@@ -85,32 +86,34 @@ class LibraryScreen(
             reloadEvents.collect { vm.reload() }
         }
 
-        when (val state = vm.state.collectAsState().value) {
-            is Error -> ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
-            Uninitialized, Loading, is Success -> {
-                Column {
-                    if (vm.showToolbar.collectAsState().value) {
-                        LibraryToolBar(
-                            library = vm.library.collectAsState().value,
-                            currentTab = vm.currentTab,
-                            libraryActions = vm.libraryActions(),
-                            collectionsCount = vm.collectionsCount,
-                            readListsCount = vm.readListsCount,
-                            onBrowseClick = vm::toBrowseTab,
-                            onCollectionsClick = vm::toCollectionsTab,
-                            onReadListsClick = vm::toReadListsTab
-                        )
-                    }
+        ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
+            when (val state = vm.state.collectAsState().value) {
+                is Error -> ErrorContent(message = state.exception.message ?: "Unknown Error", onReload = vm::reload)
+                Uninitialized, Loading, is Success -> {
+                    Column {
+                        if (vm.showToolbar.collectAsState().value) {
+                            LibraryToolBar(
+                                library = vm.library.collectAsState().value,
+                                currentTab = vm.currentTab,
+                                libraryActions = vm.libraryActions(),
+                                collectionsCount = vm.collectionsCount,
+                                readListsCount = vm.readListsCount,
+                                onBrowseClick = vm::toBrowseTab,
+                                onCollectionsClick = vm::toCollectionsTab,
+                                onReadListsClick = vm::toReadListsTab
+                            )
+                        }
 
-                    when (vm.currentTab) {
-                        SERIES -> BrowseTab(vm.seriesTabState)
-                        COLLECTIONS -> CollectionsTab(vm.collectionsTabState)
-                        READ_LISTS -> ReadListsTab(vm.readListsTabState)
+                        when (vm.currentTab) {
+                            SERIES -> BrowseTab(vm.seriesTabState)
+                            COLLECTIONS -> CollectionsTab(vm.collectionsTabState)
+                            READ_LISTS -> ReadListsTab(vm.readListsTabState)
+                        }
                     }
                 }
             }
+            BackPressHandler { navigator.pop() }
         }
-        BackPressHandler { navigator.pop() }
     }
 
     @Composable

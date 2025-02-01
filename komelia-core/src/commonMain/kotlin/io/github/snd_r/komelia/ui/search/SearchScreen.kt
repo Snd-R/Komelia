@@ -23,6 +23,7 @@ import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
+import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
 import io.github.snd_r.komelia.ui.series.seriesScreen
 
 class SearchScreen(
@@ -39,44 +40,46 @@ class SearchScreen(
 
         val navigator = LocalNavigator.currentOrThrow
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (LocalPlatform.current == PlatformType.MOBILE)
-                SearchField(vm)
+        ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (LocalPlatform.current == PlatformType.MOBILE)
+                    SearchField(vm)
 
-            when (val state = vm.state.collectAsState().value) {
-                is LoadState.Error -> ErrorContent(
-                    state.exception.message ?: "Error",
-                    onReload = vm::reload
-                )
-
-                LoadState.Uninitialized, LoadState.Loading -> LoadingMaxSizeIndicator()
-                is LoadState.Success -> {
-
-                    SearchContent(
-                        query = vm.query,
-                        searchType = vm.currentTab,
-                        onSearchTypeChange = vm::onSearchTypeChange,
-
-                        seriesResults = vm.seriesResults,
-                        seriesCurrentPage = vm.seriesCurrentPage,
-                        seriesTotalPages = vm.seriesTotalPages,
-                        onSeriesPageChange = vm::onSeriesPageChange,
-                        onSeriesClick = { navigator.push(seriesScreen(it)) },
-
-                        bookResults = vm.bookResults,
-                        bookCurrentPage = vm.bookCurrentPage,
-                        bookTotalPages = vm.bookTotalPages,
-                        onBookPageChange = vm::onBookPageChange,
-                        onBookClick = { navigator.push(bookScreen(it)) },
+                when (val state = vm.state.collectAsState().value) {
+                    is LoadState.Error -> ErrorContent(
+                        state.exception.message ?: "Error",
+                        onReload = vm::reload
                     )
 
+                    LoadState.Uninitialized, LoadState.Loading -> LoadingMaxSizeIndicator()
+                    is LoadState.Success -> {
+
+                        SearchContent(
+                            query = vm.query,
+                            searchType = vm.currentTab,
+                            onSearchTypeChange = vm::onSearchTypeChange,
+
+                            seriesResults = vm.seriesResults,
+                            seriesCurrentPage = vm.seriesCurrentPage,
+                            seriesTotalPages = vm.seriesTotalPages,
+                            onSeriesPageChange = vm::onSeriesPageChange,
+                            onSeriesClick = { navigator.push(seriesScreen(it)) },
+
+                            bookResults = vm.bookResults,
+                            bookCurrentPage = vm.bookCurrentPage,
+                            bookTotalPages = vm.bookTotalPages,
+                            onBookPageChange = vm::onBookPageChange,
+                            onBookClick = { navigator.push(bookScreen(it)) },
+                        )
+
+                    }
                 }
             }
+            BackPressHandler { navigator.pop() }
         }
-        BackPressHandler { navigator.pop() }
     }
 
     @Composable
