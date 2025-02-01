@@ -7,6 +7,7 @@ import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.KomgaSharedState
 import io.github.snd_r.komelia.ui.MainScreenViewModel
 import io.github.snd_r.komelia.ui.book.BookViewModel
@@ -173,7 +174,7 @@ class ViewModelFactory(
                 libraries = komgaSharedState.libraries
             ),
             libraries = komgaSharedState.libraries,
-        )
+            )
     }
 
     fun getSeriesViewModel(
@@ -225,9 +226,14 @@ class ViewModelFactory(
         collectionClient = komgaClientFactory.collectionClient(),
     )
 
-    fun getBookReaderViewModel(navigator: Navigator, markReadProgress: Boolean): ReaderViewModel {
+    fun getBookReaderViewModel(
+        navigator: Navigator,
+        markReadProgress: Boolean,
+        bookSiblingsContext: BookSiblingsContext
+    ): ReaderViewModel {
         return ReaderViewModel(
             bookClient = komgaClientFactory.bookClient(),
+            readListClient = komgaClientFactory.readListClient(),
             navigator = navigator,
             appNotifications = dependencies.appNotifications,
             settingsRepository = settingsRepository,
@@ -238,6 +244,7 @@ class ViewModelFactory(
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,
             colorCorrectionIsActive = dependencies.colorCorrectionStep.isActive,
+            bookSiblingsContext = bookSiblingsContext,
             markReadProgress = markReadProgress,
         )
     }
@@ -561,6 +568,7 @@ class ViewModelFactory(
 
     fun getEpubReaderViewModel(
         bookId: KomgaBookId,
+        bookSiblingsContext: BookSiblingsContext,
         book: KomgaBook? = null,
         markReadProgress: Boolean = true
     ): EpubReaderViewModel {
@@ -578,6 +586,7 @@ class ViewModelFactory(
             notifications = dependencies.appNotifications,
             windowState = dependencies.windowState,
             platformType = platformType,
+            bookSiblingsContext = bookSiblingsContext,
         )
     }
 

@@ -41,7 +41,7 @@ import snd.komga.client.readlist.KomgaReadList
 fun BookReadListsContent(
     readLists: Map<KomgaReadList, List<KomgaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
-    onBookClick: (KomgaBook) -> Unit,
+    onBookClick: (KomgaBook, KomgaReadList) -> Unit,
     cardWidth: Dp
 ) {
     var show by rememberSaveable { mutableStateOf(false) }
@@ -76,7 +76,7 @@ fun BookReadListsContent(
                         items(books) { book ->
                             BookImageCard(
                                 book = book,
-                                onBookClick = { onBookClick(book) },
+                                onBookClick = { onBookClick(book, readList) },
                                 modifier = Modifier.width(cardWidth)
                             )
                         }

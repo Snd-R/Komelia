@@ -17,6 +17,7 @@ import io.github.snd_r.komelia.platform.codepointsCount
 import io.github.snd_r.komelia.platform.resolve
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
@@ -78,6 +79,7 @@ class TtsuReaderState(
     private val windowState: AppWindowState,
     private val platformType: PlatformType,
     private val coroutineScope: CoroutineScope,
+    private val bookSiblingsContext: BookSiblingsContext,
 ) : EpubReaderState {
     override val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     override val book = MutableStateFlow(book)
@@ -130,9 +132,11 @@ class TtsuReaderState(
 
         navigator.value?.let { nav ->
             if (nav.canPop) nav.pop()
-            else nav.replaceAll(
-                MainScreen(book.value?.let { bookScreen(it) } ?: BookScreen(bookId.value))
-            )
+            else {
+                val screen = book.value?.let { bookScreen(book = it, bookSiblingsContext = bookSiblingsContext) }
+                    ?: BookScreen(bookId = bookId.value, bookSiblingsContext = bookSiblingsContext)
+                nav.replaceAll(MainScreen(screen))
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.PlatformTitleBar
 import io.github.snd_r.komelia.platform.canIntegrateWithSystemBar
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
@@ -31,6 +32,7 @@ import kotlin.jvm.Transient
 
 class EpubScreen(
     private val bookId: KomgaBookId,
+    private val bookSiblingsContext: BookSiblingsContext,
     private val markReadProgress: Boolean = true,
     @Transient
     private val book: KomgaBook? = null,
@@ -45,6 +47,7 @@ class EpubScreen(
         val vm = rememberScreenModel(bookId.value) {
             viewModelFactory.getEpubReaderViewModel(
                 bookId = bookId,
+                bookSiblingsContext = bookSiblingsContext,
                 book = book,
                 markReadProgress = markReadProgress
             )
@@ -78,7 +81,12 @@ class EpubScreen(
                 Loading, Uninitialized -> LoadingMaxSizeIndicator()
                 is Error -> ErrorContent(
                     message = state.exception.message ?: state.exception.stackTraceToString(),
-                    onExit = { navigator.replaceAll(MainScreen(book?.let { bookScreen(it) } ?: BookScreen(bookId))) }
+                    onExit = {
+                        val screen = book?.let { bookScreen(book = it, bookSiblingsContext = bookSiblingsContext) }
+                            ?: BookScreen(bookId = bookId, bookSiblingsContext = bookSiblingsContext)
+
+                        navigator.replaceAll(MainScreen(screen))
+                    }
                 )
 
                 is Success -> EpubContent(

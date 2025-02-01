@@ -8,6 +8,7 @@ import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Loading
@@ -39,12 +40,13 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
         val navigator = LocalNavigator.currentOrThrow
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
-            when (val state =vm.state.collectAsState().value) {
+            when (val state = vm.state.collectAsState().value) {
                 Uninitialized -> LoadingMaxSizeIndicator()
                 is Error -> ErrorContent(
                     message = state.exception.message ?: "Unknown Error",
                     onReload = vm::reload
                 )
+
                 is LoadState.Success, Loading -> {
                     val readList = vm.readList
                     if (readList == null) LoadingMaxSizeIndicator()
@@ -55,9 +57,15 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
 
                             books = vm.books,
                             bookMenuActions = vm.bookMenuActions(),
-                            onBookClick = { navigator push bookScreen(it) },
+                            onBookClick = { navigator push bookScreen(it, BookSiblingsContext.ReadList(readListId)) },
                             onBookReadClick = { book, markProgress ->
-                                navigator.parent?.push(readerScreen(book, markProgress))
+                                navigator.parent?.push(
+                                    readerScreen(
+                                        book = book,
+                                        markReadProgress = markProgress,
+                                        bookSiblingsContext = BookSiblingsContext.ReadList(readListId)
+                                    )
+                                )
                             },
 
                             selectedBooks = vm.selectedBooks,

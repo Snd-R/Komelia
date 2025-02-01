@@ -11,6 +11,7 @@ import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
@@ -24,15 +25,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
+import snd.komga.client.readlist.KomgaReadListClient
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 class ReaderViewModel(
     bookClient: KomgaBookClient,
+    readListClient: KomgaReadListClient,
     navigator: Navigator,
     appNotifications: AppNotifications,
     settingsRepository: CommonSettingsRepository,
@@ -43,7 +47,8 @@ class ReaderViewModel(
     readerImageFactory: ReaderImageFactory,
     markReadProgress: Boolean,
     currentBookId: MutableStateFlow<KomgaBookId?>,
-    val colorCorrectionIsActive: Flow<Boolean>
+    val colorCorrectionIsActive: Flow<Boolean>,
+    private val bookSiblingsContext: BookSiblingsContext,
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
     private val pageChangeFlow = MutableSharedFlow<Unit>(
@@ -53,6 +58,7 @@ class ReaderViewModel(
 
     val readerState: ReaderState = ReaderState(
         bookClient = bookClient,
+        readListClient = readListClient,
         navigator = navigator,
         appNotifications = appNotifications,
         settingsRepository = settingsRepository,
@@ -61,6 +67,7 @@ class ReaderViewModel(
         currentBookId = currentBookId,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,
+        bookSiblingsContext = bookSiblingsContext,
         pageChangeFlow = pageChangeFlow,
     )
 
@@ -87,28 +94,26 @@ class ReaderViewModel(
         screenScaleState = screenScaleState,
     )
 
-    fun initialize(bookId: KomgaBookId) {
-        screenModelScope.launch {
-            val currentState = readerState.state.value
-            if (currentState is LoadState.Success || currentState == LoadState.Loading) return@launch
+    suspend fun initialize(bookId: KomgaBookId) {
+        val currentState = readerState.state.value
+        if (currentState is LoadState.Success || currentState == LoadState.Loading) return
 
-            readerState.initialize(bookId)
-            screenScaleState.areaSize.takeWhile { it == IntSize.Zero }.collect()
+        readerState.initialize(bookId)
+        screenScaleState.areaSize.takeWhile { it == IntSize.Zero }.collect()
 
-            readerState.readerType.collect {
-                when (it) {
-                    PAGED -> {
-                        continuousReaderState.stop()
-                        pagedReaderState.initialize()
-                    }
+        readerState.readerType.onEach {
+            when (it) {
+                PAGED -> {
+                    continuousReaderState.stop()
+                    pagedReaderState.initialize()
+                }
 
-                    CONTINUOUS -> {
-                        pagedReaderState.stop()
-                        continuousReaderState.initialize()
-                    }
+                CONTINUOUS -> {
+                    pagedReaderState.stop()
+                    continuousReaderState.initialize()
                 }
             }
-        }
+        }.launchIn(screenModelScope)
     }
 
     override fun onDispose() {

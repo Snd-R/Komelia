@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.HorizontalDivider
@@ -66,7 +65,7 @@ fun BookScreenContent(
 
     readLists: Map<KomgaReadList, List<KomgaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
-    onBookPress: (KomgaBook) -> Unit,
+    onReadListBookPress: (KomgaBook, KomgaReadList) -> Unit,
     onParentSeriesPress: () -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
     cardWidth: Dp
@@ -125,7 +124,7 @@ fun BookScreenContent(
                 BookReadListsContent(
                     readLists = readLists,
                     onReadListClick = onReadListClick,
-                    onBookClick = onBookPress,
+                    onBookClick = onReadListBookPress,
                     cardWidth = cardWidth
                 )
             }

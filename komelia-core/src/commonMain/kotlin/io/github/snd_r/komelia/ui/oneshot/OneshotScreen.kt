@@ -10,6 +10,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
@@ -31,11 +32,23 @@ import kotlin.jvm.Transient
 
 class OneshotScreen(
     val seriesId: KomgaSeriesId,
+    private val bookSiblingsContext: BookSiblingsContext,
     @Transient private val series: KomgaSeries? = null,
     @Transient private val book: KomgaBook? = null,
 ) : ReloadableScreen {
-    constructor(series: KomgaSeries) : this(series.id, series, null)
-    constructor(book: KomgaBook) : this(book.seriesId, null, book)
+    constructor(series: KomgaSeries, bookSiblingsContext: BookSiblingsContext) : this(
+        seriesId = series.id,
+        bookSiblingsContext = bookSiblingsContext,
+        series = series,
+        book = null
+    )
+
+    constructor(book: KomgaBook, bookSiblingsContext: BookSiblingsContext) : this(
+        seriesId = book.seriesId,
+        bookSiblingsContext = bookSiblingsContext,
+        series = null,
+        book = book
+    )
 
     override val key: ScreenKey = seriesId.toString()
 
@@ -72,7 +85,13 @@ class OneshotScreen(
                     library = library,
                     onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
                     onBookReadClick = { markReadProgress ->
-                        navigator.parent?.push(readerScreen(book, markReadProgress))
+                        navigator.parent?.push(
+                            readerScreen(
+                                book = book,
+                                markReadProgress = markReadProgress,
+                                bookSiblingsContext = bookSiblingsContext,
+                            )
+                        )
                     },
                     oneshotMenuActions = vm.bookMenuActions,
                     collections = vm.collectionsState.collections,
@@ -81,7 +100,12 @@ class OneshotScreen(
 
                     readLists = vm.readListsState.readLists,
                     onReadListClick = { navigator.push(ReadListScreen(it.id)) },
-                    onBookClick = { navigator push bookScreen(it) },
+                    onReadlistBookClick = { book, readList ->
+                        navigator push bookScreen(
+                            book = book,
+                            bookSiblingsContext = BookSiblingsContext.ReadList(readList.id)
+                        )
+                    },
                     onFilterClick = { filter ->
                         navigator.popUntilRoot()
                         navigator.dispose(navigator.lastItem)
@@ -101,7 +125,11 @@ class OneshotScreen(
         if (navigator.canPop) {
             navigator.pop()
         } else {
-            libraryId?.let { navigator replaceAll LibraryScreen(it) }
+            when (val context = bookSiblingsContext) {
+                is BookSiblingsContext.ReadList -> navigator.replace(ReadListScreen(context.id))
+                BookSiblingsContext.Series -> libraryId?.let { navigator.replace(LibraryScreen(it)) }
+            }
+
         }
     }
 }

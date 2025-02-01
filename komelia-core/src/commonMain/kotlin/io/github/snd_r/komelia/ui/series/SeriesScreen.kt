@@ -10,6 +10,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.github.snd_r.komelia.platform.BackPressHandler
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LocalReloadEvents
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
@@ -29,7 +30,7 @@ import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
 
 fun seriesScreen(series: KomgaSeries): Screen =
-    if (series.oneshot) OneshotScreen(series)
+    if (series.oneshot) OneshotScreen(series, BookSiblingsContext.Series)
     else SeriesScreen(series)
 
 class SeriesScreen(
@@ -60,7 +61,7 @@ class SeriesScreen(
             vm.initialize()
             val series = vm.series.value
             if (series != null && series.oneshot) {
-                navigator.replace(OneshotScreen(series))
+                navigator.replace(OneshotScreen(series, BookSiblingsContext.Series))
                 return@LaunchedEffect
             }
             reloadEvents.collect { vm.reload() }
@@ -97,7 +98,7 @@ class SeriesScreen(
                         onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },
                         onSeriesClick = { series ->
                             navigator.push(
-                                if (series.oneshot) OneshotScreen(series)
+                                if (series.oneshot) OneshotScreen(series, BookSiblingsContext.Series)
                                 else SeriesScreen(series, vm.currentTab)
                             )
                         },

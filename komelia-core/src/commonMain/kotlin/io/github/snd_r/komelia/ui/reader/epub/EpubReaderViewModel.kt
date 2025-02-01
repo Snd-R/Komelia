@@ -9,6 +9,7 @@ import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
+import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType.KOMGA_EPUB
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType.TTSU_EPUB
@@ -35,7 +36,8 @@ class EpubReaderViewModel(
     private val fontsRepository: UserFontsRepository,
     private val notifications: AppNotifications,
     private val windowState: AppWindowState,
-    private val platformType: PlatformType
+    private val platformType: PlatformType,
+    private val bookSiblingsContext: BookSiblingsContext,
 ) : StateScreenModel<LoadState<EpubReaderState>>(LoadState.Uninitialized) {
 
     suspend fun initialize(navigator: Navigator) {
@@ -60,6 +62,7 @@ class EpubReaderViewModel(
                             windowState = windowState,
                             platformType = platformType,
                             coroutineScope = screenModelScope,
+                            bookSiblingsContext = bookSiblingsContext,
                         )
                         komgaState.initialize(navigator)
                         when (val res = komgaState.state.value) {
@@ -83,6 +86,7 @@ class EpubReaderViewModel(
                             windowState = windowState,
                             platformType = platformType,
                             coroutineScope = screenModelScope,
+                            bookSiblingsContext = bookSiblingsContext,
                         )
                         ttsuState.initialize(navigator)
                         when (val res = ttsuState.state.value) {

@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.offline.client
 
 import snd.komga.client.book.KomgaBook
+import snd.komga.client.book.KomgaBookId
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
@@ -31,6 +32,14 @@ class OfflineReadListClient : KomgaReadListClient {
         libraryIds: List<KomgaLibraryId>?,
         pageRequest: KomgaPageRequest?
     ): Page<KomgaReadList> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getBookSiblingNext(readListId: KomgaReadListId, bookId: KomgaBookId): KomgaBook {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getBookSiblingPrevious(readListId: KomgaReadListId, bookId: KomgaBookId): KomgaBook {
         TODO("Not yet implemented")
     }
 

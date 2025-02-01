@@ -75,7 +75,7 @@ fun OneshotScreenContent(
 
     readLists: Map<KomgaReadList, List<KomgaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
-    onBookClick: (KomgaBook) -> Unit,
+    onReadlistBookClick: (KomgaBook, KomgaReadList) -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
     cardWidth: Dp
 ) {
@@ -132,7 +132,7 @@ fun OneshotScreenContent(
                 BookReadListsContent(
                     readLists = readLists,
                     onReadListClick = onReadListClick,
-                    onBookClick = onBookClick,
+                    onBookClick = onReadlistBookClick,
                     cardWidth = cardWidth
                 )
                 SeriesCollectionsContent(
