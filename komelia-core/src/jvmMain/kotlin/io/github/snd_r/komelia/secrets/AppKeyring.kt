@@ -2,16 +2,19 @@ package io.github.snd_r.komelia.secrets
 
 import com.github.javakeyring.PasswordAccessException
 import com.github.javakeyring.internal.KeyringBackendFactory
+import com.github.javakeyring.internal.windows.WinCredentialStoreBackend
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
+import io.github.snd_r.komelia.DesktopPlatform.Windows
 
 class AppKeyring {
 
-    private val backend = when {
-        DesktopPlatform.Current == Linux ->
-            runCatching { LinuxSecretService() }.onFailure { it.printStackTrace() }
-                .getOrNull() ?: KeyringBackendFactory.create()
+    private val backend = when (DesktopPlatform.Current) {
+        Linux -> runCatching { LinuxSecretService() }
+            .onFailure { it.printStackTrace() }
+            .getOrNull() ?: KeyringBackendFactory.create()
 
+        Windows -> WinCredentialStoreBackend()
         else -> KeyringBackendFactory.create()
     }
 

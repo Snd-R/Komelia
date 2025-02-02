@@ -2,4 +2,4 @@
 -dontwarn **
 
 # classes that yield highest reduction in size
--keep class !androidx.**, !com.mohamedrejeb.**, !com.sun.**, !org.apache.** { *; }
+-keep class !androidx.**, !com.mohamedrejeb.**, !org.apache.** { *; }
