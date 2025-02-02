@@ -17,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -236,9 +238,16 @@ private fun PageContent(imageResult: ReaderImageResult?) {
 
 @Composable
 private fun PageImageContent(image: ReaderImage) {
-    val painter = image.painter.collectAsState().value
-    val error = image.error.collectAsState().value
+    // reimplement collectAsState and call remember with image key,
+    // this avoids unnecessary recomposition and flickering caused by attempt to render old value on image change
+    // without remember key, old painter value is remembered until new value is collected from flow
 
+    // could've been avoided by extracting flow collection to the top ancestor
+    // and just accepting painter as function param here
+    val painter = remember(image) { mutableStateOf(image.painter.value) }
+    LaunchedEffect(image.painter) { image.painter.collect { painter.value = it } }
+
+    val error = image.error.collectAsState().value
     if (error != null) {
         Text(
             "${error::class.simpleName}: ${error.message}",
@@ -247,7 +256,7 @@ private fun PageImageContent(image: ReaderImage) {
     } else {
         Image(
             modifier = Modifier.background(Color.White),
-            painter = painter,
+            painter = painter.value,
             contentDescription = null,
         )
     }
