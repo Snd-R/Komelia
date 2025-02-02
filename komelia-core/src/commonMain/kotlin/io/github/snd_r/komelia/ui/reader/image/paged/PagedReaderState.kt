@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
+import snd.komga.client.common.KomgaReadingDirection
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -95,7 +96,11 @@ class PagedReaderState(
     suspend fun initialize() {
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
         scaleType.value = settingsRepository.getPagedReaderScaleType().first()
-        readingDirection.value = settingsRepository.getPagedReaderReadingDirection().first()
+        readingDirection.value = when (readerState.series.value?.metadata?.readingDirection) {
+            KomgaReadingDirection.LEFT_TO_RIGHT -> LEFT_TO_RIGHT
+            KomgaReadingDirection.RIGHT_TO_LEFT -> RIGHT_TO_LEFT
+            else -> settingsRepository.getPagedReaderReadingDirection().first()
+        }
 
         screenScaleState.setScrollState(null)
         screenScaleState.setScrollOrientation(Orientation.Vertical, false)

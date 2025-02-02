@@ -34,12 +34,16 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.komga.client.common.KomgaReadingDirection
 import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.series.KomgaSeries
+import snd.komga.client.series.KomgaSeriesClient
 
 typealias SpreadIndex = Int
 
 class ReaderState(
     private val bookClient: KomgaBookClient,
+    private val seriesClient: KomgaSeriesClient,
     private val readListClient: KomgaReadListClient,
     private val navigator: Navigator,
     private val appNotifications: AppNotifications,
@@ -55,12 +59,14 @@ class ReaderState(
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val expandImageSettings = MutableStateFlow(false)
 
+    val booksState = MutableStateFlow<BookState?>(null)
+    val series = MutableStateFlow<KomgaSeries?>(null)
+
     val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
     val decoderSettings = MutableStateFlow<PlatformDecoderSettings?>(null)
-    val readerType = MutableStateFlow(CONTINUOUS)
+    val readerType = MutableStateFlow(ReaderType.PAGED)
     val imageStretchToFit = MutableStateFlow(true)
     val cropBorders = MutableStateFlow(false)
-    val booksState = MutableStateFlow<BookState?>(null)
     val readProgressPage = MutableStateFlow(1)
 
     val flashOnPageChange = MutableStateFlow(false)
@@ -70,7 +76,6 @@ class ReaderState(
 
     suspend fun initialize(bookId: KomgaBookId) {
         decoderSettings.value = settingsRepository.getDecoderSettings().first()
-        readerType.value = readerSettingsRepository.getReaderType().first()
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
         cropBorders.value = readerSettingsRepository.getCropBorders().first()
         flashOnPageChange.value = readerSettingsRepository.getFlashOnPageChange().first()
@@ -79,11 +84,9 @@ class ReaderState(
         flashWith.value = readerSettingsRepository.getFlashWith().first()
 
         decoderDescriptor.onEach { currentDecoderDescriptor.value = it }.launchIn(stateScope)
-        loadBook(bookId)
-    }
 
-    private suspend fun loadBook(bookId: KomgaBookId) {
         appNotifications.runCatchingToNotifications {
+            state.value = LoadState.Loading
             val currentBooksState = booksState.value
             if (currentBooksState == null) state.value = LoadState.Loading
             val newBook = bookClient.getBook(bookId)
@@ -110,6 +113,16 @@ class ReaderState(
                 else -> bookProgress.page
             }
             currentBookId.value = bookId
+
+            val currentSeries = seriesClient.getOneSeries(newBook.seriesId)
+            series.value = currentSeries
+            readerType.value = when (currentSeries.metadata.readingDirection) {
+                KomgaReadingDirection.LEFT_TO_RIGHT -> ReaderType.PAGED
+                KomgaReadingDirection.RIGHT_TO_LEFT -> ReaderType.PAGED
+                KomgaReadingDirection.WEBTOON -> CONTINUOUS
+                KomgaReadingDirection.VERTICAL, null -> readerSettingsRepository.getReaderType().first()
+            }
+
             state.value = LoadState.Success(Unit)
         }.onFailure { state.value = LoadState.Error(it) }
     }

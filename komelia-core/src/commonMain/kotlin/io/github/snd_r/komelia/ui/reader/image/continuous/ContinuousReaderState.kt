@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookId
+import snd.komga.client.common.KomgaReadingDirection
 import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger("ContinuousReaderState")
@@ -118,7 +119,10 @@ class ContinuousReaderState(
 
     suspend fun initialize() {
 
-        readingDirection.value = settingsRepository.getContinuousReaderReadingDirection().first()
+        readingDirection.value = when (readerState.series.value?.metadata?.readingDirection) {
+            KomgaReadingDirection.WEBTOON -> TOP_TO_BOTTOM
+            else -> settingsRepository.getContinuousReaderReadingDirection().first()
+        }
         sidePaddingFraction.value = settingsRepository.getContinuousReaderPadding().first()
         pageSpacing.value = settingsRepository.getContinuousReaderPageSpacing().first().coerceAtMost(99999)
 

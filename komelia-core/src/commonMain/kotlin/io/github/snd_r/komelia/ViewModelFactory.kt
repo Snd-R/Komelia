@@ -174,7 +174,7 @@ class ViewModelFactory(
                 libraries = komgaSharedState.libraries
             ),
             libraries = komgaSharedState.libraries,
-            )
+        )
     }
 
     fun getSeriesViewModel(
@@ -233,6 +233,7 @@ class ViewModelFactory(
     ): ReaderViewModel {
         return ReaderViewModel(
             bookClient = komgaClientFactory.bookClient(),
+            seriesClient = komgaClientFactory.seriesClient(),
             readListClient = komgaClientFactory.readListClient(),
             navigator = navigator,
             appNotifications = dependencies.appNotifications,

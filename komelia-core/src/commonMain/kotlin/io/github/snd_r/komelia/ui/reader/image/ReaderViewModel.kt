@@ -31,11 +31,13 @@ import kotlinx.coroutines.flow.takeWhile
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.series.KomgaSeriesClient
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 class ReaderViewModel(
     bookClient: KomgaBookClient,
+    seriesClient: KomgaSeriesClient,
     readListClient: KomgaReadListClient,
     navigator: Navigator,
     appNotifications: AppNotifications,
@@ -58,6 +60,7 @@ class ReaderViewModel(
 
     val readerState: ReaderState = ReaderState(
         bookClient = bookClient,
+        seriesClient = seriesClient,
         readListClient = readListClient,
         navigator = navigator,
         appNotifications = appNotifications,
