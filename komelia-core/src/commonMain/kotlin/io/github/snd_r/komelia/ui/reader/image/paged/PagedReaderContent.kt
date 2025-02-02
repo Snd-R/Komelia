@@ -36,6 +36,9 @@ import io.github.snd_r.komelia.ui.reader.image.common.PagedReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
 import io.github.snd_r.komelia.ui.reader.image.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.Page
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
+import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDirection.RIGHT_TO_LEFT
@@ -62,6 +65,8 @@ fun BoxScope.PagedReaderContent(
         LEFT_TO_RIGHT -> LayoutDirection.Ltr
         RIGHT_TO_LEFT -> LayoutDirection.Rtl
     }
+    val pages = pagedReaderState.currentSpread.collectAsState().value.pages
+    val layout = pagedReaderState.layout.collectAsState().value
 
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
     LaunchedEffect(readingDirection, pagedReaderState.layoutOffset.value) {
@@ -85,10 +90,10 @@ fun BoxScope.PagedReaderContent(
             if (transitionPage != null) {
                 TransitionPage(transitionPage)
             } else {
-                ReaderPages(
-                    currentPages = pagedReaderState.currentSpread.collectAsState().value.pages,
-                    readingDirection = readingDirection,
-                )
+                when (layout) {
+                    SINGLE_PAGE -> pages.firstOrNull()?.let { SinglePageLayout(it) }
+                    DOUBLE_PAGES, DOUBLE_PAGES_NO_COVER -> DoublePageLayout(pages, readingDirection)
+                }
             }
         }
     }
@@ -155,17 +160,28 @@ private fun TransitionPage(page: TransitionPage) {
 }
 
 @Composable
-fun ReaderPages(
-    currentPages: List<Page>,
+private fun SinglePageLayout(page: Page) {
+    Layout(content = { PageContent(page.imageResult) }) { measurable, constraints ->
+        val placeable = measurable.first().measure(constraints)
+        val startPadding = (constraints.maxWidth - placeable.width) / 2
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            placeable.placeRelative(startPadding, 0)
+        }
+    }
+}
+
+@Composable
+private fun DoublePageLayout(
+    pages: List<Page>,
     readingDirection: ReadingDirection,
 ) {
     Layout(content = {
-        when (currentPages.size) {
+        when (pages.size) {
             0 -> {}
-            1 -> PageContent(currentPages[0].imageResult)
+            1 -> PageContent(pages.first().imageResult)
             2 -> {
-                PageContent(currentPages[0].imageResult)
-                PageContent(currentPages[1].imageResult)
+                PageContent(pages[0].imageResult)
+                PageContent(pages[1].imageResult)
             }
 
             else -> error("can't display more than 2 images")
@@ -179,9 +195,16 @@ fun ReaderPages(
                     RIGHT_TO_LEFT -> it.reversed()
                 }
             }
-
-        val totalWidth = measured.fold(0) { acc, placeable -> acc + placeable.width }
-        val startPadding = (constraints.maxWidth - totalWidth) / 2
+        val startPadding: Int
+        if (measured.size == 1 && !pages.first().metadata.isLandscape()) {
+            startPadding = when (readingDirection) {
+                LEFT_TO_RIGHT -> (constraints.maxWidth - (measured.first().width * 2)) / 2
+                RIGHT_TO_LEFT -> ((constraints.maxWidth - (measured.first().width * 2)) / 2) + measured.first().width
+            }
+        } else {
+            val totalWidth = measured.fold(0) { acc, placeable -> acc + placeable.width }
+            startPadding = (constraints.maxWidth - totalWidth) / 2
+        }
 
         var widthTaken = startPadding
         layout(constraints.maxWidth, constraints.maxHeight) {
