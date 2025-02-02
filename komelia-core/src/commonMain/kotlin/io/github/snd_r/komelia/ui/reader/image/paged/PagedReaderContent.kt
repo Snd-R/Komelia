@@ -166,8 +166,9 @@ private fun SinglePageLayout(page: Page) {
     Layout(content = { PageContent(page.imageResult) }) { measurable, constraints ->
         val placeable = measurable.first().measure(constraints)
         val startPadding = (constraints.maxWidth - placeable.width) / 2
+        val topPadding = ((constraints.maxHeight - placeable.height) / 2).coerceAtLeast(0)
         layout(constraints.maxWidth, constraints.maxHeight) {
-            placeable.placeRelative(startPadding, 0)
+            placeable.placeRelative(startPadding, topPadding)
         }
     }
 }
