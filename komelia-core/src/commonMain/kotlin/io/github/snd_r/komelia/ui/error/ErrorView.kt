@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -74,7 +75,7 @@ fun ErrorView(
         Surface {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(10.dp).fillMaxSize()
+                modifier = Modifier.safeDrawingPadding().padding(10.dp).fillMaxSize()
             ) {
                 val scope = rememberCoroutineScope()
                 val tooltipState = remember { TooltipState() }
