@@ -147,7 +147,7 @@ private fun BookImageOverlay(
 
             Spacer(modifier = Modifier.weight(1f))
             Column(Modifier.padding(10.dp)) {
-                if (showSeriesTitle) {
+                if (showSeriesTitle && !book.oneshot) {
                     CardOutlinedText(
                         text = book.seriesTitle,
                         maxLines = 1,
