@@ -239,7 +239,7 @@ private fun BookHoverOverlay(
                     modifier = Modifier.padding(vertical = 5.dp).fillMaxSize(),
                     verticalAlignment = Alignment.Bottom,
                 ) {
-                    if (onBookReadClick != null && readIsSupported(book) && !libraryIsDeleted) {
+                    if (onBookReadClick != null && !book.deleted && readIsSupported(book) && !libraryIsDeleted) {
                         BookReadButton(
                             modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
                             onRead = { onBookReadClick(true) },
@@ -382,7 +382,7 @@ private fun BookDetailedListDetails(
 
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.Start) {
-            if (onBookReadClick != null && readIsSupported(book)) {
+            if (onBookReadClick != null && !book.deleted && readIsSupported(book)) {
                 BookReadButton(
                     modifier = Modifier.padding(start = 5.dp, bottom = 5.dp),
                     onRead = { onBookReadClick(true) },

@@ -297,7 +297,7 @@ fun SeriesInfoLower(
             icon = Icons.Default.Link,
         )
 
-        Spacer(Modifier.height(5.dp))
+        Spacer(Modifier.height(2.dp))
 
         series.booksMetadata.authors
             .filter { it.role == "writer" }
@@ -322,6 +322,7 @@ fun SeriesInfoLower(
                     modifier = Modifier.cursorForHand()
                 )
             }
+        Spacer(Modifier.height(2.dp))
     }
 }
 
