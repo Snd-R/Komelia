@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.25)
 project(komelia_image_decoder C CXX)
 set(CMAKE_C_STANDARD 23)
 
-OPTION(CUDA_GPU_ENUMERATION "build gpu enumeration shared lib for cuda" ON)
-OPTION(DXGI_GPU_ENUMERATION "build gpu enumeration shared lib for dxgi" ON)
+OPTION(CUDA_GPU_ENUMERATION "build gpu enumeration shared lib for cuda" OFF)
+OPTION(DXGI_GPU_ENUMERATION "build gpu enumeration shared lib for dxgi" OFF)
 OPTION(ROCM_GPU_ENUMERATION "build gpu enumeration shared lib for rocm" OFF)
 
 if (ANDROID)
@@ -74,32 +74,56 @@ if (NOT ANDROID)
         #        endif ()
         install(TARGETS komelia_onnxruntime LIBRARY)
 
-        find_package(CUDAToolkit)
         if (CUDA_GPU_ENUMERATION)
-            add_library(komelia_enumerate_devices_cuda SHARED
-                    src/onnxruntime/device/komelia_enumerate_devices.h
-                    src/onnxruntime/device/komelia_enumerate_devices_cuda.c
-                    src/onnxruntime/device/devices_common_jni.h
-                    src/onnxruntime/device/devices_common_jni.c
-            )
+            find_package(CUDAToolkit)
+            if (CUDAToolkit_FOUND OR CUDA_CUSTOM_PATH)
+                add_library(komelia_enumerate_devices_cuda SHARED
+                        src/onnxruntime/device/komelia_enumerate_devices.h
+                        src/onnxruntime/device/komelia_enumerate_devices_cuda.c
+                        src/onnxruntime/device/devices_common_jni.h
+                        src/onnxruntime/device/devices_common_jni.c
+                )
 
-            if (CUDAToolkit_FOUND)
-                target_include_directories(komelia_enumerate_devices_cuda PRIVATE
-                        ${JNI_INCLUDE_DIRS}
-                        ${CUDAToolkit_INCLUDE_DIRS}
-                )
-                target_link_libraries(komelia_enumerate_devices_cuda CUDA::cudart)
-            elseif (CUDA_CUSTOM_PATH)
-                target_include_directories(komelia_enumerate_devices_cuda PRIVATE
-                        ${JNI_INCLUDE_DIRS}
-                        "${CUDA_CUSTOM_PATH}/include"
-                )
-                find_library(CUDART_LIB NAMES cudart PATHS ${CUDA_CUSTOM_PATH}/lib PATH_SUFFIXES x64 REQUIRED NO_DEFAULT_PATH)
-                target_link_libraries(komelia_enumerate_devices_cuda ${CUDART_LIB})
+                if (CUDAToolkit_FOUND)
+                    target_include_directories(komelia_enumerate_devices_cuda PRIVATE ${JNI_INCLUDE_DIRS} ${CUDAToolkit_INCLUDE_DIRS})
+                    target_link_libraries(komelia_enumerate_devices_cuda CUDA::cudart)
+                elseif (CUDA_CUSTOM_PATH)
+                    target_include_directories(komelia_enumerate_devices_cuda PRIVATE ${JNI_INCLUDE_DIRS} "${CUDA_CUSTOM_PATH}/include")
+                    find_library(CUDART_LIB NAMES cudart PATHS ${CUDA_CUSTOM_PATH}/lib PATH_SUFFIXES x64 REQUIRED NO_DEFAULT_PATH)
+                    target_link_libraries(komelia_enumerate_devices_cuda ${CUDART_LIB})
+                endif ()
+
+                install(TARGETS komelia_enumerate_devices_cuda LIBRARY)
             else ()
-                message(FATAL_ERROR "Can't find cudart library")
+                message(WARNING "Can't find cudart library, disabling cuda device enumeration support")
             endif ()
-            install(TARGETS komelia_enumerate_devices_cuda LIBRARY)
+        endif ()
+
+        if (ROCM_GPU_ENUMERATION)
+            find_package(HIP)
+            if (HIP_FOUND OR ROCM_CUSTOM_PATH)
+                add_library(komelia_enumerate_devices_rocm SHARED
+                        src/onnxruntime/device/komelia_enumerate_devices.h
+                        src/onnxruntime/device/komelia_enumerate_devices_rocm.c
+                        src/onnxruntime/device/devices_common_jni.h
+                        src/onnxruntime/device/devices_common_jni.c
+                )
+
+                if (HIP_FOUND)
+                    target_include_directories(komelia_enumerate_devices_rocm PRIVATE ${JNI_INCLUDE_DIRS} ${HIP_INCLUDE_DIRS})
+                    target_link_libraries(komelia_enumerate_devices_rocm hip::host)
+                elseif (ROCM_CUSTOM_PATH)
+                    target_include_directories(komelia_enumerate_devices_rocm PRIVATE ${JNI_INCLUDE_DIRS} "${ROCM_CUSTOM_PATH}/include")
+                    find_library(ROCM_HIP_LIB NAMES amdhip64 PATHS ${ROCM_CUSTOM_PATH}/lib REQUIRED NO_DEFAULT_PATH)
+                    target_compile_definitions(komelia_enumerate_devices_rocm PUBLIC __HIP_PLATFORM_AMD__)
+                    target_link_libraries(komelia_enumerate_devices_rocm ${ROCM_HIP_LIB})
+                endif ()
+
+                install(TARGETS komelia_enumerate_devices_rocm LIBRARY)
+            else ()
+                message(WARNING "Can't find cudart library, disabling rocm device enumeration support")
+            endif ()
+
         endif ()
 
         if (DXGI_GPU_ENUMERATION AND WIN32)

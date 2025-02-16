@@ -432,6 +432,7 @@ VipsImage *run_inference(JNIEnv *env,
             break;
         default: {
             throw_jvm_ort_exception(env, "Unsupported model input data format. Only float32 and float16 are supported");
+            release_resources(inference_data);
             return NULL;
         }
     }
@@ -466,6 +467,7 @@ VipsImage *run_inference(JNIEnv *env,
 
     if (dim_length != 4) {
         throw_jvm_ort_exception(env, "Unexpected number of output dimensions");
+        release_resources(inference_data);
         return NULL;
     }
 
@@ -513,6 +515,8 @@ Java_snd_komelia_image_OnnxRuntimeUpscaler_init(JNIEnv *env, jclass this, jstrin
         g_ort->ReleaseStatus(ort_status);
         return;
     }
+    g_ort->DisableTelemetryEvents(ort_env);
+
     ort_status = g_ort->GetAllocatorWithDefaultOptions(&ort_default_allocator);
     if (ort_status != NULL) {
         const char *msg = g_ort->GetErrorMessage(ort_status);

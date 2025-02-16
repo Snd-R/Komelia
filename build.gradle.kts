@@ -80,6 +80,7 @@ val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libic
 val desktopLinuxLibs = linuxCommonLibs + setOf(
     "libkomelia_onnxruntime.so",
     "libkomelia_enumerate_devices_cuda.so",
+    "libkomelia_enumerate_devices_rocm.so",
     "libkomelia_skia.so",
     "libkomelia_webview.so",
     "libkomelia_webkit_extension.so",
@@ -88,6 +89,7 @@ val desktopJniLibs = setOf(
     "libkomelia_vips.so",
     "libkomelia_onnxruntime.so",
     "libkomelia_enumerate_devices_cuda.so",
+    "libkomelia_enumerate_devices_rocm.so",
     "libkomelia_skia.so",
     "libkomelia_webview.so",
     "libkomelia_webkit_extension.so",
