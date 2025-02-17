@@ -23,10 +23,10 @@ extern "C" JNIEXPORT jobject JNICALL Java_snd_komelia_image_SkiaBitmap_directCop
     size_t rowBytes = width * bands;
     size_t size = height * rowBytes;
     void *imageData = (void *) vips_image_get_data(image);
-    if (imageData == NULL) {
+    if (imageData == nullptr) {
         komelia_throw_jvm_vips_exception(env, vips_error_buffer());
         vips_error_clear();
-        return NULL;
+        return nullptr;
     }
 
     void *dataCopy = malloc(height * rowBytes);

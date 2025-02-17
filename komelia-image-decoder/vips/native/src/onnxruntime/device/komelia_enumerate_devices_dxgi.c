@@ -18,7 +18,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDe
         JNIEnv *env,
         jobject this
 ) {
-    IDXGIFactory1 *pFactory = NULL;
+    IDXGIFactory1 *pFactory = nullptr;
     IDXGIAdapter1 *pAdapter;
     HRESULT hr;
 
@@ -27,7 +27,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDe
         char message[64];
         snprintf(message, 64, "DXGI error: HRESULT 0x%x", hr);
         throw_jvm_exception(env, message);
-        return NULL;
+        return nullptr;
     }
 
     jobject jvm_list = create_jvm_list(env);
@@ -41,7 +41,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDe
             continue;
         }
 
-        info.name = toUTF8(desc.Description, 0, NULL);
+        info.name = toUTF8(desc.Description, 0, nullptr);
         info.id = (int) i;
         info.memory = desc.DedicatedVideoMemory + desc.DedicatedSystemMemory + desc.SharedSystemMemory;
         add_to_jvm_list(env, jvm_list, info);

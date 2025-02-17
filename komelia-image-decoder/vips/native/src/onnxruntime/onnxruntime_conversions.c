@@ -1,17 +1,5 @@
 #include "onnxruntime_conversions.h"
 #include <math.h>
-#include <time.h>
-
-double millis() {
-  struct timespec now;
-
-#ifdef _WIN32
-  clock_gettime(CLOCK_REALTIME, &now);
-#else
-  timespec_get(&now, TIME_UTC);
-#endif
-  return ((double)now.tv_sec) * 1000.0 + ((double)now.tv_nsec) / 1000000.0;
-}
 
 void hwc_to_chw(const uint8_t *input, size_t height, size_t width, size_t bands, float *output) {
 

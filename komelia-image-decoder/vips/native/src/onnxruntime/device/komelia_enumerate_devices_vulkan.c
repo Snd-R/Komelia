@@ -91,7 +91,7 @@ static inline const char *string_VkResult(VkResult input_value) {
     }
 }
 
-VkInstance instance = NULL;
+VkInstance instance = nullptr;
 
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDevices(
         JNIEnv *env,
@@ -100,20 +100,20 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDe
     VkInstanceCreateInfo createInfo = {0};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 
-    if (instance == NULL) {
-        VkResult result = vkCreateInstance(&createInfo, NULL, &instance);
+    if (instance == nullptr) {
+        VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
         if (result != VK_SUCCESS) {
             throw_jvm_exception(env, string_VkResult(result));
-            return NULL;
+            return nullptr;
         }
     }
 
     uint32_t device_count;
     VkResult result;
-    result = vkEnumeratePhysicalDevices(instance, &device_count, NULL);
+    result = vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
     if (result != VK_SUCCESS) {
         throw_jvm_exception(env, string_VkResult(result));
-        return NULL;
+        return nullptr;
     }
 
     VkPhysicalDevice devices[device_count];
@@ -121,11 +121,11 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDe
         result = vkEnumeratePhysicalDevices(instance, &device_count, devices);
         if (result != VK_SUCCESS) {
             throw_jvm_exception(env, string_VkResult(result));
-            return NULL;
+            return nullptr;
         }
     } else {
         throw_jvm_exception(env, "No Vulkan compatible devices found");
-        return NULL;
+        return nullptr;
     }
 
     jobject jvm_list = create_jvm_list(env);

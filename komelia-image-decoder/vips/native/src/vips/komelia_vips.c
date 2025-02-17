@@ -5,26 +5,27 @@ JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_vipsInit() {
   vips_cache_set_max(0);
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decode(JNIEnv *env, jobject this,
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decode(JNIEnv *env,
+                                                                  jobject this,
                                                                   jbyteArray encoded) {
   jsize input_len = (*env)->GetArrayLength(env, encoded);
-  jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, NULL);
+  jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, nullptr);
 
   unsigned char *internal_buffer = malloc(input_len * sizeof(unsigned char));
   memcpy(internal_buffer, input_bytes, input_len);
   (*env)->ReleaseByteArrayElements(env, encoded, input_bytes, JNI_ABORT);
 
-  VipsImage *decoded = vips_image_new_from_buffer(internal_buffer, input_len, "", NULL);
+  VipsImage *decoded = vips_image_new_from_buffer(internal_buffer, input_len, "", nullptr);
 
   if (!decoded) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     vips_thread_shutdown();
-    return NULL;
+    return nullptr;
   }
 
   jobject jvm_image = komelia_to_jvm_handle(env, decoded, internal_buffer);
-  if (jvm_image == NULL) {
+  if (jvm_image == nullptr) {
     g_object_unref(decoded);
   }
 
@@ -32,38 +33,37 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decode(JNIEnv *env, j
   return jvm_image;
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decodeFromFile(JNIEnv *env, jobject this,
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decodeFromFile(JNIEnv *env,
+                                                                          jobject this,
                                                                           jstring path) {
-  const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
-  VipsImage *decoded = vips_image_new_from_file(path_chars, NULL);
+  const char *path_chars = (*env)->GetStringUTFChars(env, path, nullptr);
+  VipsImage *decoded = vips_image_new_from_file(path_chars, nullptr);
   (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
   if (!decoded) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     vips_thread_shutdown();
-    return NULL;
+    return nullptr;
   }
 
   vips_thread_shutdown();
-  jobject jvm_handle = komelia_to_jvm_handle(env, decoded, NULL);
-  if (jvm_handle == NULL) {
+  jobject jvm_handle = komelia_to_jvm_handle(env, decoded, nullptr);
+  if (jvm_handle == nullptr) {
     g_object_unref(decoded);
   }
   return jvm_handle;
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_thumbnail(JNIEnv *env, jobject this,
-                                                                     jstring path, jint scaleWidth,
-                                                                     jint scaleHeight,
-                                                                     jboolean crop) {
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_thumbnail(
+    JNIEnv *env, jobject this, jstring path, jint scaleWidth, jint scaleHeight, jboolean crop) {
   const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
-  VipsImage *thumbnail = NULL;
+  VipsImage *thumbnail = nullptr;
   if (crop) {
     vips_thumbnail(path_chars, &thumbnail, scaleWidth, "height", scaleHeight, "crop",
-                   VIPS_INTERESTING_ENTROPY, NULL);
+                   VIPS_INTERESTING_ENTROPY, nullptr);
   } else {
-    vips_thumbnail(path_chars, &thumbnail, scaleWidth, "height", scaleHeight, NULL);
+    vips_thumbnail(path_chars, &thumbnail, scaleWidth, "height", scaleHeight, nullptr);
   }
   (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
@@ -71,34 +71,37 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_thumbnail(JNIEnv *env
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     vips_thread_shutdown();
-    return NULL;
+    return nullptr;
   }
 
   vips_thread_shutdown();
-  jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, NULL);
-  if (jvm_handle == NULL) {
+  jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, nullptr);
+  if (jvm_handle == nullptr) {
     g_object_unref(thumbnail);
   }
   return jvm_handle;
 }
 
-JNIEXPORT jobject JNICALL
-Java_snd_komelia_image_VipsImage_thumbnailBuffer(JNIEnv *env, jobject this, jbyteArray encoded,
-                                                 jint scaleWidth, jint scaleHeight, jboolean crop) {
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_thumbnailBuffer(JNIEnv *env,
+                                                                           jobject this,
+                                                                           jbyteArray encoded,
+                                                                           jint scaleWidth,
+                                                                           jint scaleHeight,
+                                                                           jboolean crop) {
   jsize input_len = (*env)->GetArrayLength(env, encoded);
-  jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, NULL);
+  jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, nullptr);
 
   unsigned char *internal_buffer = malloc(input_len * sizeof(unsigned char));
   memcpy(internal_buffer, input_bytes, input_len);
   (*env)->ReleaseByteArrayElements(env, encoded, input_bytes, JNI_ABORT);
 
-  VipsImage *thumbnail = NULL;
+  VipsImage *thumbnail = nullptr;
   if (crop) {
     vips_thumbnail_buffer(internal_buffer, input_len, &thumbnail, scaleWidth, "height", scaleHeight,
-                          "crop", VIPS_INTERESTING_ENTROPY, NULL);
+                          "crop", VIPS_INTERESTING_ENTROPY, nullptr);
   } else {
     vips_thumbnail_buffer(internal_buffer, input_len, &thumbnail, scaleWidth, "height", scaleHeight,
-                          NULL);
+                          nullptr);
   }
 
   if (!thumbnail) {
@@ -106,26 +109,27 @@ Java_snd_komelia_image_VipsImage_thumbnailBuffer(JNIEnv *env, jobject this, jbyt
     vips_error_clear();
     vips_thread_shutdown();
     free(internal_buffer);
-    return NULL;
+    return nullptr;
   }
 
   vips_thread_shutdown();
   jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, internal_buffer);
-  if (jvm_handle == NULL) {
+  if (jvm_handle == nullptr) {
     g_object_unref(thumbnail);
     free(internal_buffer);
   }
   return jvm_handle;
 }
 
-JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_encodeToFile(JNIEnv *env, jobject this,
+JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_encodeToFile(JNIEnv *env,
+                                                                     jobject this,
                                                                      jstring path) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
+  if (image == nullptr)
     return;
 
   const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
-  int write_error = vips_image_write_to_file(image, path_chars, NULL);
+  int write_error = vips_image_write_to_file(image, path_chars, nullptr);
   (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
   if (write_error) {
@@ -138,14 +142,15 @@ JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_encodeToFile(JNIEnv *env
   vips_thread_shutdown();
 }
 
-JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_encodeToFilePng(JNIEnv *env, jobject this,
+JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_encodeToFilePng(JNIEnv *env,
+                                                                        jobject this,
                                                                         jstring path) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
+  if (image == nullptr)
     return;
 
   const char *path_chars = (*env)->GetStringUTFChars(env, path, 0);
-  int write_error = vips_pngsave(image, path_chars, NULL);
+  int write_error = vips_pngsave(image, path_chars, nullptr);
   (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
   if (write_error) {
@@ -158,18 +163,19 @@ JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_encodeToFilePng(JNIEnv *
   vips_thread_shutdown();
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_getDimensions(JNIEnv *env, jobject this,
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_getDimensions(JNIEnv *env,
+                                                                         jobject this,
                                                                          jbyteArray encoded) {
   jsize input_len = (*env)->GetArrayLength(env, encoded);
-  jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, NULL);
+  jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, nullptr);
 
-  VipsImage *decoded = vips_image_new_from_buffer(input_bytes, input_len, "", NULL);
+  VipsImage *decoded = vips_image_new_from_buffer(input_bytes, input_len, "", nullptr);
 
   if (!decoded) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     vips_thread_shutdown();
-    return NULL;
+    return nullptr;
   }
 
   jclass jvm_vips_class = (*env)->FindClass(env, "snd/komelia/image/ImageDimensions");
@@ -186,14 +192,14 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_getDimensions(JNIEnv 
 
 JNIEXPORT jbyteArray JNICALL Java_snd_komelia_image_VipsImage_getBytes(JNIEnv *env, jobject this) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
-    return NULL;
+  if (image == nullptr)
+    return nullptr;
 
   unsigned char *data = (unsigned char *)vips_image_get_data(image);
-  if (data == NULL) {
+  if (data == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
-    return NULL;
+    return nullptr;
   }
 
   int bands = vips_image_get_bands(image);
@@ -224,74 +230,75 @@ VipsRect to_vips_rect(JNIEnv *env, jobject jvm_rect) {
   return vipsRect;
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_extractArea(JNIEnv *env, jobject this,
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_extractArea(JNIEnv *env,
+                                                                       jobject this,
                                                                        jobject rect) {
   VipsImage *input_image = komelia_from_jvm_handle(env, this);
-  if (input_image == NULL) {
-    return NULL;
+  if (input_image == nullptr) {
+    return nullptr;
   }
 
   VipsRect vips_rect = to_vips_rect(env, rect);
-  VipsImage *extracted_image = NULL;
+  VipsImage *extracted_image = nullptr;
   int extract_error = vips_extract_area(input_image, &extracted_image, vips_rect.left,
-                                        vips_rect.top, vips_rect.width, vips_rect.height, NULL);
+                                        vips_rect.top, vips_rect.width, vips_rect.height, nullptr);
   if (extract_error) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
-    return NULL;
+    return nullptr;
   }
 
-  jobject jvm_image = komelia_to_jvm_handle(env, extracted_image, NULL);
+  jobject jvm_image = komelia_to_jvm_handle(env, extracted_image, nullptr);
   return jvm_image;
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_resize(JNIEnv *env, jobject this,
-                                                                  jint scaleWidth, jint scaleHeight,
-                                                                  jboolean crop) {
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_resize(
+    JNIEnv *env, jobject this, jint scaleWidth, jint scaleHeight, jboolean crop) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
-    return NULL;
+  if (image == nullptr)
+    return nullptr;
 
-  VipsImage *resized = NULL;
+  VipsImage *resized = nullptr;
 
   if (crop) {
     vips_thumbnail_image(image, &resized, scaleWidth, "height", scaleHeight, "crop",
-                         VIPS_INTERESTING_ENTROPY, "linear", 1, NULL);
+                         VIPS_INTERESTING_ENTROPY, "linear", 1, nullptr);
   } else {
-    vips_thumbnail_image(image, &resized, scaleWidth, "height", scaleHeight, "linear", 1, NULL);
+    vips_thumbnail_image(image, &resized, scaleWidth, "height", scaleHeight, "linear", 1, nullptr);
   }
 
-  if (resized == NULL) {
+  if (resized == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     vips_thread_shutdown();
-    return NULL;
+    return nullptr;
   }
 
-  jobject jvm_image = komelia_to_jvm_handle(env, resized, NULL);
-  if (jvm_image == NULL) {
+  jobject jvm_image = komelia_to_jvm_handle(env, resized, nullptr);
+  if (jvm_image == nullptr) {
     g_object_unref(resized);
   }
   vips_thread_shutdown();
   return jvm_image;
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_shrink(JNIEnv *env, jobject this,
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_shrink(JNIEnv *env,
+                                                                  jobject this,
                                                                   jdouble factor) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
-    return NULL;
+  if (image == nullptr)
+    return nullptr;
 
-  VipsImage *resized = NULL;
-  if (vips_shrink(image, &resized, factor, factor, NULL) != 0) {
+  VipsImage *resized = nullptr;
+  if (vips_shrink(image, &resized, factor, factor, nullptr) != 0) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     vips_thread_shutdown();
-    return NULL;
+    return nullptr;
   }
 
-  jobject jvm_image = komelia_to_jvm_handle(env, resized, NULL);
-  if (jvm_image == NULL) {
+  jobject jvm_image = komelia_to_jvm_handle(env, resized, nullptr);
+  if (jvm_image == nullptr) {
     g_object_unref(resized);
   }
   vips_thread_shutdown();
@@ -306,20 +313,22 @@ jobject jvm_rect(JNIEnv *env, int left, int top, int width, int height) {
 
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_findTrim(JNIEnv *env, jobject this) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
-    return NULL;
+  if (image == nullptr)
+    return nullptr;
 
   int left, top, width, height;
-  vips_find_trim(image, &left, &top, &width, &height, "threshold", 50.0, "line_art", 0, NULL);
+  vips_find_trim(image, &left, &top, &width, &height, "threshold", 50.0, "line_art", 0, nullptr);
   return jvm_rect(env, left, top, width, height);
 }
 
-JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_gObjectUnref(JNIEnv *env, jobject this,
+JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_gObjectUnref(JNIEnv *env,
+                                                                     jobject this,
                                                                      jlong ptr) {
   g_object_unref((VipsImage *)ptr);
 }
 
-JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_free(JNIEnv *env, jobject this,
+JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_free(JNIEnv *env,
+                                                             jobject this,
                                                              jlong bytes) {
   free((void *)bytes);
 }
@@ -340,66 +349,67 @@ void add_to_jvm_list(JNIEnv *env, jobject list, jobject new_item) {
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_makeHistogram(JNIEnv *env,
                                                                          jobject this) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  if (image == NULL)
-    return NULL;
-  VipsImage *histogram = NULL;
+  if (image == nullptr)
+    return nullptr;
+  VipsImage *histogram = nullptr;
   int bands = vips_image_get_bands(image);
   if (bands != 1 && bands != 4) {
     komelia_throw_jvm_vips_exception(env, "unsupported number of image bands");
-    return NULL;
+    return nullptr;
   }
 
-  vips_hist_find(image, &histogram, "band", -1, NULL);
+  vips_hist_find(image, &histogram, "band", -1, nullptr);
 
-  if (histogram == NULL) {
+  if (histogram == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
-    return NULL;
+    return nullptr;
   }
 
-  VipsImage *histogram_normalized = NULL;
-  vips_hist_norm(histogram, &histogram_normalized, NULL);
+  VipsImage *histogram_normalized = nullptr;
+  vips_hist_norm(histogram, &histogram_normalized, nullptr);
   g_object_unref(histogram);
 
-  if (histogram_normalized == NULL) {
+  if (histogram_normalized == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
-    return NULL;
+    return nullptr;
   }
 
-  jobject jvm_image = komelia_to_jvm_handle(env, histogram_normalized, NULL);
-  if (jvm_image == NULL) {
+  jobject jvm_image = komelia_to_jvm_handle(env, histogram_normalized, nullptr);
+  if (jvm_image == nullptr) {
     g_object_unref(histogram_normalized);
   }
 
   return jvm_image;
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_mapLookupTable(JNIEnv *env, jobject this,
+JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_mapLookupTable(JNIEnv *env,
+                                                                          jobject this,
                                                                           jarray jvm_lut) {
   VipsImage *image = komelia_from_jvm_handle(env, this);
-  VipsImage *lut = NULL;
-  VipsImage *transformed = NULL;
-  if (image == NULL)
-    return NULL;
+  VipsImage *lut = nullptr;
+  VipsImage *transformed = nullptr;
+  if (image == nullptr)
+    return nullptr;
 
   jsize input_len = (*env)->GetArrayLength(env, jvm_lut);
-  jbyte *input_bytes = (*env)->GetByteArrayElements(env, jvm_lut, NULL);
+  jbyte *input_bytes = (*env)->GetByteArrayElements(env, jvm_lut, nullptr);
 
   int bands = vips_image_get_bands(image);
   lut = vips_image_new_from_memory(input_bytes, input_len, 256, 1, bands, VIPS_FORMAT_UCHAR);
-  vips_maplut(image, &transformed, lut, NULL);
+  vips_maplut(image, &transformed, lut, nullptr);
   g_object_unref(lut);
   (*env)->ReleaseByteArrayElements(env, jvm_lut, input_bytes, JNI_ABORT);
 
-  if (transformed == NULL) {
+  if (transformed == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
-    return NULL;
+    return nullptr;
   }
 
-  jobject jvm_image = komelia_to_jvm_handle(env, transformed, NULL);
-  if (jvm_image == NULL) {
+  jobject jvm_image = komelia_to_jvm_handle(env, transformed, nullptr);
+  if (jvm_image == nullptr) {
     g_object_unref(transformed);
   }
 

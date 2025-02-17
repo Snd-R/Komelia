@@ -1,7 +1,6 @@
 #include "../vips/vips_common_jni.h"
 #include <android/bitmap.h>
 #include <android/hardware_buffer_jni.h>
-#include <android/log.h>
 
 int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
   VipsImage *transformed = input;
@@ -9,8 +8,8 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
 
   VipsInterpretation interpretation = vips_image_get_interpretation(input);
   if (interpretation != VIPS_INTERPRETATION_sRGB) {
-    VipsImage *srgb = NULL;
-    if (vips_colourspace(input, &srgb, VIPS_INTERPRETATION_sRGB, NULL)) {
+    VipsImage *srgb = nullptr;
+    if (vips_colourspace(input, &srgb, VIPS_INTERPRETATION_sRGB, nullptr)) {
       komelia_throw_jvm_vips_exception(env, vips_error_buffer());
       g_object_unref(transformed);
       vips_error_clear();
@@ -22,8 +21,8 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
   }
 
   if (vips_image_get_bands(transformed) != 4) {
-    VipsImage *with_alpha = NULL;
-    if (vips_addalpha(transformed, &with_alpha, NULL)) {
+    VipsImage *with_alpha = nullptr;
+    if (vips_addalpha(transformed, &with_alpha, nullptr)) {
       komelia_throw_jvm_vips_exception(env, vips_error_buffer());
       vips_error_clear();
       g_object_unref(transformed);
@@ -41,26 +40,26 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuffer(
     JNIEnv *env, jobject this, jobject jvm_image) {
   VipsImage *image = komelia_from_jvm_handle(env, jvm_image);
-  if (image == NULL)
-    return NULL;
+  if (image == nullptr)
+    return nullptr;
 
-  VipsImage *processed_input = NULL;
+  VipsImage *processed_input = nullptr;
   int conversion_error = convert_to_rgba(env, image, &processed_input);
   if (conversion_error) {
-    return NULL;
+    return nullptr;
   }
   int image_width = vips_image_get_width(processed_input);
   int image_height = vips_image_get_height(processed_input);
 
   unsigned char *image_data = (unsigned char *)vips_image_get_data(processed_input);
-  if (image_data == NULL) {
+  if (image_data == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     g_object_unref(processed_input);
-    return NULL;
+    return nullptr;
   }
 
-  AHardwareBuffer *hardware_buffer = NULL;
+  AHardwareBuffer *hardware_buffer = nullptr;
   AHardwareBuffer_Desc desc;
   desc.width = image_width;
   desc.height = image_height;
@@ -77,14 +76,14 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
   if (allocation_error) {
     komelia_throw_jvm_vips_exception(env, "Could not allocate bitmap hardware buffer");
     g_object_unref(processed_input);
-    return NULL;
+    return nullptr;
   }
 
-  void *write_buffer = NULL;
+  void *write_buffer = nullptr;
   int lock_error = AHardwareBuffer_lock(hardware_buffer,
                                         AHARDWAREBUFFER_USAGE_CPU_READ_RARELY |
                                             AHARDWAREBUFFER_USAGE_CPU_WRITE_RARELY,
-                                        -1, NULL, &write_buffer);
+                                        -1, nullptr, &write_buffer);
 
   AHardwareBuffer_Desc created_desc;
   AHardwareBuffer_describe(hardware_buffer, &created_desc);
@@ -92,7 +91,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
     komelia_throw_jvm_vips_exception(env, "Could not acquire created hardware hardware_buffer");
     AHardwareBuffer_release(hardware_buffer);
     g_object_unref(processed_input);
-    return NULL;
+    return nullptr;
   }
 
   if (created_desc.stride == image_width) {
@@ -103,13 +102,13 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
              image_width * 4);
     }
   }
-  int unlock_error = AHardwareBuffer_unlock(hardware_buffer, NULL);
+  int unlock_error = AHardwareBuffer_unlock(hardware_buffer, nullptr);
   g_object_unref(processed_input);
 
   if (unlock_error) {
     komelia_throw_jvm_vips_exception(env, "Failed to unlock hardware buffer");
     AHardwareBuffer_release(hardware_buffer);
-    return NULL;
+    return nullptr;
   }
 
   jobject jvm_buffer = AHardwareBuffer_toHardwareBuffer(env, hardware_buffer);
@@ -120,20 +119,20 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createSoftwareBitmap(
     JNIEnv *env, jobject this, jobject jvm_image) {
   VipsImage *image = komelia_from_jvm_handle(env, jvm_image);
-  VipsImage *processed_image = NULL;
+  VipsImage *processed_image = nullptr;
   int conversion_error = convert_to_rgba(env, image, &processed_image);
   if (conversion_error) {
-    return NULL;
+    return nullptr;
   }
 
   int image_width = vips_image_get_width(processed_image);
   int image_height = vips_image_get_height(processed_image);
   unsigned char *image_data = (unsigned char *)vips_image_get_data(processed_image);
-  if (image_data == NULL) {
+  if (image_data == nullptr) {
     komelia_throw_jvm_vips_exception(env, vips_error_buffer());
     vips_error_clear();
     g_object_unref(processed_image);
-    return NULL;
+    return nullptr;
   }
 
   jclass bitmap_class = (*env)->FindClass(env, "android/graphics/Bitmap");
@@ -151,19 +150,19 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createSoftwareBit
 
   AndroidBitmapInfo info;
   AndroidBitmap_getInfo(env, jvm_bitmap, &info);
-  unsigned char *bitmap_data = NULL;
+  unsigned char *bitmap_data = nullptr;
   int lock_error = AndroidBitmap_lockPixels(env, jvm_bitmap, (void *)&bitmap_data);
   if (lock_error) {
     komelia_throw_jvm_vips_exception(env, "Failed to lock Bitmap");
     g_object_unref(processed_image);
-    return NULL;
+    return nullptr;
   }
   memcpy(bitmap_data, image_data, info.height * info.stride);
 
   int unlock_error = AndroidBitmap_unlockPixels(env, jvm_bitmap);
   if (unlock_error) {
     komelia_throw_jvm_vips_exception(env, "Failed to unlock Bitmap");
-    return NULL;
+    return nullptr;
   }
 
   g_object_unref(processed_image);

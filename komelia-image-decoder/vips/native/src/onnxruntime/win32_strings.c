@@ -3,7 +3,7 @@
 
 wchar_t *fromUTF8(const char *src, size_t src_length, size_t *out_length) {
   if (!src) {
-    return NULL;
+    return nullptr;
   }
 
   if (src_length == 0) {
@@ -23,16 +23,16 @@ wchar_t *fromUTF8(const char *src, size_t src_length, size_t *out_length) {
 
 char *toUTF8(const wchar_t *src, size_t src_length, size_t *out_length) {
   if (!src) {
-    return NULL;
+    return nullptr;
   }
 
   if (src_length == 0) {
     src_length = wcslen(src);
   }
-  int length = WideCharToMultiByte(CP_UTF8, 0, src, (int)src_length, 0, 0, NULL, NULL);
+  int length = WideCharToMultiByte(CP_UTF8, 0, src, (int)src_length, 0, 0, nullptr, nullptr);
   char *output_buffer = (char *)malloc((length + 1) * sizeof(char));
   if (output_buffer) {
-    WideCharToMultiByte(CP_UTF8, 0, src, (int)src_length, output_buffer, length, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, src, (int)src_length, output_buffer, length, nullptr, nullptr);
     output_buffer[length] = '\0';
   }
   if (out_length) {

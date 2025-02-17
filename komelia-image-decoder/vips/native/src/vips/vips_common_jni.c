@@ -1,5 +1,4 @@
 #include "vips_common_jni.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 void komelia_throw_jvm_vips_exception(JNIEnv *env, const char *message) {
@@ -21,7 +20,7 @@ jobject get_jvm_enum_type(JNIEnv *env, VipsImage *image) {
     break;
   default:
     komelia_throw_jvm_vips_exception(env, "unsupported vips interpretation");
-    return NULL;
+    return nullptr;
   }
 
   jclass enum_class = (*env)->FindClass(env, "snd/komelia/image/ImageFormat");
@@ -42,7 +41,7 @@ int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transf
       interpretation != VIPS_INTERPRETATION_sRGB && interpretation != VIPS_INTERPRETATION_B_W;
 
   if (is_grayscale_with_alpha || is_not_srgb_or_grayscale) {
-    if (vips_colourspace(in, transformed, VIPS_INTERPRETATION_sRGB, NULL) == 0) {
+    if (vips_colourspace(in, transformed, VIPS_INTERPRETATION_sRGB, nullptr) == 0) {
     } else {
       return -1;
     }
@@ -50,14 +49,14 @@ int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transf
 
   // add alpha channel to use 32 bits per pixel
   if (interpretation == VIPS_INTERPRETATION_sRGB && bands == 3) {
-    VipsImage *with_alpha = NULL;
+    VipsImage *with_alpha = nullptr;
     int vips_error;
 
-    if (*transformed != NULL) {
-      vips_error = vips_addalpha(*transformed, &with_alpha, NULL);
+    if (*transformed != nullptr) {
+      vips_error = vips_addalpha(*transformed, &with_alpha, nullptr);
       g_object_unref(*transformed);
     } else {
-      vips_error = vips_addalpha(in, &with_alpha, NULL);
+      vips_error = vips_addalpha(in, &with_alpha, nullptr);
     }
 
     if (vips_error) {
@@ -77,23 +76,23 @@ VipsImage *komelia_from_jvm_handle(JNIEnv *env, jobject jvm_image) {
   jfieldID ptr_field = (*env)->GetFieldID(env, class, "_ptr", "J");
   VipsImage *image = (VipsImage *)(*env)->GetLongField(env, jvm_image, ptr_field);
 
-  if (image == NULL) {
+  if (image == nullptr) {
     komelia_throw_jvm_vips_exception(env, "image was already closed\n");
-    return NULL;
+    return nullptr;
   }
 
   return image;
 }
 
-jobject komelia_to_jvm_handle(JNIEnv *env, VipsImage *image,
-                              const unsigned char *external_source_buffer) {
-  VipsImage *transformed = NULL;
+jobject
+komelia_to_jvm_handle(JNIEnv *env, VipsImage *image, const unsigned char *external_source_buffer) {
+  VipsImage *transformed = nullptr;
   int transform_error = transform_to_supported_format(env, image, &transformed);
   if (transform_error) {
-    return NULL;
+    return nullptr;
   }
 
-  if (transformed == NULL) {
+  if (transformed == nullptr) {
     transformed = image;
   } else {
     g_object_unref(image);

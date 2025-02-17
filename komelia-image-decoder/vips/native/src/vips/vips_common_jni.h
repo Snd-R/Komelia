@@ -16,7 +16,8 @@ EXTERN_C jobject komelia_to_jvm_image_data(JNIEnv *env, VipsImage *decoded);
 
 EXTERN_C VipsImage *komelia_from_jvm_handle(JNIEnv *env, jobject jvm_image);
 
-EXTERN_C jobject komelia_to_jvm_handle(JNIEnv *env, VipsImage *image,
+EXTERN_C jobject komelia_to_jvm_handle(JNIEnv *env,
+                                       VipsImage *image,
                                        const unsigned char *external_source_buffer);
 
 #endif // KOMELIA_VIPS_COMMON_JNI_H

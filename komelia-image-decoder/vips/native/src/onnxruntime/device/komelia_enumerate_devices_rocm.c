@@ -8,7 +8,7 @@ Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDevices(JNIEnv *env, jobject
   hipError_t status = hipGetDeviceCount(&nDevices);
   if (status != hipSuccess) {
     throw_jvm_exception(env, hipGetErrorName(status));
-    return NULL;
+    return nullptr;
   }
 
   jobject jvm_list = create_jvm_list(env);

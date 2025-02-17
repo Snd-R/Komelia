@@ -11,7 +11,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDe
     cudaError_t status = cudaGetDeviceCount(&nDevices);
     if (status != cudaSuccess) {
         throw_jvm_exception(env, cudaGetErrorName(status));
-        return NULL;
+        return nullptr;
     }
 
     jobject jvm_list = create_jvm_list(env);
