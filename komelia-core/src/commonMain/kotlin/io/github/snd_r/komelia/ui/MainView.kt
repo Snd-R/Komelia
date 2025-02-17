@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
 import com.dokar.sonner.ToastWidthPolicy
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.listenMany
@@ -141,6 +142,7 @@ private fun MainContent(
 
     Navigator(
         screen = loginScreen,
+        disposeBehavior = NavigatorDisposeBehavior(disposeNestedNavigators = false),
         onBackPressed = null
     ) { navigator ->
         var canProceed by remember { mutableStateOf(komgaSharedState.state.value == Loaded) }
