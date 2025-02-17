@@ -42,14 +42,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration.Companion.Underline
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import snd.komelia.image.OnnxRuntimeSharedLibraries
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
-import snd.komelia.image.OnnxRuntimeUpscaler
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.Windows
@@ -70,6 +62,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
+import snd.komelia.image.OnnxRuntimeSharedLibraries
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
+import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.image.OnnxRuntimeUpscaler
 
 @Composable
 fun DecoderSettingsContent(
@@ -535,7 +535,7 @@ private fun OrtDownloadDialogContent(
 //            CheckboxWithLabel(
 //                checked = chosenProvider == ROCm,
 //                onCheckedChange = { onProviderChoice(ROCm) },
-//                label = { Text("ROCm (AMD GPUs, requires ROCm5 system install)") },
+//                label = { Text("ROCm (AMD GPUs, requires ROCm6 system install)") },
 //                modifier = Modifier.fillMaxWidth()
 //            )
 
@@ -580,7 +580,7 @@ private fun UpdateProgressContent(
             val completedMb = remember(progress.completed) {
                 (progress.completed.toFloat() / 1024 / 1024).formatDecimal(2)
             }
-            Text("${completedMb}mb / ${totalMb}MiB")
+            Text("${completedMb}MiB / ${totalMb}MiB")
         }
 
     }
@@ -596,7 +596,7 @@ private fun RestartDialog(
         content = {
             Box(Modifier.padding(30.dp)) {
                 if (error != null)
-                    Text("Error occurred during installation:\n$error")
+                    Text("An error occurred during installation:\n$error")
                 else
                     Text("App restart is required for changes to take effect")
             }
