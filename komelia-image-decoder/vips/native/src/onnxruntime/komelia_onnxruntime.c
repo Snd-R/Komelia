@@ -290,8 +290,7 @@ int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **ou
   if (interpretation != VIPS_INTERPRETATION_sRGB) {
     int vips_error = vips_colourspace(input_image, &transformed, VIPS_INTERPRETATION_sRGB, nullptr);
     if (vips_error) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-      vips_error_clear();
+      komelia_throw_jvm_vips_exception(env);
       return -1;
     }
   }
@@ -307,8 +306,7 @@ int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **ou
     }
 
     if (vips_error) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-      vips_error_clear();
+      komelia_throw_jvm_vips_exception(env);
       return -1;
     }
     transformed = without_alpha;
@@ -337,8 +335,7 @@ int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **ou
                        height + pad_height, "extend", VIPS_EXTEND_BLACK, nullptr);
     }
     if (vips_error) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-      vips_error_clear();
+      komelia_throw_jvm_vips_exception(env);
       return -1;
     }
     transformed = extended;
@@ -615,8 +612,7 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
           g_object_unref(upscaled_tiles[i]);
         }
         g_object_unref(region);
-        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-        vips_error_clear();
+        komelia_throw_jvm_vips_exception(env);
         pthread_mutex_unlock(&session_mutex);
         return nullptr;
       }
@@ -634,8 +630,7 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
         }
         g_object_unref(region);
         g_free(region_data);
-        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-        vips_error_clear();
+        komelia_throw_jvm_vips_exception(env);
         pthread_mutex_unlock(&session_mutex);
         return nullptr;
       }
@@ -653,8 +648,7 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
         g_object_unref(region);
         g_object_unref(unformatted_image);
         g_free(region_data);
-        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-        vips_error_clear();
+        komelia_throw_jvm_vips_exception(env);
         pthread_mutex_unlock(&session_mutex);
         return nullptr;
       }
@@ -706,8 +700,7 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
     g_object_unref(upscaled_tiles[i]);
   }
   if (joined == nullptr) {
-    komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-    vips_error_clear();
+    komelia_throw_jvm_vips_exception(env);
     return nullptr;
   }
   int joined_width = vips_image_get_width(joined);
@@ -719,8 +712,7 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
     g_object_unref(joined);
 
     if (cropped == nullptr) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-      vips_error_clear();
+      komelia_throw_jvm_vips_exception(env);
       return nullptr;
     }
     return cropped;

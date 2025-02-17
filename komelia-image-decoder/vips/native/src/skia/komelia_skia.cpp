@@ -24,8 +24,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_snd_komelia_image_SkiaBitmap_directCop
     size_t size = height * rowBytes;
     void *imageData = (void *) vips_image_get_data(image);
     if (imageData == nullptr) {
-        komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-        vips_error_clear();
+        komelia_throw_jvm_vips_exception(env);
         return nullptr;
     }
 
@@ -45,7 +44,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_snd_komelia_image_SkiaBitmap_directCop
 
     bool success = bitmap->tryAllocPixels(imageInfo, rowBytes);
     if (!success) {
-        komelia_throw_jvm_vips_exception(env, "failed to allocate bitmap pixels");
+        komelia_throw_jvm_vips_exception_message(env, "failed to allocate bitmap pixels");
         delete bitmap;
         free(dataCopy);
         return nullptr;
@@ -53,7 +52,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_snd_komelia_image_SkiaBitmap_directCop
 
     success = bitmap->installPixels(imageInfo, dataCopy, rowBytes, freeData, nullptr);
     if (!success) {
-        komelia_throw_jvm_vips_exception(env, "failed to install bitmap pixels");
+        komelia_throw_jvm_vips_exception_message(env, "failed to install bitmap pixels");
         delete bitmap;
         free(dataCopy);
         return nullptr;

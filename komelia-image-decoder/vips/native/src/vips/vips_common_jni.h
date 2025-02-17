@@ -10,7 +10,9 @@
 #define EXTERN_C extern
 #endif
 
-EXTERN_C void komelia_throw_jvm_vips_exception(JNIEnv *env, const char *message);
+EXTERN_C void komelia_throw_jvm_vips_exception_message(JNIEnv *env, const char *message);
+
+EXTERN_C void komelia_throw_jvm_vips_exception(JNIEnv *env);
 
 EXTERN_C jobject komelia_to_jvm_image_data(JNIEnv *env, VipsImage *decoded);
 

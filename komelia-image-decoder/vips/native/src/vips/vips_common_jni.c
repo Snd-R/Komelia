@@ -1,8 +1,12 @@
 #include "vips_common_jni.h"
 #include <stdint.h>
 
-void komelia_throw_jvm_vips_exception(JNIEnv *env, const char *message) {
+void komelia_throw_jvm_vips_exception_message(JNIEnv *env, const char *message) {
   (*env)->ThrowNew(env, (*env)->FindClass(env, "snd/komelia/image/VipsException"), message);
+}
+void komelia_throw_jvm_vips_exception(JNIEnv *env) {
+  komelia_throw_jvm_vips_exception_message(env, vips_error_buffer());
+  vips_error_clear();
 }
 
 jobject get_jvm_enum_type(JNIEnv *env, VipsImage *image) {
@@ -19,7 +23,7 @@ jobject get_jvm_enum_type(JNIEnv *env, VipsImage *image) {
     enum_field_name = "HISTOGRAM";
     break;
   default:
-    komelia_throw_jvm_vips_exception(env, "unsupported vips interpretation");
+    komelia_throw_jvm_vips_exception_message(env, "unsupported vips interpretation");
     return nullptr;
   }
 
@@ -60,8 +64,7 @@ int transform_to_supported_format(JNIEnv *env, VipsImage *in, VipsImage **transf
     }
 
     if (vips_error) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-      vips_error_clear();
+      komelia_throw_jvm_vips_exception(env);
       return -1;
     }
 
@@ -77,7 +80,7 @@ VipsImage *komelia_from_jvm_handle(JNIEnv *env, jobject jvm_image) {
   VipsImage *image = (VipsImage *)(*env)->GetLongField(env, jvm_image, ptr_field);
 
   if (image == nullptr) {
-    komelia_throw_jvm_vips_exception(env, "image was already closed\n");
+    komelia_throw_jvm_vips_exception_message(env, "image was already closed\n");
     return nullptr;
   }
 

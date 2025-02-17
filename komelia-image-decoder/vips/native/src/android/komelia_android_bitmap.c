@@ -10,9 +10,8 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
   if (interpretation != VIPS_INTERPRETATION_sRGB) {
     VipsImage *srgb = nullptr;
     if (vips_colourspace(input, &srgb, VIPS_INTERPRETATION_sRGB, nullptr)) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
+      komelia_throw_jvm_vips_exception(env);
       g_object_unref(transformed);
-      vips_error_clear();
       return -1;
     }
 
@@ -23,8 +22,7 @@ int convert_to_rgba(JNIEnv *env, VipsImage *input, VipsImage **output) {
   if (vips_image_get_bands(transformed) != 4) {
     VipsImage *with_alpha = nullptr;
     if (vips_addalpha(transformed, &with_alpha, nullptr)) {
-      komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-      vips_error_clear();
+      komelia_throw_jvm_vips_exception(env);
       g_object_unref(transformed);
       return -1;
     }
@@ -53,8 +51,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
 
   unsigned char *image_data = (unsigned char *)vips_image_get_data(processed_input);
   if (image_data == nullptr) {
-    komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-    vips_error_clear();
+    komelia_throw_jvm_vips_exception(env);
     g_object_unref(processed_input);
     return nullptr;
   }
@@ -129,8 +126,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createSoftwareBit
   int image_height = vips_image_get_height(processed_image);
   unsigned char *image_data = (unsigned char *)vips_image_get_data(processed_image);
   if (image_data == nullptr) {
-    komelia_throw_jvm_vips_exception(env, vips_error_buffer());
-    vips_error_clear();
+    komelia_throw_jvm_vips_exception(env);
     g_object_unref(processed_image);
     return nullptr;
   }
