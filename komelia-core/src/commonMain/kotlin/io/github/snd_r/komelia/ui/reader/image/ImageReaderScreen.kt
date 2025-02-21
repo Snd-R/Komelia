@@ -149,6 +149,7 @@ class ImageReaderScreen(
             pagedReaderState = vm.pagedReaderState,
             continuousReaderState = vm.continuousReaderState,
             screenScaleState = vm.screenScaleState,
+            onnxRuntimeSettingsState = vm.onnxRuntimeSettingsState,
             isColorCorrectionActive = vm.colorCorrectionIsActive.collectAsState(false).value,
             onColorCorrectionClick = {
                 vm.readerState.booksState.value?.currentBook?.let { book ->

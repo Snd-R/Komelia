@@ -39,15 +39,9 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
                 it[updateLastCheckedTimestamp] = settings.updateLastCheckedTimestamp
                 it[updateLastCheckedReleaseVersion] = settings.updateLastCheckedReleaseVersion?.toString()
                 it[updateDismissedVersion] = settings.updateDismissedVersion?.toString()
-                it[upscaleOption] = settings.upscaleOption
-                it[downscaleOption] = settings.downscaleOption
-                it[onnxModelsPath] = settings.onnxModelsPath
-                it[onnxRuntimeDeviceId] = settings.onnxRuntimeDeviceId
-                it[onnxRuntimeTileSize] = settings.onnxRuntimeTileSize
                 it[komfEnabled] = settings.komfEnabled
                 it[komfMode] = settings.komfMode.name
                 it[komfRemoteUrl] = settings.komfRemoteUrl
-                it[readerDebugTileGrid] = settings.readerDebugTileGrid
             }
         }
     }
@@ -67,15 +61,9 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
                 ?.let { AppVersion.fromString(it) },
             updateDismissedVersion = get(AppSettingsTable.updateDismissedVersion)
                 ?.let { AppVersion.fromString(it) },
-            upscaleOption = get(AppSettingsTable.upscaleOption),
-            downscaleOption = get(AppSettingsTable.downscaleOption),
-            onnxModelsPath = get(AppSettingsTable.onnxModelsPath),
-            onnxRuntimeDeviceId = get(AppSettingsTable.onnxRuntimeDeviceId),
-            onnxRuntimeTileSize = get(AppSettingsTable.onnxRuntimeTileSize),
             komfEnabled = get(AppSettingsTable.komfEnabled),
             komfMode = KomfMode.valueOf(get(AppSettingsTable.komfMode)),
             komfRemoteUrl = get(AppSettingsTable.komfRemoteUrl),
-            readerDebugTileGrid = get(AppSettingsTable.readerDebugTileGrid),
         )
     }
 

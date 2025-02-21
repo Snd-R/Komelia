@@ -20,13 +20,12 @@ import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.BrowserWindowState
 import io.github.snd_r.komelia.settings.CookieStoreSecretsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import snd.komelia.db.SettingsStateActor
 import snd.komelia.db.color.IDBBookColorCorrectionRepository
@@ -89,14 +88,11 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
 
     val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
     val imagePipeline = createImagePipeline(colorCorrectionStep)
-    val decoderSettings = appSettingsRepository.getDecoderSettings().stateIn(stateFlowScope)
-    val stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(stateFlowScope)
 
-    val readerImageFactory = WasmReaderImageFactory(
-        upscaleOptionFlow = decoderSettings.map { it.upscaleOption }.stateIn(stateFlowScope),
-        processingPipeline = imagePipeline,
-        stretchImages = stretchImages,
-        showDebugGrid = appSettingsRepository.getImageReaderShowDebugGrid().stateIn(stateFlowScope),
+    val readerImageFactory = createReaderImageFactory(
+        imagePreprocessingPipeline = imagePipeline,
+        settings = imageReaderSettingsRepository,
+        stateFlowScope = stateFlowScope
     )
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
@@ -117,7 +113,6 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         komgaClientFactory = komgaClientFactory,
         komfClientFactory = komfClientFactory,
         appUpdater = null,
-        imageDecoderDescriptor = emptyFlow(),
         coilImageLoader = coil,
         bookImageLoader = readerImageLoader,
         windowState = BrowserWindowState(),
@@ -197,6 +192,20 @@ private fun createImagePipeline(
     val pipeline = ImageProcessingPipeline()
     pipeline.addStep(colorCorrectionStep)
     return pipeline
+}
+
+private suspend fun createReaderImageFactory(
+    imagePreprocessingPipeline: ImageProcessingPipeline,
+    settings: ImageReaderSettingsRepository,
+    stateFlowScope: CoroutineScope,
+): WasmReaderImageFactory {
+    return WasmReaderImageFactory(
+        downSamplingKernel = settings.getDownsamplingKernel().stateIn(stateFlowScope),
+        upsamplingMode = settings.getUpsamplingMode().stateIn(stateFlowScope),
+        linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),
+        processingPipeline = imagePreprocessingPipeline,
+        stretchImages = settings.getStretchToFit().stateIn(stateFlowScope),
+    )
 }
 
 private fun overrideFetch(komgaUrl: () -> String) {

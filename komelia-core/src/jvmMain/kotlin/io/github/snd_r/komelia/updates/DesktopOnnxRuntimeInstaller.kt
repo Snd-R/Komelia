@@ -19,12 +19,12 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.io.IOUtils
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.image.OnnxRuntimeExecutionProvider
+import snd.komelia.image.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.image.OnnxRuntimeExecutionProvider.CUDA
+import snd.komelia.image.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.image.OnnxRuntimeExecutionProvider.ROCm
+import snd.komelia.image.OnnxRuntimeExecutionProvider.TENSOR_RT
 import java.io.BufferedInputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -40,10 +40,9 @@ import kotlin.io.path.name
 import kotlin.io.path.outputStream
 
 
-class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
+class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxRuntimeInstaller {
 
-
-    suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
+   override suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
         onnxRuntimeInstallPath.createDirectories()
 
         val downloadInfo = when (provider) {
@@ -117,7 +116,6 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
 
         val versionedSoFile = onnxRuntimeInstallPath.listDirectoryEntries()
             .firstOrNull {
-                println(it.name)
                 it.name.startsWith("libonnxruntime.so")
             }
         check(versionedSoFile != null) { "Failed to find downloaded libonnxruntime.so file" }
@@ -130,16 +128,6 @@ class OnnxRuntimeInstaller(private val updateClient: UpdateClient) {
         TarArchiveInputStream(GzipCompressorInputStream(BufferedInputStream(path.inputStream()))).use {
             extractArchiveEntries(it, entryNames)
         }
-
-//        if (DesktopPlatform.Current == Linux) {
-//            val symlinkPath = onnxRuntimeInstallPath.resolve("libonnxruntime.so")
-//            symlinkPath.deleteIfExists()
-//            val linuxLibName =
-//                if (provider == CUDA || provider == TENSOR_RT) getLinuxOnnxruntimeLib(onnxRuntimeVersion)
-//                else getLinuxOnnxruntimeLib(onnxRuntimeVersion)
-//
-//            Files.createSymbolicLink(symlinkPath, onnxRuntimeInstallPath.resolve(linuxLibName))
-//        }
     }
 
     private fun extractZipArchive(path: Path, entryNames: List<Path>) {

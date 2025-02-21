@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.strings
 
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
@@ -28,6 +29,8 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDispla
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType
+import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.image.ReduceKernel
 import snd.komf.api.KomfProviders
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.book.KomgaReadStatus.IN_PROGRESS
@@ -74,6 +77,7 @@ data class AppStrings(
     val pagedReader: PagedReaderStrings,
     val continuousReader: ContinuousReaderStrings,
     val settings: SettingsStrings,
+    val imageSettings: ImageSettingsStrings,
     val errorCodes: ErrorCodes,
     val komf: KomfStrings
 )
@@ -601,4 +605,60 @@ data class ErrorCodes(
     )
 
     fun getMessageForCode(code: String) = requireNotNull(codeMap[code])
+}
+
+data class ImageSettingsStrings(
+    val upsamplingMode: String,
+    val upsamplingModeNearest: String,
+    val upsamplingModeBilinear: String,
+    val upsamplingModeMitchell: String,
+    val upsamplingModeCatmullRom: String,
+
+    val downsamplingKernel: String,
+    val downsamplingKernelNearest: String,
+    val downsamplingKernelLinear: String,
+    val downsamplingKernelCubic: String,
+    val downsamplingKernelMitchell: String,
+    val downsamplingKernelLanczos2: String,
+    val downsamplingKernelLanczos3: String,
+    val downsamplingKernelMKS2013: String,
+    val downsamplingKernelMKS2021: String,
+    val downsamplingKernelDefault: String,
+
+    val onnxRuntimeExecutionProvider: String,
+    val onnxRuntimeUpscaleMode: String,
+    val onnxRuntimeUpscaleModeNone: String,
+    val onnxRuntimeUpscaleModeUserModel: String,
+    val onnxRuntimeUpscaleModeMangaJaNai: String,
+) {
+    fun forUpsamplingMode(mode: UpsamplingMode): String {
+        return when (mode) {
+            UpsamplingMode.NEAREST -> upsamplingModeNearest
+            UpsamplingMode.BILINEAR -> upsamplingModeBilinear
+            UpsamplingMode.MITCHELL -> upsamplingModeMitchell
+            UpsamplingMode.CATMULL_ROM -> upsamplingModeCatmullRom
+        }
+    }
+
+    fun forDownsamplingKernel(kernel: ReduceKernel): String {
+        return when (kernel) {
+            ReduceKernel.NEAREST -> downsamplingKernelNearest
+            ReduceKernel.LINEAR -> downsamplingKernelLinear
+            ReduceKernel.CUBIC -> downsamplingKernelCubic
+            ReduceKernel.MITCHELL -> downsamplingKernelMitchell
+            ReduceKernel.LANCZOS2 -> downsamplingKernelLanczos2
+            ReduceKernel.LANCZOS3 -> downsamplingKernelLanczos3
+            ReduceKernel.MKS2013 -> downsamplingKernelMKS2013
+            ReduceKernel.MKS2021 -> downsamplingKernelMKS2021
+            ReduceKernel.DEFAULT -> downsamplingKernelDefault
+        }
+    }
+
+    fun forOnnxRuntimeUpscaleMode(mode: OnnxRuntimeUpscaleMode):String{
+        return when (mode) {
+            OnnxRuntimeUpscaleMode.USER_SPECIFIED_MODEL -> onnxRuntimeUpscaleModeUserModel
+            OnnxRuntimeUpscaleMode.MANGAJANAI_PRESET -> onnxRuntimeUpscaleModeMangaJaNai
+            OnnxRuntimeUpscaleMode.NONE -> onnxRuntimeUpscaleModeNone
+        }
+    }
 }

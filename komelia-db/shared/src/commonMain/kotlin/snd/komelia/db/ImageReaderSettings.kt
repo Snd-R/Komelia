@@ -1,5 +1,6 @@
 package snd.komelia.db
 
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
@@ -9,6 +10,8 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScal
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import kotlinx.serialization.Serializable
+import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.image.ReduceKernel
 
 @Serializable
 data class ImageReaderSettings(
@@ -25,5 +28,13 @@ data class ImageReaderSettings(
     val flashOnPageChange: Boolean = false,
     val flashDuration: Long = 100L,
     val flashEveryNPages: Int = 1,
-    val flashWith: ReaderFlashColor = ReaderFlashColor.BLACK
+    val flashWith: ReaderFlashColor = ReaderFlashColor.BLACK,
+    val downsamplingKernel: ReduceKernel = ReduceKernel.LANCZOS3,
+    val linearLightDownsampling: Boolean = false,
+    val upsamplingMode: UpsamplingMode = UpsamplingMode.CATMULL_ROM,
+
+    val onnxRuntimeMode: OnnxRuntimeUpscaleMode = OnnxRuntimeUpscaleMode.NONE,
+    val onnxRuntimeModelPath: String? = null,
+    val onnxRuntimeDeviceId: Int = 0,
+    val onnxRuntimeTileSize: Int = 512,
 )

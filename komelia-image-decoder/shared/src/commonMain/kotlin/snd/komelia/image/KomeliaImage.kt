@@ -1,13 +1,20 @@
 package snd.komelia.image
 
-interface KomeliaImage: AutoCloseable {
+interface KomeliaImage : AutoCloseable {
     val width: Int
     val height: Int
     val bands: Int
     val type: ImageFormat
 
+
     suspend fun extractArea(rect: ImageRect): KomeliaImage
-    suspend fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): KomeliaImage
+    suspend fun resize(
+        scaleWidth: Int,
+        scaleHeight: Int,
+        linear: Boolean = false,
+        kernel: ReduceKernel = ReduceKernel.DEFAULT
+    ): KomeliaImage
+
     suspend fun shrink(factor: Double): KomeliaImage
     suspend fun findTrim(): ImageRect
 
@@ -35,3 +42,15 @@ data class ImageRect(
     val right: Int,
     val bottom: Int
 )
+
+enum class ReduceKernel {
+    NEAREST,
+    LINEAR,
+    CUBIC,
+    MITCHELL,
+    LANCZOS2,
+    LANCZOS3,
+    MKS2013,
+    MKS2021,
+    DEFAULT,
+}

@@ -27,15 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.AppSliderDefaults
-import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
-import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import kotlin.math.roundToInt
@@ -44,10 +39,6 @@ import kotlin.math.roundToLong
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CommonImageSettings(
-    decoder: PlatformDecoderSettings?,
-    decoderDescriptor: PlatformDecoderDescriptor?,
-    onUpscaleMethodChange: (UpscaleOption) -> Unit,
-
     stretchToFit: Boolean,
     onStretchToFitChange: (Boolean) -> Unit,
     cropBorders: Boolean,
@@ -67,19 +58,26 @@ fun CommonImageSettings(
 
     modifier: Modifier = Modifier,
 ) {
-    val strings = LocalStrings.current.reader
+    val strings = LocalStrings.current
+    val readerStrings = strings.reader
     val platform = LocalPlatform.current
     Column(modifier = modifier) {
-        if (decoder != null && decoderDescriptor != null && decoderDescriptor.upscaleOptions.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = LabeledEntry(decoder.upscaleOption, decoder.upscaleOption.value),
-                options = remember { decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) } },
-                onOptionChange = { onUpscaleMethodChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text("Upscale method") },
-                inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+        SwitchWithLabel(
+            checked = stretchToFit,
+            onCheckedChange = onStretchToFitChange,
+            label = { Text(readerStrings.stretchToFit) },
+            contentPadding = PaddingValues(horizontal = 10.dp)
+        )
+
+        if (LocalPlatform.current != PlatformType.WEB_KOMF) {
+            SwitchWithLabel(
+                checked = cropBorders,
+                onCheckedChange = onCropBordersChange,
+                label = { Text("Crop borders") },
+                contentPadding = PaddingValues(horizontal = 10.dp)
             )
         }
+
         Row(
             modifier = Modifier
                 .clickable { onColorCorrectionClick() }
@@ -105,21 +103,7 @@ fun CommonImageSettings(
             }
         }
 
-        SwitchWithLabel(
-            checked = stretchToFit,
-            onCheckedChange = onStretchToFitChange,
-            label = { Text(strings.stretchToFit) },
-            contentPadding = PaddingValues(horizontal = 10.dp)
-        )
 
-        if (LocalPlatform.current != PlatformType.WEB_KOMF) {
-            SwitchWithLabel(
-                checked = cropBorders,
-                onCheckedChange = onCropBordersChange,
-                label = { Text("Crop borders") },
-                contentPadding = PaddingValues(horizontal = 10.dp)
-            )
-        }
 
         if (platform != PlatformType.DESKTOP) {
             SwitchWithLabel(

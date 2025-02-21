@@ -1,5 +1,6 @@
 package snd.komelia.db.settings
 
+import io.github.snd_r.komelia.image.UpsamplingMode
 import kotlinx.browser.localStorage
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -13,34 +14,37 @@ const val imageReaderKey = "imageReader"
 const val epubReaderKey = "epubReader"
 
 class LocalStorageSettingsRepository {
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     fun getSettings(): AppSettings {
         return localStorage.getItem(appSettingsKey)
-            ?.let { Json.decodeFromString<AppSettings>(it) }
-            ?: AppSettings(upscaleOption = "Default", downscaleOption = "Default")
+            ?.let { json.decodeFromString<AppSettings>(it) }
+            ?: AppSettings()
     }
 
     fun saveAppSettings(settings: AppSettings) {
-        localStorage[appSettingsKey] = Json.encodeToString(settings)
+        localStorage[appSettingsKey] = json.encodeToString(settings)
     }
 
     fun getImageReaderSettings(): ImageReaderSettings {
         return localStorage.getItem(imageReaderKey)
-            ?.let { Json.decodeFromString<ImageReaderSettings>(it) }
-            ?: ImageReaderSettings()
+            ?.let { json.decodeFromString<ImageReaderSettings>(it) }
+            ?: ImageReaderSettings(upsamplingMode = UpsamplingMode.CATMULL_ROM)
     }
 
     fun saveImageReaderSettings(settings: ImageReaderSettings) {
-        localStorage[imageReaderKey] = Json.encodeToString(settings)
+        localStorage[imageReaderKey] = json.encodeToString(settings)
     }
 
     fun getEpubReaderSettings(): EpubReaderSettings {
         return localStorage.getItem(epubReaderKey)
-            ?.let { Json.decodeFromString<EpubReaderSettings>(it) }
+            ?.let { json.decodeFromString<EpubReaderSettings>(it) }
             ?: EpubReaderSettings()
     }
 
     fun saveEpubReaderSettings(settings: EpubReaderSettings) {
-        localStorage[epubReaderKey] = Json.encodeToString(settings)
+        localStorage[epubReaderKey] = json.encodeToString(settings)
     }
 }

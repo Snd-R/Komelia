@@ -231,16 +231,13 @@ private fun ApplicationScope.MainAppContent(
             }
 
             Box(borderModifier.value) {
-                val vmFactory = remember(dependencies) { dependencies?.let { DesktopViewModelFactory(it) } }
-                CompositionLocalProvider(LocalDesktopViewModelFactory provides vmFactory) {
-                    MainView(
-                        dependencies = dependencies,
-                        windowWidth = widthClass,
-                        windowHeight = heightClass,
-                        platformType = PlatformType.DESKTOP,
-                        keyEvents = keyEvents
-                    )
-                }
+                MainView(
+                    dependencies = dependencies,
+                    windowWidth = widthClass,
+                    windowHeight = heightClass,
+                    platformType = PlatformType.DESKTOP,
+                    keyEvents = keyEvents
+                )
             }
         }
     }

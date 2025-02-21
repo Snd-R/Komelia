@@ -11,11 +11,10 @@ import androidx.compose.ui.graphics.toSkiaRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.snd_r.komelia.image.TilingReaderImage.ReaderImageTile
-import org.jetbrains.skia.Font
+import io.github.snd_r.komelia.image.TilingReaderImage.TiledPainter
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.SamplingMode
-import org.jetbrains.skia.TextLine
 
 class ImagePainter(
     private val image: Image,
@@ -46,15 +45,20 @@ class ImagePainter(
     }
 }
 
-internal class TiledImagePainter(
+class SkiaTiledPainter(
     private val tiles: List<ReaderImageTile>,
+    private val upsamplingMode: UpsamplingMode,
+    private val scaleFactor: Double,
+    private val displaySize: IntSize,
     private val showDebugGrid: Boolean,
-    samplingMode: SamplingMode,
-    scaleFactor: Double,
-    displaySize: IntSize,
-) : Painter() {
+) : TiledPainter() {
     override val intrinsicSize: Size = displaySize.toSize()
-    private val samplingMode = if (scaleFactor > 1.0) samplingMode else SamplingMode.DEFAULT
+    private val samplingMode = if (scaleFactor > 1.0) when (upsamplingMode) {
+        UpsamplingMode.NEAREST -> SamplingMode.DEFAULT
+        UpsamplingMode.BILINEAR -> SamplingMode.LINEAR
+        UpsamplingMode.MITCHELL -> SamplingMode.MITCHELL
+        UpsamplingMode.CATMULL_ROM -> SamplingMode.CATMULL_ROM
+    } else SamplingMode.DEFAULT
 
     override fun DrawScope.onDraw() {
         tiles.forEach { tile ->
@@ -62,7 +66,7 @@ internal class TiledImagePainter(
                 val bitmap = tile.renderImage
                 drawContext.canvas.nativeCanvas.drawImageRect(
                     image = bitmap,
-                    src = org.jetbrains.skia.Rect.makeWH(
+                    src = Rect.makeWH(
                         tile.size.width.toFloat(),
                         tile.size.height.toFloat()
                     ),
@@ -83,20 +87,16 @@ internal class TiledImagePainter(
                     )
                 }
             }
-
         }
     }
-}
 
-internal class PlaceholderPainter(displaySize: IntSize) : Painter() {
-    override val intrinsicSize: Size = displaySize.toSize()
-
-    override fun DrawScope.onDraw() {
-        val textLine = TextLine.Companion.make("Loading", Font(null, 50f))
-        drawContext.canvas.nativeCanvas.drawTextLine(
-            textLine,
-            drawContext.size.width / 2 - textLine.width / 2, drawContext.size.height / 2,
-            org.jetbrains.skia.Paint()
+    override fun withSamplingMode(upsamplingMode: UpsamplingMode): TiledPainter {
+        return SkiaTiledPainter(
+            tiles = tiles,
+            upsamplingMode = upsamplingMode,
+            scaleFactor = scaleFactor,
+            displaySize = displaySize,
+            showDebugGrid = showDebugGrid
         )
     }
 }

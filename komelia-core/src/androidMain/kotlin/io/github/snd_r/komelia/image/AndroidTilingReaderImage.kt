@@ -6,17 +6,18 @@ import android.graphics.Paint.FILTER_BITMAP_FLAG
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.UpsamplingMode.NEAREST
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.image.AndroidBitmap.toBitmap
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
+import snd.komelia.image.ReduceKernel
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Bitmap
@@ -26,11 +27,17 @@ class AndroidTilingReaderImage(
     processingPipeline: ImageProcessingPipeline,
     stretchImages: StateFlow<Boolean>,
     pageId: PageId,
+    upsamplingMode: StateFlow<UpsamplingMode>,
+    downSamplingKernel: StateFlow<ReduceKernel>,
+    linearLightDownSampling: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    originalImage,
-    processingPipeline,
-    stretchImages,
-    pageId
+    originalImage = originalImage,
+    processingPipeline = processingPipeline,
+    stretchImages = stretchImages,
+    upsamplingMode = upsamplingMode,
+    downSamplingKernel = downSamplingKernel,
+    linearLightDownSampling = linearLightDownSampling,
+    pageId = pageId
 ) {
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
@@ -41,16 +48,22 @@ class AndroidTilingReaderImage(
         tiles: List<ReaderImageTile>,
         displaySize: IntSize,
         scaleFactor: Double
-    ): Painter {
-        return TiledImagePainter(tiles, scaleFactor, displaySize)
-    }
-
-    override fun createPlaceholderPainter(displaySize: IntSize): Painter {
-        return PlaceholderPainter(displaySize)
+    ): TiledPainter {
+        return AndroidTiledPainter(
+            tiles = tiles,
+            upsamplingMode = upsamplingMode.value,
+            scaleFactor = scaleFactor,
+            displaySize = displaySize
+        )
     }
 
     override suspend fun resizeImage(image: KomeliaImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
-        val resized = image.resize(scaleWidth, scaleHeight, false)
+        val resized = image.resize(
+            scaleWidth = scaleWidth,
+            scaleHeight = scaleHeight,
+            linear = linearLightDownSampling.value,
+            kernel = downSamplingKernel.value
+        )
         val bitmap = resized.toBitmap()
         val imageData = ReaderImageData(resized.width, resized.height, bitmap)
         resized.close()
@@ -71,7 +84,12 @@ class AndroidTilingReaderImage(
                 val regionData = region.toReaderImageData()
                 return regionData
             }
-            resized = region.resize(scaleWidth, scaleHeight, false)
+            resized = region.resize(
+                scaleWidth = scaleWidth,
+                scaleHeight = scaleHeight,
+                linear = linearLightDownSampling.value,
+                kernel = downSamplingKernel.value
+            )
             return resized.toReaderImageData()
         } finally {
             region?.close()
@@ -87,27 +105,18 @@ class AndroidTilingReaderImage(
     private fun IntRect.toImageRect() =
         ImageRect(left = left, top = top, right = right, bottom = bottom)
 
-    private class PlaceholderPainter(
-        displaySize: IntSize,
-    ) : Painter() {
-        override val intrinsicSize: Size = displaySize.toSize()
 
-        override fun DrawScope.onDraw() {
-            drawContext.canvas.nativeCanvas.drawText(
-                "Loading",
-                drawContext.size.width / 2 - 50f, drawContext.size.height / 2,
-                Paint().apply { textSize = 50f }
-            )
-        }
-    }
-
-    private class TiledImagePainter(
+    private class AndroidTiledPainter(
         private val tiles: List<ReaderImageTile>,
-        scaleFactor: Double,
-        displaySize: IntSize,
-    ) : Painter() {
+        private val upsamplingMode: UpsamplingMode,
+        private val scaleFactor: Double,
+        private val displaySize: IntSize,
+    ) : TiledPainter() {
         override val intrinsicSize: Size = displaySize.toSize()
-        private val paintFlags = if (scaleFactor > 1.0) FILTER_BITMAP_FLAG else 0
+        private val paintFlags = when {
+            scaleFactor > 1.0 && upsamplingMode != NEAREST -> FILTER_BITMAP_FLAG
+            else -> 0
+        }
 
         override fun DrawScope.onDraw() {
             tiles.forEach { tile ->
@@ -130,6 +139,15 @@ class AndroidTilingReaderImage(
                 }
 
             }
+        }
+
+        override fun withSamplingMode(upsamplingMode: UpsamplingMode): TiledPainter {
+            return AndroidTiledPainter(
+                tiles = tiles,
+                upsamplingMode = upsamplingMode,
+                scaleFactor = scaleFactor,
+                displaySize = displaySize,
+            )
         }
     }
 }

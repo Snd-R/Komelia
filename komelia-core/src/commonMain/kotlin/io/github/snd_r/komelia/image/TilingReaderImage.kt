@@ -27,8 +27,10 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import snd.komelia.image.KomeliaImage
+import snd.komelia.image.ReduceKernel
 import kotlin.concurrent.Volatile
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -47,9 +49,12 @@ abstract class TilingReaderImage(
     private val originalImage: KomeliaImage,
     private val processingPipeline: ImageProcessingPipeline,
     private val stretchImages: StateFlow<Boolean>,
+    protected val upsamplingMode: StateFlow<UpsamplingMode>,
+    protected val downSamplingKernel: StateFlow<ReduceKernel>,
+    protected val linearLightDownSampling: StateFlow<Boolean>,
     final override val pageId: PageId
 ) : ReaderImage {
-    final override val painter = MutableStateFlow(noopPainter)
+    final override val painter = MutableStateFlow<TiledPainter?>(null)
     final override val error = MutableStateFlow<Throwable?>(null)
 
     final override val originalSize = MutableStateFlow(IntSize(originalImage.width, originalImage.height))
@@ -104,6 +109,12 @@ abstract class TilingReaderImage(
         }.launchIn(processingScope)
 
         stretchImages.drop(1).onEach { reloadLastRequest() }.launchIn(processingScope)
+        upsamplingMode.onEach { mode -> painter.update { it?.withSamplingMode(mode) } }
+            .launchIn(processingScope)
+        downSamplingKernel.drop(1).onEach { reloadLastRequest() }
+            .launchIn(processingScope)
+        linearLightDownSampling.drop(1).onEach { reloadLastRequest() }
+            .launchIn(processingScope)
 
         processingScope.launch { loadImage() }
     }
@@ -176,7 +187,6 @@ abstract class TilingReaderImage(
             else -> 256
         }
 
-
         if (tileSize == null) {
             doFullResize(
                 image = image,
@@ -204,7 +214,7 @@ abstract class TilingReaderImage(
     ) {
         if (lastUsedScaleFactor == scaleFactor) return
         if (tiles.value.isEmpty()) {
-            painter.value = createPlaceholderPainter(displayArea)
+            painter.value = null
         }
         lastUsedScaleFactor = scaleFactor
         val dstWidth = (image.width * scaleFactor).roundToInt()
@@ -234,7 +244,7 @@ abstract class TilingReaderImage(
             painter.value = createTilePainter(
                 tiles = tiles.value,
                 displaySize = displayArea,
-                scaleFactor = scaleFactor
+                scaleFactor = scaleFactor,
             )
         }.also { logger.info { "page ${pageId.pageNumber} completed full resize to $dstWidth x $dstHeight in $it" } }
 
@@ -251,7 +261,7 @@ abstract class TilingReaderImage(
         val timeSource = TimeSource.Monotonic
         val start = timeSource.markNow()
         if (tiles.value.isEmpty()) {
-            painter.value = createPlaceholderPainter(displayArea)
+            painter.value = null
         }
 
         val visibilityWindow = Rect(
@@ -347,10 +357,8 @@ abstract class TilingReaderImage(
     protected abstract fun createTilePainter(
         tiles: List<ReaderImageTile>,
         displaySize: IntSize,
-        scaleFactor: Double
-    ): Painter
-
-    protected abstract fun createPlaceholderPainter(displaySize: IntSize): Painter
+        scaleFactor: Double,
+    ): TiledPainter
 
     protected abstract suspend fun resizeImage(
         image: KomeliaImage,
@@ -377,4 +385,8 @@ abstract class TilingReaderImage(
         val height: Int,
         val renderImage: RenderImage,
     )
+
+    abstract class TiledPainter() : Painter() {
+        abstract fun withSamplingMode(upsamplingMode: UpsamplingMode): TiledPainter
+    }
 }

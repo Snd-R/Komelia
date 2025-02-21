@@ -51,6 +51,7 @@ import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsViewModel
 import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderSettingsViewModel
+import io.github.snd_r.komelia.ui.settings.imagereader.ImageReaderSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsViewModel
 import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsViewModel
@@ -237,13 +238,12 @@ class ViewModelFactory(
             readListClient = komgaClientFactory.readListClient(),
             navigator = navigator,
             appNotifications = dependencies.appNotifications,
-            settingsRepository = settingsRepository,
             readerSettingsRepository = readerSettingsRepository,
             imageLoader = dependencies.bookImageLoader,
-            decoderDescriptor = dependencies.imageDecoderDescriptor,
             appStrings = dependencies.appStrings,
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,
+            onnxRuntime = dependencies.onnxRuntime,
             colorCorrectionIsActive = dependencies.colorCorrectionStep.isActive,
             bookSiblingsContext = bookSiblingsContext,
             markReadProgress = markReadProgress,
@@ -625,6 +625,19 @@ class ViewModelFactory(
         komgaClientFactory.readListClient(),
         dependencies.appNotifications,
     )
+
+    fun getImageReaderSettingsViewModel(): ImageReaderSettingsViewModel {
+        return ImageReaderSettingsViewModel(
+            settingsRepository = dependencies.imageReaderSettingsRepository,
+            appNotifications = dependencies.appNotifications,
+            onnxRuntimeInstaller = dependencies.onnxRuntimeInstaller,
+            onnxRuntime = dependencies.onnxRuntime,
+            mangaJaNaiDownloader = dependencies.mangaJaNaiDownloader,
+            coilMemoryCache = dependencies.coilImageLoader.memoryCache,
+            coilDiskCache = dependencies.coilImageLoader.diskCache,
+            readerDiskCache = dependencies.bookImageLoader.diskCache,
+        )
+    }
 
     fun getKomgaEvents(): SharedFlow<KomgaEvent> = komgaEventSource.events
 

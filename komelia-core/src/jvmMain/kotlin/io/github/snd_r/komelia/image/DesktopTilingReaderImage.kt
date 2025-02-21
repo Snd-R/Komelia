@@ -6,28 +6,22 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toSkiaRect
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
-import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
-import io.github.snd_r.komelia.platform.skiaSamplerMitchell
-import io.github.snd_r.komelia.platform.skiaSamplerNearest
-import io.github.snd_r.komelia.platform.upsamplingFilters
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.jetbrains.skia.Font
 import org.jetbrains.skia.Image
+import org.jetbrains.skia.Rect
 import org.jetbrains.skia.SamplingMode
-import org.jetbrains.skia.TextLine
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
+import snd.komelia.image.ReduceKernel
 import snd.komelia.image.SkiaBitmap.toSkiaBitmap
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
@@ -36,45 +30,27 @@ actual typealias RenderImage = Image
 class DesktopTilingReaderImage(
     originalImage: KomeliaImage,
     processingPipeline: ImageProcessingPipeline,
-    upscaleOption: StateFlow<UpscaleOption>,
     stretchImages: StateFlow<Boolean>,
     pageId: PageId,
+    upsamplingMode: StateFlow<UpsamplingMode>,
+    downSamplingKernel: StateFlow<ReduceKernel>,
+    linearLightDownSampling: StateFlow<Boolean>,
     private val upscaler: ManagedOnnxUpscaler?,
     private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    originalImage,
-    processingPipeline,
-    stretchImages,
-    pageId,
+    originalImage = originalImage,
+    processingPipeline = processingPipeline,
+    stretchImages = stretchImages,
+    upsamplingMode = upsamplingMode,
+    downSamplingKernel = downSamplingKernel,
+    linearLightDownSampling = linearLightDownSampling,
+    pageId = pageId,
 ) {
 
-    @Volatile
-    private var upsamplingMode: SamplingMode = when (upscaleOption.value) {
-        skiaSamplerMitchell -> SamplingMode.MITCHELL
-        skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
-        skiaSamplerNearest -> SamplingMode.DEFAULT
-        else -> SamplingMode.MITCHELL
-    }
-
     init {
-        upscaleOption.drop(1).onEach { option ->
-            val samplingMode = when (option) {
-                skiaSamplerMitchell -> SamplingMode.MITCHELL
-                skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
-                skiaSamplerNearest -> SamplingMode.DEFAULT
-                else -> SamplingMode.MITCHELL
-            }
-            this.upsamplingMode = samplingMode
-
-            if (option in upsamplingFilters) {
-                reloadLastRequest()
-            }
-        }.launchIn(processingScope)
-
         upscaler?.upscaleMode?.drop(1)?.onEach {
             lastUpdateRequest?.let { lastRequest ->
-                val displaySize = calculateSizeForArea(lastRequest.maxDisplaySize, stretchImages.value)
-                this.painter.value = PlaceholderPainter(displaySize)
+                this.painter.value = null
                 reloadLastRequest()
             }
         }?.launchIn(processingScope)
@@ -88,18 +64,14 @@ class DesktopTilingReaderImage(
         tiles: List<ReaderImageTile>,
         displaySize: IntSize,
         scaleFactor: Double
-    ): Painter {
-        return TiledImagePainter(
+    ): TiledPainter {
+        return SkiaTiledPainter(
             tiles = tiles,
             showDebugGrid = showDebugGrid.value,
-            samplingMode = upsamplingMode,
+            upsamplingMode = upsamplingMode.value,
             scaleFactor = scaleFactor,
             displaySize = displaySize
         )
-    }
-
-    override fun createPlaceholderPainter(displaySize: IntSize): Painter {
-        return PlaceholderPainter(displaySize)
     }
 
     override suspend fun resizeImage(
@@ -111,7 +83,12 @@ class DesktopTilingReaderImage(
             return upscaleImage(image, scaleWidth, scaleHeight)
         }
 
-        val downscaled = image.resize(scaleWidth, scaleHeight, false)
+        val downscaled = image.resize(
+            scaleWidth = scaleWidth,
+            scaleHeight = scaleHeight,
+            linear = linearLightDownSampling.value,
+            kernel = downSamplingKernel.value
+        )
         val imageData = downscaled.toReaderImageData()
         downscaled.close()
         return imageData
@@ -130,7 +107,12 @@ class DesktopTilingReaderImage(
             if (scaleWidth > imageRegion.width || scaleHeight > imageRegion.height) {
                 return upscaleRegion(image, imageRegion, scaleWidth, scaleHeight)
             }
-            resized = region.resize(scaleWidth, scaleHeight, false)
+            resized = region.resize(
+                scaleWidth = scaleWidth,
+                scaleHeight = scaleHeight,
+                linear = linearLightDownSampling.value,
+                kernel = downSamplingKernel.value
+            )
             return resized.toReaderImageData()
         } finally {
             region?.close()
@@ -143,11 +125,16 @@ class DesktopTilingReaderImage(
         scaleWidth: Int,
         scaleHeight: Int,
     ): ReaderImageData {
-        val upscaled = upscaler?.upscale(pageId, image)
+        val upscaled = upscaler?.upscale(image, pageId.toString())
 
         if (upscaled != null) {
             if (upscaled.width > scaleWidth && upscaled.height > scaleHeight) {
-                val resized = upscaled.resize(scaleWidth, scaleHeight, false)
+                val resized = upscaled.resize(
+                    scaleWidth = scaleWidth,
+                    scaleHeight = scaleHeight,
+                    linear = linearLightDownSampling.value,
+                    kernel = downSamplingKernel.value
+                )
                 val imageData = resized.toReaderImageData()
                 resized.close()
                 return imageData
@@ -169,7 +156,7 @@ class DesktopTilingReaderImage(
         scaleHeight: Int
     ): ReaderImageData {
         // try to reuse full resized image instead of upscaling individual regions
-        val upscaled = upscaler?.upscale(pageId, image)
+        val upscaled = upscaler?.upscale(image, pageId.toString())
         var region: KomeliaImage? = null
         var resized: KomeliaImage? = null
 
@@ -187,7 +174,12 @@ class DesktopTilingReaderImage(
 
                 // downscale if region is bigger than requested scale
                 if (region.width > scaleWidth || region.height > scaleHeight) {
-                    resized = region.resize(scaleWidth, scaleHeight, false)
+                    resized = region.resize(
+                        scaleWidth = scaleWidth,
+                        scaleHeight = scaleHeight,
+                        linear = linearLightDownSampling.value,
+                        kernel = downSamplingKernel.value
+                    )
                     return resized.toReaderImageData()
                     // otherwise do not upsample and return original region size
                 } else {
@@ -215,30 +207,20 @@ class DesktopTilingReaderImage(
 
     private fun IntRect.toImageRect() = ImageRect(left = left, top = top, right = right, bottom = bottom)
 
-    private class PlaceholderPainter(
-        displaySize: IntSize,
-    ) : Painter() {
-        override val intrinsicSize: Size = displaySize.toSize()
-
-        override fun DrawScope.onDraw() {
-            val textLine = TextLine.Companion.make("Loading", Font(null, 50f))
-            drawContext.canvas.nativeCanvas.drawTextLine(
-                textLine,
-                drawContext.size.width / 2 - textLine.width / 2, drawContext.size.height / 2,
-                org.jetbrains.skia.Paint()
-            )
-        }
-    }
-
-    private class TiledImagePainter(
+    private class SkiaTiledPainter(
         private val tiles: List<ReaderImageTile>,
+        private val upsamplingMode: UpsamplingMode,
+        private val scaleFactor: Double,
+        private val displaySize: IntSize,
         private val showDebugGrid: Boolean,
-        samplingMode: SamplingMode,
-        scaleFactor: Double,
-        displaySize: IntSize,
-    ) : Painter() {
+    ) : TiledPainter() {
         override val intrinsicSize: Size = displaySize.toSize()
-        private val samplingMode = if (scaleFactor > 1.0) samplingMode else SamplingMode.DEFAULT
+        private val samplingMode = if (scaleFactor > 1.0) when (upsamplingMode) {
+            UpsamplingMode.NEAREST -> SamplingMode.DEFAULT
+            UpsamplingMode.BILINEAR -> SamplingMode.LINEAR
+            UpsamplingMode.MITCHELL -> SamplingMode.MITCHELL
+            UpsamplingMode.CATMULL_ROM -> SamplingMode.CATMULL_ROM
+        } else SamplingMode.DEFAULT
 
         override fun DrawScope.onDraw() {
             tiles.forEach { tile ->
@@ -246,7 +228,7 @@ class DesktopTilingReaderImage(
                     val bitmap = tile.renderImage
                     drawContext.canvas.nativeCanvas.drawImageRect(
                         image = bitmap,
-                        src = org.jetbrains.skia.Rect.makeWH(
+                        src = Rect.makeWH(
                             tile.size.width.toFloat(),
                             tile.size.height.toFloat()
                         ),
@@ -267,8 +249,17 @@ class DesktopTilingReaderImage(
                         )
                     }
                 }
-
             }
+        }
+
+        override fun withSamplingMode(upsamplingMode: UpsamplingMode): TiledPainter {
+            return SkiaTiledPainter(
+                tiles = tiles,
+                upsamplingMode = upsamplingMode,
+                scaleFactor = scaleFactor,
+                displaySize = displaySize,
+                showDebugGrid = showDebugGrid
+            )
         }
     }
 }

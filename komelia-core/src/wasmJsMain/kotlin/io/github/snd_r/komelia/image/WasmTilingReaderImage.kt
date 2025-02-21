@@ -1,22 +1,14 @@
 package io.github.snd_r.komelia.image
 
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
-import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
-import io.github.snd_r.komelia.platform.skiaSamplerMitchell
-import io.github.snd_r.komelia.platform.skiaSamplerNearest
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.SamplingMode
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
+import snd.komelia.image.ReduceKernel
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Image
@@ -24,35 +16,21 @@ actual typealias RenderImage = Image
 class WasmTilingReaderImage(
     originalImage: KomeliaImage,
     processingPipeline: ImageProcessingPipeline,
-    upscaleOption: StateFlow<UpscaleOption>,
     stretchImages: StateFlow<Boolean>,
+    upsamplingMode: StateFlow<UpsamplingMode>,
+    downSamplingKernel: StateFlow<ReduceKernel>,
+    linearLightDownSampling: StateFlow<Boolean>,
     pageId: PageId,
     private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    originalImage,
-    processingPipeline,
-    stretchImages,
-    pageId,
+    originalImage = originalImage,
+    processingPipeline = processingPipeline,
+    stretchImages = stretchImages,
+    upsamplingMode = upsamplingMode,
+    downSamplingKernel = downSamplingKernel,
+    linearLightDownSampling = linearLightDownSampling,
+    pageId = pageId,
 ) {
-    private var upsamplingMode: SamplingMode = when (upscaleOption.value) {
-        skiaSamplerMitchell -> SamplingMode.MITCHELL
-        skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
-        skiaSamplerNearest -> SamplingMode.DEFAULT
-        else -> SamplingMode.MITCHELL
-    }
-
-    init {
-        upscaleOption.drop(1).onEach { option ->
-            val samplingMode = when (option) {
-                skiaSamplerMitchell -> SamplingMode.MITCHELL
-                skiaSamplerCatmullRom -> SamplingMode.CATMULL_ROM
-                skiaSamplerNearest -> SamplingMode.DEFAULT
-                else -> SamplingMode.MITCHELL
-            }
-            this.upsamplingMode = samplingMode
-        }.launchIn(processingScope)
-    }
-
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
         tiles.forEach { it.renderImage?.close() }
@@ -62,22 +40,18 @@ class WasmTilingReaderImage(
         tiles: List<ReaderImageTile>,
         displaySize: IntSize,
         scaleFactor: Double
-    ): Painter {
-        return TiledImagePainter(
+    ): TiledPainter {
+        return SkiaTiledPainter(
             tiles = tiles,
             showDebugGrid = showDebugGrid.value,
-            samplingMode = upsamplingMode,
+            upsamplingMode = upsamplingMode.value,
             scaleFactor = scaleFactor,
             displaySize = displaySize
         )
     }
 
-    override fun createPlaceholderPainter(displaySize: IntSize): Painter {
-        return PlaceholderPainter(displaySize)
-    }
-
     override suspend fun resizeImage(image: KomeliaImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
-        image.resize(scaleWidth, scaleHeight, false).use { resized ->
+        image.resize(scaleWidth, scaleHeight).use { resized ->
             return resized.toReaderImageData()
         }
     }
@@ -96,7 +70,7 @@ class WasmTilingReaderImage(
                 val regionData = region.toReaderImageData()
                 return regionData
             }
-            resized = region.resize(scaleWidth, scaleHeight, false)
+            resized = region.resize(scaleWidth, scaleHeight)
             return resized.toReaderImageData()
         } finally {
             region?.close()

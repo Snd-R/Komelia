@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.settings
 
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.settings.komf.KomfMode
@@ -17,9 +16,6 @@ interface CommonSettingsRepository {
 
     fun getCurrentUser(): Flow<String>
     suspend fun putCurrentUser(username: String)
-
-    fun getDecoderSettings(): Flow<PlatformDecoderSettings>
-    suspend fun putDecoderSettings(decoder: PlatformDecoderSettings)
 
     fun getSeriesPageLoadSize(): Flow<Int>
     suspend fun putSeriesPageLoadSize(size: Int)
@@ -53,16 +49,4 @@ interface CommonSettingsRepository {
 
     fun getKomfUrl(): Flow<String>
     suspend fun putKomfUrl(url: String)
-
-    fun getOnnxModelsPath(): Flow<String>
-    suspend fun putOnnxModelsPath(path: String)
-
-    fun getOnnxRuntimeDeviceId(): Flow<Int>
-    suspend fun putOnnxRuntimeDeviceId(deviceId: Int)
-
-    fun getOnnxRuntimeTileSize(): Flow<Int>
-    suspend fun putOnnxRuntimeTileSize(tileSize: Int)
-
-    fun getImageReaderShowDebugGrid(): Flow<Boolean>
-    suspend fun putImageReaderShowDebugGrid(showGrid: Boolean)
 }

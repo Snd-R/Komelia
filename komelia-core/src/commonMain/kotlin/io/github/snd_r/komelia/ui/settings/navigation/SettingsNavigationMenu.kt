@@ -42,9 +42,8 @@ import io.github.snd_r.komelia.ui.settings.analysis.MediaAnalysisScreen
 import io.github.snd_r.komelia.ui.settings.announcements.AnnouncementsScreen
 import io.github.snd_r.komelia.ui.settings.appearance.AppSettingsScreen
 import io.github.snd_r.komelia.ui.settings.authactivity.AuthenticationActivityScreen
-import io.github.snd_r.komelia.ui.settings.decoder.DecoderSettingsScreen
-import io.github.snd_r.komelia.ui.settings.decoder.getDecoderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderSettingsScreen
+import io.github.snd_r.komelia.ui.settings.imagereader.ImageReaderSettingsScreen
 import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsScreen
 import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsScreen
 import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsScreen
@@ -135,8 +134,8 @@ fun SettingsNavigationMenu(
         if (platform == DESKTOP) {
             NavigationButton(
                 label = "Image Reader",
-                onClick = { onNavigation(getDecoderSettingsScreen()) },
-                isSelected = currentScreen is DecoderSettingsScreen,
+                onClick = { onNavigation(ImageReaderSettingsScreen()) },
+                isSelected = currentScreen is ImageReaderSettingsScreen,
                 color = contentColor,
             )
         }

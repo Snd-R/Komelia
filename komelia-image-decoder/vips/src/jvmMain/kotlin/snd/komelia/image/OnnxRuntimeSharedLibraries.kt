@@ -8,11 +8,11 @@ import snd.jni.DesktopPlatform.MacOS
 import snd.jni.DesktopPlatform.Unknown
 import snd.jni.DesktopPlatform.Windows
 import snd.jni.SharedLibrariesLoader
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.image.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.image.OnnxRuntimeExecutionProvider.CUDA
+import snd.komelia.image.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.image.OnnxRuntimeExecutionProvider.ROCm
+import snd.komelia.image.OnnxRuntimeExecutionProvider.TENSOR_RT
 import snd.komelia.image.OnnxRuntimeUpscaler.OrtException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -166,13 +166,5 @@ object OnnxRuntimeSharedLibraries {
         }
 
         return destinationPath
-    }
-
-    enum class OnnxRuntimeExecutionProvider {
-        TENSOR_RT,
-        CUDA,
-        ROCm,
-        DirectML,
-        CPU,
     }
 }

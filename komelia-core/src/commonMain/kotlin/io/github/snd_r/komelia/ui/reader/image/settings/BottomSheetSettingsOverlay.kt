@@ -48,13 +48,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LocalStrings
@@ -68,6 +67,7 @@ import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import kotlinx.coroutines.Dispatchers
+import snd.komelia.image.ReduceKernel
 import snd.komga.client.book.KomgaBook
 import kotlin.math.roundToInt
 
@@ -79,9 +79,14 @@ fun BottomSheetSettingsOverlay(
     onReaderTypeChange: (ReaderType) -> Unit,
     isColorCorrectionsActive: Boolean,
     onColorCorrectionClick: () -> Unit,
-    decoder: PlatformDecoderSettings?,
-    decoderDescriptor: PlatformDecoderDescriptor?,
-    onUpscaleMethodChange: (UpscaleOption) -> Unit,
+    availableUpsamplingModes: List<UpsamplingMode>,
+    upsamplingMode: UpsamplingMode,
+    onUpsamplingModeChange: (UpsamplingMode) -> Unit,
+    availableDownsamplingKernels: List<ReduceKernel>,
+    downsamplingKernel: ReduceKernel,
+    onDownsamplingKernelChange: (ReduceKernel) -> Unit,
+    linearLightDownsampling: Boolean,
+    onLinearLightDownsamplingChange: (Boolean) -> Unit,
     stretchToFit: Boolean,
     onStretchToFitChange: (Boolean) -> Unit,
     cropBorders: Boolean,
@@ -153,6 +158,7 @@ fun BottomSheetSettingsOverlay(
                 onDismissRequest = { showSettingsDialog = false },
                 sheetState = sheetState,
                 dragHandle = {},
+                scrimColor = Color.Transparent,
             ) {
                 var selectedTab by remember { mutableStateOf(0) }
                 TabRow(
@@ -204,9 +210,14 @@ fun BottomSheetSettingsOverlay(
                             readerType = readerType,
                             pagedReaderState = pagedReaderState,
                             continuousReaderState = continuousReaderState,
-                            decoder = decoder,
-                            decoderDescriptor = decoderDescriptor,
-                            onUpscaleMethodChange = onUpscaleMethodChange,
+                            availableUpsamplingModes = availableUpsamplingModes,
+                            upsamplingMode = upsamplingMode,
+                            onUpsamplingModeChange = onUpsamplingModeChange,
+                            availableDownsamplingKernels = availableDownsamplingKernels,
+                            downsamplingKernel = downsamplingKernel,
+                            onDownsamplingKernelChange = onDownsamplingKernelChange,
+                            linearLightDownsampling = linearLightDownsampling,
+                            onLinearLightDownsamplingChange = onLinearLightDownsamplingChange,
                             stretchToFit = stretchToFit,
                             onStretchToFitChange = onStretchToFitChange,
                             cropBorders = cropBorders,
@@ -426,9 +437,15 @@ private fun BottomSheetImageSettings(
     readerType: ReaderType,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    decoder: PlatformDecoderSettings?,
-    decoderDescriptor: PlatformDecoderDescriptor?,
-    onUpscaleMethodChange: (UpscaleOption) -> Unit,
+    availableUpsamplingModes: List<UpsamplingMode>,
+    upsamplingMode: UpsamplingMode,
+    onUpsamplingModeChange: (UpsamplingMode) -> Unit,
+
+    availableDownsamplingKernels: List<ReduceKernel>,
+    downsamplingKernel: ReduceKernel,
+    onDownsamplingKernelChange: (ReduceKernel) -> Unit,
+    linearLightDownsampling: Boolean,
+    onLinearLightDownsamplingChange: (Boolean) -> Unit,
     stretchToFit: Boolean,
     onStretchToFitChange: (Boolean) -> Unit,
     cropBorders: Boolean,
@@ -448,10 +465,17 @@ private fun BottomSheetImageSettings(
 
     ) {
     Column {
+        SamplingModeSettings(
+            availableUpsamplingModes = availableUpsamplingModes,
+            upsamplingMode = upsamplingMode,
+            onUpsamplingModeChange = onUpsamplingModeChange,
+            availableDownsamplingKernels = availableDownsamplingKernels,
+            downsamplingKernel = downsamplingKernel,
+            onDownsamplingKernelChange = onDownsamplingKernelChange,
+            linearLightDownsampling = linearLightDownsampling,
+            onLinearLightDownsamplingChange = onLinearLightDownsamplingChange,
+        )
         CommonImageSettings(
-            decoder = decoder,
-            decoderDescriptor = decoderDescriptor,
-            onUpscaleMethodChange = onUpscaleMethodChange,
             stretchToFit = stretchToFit,
             onStretchToFitChange = onStretchToFitChange,
             cropBorders = cropBorders,
@@ -465,8 +489,9 @@ private fun BottomSheetImageSettings(
             flashWith = flashWith,
             onFlashWithChange = onFlashWithChange,
             flashDuration = flashDuration,
-            onFlashDurationChange = onFlashDurationChange
+            onFlashDurationChange = onFlashDurationChange,
         )
+        HorizontalDivider(Modifier.padding(vertical = 5.dp))
 
         val strings = LocalStrings.current.reader
         val zoomPercentage = remember(zoom) { (zoom * 100).roundToInt() }
@@ -486,4 +511,66 @@ private fun BottomSheetImageSettings(
         }
     }
 
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SamplingModeSettings(
+    availableUpsamplingModes: List<UpsamplingMode>,
+    upsamplingMode: UpsamplingMode,
+    onUpsamplingModeChange: (UpsamplingMode) -> Unit,
+    availableDownsamplingKernels: List<ReduceKernel>,
+    downsamplingKernel: ReduceKernel,
+    onDownsamplingKernelChange: (ReduceKernel) -> Unit,
+    linearLightDownsampling: Boolean,
+    onLinearLightDownsamplingChange: (Boolean) -> Unit,
+) {
+    val strings = LocalStrings.current.imageSettings
+
+    if (availableUpsamplingModes.size > 1) {
+        Column {
+            Text(strings.upsamplingMode)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                availableUpsamplingModes.forEach { mode ->
+                    InputChip(
+                        selected = upsamplingMode == mode,
+                        onClick = { onUpsamplingModeChange(mode) },
+                        label = { Text(strings.forUpsamplingMode(mode)) }
+                    )
+
+                }
+            }
+        }
+    }
+
+    if (availableDownsamplingKernels.size > 1) {
+        Column {
+            Text(strings.downsamplingKernel)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                availableDownsamplingKernels.forEach { kernel ->
+                    InputChip(
+                        selected = downsamplingKernel == kernel,
+                        onClick = { onDownsamplingKernelChange(kernel) },
+                        label = { Text(strings.forDownsamplingKernel(kernel)) }
+                    )
+
+                }
+            }
+        }
+    }
+
+
+    SwitchWithLabel(
+        checked = linearLightDownsampling,
+        onCheckedChange = onLinearLightDownsamplingChange,
+        label = { Text("Linear light downsampling") },
+        supportingText = {
+            Text("slower but potentially more accurate", style = MaterialTheme.typography.labelMedium)
+        },
+        contentPadding = PaddingValues(horizontal = 10.dp)
+    )
 }

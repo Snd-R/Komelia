@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import snd.komelia.image.ImageFormat
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
+import snd.komelia.image.ReduceKernel
 import snd.komelia.image.wasm.asByteArray
 import snd.komelia.image.wasm.jsArray
 import snd.komelia.image.wasm.messages.CloseImageResponse
@@ -48,8 +49,13 @@ class WorkerImage(
         return WorkerImage(worker, result)
     }
 
-    override suspend fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): KomeliaImage {
-        val message = resizeRequest(worker.getNextId(), scaleWidth, scaleHeight, crop, imageId)
+    override suspend fun resize(
+        scaleWidth: Int,
+        scaleHeight: Int,
+        linear: Boolean,
+        kernel: ReduceKernel,
+    ): KomeliaImage {
+        val message = resizeRequest(worker.getNextId(), scaleWidth, scaleHeight, false, imageId)
         val result = worker.postMessage<ImageResponse>(message)
         return WorkerImage(worker, result)
     }

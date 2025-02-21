@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -30,15 +30,11 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,16 +47,15 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.UpscaleOption
+import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalStrings
-import io.github.snd_r.komelia.ui.common.AppSliderDefaults
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
+import io.github.snd_r.komelia.ui.common.NumberFieldWithIncrements
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
@@ -70,7 +65,13 @@ import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
+import io.github.snd_r.komelia.ui.settings.imagereader.DeviceSelector
+import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeModeSelector
+import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
+import io.github.snd_r.komelia.ui.settings.imagereader.TileSizeSelector
+import io.github.snd_r.komelia.ui.settings.imagereader.isOnnxRuntimeInstalled
 import kotlinx.coroutines.Dispatchers
+import snd.komelia.image.ReduceKernel
 import snd.komga.client.book.KomgaBook
 import kotlin.math.roundToInt
 
@@ -81,9 +82,15 @@ fun SettingsSideMenuOverlay(
     onReaderTypeChange: (ReaderType) -> Unit,
     isColorCorrectionsActive: Boolean,
     onColorCorrectionClick: () -> Unit,
-    decoder: PlatformDecoderSettings?,
-    decoderDescriptor: PlatformDecoderDescriptor?,
-    onUpscaleMethodChange: (UpscaleOption) -> Unit,
+
+    availableUpsamplingModes: List<UpsamplingMode>,
+    upsamplingMode: UpsamplingMode,
+    onUpsamplingModeChange: (UpsamplingMode) -> Unit,
+    availableDownsamplingKernels: List<ReduceKernel>,
+    downsamplingKernel: ReduceKernel,
+    onDownsamplingKernelChange: (ReduceKernel) -> Unit,
+    linearLightDownsampling: Boolean,
+    onLinearLightDownsamplingChange: (Boolean) -> Unit,
     stretchToFit: Boolean,
     onStretchToFitChange: (Boolean) -> Unit,
     cropBorders: Boolean,
@@ -103,6 +110,7 @@ fun SettingsSideMenuOverlay(
 
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
 
     onBackPress: () -> Unit,
     onShowHelpMenu: () -> Unit,
@@ -141,11 +149,27 @@ fun SettingsSideMenuOverlay(
                 BookTitles(book)
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-            val strings = LocalStrings.current.reader
+            HorizontalDivider(modifier = Modifier.padding(top = 10.dp))
+            val strings = LocalStrings.current
+            val readerStrings = strings.reader
             val zoomPercentage = remember(zoom) { (zoom * 100).roundToInt() }
-            Text("${strings.zoom}: $zoomPercentage%")
+            Text("${readerStrings.zoom}: $zoomPercentage%")
+            Column {
+                DropdownChoiceMenu(
+                    selectedOption = LabeledEntry(readerType, readerStrings.forReaderType(readerType)),
+                    options = remember { ReaderType.entries.map { LabeledEntry(it, readerStrings.forReaderType(it)) } },
+                    onOptionChange = { onReaderTypeChange(it.value) },
+                    inputFieldModifier = Modifier.fillMaxWidth(),
+                    label = { Text(readerStrings.readerType) },
+                    inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+                when (readerType) {
+                    PAGED -> PagedReaderSettingsContent(pagedReaderState)
+                    CONTINUOUS -> ContinuousReaderSettingsContent(continuousReaderState)
+                }
+            }
+
+            HorizontalDivider()
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -162,42 +186,111 @@ fun SettingsSideMenuOverlay(
                 )
             }
             AnimatedVisibility(showImageSettings) {
-                CommonImageSettings(
-                    modifier = Modifier.padding(start = 10.dp),
-                    decoder = decoder,
-                    decoderDescriptor = decoderDescriptor,
-                    onUpscaleMethodChange = onUpscaleMethodChange,
-                    stretchToFit = stretchToFit,
-                    onStretchToFitChange = onStretchToFitChange,
-                    cropBorders = cropBorders,
-                    onCropBordersChange = onCropBordersChange,
-                    isColorCorrectionsActive = isColorCorrectionsActive,
-                    onColorCorrectionClick = onColorCorrectionClick,
-                    flashEnabled = flashEnabled,
-                    onFlashEnabledChange = onFlashEnabledChange,
-                    flashEveryNPages = flashEveryNPages,
-                    onFlashEveryNPagesChange = onFlashEveryNPagesChange,
-                    flashWith = flashWith,
-                    onFlashWithChange = onFlashWithChange,
-                    flashDuration = flashDuration,
-                    onFlashDurationChange = onFlashDurationChange,
-                )
+                Column {
+                    SamplingModeSettings(
+                        availableUpsamplingModes = availableUpsamplingModes,
+                        upsamplingMode = upsamplingMode,
+                        onUpsamplingModeChange = onUpsamplingModeChange,
+                        availableDownsamplingKernels = availableDownsamplingKernels,
+                        downsamplingKernel = downsamplingKernel,
+                        onDownsamplingKernelChange = onDownsamplingKernelChange,
+                        linearLightDownsampling = linearLightDownsampling,
+                        onLinearLightDownsamplingChange = onLinearLightDownsamplingChange,
+                        modifier = Modifier.padding(start = 5.dp)
+                    )
 
+                    CommonImageSettings(
+                        modifier = Modifier.padding(start = 5.dp),
+                        stretchToFit = stretchToFit,
+                        onStretchToFitChange = onStretchToFitChange,
+                        cropBorders = cropBorders,
+                        onCropBordersChange = onCropBordersChange,
+                        isColorCorrectionsActive = isColorCorrectionsActive,
+                        onColorCorrectionClick = onColorCorrectionClick,
+                        flashEnabled = flashEnabled,
+                        onFlashEnabledChange = onFlashEnabledChange,
+                        flashEveryNPages = flashEveryNPages,
+                        onFlashEveryNPagesChange = onFlashEveryNPagesChange,
+                        flashWith = flashWith,
+                        onFlashWithChange = onFlashWithChange,
+                        flashDuration = flashDuration,
+                        onFlashDurationChange = onFlashDurationChange,
+                    )
+                }
             }
+            if (onnxRuntimeSettingsState != null && isOnnxRuntimeInstalled()) {
+                HorizontalDivider()
+                var showOnnxRuntimeSettings by remember { mutableStateOf(false) }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { showOnnxRuntimeSettings = !showOnnxRuntimeSettings }
+                        .cursorForHand()
+                        .padding(10.dp)
+                ) {
+                    Text("OnnxRuntime")
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        Icons.Filled.ArrowDropDown,
+                        null,
+                        Modifier.rotate(if (showOnnxRuntimeSettings) 180f else 0f)
+                    )
+                }
+                AnimatedVisibility(showOnnxRuntimeSettings) {
+                    Column(Modifier.padding(start = 10.dp)) {
+                        OnnxRuntimeModeSelector(
+                            currentMode = onnxRuntimeSettingsState.onnxRuntimeMode.collectAsState().value,
+                            onModeChange = onnxRuntimeSettingsState::onOnnxRuntimeUpscaleModeChange,
+                            currentModelPath = onnxRuntimeSettingsState.onnxModelPath.collectAsState().value,
+                            onModelPathChange = onnxRuntimeSettingsState::onOnnxModelSelect
+                        )
+                        DeviceSelector(
+                            availableDevices = onnxRuntimeSettingsState.availableDevices.collectAsState().value,
+                            executionProvider = onnxRuntimeSettingsState.currentExecutionProvider,
+                            currentDeviceId = onnxRuntimeSettingsState.deviceId.collectAsState().value,
+                            onDeviceIdChange = onnxRuntimeSettingsState::onDeviceIdChange
+                        )
 
-            HorizontalDivider(Modifier.padding(vertical = 5.dp))
-            Column {
-                DropdownChoiceMenu(
-                    selectedOption = LabeledEntry(readerType, strings.forReaderType(readerType)),
-                    options = remember { ReaderType.entries.map { LabeledEntry(it, strings.forReaderType(it)) } },
-                    onOptionChange = { onReaderTypeChange(it.value) },
-                    inputFieldModifier = Modifier.fillMaxWidth(),
-                    label = { Text(strings.readerType) },
-                    inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+                        TileSizeSelector(
+                            tileSize = onnxRuntimeSettingsState.tileSize.collectAsState().value,
+                            onTileSizeChange = onnxRuntimeSettingsState::onTileSizeChange
+                        )
+                    }
+                }
+            }
+            HorizontalDivider()
+            when (readerType) {
+                PAGED -> PagedReaderPagesInfo(
+                    pagedReaderState.currentSpread.collectAsState().value,
+                    modifier = Modifier.padding(start = 10.dp)
                 )
-                when (readerType) {
-                    PAGED -> PagedReaderSettingsContent(pagedReaderState)
-                    CONTINUOUS -> ContinuousReaderSettingsContent(continuousReaderState)
+
+                CONTINUOUS -> {
+                    var showPagesInfo by remember { mutableStateOf(false) }
+                    val readerStrings = LocalStrings.current.reader
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { showPagesInfo = !showPagesInfo }
+                            .cursorForHand()
+                            .padding(10.dp)
+                    ) {
+                        Text(readerStrings.pagesInfo)
+                        Spacer(Modifier.weight(1f))
+                        Icon(
+                            Icons.Filled.ArrowDropDown,
+                            null,
+                            Modifier.rotate(if (showPagesInfo) 180f else 0f)
+                        )
+                    }
+
+                    AnimatedVisibility(showPagesInfo) {
+                        ContinuousReaderPagesInfo(
+                            lazyListState = continuousReaderState.lazyListState,
+                            waitForImage = continuousReaderState::waitForImage,
+                            modifier = Modifier.padding(start = 10.dp)
+                        )
+                    }
                 }
             }
 
@@ -211,31 +304,6 @@ fun SettingsSideMenuOverlay(
 @Composable
 private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
     val strings = LocalStrings.current.continuousReader
-    val padding = state.sidePaddingFraction.collectAsState().value
-    Column {
-        Text("${strings.sidePadding} ${(padding * 200).roundToInt()}%")
-        Slider(
-            value = padding,
-            onValueChange = state::onSidePaddingChange,
-            steps = 7,
-            valueRange = 0f..0.4f,
-            modifier = Modifier.cursorForHand(),
-            colors = AppSliderDefaults.colors()
-        )
-        val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
-        TextField(
-            value = if (spacing == 0) "" else spacing.toString(),
-            onValueChange = { newValue ->
-                if (newValue.length > 5) return@TextField
-                if (newValue.isBlank()) state.onPageSpacingChange(0)
-                else newValue.toIntOrNull()?.let { state.onPageSpacingChange(it) }
-            },
-            label = { Text(strings.pageSpacing) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-
 
     val readingDirection = state.readingDirection.collectAsState()
     DropdownChoiceMenu(
@@ -249,23 +317,31 @@ private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderS
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
-    var showPagesInfo by remember { mutableStateOf(false) }
-    val readerStrings = LocalStrings.current.reader
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable { showPagesInfo = !showPagesInfo }
-            .cursorForHand()
-            .padding(10.dp)
-    ) {
-        Text(readerStrings.pagesInfo)
-        if (showPagesInfo) Icon(Icons.Default.ExpandLess, null)
-        else Icon(Icons.Default.ExpandMore, null)
+    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        val padding = state.sidePaddingFraction.collectAsState().value
+        NumberFieldWithIncrements(
+            value = padding * 200,
+            label = { Text("side padding", style = MaterialTheme.typography.labelMedium) },
+            onvValueChange = { state.onSidePaddingChange(it / 200) },
+            stepSize = 5f,
+            minValue = 0f,
+            maxValue = 80f,
+            digitsAfterDecimal = 1,
+            modifier = Modifier.weight(1f)
+        )
+        val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
+        NumberFieldWithIncrements(
+            value = spacing.toFloat(),
+            label = { Text("page spacing", style = MaterialTheme.typography.labelMedium) },
+            onvValueChange = { state.onPageSpacingChange(it.roundToInt()) },
+            stepSize = 1f,
+            minValue = 0f,
+            maxValue = 9999f,
+            digitsAfterDecimal = 0,
+            modifier = Modifier.weight(1f).padding(end = 10.dp)
+        )
     }
-
-    AnimatedVisibility(showPagesInfo) {
-        ContinuousReaderPagesInfo(state.lazyListState, state::waitForImage)
-    }
+    Spacer(Modifier.height(10.dp))
 }
 
 @Composable
@@ -320,9 +396,6 @@ private fun ColumnScope.PagedReaderSettingsContent(
                 contentPadding = PaddingValues(horizontal = 10.dp)
             )
         }
-
-        val currentSpread = pageState.currentSpread.collectAsState().value
-        PagedReaderPagesInfo(currentSpread)
     }
 }
 
@@ -330,7 +403,7 @@ private fun ColumnScope.PagedReaderSettingsContent(
 private fun BookTitles(book: KomgaBook) {
     Column {
         if (!book.oneshot) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.Top) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.MenuBook,
                     contentDescription = null,
@@ -344,7 +417,7 @@ private fun BookTitles(book: KomgaBook) {
             }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.Top) {
             Icon(
                 imageVector = Icons.Default.Book,
                 contentDescription = null,
@@ -354,6 +427,79 @@ private fun BookTitles(book: KomgaBook) {
             Text(
                 text = book.metadata.title,
                 modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun SamplingModeSettings(
+    availableUpsamplingModes: List<UpsamplingMode>,
+    upsamplingMode: UpsamplingMode,
+    onUpsamplingModeChange: (UpsamplingMode) -> Unit,
+    availableDownsamplingKernels: List<ReduceKernel>,
+    downsamplingKernel: ReduceKernel,
+    onDownsamplingKernelChange: (ReduceKernel) -> Unit,
+    linearLightDownsampling: Boolean,
+    onLinearLightDownsamplingChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val strings = LocalStrings.current.imageSettings
+
+    Column(modifier) {
+        if (availableUpsamplingModes.size > 1) {
+            DropdownChoiceMenu(
+                selectedOption = LabeledEntry(
+                    upsamplingMode,
+                    strings.forUpsamplingMode(upsamplingMode)
+                ),
+                options = remember(availableUpsamplingModes) {
+                    availableUpsamplingModes.map {
+                        LabeledEntry(
+                            it,
+                            strings.forUpsamplingMode(it)
+                        )
+                    }
+                },
+                onOptionChange = { onUpsamplingModeChange(it.value) },
+                inputFieldModifier = Modifier.fillMaxWidth(),
+                label = { Text(strings.upsamplingMode) },
+                inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        }
+
+        if (availableDownsamplingKernels.size > 1) {
+            DropdownChoiceMenu(
+                selectedOption = LabeledEntry(
+                    downsamplingKernel,
+                    strings.forDownsamplingKernel(downsamplingKernel)
+                ),
+                options = remember(availableDownsamplingKernels) {
+                    availableDownsamplingKernels.map {
+                        LabeledEntry(
+                            it,
+                            strings.forDownsamplingKernel(it)
+                        )
+                    }
+                },
+                onOptionChange = { onDownsamplingKernelChange(it.value) },
+                inputFieldModifier = Modifier.fillMaxWidth(),
+                label = { Text(strings.downsamplingKernel) },
+                inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        }
+
+
+        val platform = LocalPlatform.current
+        if (platform != PlatformType.WEB_KOMF) {
+            SwitchWithLabel(
+                checked = linearLightDownsampling,
+                onCheckedChange = onLinearLightDownsamplingChange,
+                label = { Text("Linear light downsampling") },
+                supportingText = {
+                    Text("slower but potentially more accurate", style = MaterialTheme.typography.labelMedium)
+                },
+                contentPadding = PaddingValues(horizontal = 10.dp)
             )
         }
     }

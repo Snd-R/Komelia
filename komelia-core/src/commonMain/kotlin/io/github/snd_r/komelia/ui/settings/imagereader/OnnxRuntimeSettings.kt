@@ -1,5 +1,6 @@
-package io.github.snd_r.komelia.ui.settings.decoder
+package io.github.snd_r.komelia.ui.settings.imagereader
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BasicTooltipBox
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,6 +32,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,197 +44,83 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration.Companion.Underline
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.DesktopPlatform
-import io.github.snd_r.komelia.DesktopPlatform.Linux
-import io.github.snd_r.komelia.DesktopPlatform.Windows
-import io.github.snd_r.komelia.platform.DownscaleOption
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.formatDecimal
+import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.LabeledEntry.Companion.intEntry
-import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.updates.UpdateProgress
-import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
-import snd.komelia.image.OnnxRuntimeSharedLibraries
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.ROCm
-import snd.komelia.image.OnnxRuntimeSharedLibraries.OnnxRuntimeExecutionProvider.TENSOR_RT
-import snd.komelia.image.OnnxRuntimeUpscaler
-
-@Composable
-fun DecoderSettingsContent(
-    decoderDescriptor: PlatformDecoderDescriptor,
-    upscaleOption: UpscaleOption,
-    onUpscaleOptionChange: (UpscaleOption) -> Unit,
-    downscaleOption: DownscaleOption,
-    onDownscaleOptionChange: (DownscaleOption) -> Unit,
-    gpuInfo: List<OnnxRuntimeUpscaler.DeviceInfo>,
-    tileSize: Int,
-    onTileSizeChange: (Int) -> Unit,
-    deviceId: Int,
-    onDeviceIdChange: (Int) -> Unit,
-
-    onnxPath: String,
-    onOnnxPathChange: (String) -> Unit,
-    onOrtProviderInstall: suspend (OnnxRuntimeExecutionProvider) -> Unit,
-    onOrtProviderInstallCancel: () -> Unit,
-    ortInstallProgress: UpdateProgress?,
-    ortInstallError: String?,
-    onOrtInstallErrorDismiss: () -> Unit,
-
-    mangaJaNaiIsDownloaded: Boolean,
-    onMangaJaNaiDownload: () -> Flow<UpdateProgress>,
-
-    onCacheClear: () -> Unit,
-
-    showDebugGrid: Boolean,
-    onShowDebugGridChange: (Boolean) -> Unit
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        if (decoderDescriptor.downscaleOptions.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = LabeledEntry(downscaleOption, downscaleOption.value),
-                options = remember(decoderDescriptor) {
-                    decoderDescriptor.downscaleOptions.map { LabeledEntry(it, it.value) }
-                },
-                onOptionChange = { onDownscaleOptionChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text("Downscale method") }
-            )
-        } else {
-            Text("Downscale method: ${downscaleOption.value}")
-        }
-
-        if (decoderDescriptor.upscaleOptions.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = LabeledEntry(upscaleOption, upscaleOption.value),
-                options = remember(decoderDescriptor) {
-                    decoderDescriptor.upscaleOptions.map { LabeledEntry(it, it.value) }
-                },
-                onOptionChange = { onUpscaleOptionChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text("Upscale method") }
-            )
-        } else {
-            Text("Upscale method: ${upscaleOption.value}")
-        }
-        if (DesktopPlatform.Current == Linux || DesktopPlatform.Current == Windows) {
-            HorizontalDivider(Modifier.padding(vertical = 10.dp))
-            OnnxRuntimeContent(
-                onnxPath = onnxPath,
-                onOnnxPathChange = onOnnxPathChange,
-                gpuInfo = gpuInfo,
-                tileSize = tileSize,
-                onTileSizeChange = onTileSizeChange,
-                deviceId = deviceId,
-                onDeviceIdChange = onDeviceIdChange,
-
-                onOrtProviderInstall = onOrtProviderInstall,
-                onOrtProviderInstallCancel = onOrtProviderInstallCancel,
-                ortInstallProgress = ortInstallProgress,
-                ortInstallError = ortInstallError,
-                onOrtInstallErrorDismiss = onOrtInstallErrorDismiss,
-
-                mangaJaNaiIsDownloaded = mangaJaNaiIsDownloaded,
-                onMangaJaNaiDownload = onMangaJaNaiDownload
-            )
-        }
-
-        HorizontalDivider()
-
-        SwitchWithLabel(
-            checked = showDebugGrid,
-            onCheckedChange = onShowDebugGridChange,
-            label = { Text("Show debug tile grid in image reader") },
-        )
-
-        FilledTonalButton(
-            onClick = onCacheClear,
-            shape = RoundedCornerShape(5.dp)
-        ) { Text("Clear image cache") }
-    }
-}
+import kotlinx.io.files.Path
+import snd.komelia.image.OnnxRuntime.DeviceInfo
+import snd.komelia.image.OnnxRuntimeExecutionProvider
+import snd.komelia.image.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.image.OnnxRuntimeExecutionProvider.CUDA
+import snd.komelia.image.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.image.OnnxRuntimeExecutionProvider.ROCm
+import snd.komelia.image.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.image.OnnxRuntimeUpscaleMode.USER_SPECIFIED_MODEL
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun OnnxRuntimeContent(
-    onnxPath: String,
-    onOnnxPathChange: (String) -> Unit,
-    gpuInfo: List<OnnxRuntimeUpscaler.DeviceInfo>,
-    tileSize: Int,
-    onTileSizeChange: (Int) -> Unit,
-    deviceId: Int,
-    onDeviceIdChange: (Int) -> Unit,
-
-    onOrtProviderInstall: suspend (OnnxRuntimeExecutionProvider) -> Unit,
-    onOrtProviderInstallCancel: () -> Unit,
-    ortInstallProgress: UpdateProgress?,
-    ortInstallError: String?,
-    onOrtInstallErrorDismiss: () -> Unit,
-
-    mangaJaNaiIsDownloaded: Boolean,
-    onMangaJaNaiDownload: () -> Flow<UpdateProgress>,
+fun OnnxRuntimeSettings(
+    state: OnnxRuntimeSettingsState,
 ) {
+    val strings = LocalStrings.current.imageSettings
+    val ortInstallProgress = state.installProgress.collectAsState().value
+    val ortInstallError = state.installError.collectAsState().value
+    val executionProvider = state.currentExecutionProvider
+    val loadError = remember { onnxRuntimeLoadError() }
+
     var showOrtInstallDialog by remember { mutableStateOf(false) }
-    var showMangaJaNaiDownloadDialog by remember { mutableStateOf(false) }
     var showPostInstallDialog by remember { mutableStateOf(false) }
     if (showOrtInstallDialog) {
         OrtInstallDialog(
             updateProgress = ortInstallProgress,
             onInstallRequest = {
-                onOrtProviderInstall(it)
+                state.onInstallRequest(it)
                 showOrtInstallDialog = false
                 showPostInstallDialog = true
             },
             onDismiss = {
                 showOrtInstallDialog = false
-                onOrtProviderInstallCancel()
+                state.onInstallationCancel()
             })
     }
+
     if (showPostInstallDialog) {
         RestartDialog(error = ortInstallError, onConfirm = {
             showPostInstallDialog = false
-            onOrtInstallErrorDismiss()
+            state.onInstallErrorDismiss()
         })
     }
-    if (showMangaJaNaiDownloadDialog) {
-        MangaJaNaiDialog(
-            downloadFlow = onMangaJaNaiDownload(),
-            onDismiss = { showMangaJaNaiDownloadDialog = false }
-        )
-    }
 
-    if (!OnnxRuntimeSharedLibraries.isAvailable) {
+    if (!isOnnxRuntimeInstalled()) {
         Text("ONNX runtime settings")
         FilledTonalButton(
             onClick = { showOrtInstallDialog = true },
             shape = RoundedCornerShape(5.dp)
         ) { Text("Download ONNX Runtime") }
 
-        if (OnnxRuntimeSharedLibraries.loadErrorMessage != null)
+        if (loadError != null)
             Text(
-                "Failed to load ONNX Runtime:\n${OnnxRuntimeSharedLibraries.loadErrorMessage}",
+                "Failed to load ONNX Runtime:\n${loadError}",
                 style = MaterialTheme.typography.bodySmall
             )
         return
     }
 
     val ortExecutionProvider = remember {
-        when (OnnxRuntimeSharedLibraries.executionProvider) {
+        when (executionProvider) {
             TENSOR_RT -> "TensorRT"
             CUDA -> "Cuda"
             ROCm -> "ROCm"
@@ -241,17 +129,127 @@ private fun OnnxRuntimeContent(
         }
     }
     Text("ONNX Runtime $ortExecutionProvider execution provider", style = MaterialTheme.typography.titleLarge)
+    OnnxRuntimeModeSelector(
+        currentMode = state.onnxRuntimeMode.collectAsState().value,
+        onModeChange = state::onOnnxRuntimeUpscaleModeChange,
+        currentModelPath = state.onnxModelPath.collectAsState().value,
+        onModelPathChange = state::onOnnxModelSelect
+    )
 
-    if (gpuInfo.isNotEmpty() && OnnxRuntimeSharedLibraries.executionProvider != CPU) {
-        val selectedDevice = remember(deviceId) { gpuInfo.find { it.id == deviceId } ?: gpuInfo.first() }
+    DeviceSelector(
+        availableDevices = state.availableDevices.collectAsState().value,
+        executionProvider = state.currentExecutionProvider,
+        currentDeviceId = state.deviceId.collectAsState().value,
+        onDeviceIdChange = state::onDeviceIdChange
+    )
+
+    TileSizeSelector(
+        tileSize = state.tileSize.collectAsState().value,
+        onTileSizeChange = state::onTileSizeChange
+    )
+
+    if (loadError != null)
+        Text(
+            "Failed to load ONNX Runtime:\n${loadError}",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        FilledTonalButton(
+            onClick = { showOrtInstallDialog = true },
+            shape = RoundedCornerShape(5.dp),
+            modifier = Modifier.cursorForHand()
+        ) { Text("Update ONNX Runtime", maxLines = 1) }
+
+        Text("Update or download another version of ONNX Runtime", style = MaterialTheme.typography.labelLarge)
+    }
+
+    HorizontalDivider()
+    MangaJaNaiSettings(
+        startDownloadFlow = state::onMangaJaNaiDownloadRequest,
+        isInstalled = state.mangaJaNaiIsInstalled.collectAsState().value
+    )
+}
+
+@Composable
+fun OnnxRuntimeModeSelector(
+    currentMode: OnnxRuntimeUpscaleMode,
+    onModeChange: (OnnxRuntimeUpscaleMode) -> Unit,
+    currentModelPath: String?,
+    onModelPathChange: (String?) -> Unit,
+) {
+    val strings = LocalStrings.current.imageSettings
+    DropdownChoiceMenu(
+        selectedOption = LabeledEntry(currentMode, strings.forOnnxRuntimeUpscaleMode(currentMode)),
+        options = remember {
+            OnnxRuntimeUpscaleMode.entries.map {
+                LabeledEntry(it, strings.forOnnxRuntimeUpscaleMode(it))
+            }
+        },
+        onOptionChange = { onModeChange(it.value) },
+        label = { Text("OnnxRuntime upscale mode") },
+        inputFieldModifier = Modifier.fillMaxSize()
+    )
+    AnimatedVisibility(currentMode == USER_SPECIFIED_MODEL) {
+        val launcher = rememberFilePickerLauncher(
+            type = PickerType.File(listOf("onnx")),
+            initialDirectory = currentModelPath?.let { Path(it).parent?.toString() },
+        ) { file -> file?.path?.let { onModelPathChange(it) } }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 10.dp)
+        ) {
+            TextField(
+                value = currentModelPath ?: "",
+                onValueChange = onModelPathChange,
+                label = { Text("ONNX model path") },
+                readOnly = true,
+                modifier = Modifier.weight(7f),
+            )
+
+            ElevatedButton(
+                onClick = { launcher.launch() },
+                modifier = Modifier.padding(horizontal = 10.dp),
+                shape = RoundedCornerShape(5.dp)
+            ) {
+                Text("Browse")
+            }
+        }
+    }
+}
+
+@Composable
+fun DeviceSelector(
+    availableDevices: List<DeviceInfo>,
+    executionProvider: OnnxRuntimeExecutionProvider,
+    currentDeviceId: Int,
+    onDeviceIdChange: (Int) -> Unit,
+) {
+    if (availableDevices.isNotEmpty() && executionProvider != CPU) {
+        val selectedDevice = remember(currentDeviceId) {
+            availableDevices.find { it.id == currentDeviceId } ?: availableDevices.first()
+        }
         DropdownChoiceMenu(
             selectedOption = LabeledEntry(selectedDevice, "${selectedDevice.name} ${selectedDevice.memoryGb()}GiB"),
-            options = remember { gpuInfo.map { LabeledEntry(it, "${it.name} ${it.memoryGb()}GiB") } },
+            options = remember { availableDevices.map { LabeledEntry(it, "${it.name} ${it.memoryGb()}GiB") } },
             onOptionChange = { onDeviceIdChange(it.value.id) },
             label = { Text("GPU") },
             inputFieldModifier = Modifier.fillMaxSize()
         )
     }
+}
+
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun TileSizeSelector(
+    tileSize: Int,
+    onTileSizeChange: (Int) -> Unit,
+) {
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -289,7 +287,7 @@ private fun OnnxRuntimeContent(
                             
                             This helps upscaling without running out of VRAM for big images
                             """.trimIndent(),
-                        modifier = Modifier.padding(10.dp)
+                        modifier = Modifier.padding(10.dp),
                     )
                 }
             },
@@ -299,47 +297,20 @@ private fun OnnxRuntimeContent(
         }
 
     }
+}
 
-
-    val launcher = rememberDirectoryPickerLauncher { directory ->
-        directory?.path?.let { onOnnxPathChange(it) }
-    }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        TextField(
-            value = onnxPath,
-            onValueChange = onOnnxPathChange,
-            label = { Text("ONNX models path") },
-            modifier = Modifier.weight(7f)
+@Composable
+private fun MangaJaNaiSettings(
+    startDownloadFlow: () -> Flow<UpdateProgress>,
+    isInstalled: Boolean,
+) {
+    var showMangaJaNaiDownloadDialog by remember { mutableStateOf(false) }
+    if (showMangaJaNaiDownloadDialog) {
+        MangaJaNaiDialog(
+            onDownloadRequest = startDownloadFlow,
+            onDismiss = { showMangaJaNaiDownloadDialog = false }
         )
-
-        ElevatedButton(
-            onClick = { launcher.launch() },
-            modifier = Modifier.padding(horizontal = 10.dp),
-            shape = RoundedCornerShape(5.dp)
-        ) {
-            Text("Browse")
-        }
     }
-
-    if (OnnxRuntimeSharedLibraries.loadErrorMessage != null)
-        Text(
-            "Failed to load ONNX Runtime:\n${OnnxRuntimeSharedLibraries.loadErrorMessage}",
-            style = MaterialTheme.typography.bodySmall
-        )
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        FilledTonalButton(
-            onClick = { showOrtInstallDialog = true },
-            shape = RoundedCornerShape(5.dp),
-            modifier = Modifier.cursorForHand()
-        ) { Text("Update ONNX Runtime", maxLines = 1) }
-
-        Text("Update or download another version of ONNX Runtime", style = MaterialTheme.typography.labelLarge)
-    }
-    HorizontalDivider()
 
     val uriHandler = LocalUriHandler.current
     Column {
@@ -348,7 +319,9 @@ private fun OnnxRuntimeContent(
             """
                 MangaJaNai is a collection of upscaling models for manga.
                 The models are mainly optimized to upscale digital manga images of Japanese or English text with height ranging from around 1200px to 2048px.
-            """.trimIndent()
+            """.trimIndent(),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 5.dp)
         )
 
         Row(
@@ -360,7 +333,7 @@ private fun OnnxRuntimeContent(
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
-                Text(if (mangaJaNaiIsDownloaded) "Re-download MangaJaNai preset" else "Download MangaJaNai preset")
+                Text(if (isInstalled) "Re-download MangaJaNai preset" else "Download MangaJaNai preset")
             }
 
             ElevatedButton(
@@ -372,7 +345,6 @@ private fun OnnxRuntimeContent(
             }
         }
     }
-
 }
 
 @Composable
@@ -455,105 +427,109 @@ private fun OrtDownloadDialogContent(
             )
         }
         val uriHandler = LocalUriHandler.current
-        CheckboxWithLabel(
-            checked = chosenProvider == CUDA,
-            onCheckedChange = { onProviderChoice(CUDA) },
-            labelAlignment = Alignment.Top,
-            label = {
-                Column {
-                    Text("Cuda (Nvidia GPUs, requires CUDA12 and cuDNN9 system install)")
-                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "download CUDA12",
-                            color = MaterialTheme.colorScheme.secondary,
-                            textDecoration = Underline,
-                            modifier = Modifier
-                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cuda-downloads") }
-                                .cursorForHand()
-                                .padding(horizontal = 5.dp),
-                        )
-                        Text(
-                            "download cuDNN9",
-                            color = MaterialTheme.colorScheme.secondary,
-                            textDecoration = Underline,
-                            modifier = Modifier
-                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
-                                .cursorForHand()
-                                .padding(horizontal = 5.dp),
-                        )
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-        CheckboxWithLabel(
-            checked = chosenProvider == TENSOR_RT,
-            onCheckedChange = { onProviderChoice(TENSOR_RT) },
-            labelAlignment = Alignment.Top,
-            label = {
-                Column {
-                    Text("TensorRT (Nvidia GPUs, requires CUDA12, cuDNN9 and TensorRT system install)")
-                    Text(
-                        "Uses TensorRT to create optimized graph engine. Takes a significant time on model first load. After initial load engine is cached for future use",
-                        style = MaterialTheme.typography.labelLarge
+        val providers = remember { supportedOnnxRuntimeExecutionProviders() }
+        providers.forEach { provider ->
+            when (provider) {
+                CUDA ->
+                    CheckboxWithLabel(
+                        checked = chosenProvider == CUDA,
+                        onCheckedChange = { onProviderChoice(CUDA) },
+                        labelAlignment = Alignment.Top,
+                        label = {
+                            Column {
+                                Text("Cuda (Nvidia GPUs, requires CUDA12 and cuDNN9 system install)")
+                                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                                    Text(
+                                        "download CUDA12",
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        textDecoration = Underline,
+                                        modifier = Modifier
+                                            .clickable { uriHandler.openUri("https://developer.nvidia.com/cuda-downloads") }
+                                            .cursorForHand()
+                                            .padding(horizontal = 5.dp),
+                                    )
+                                    Text(
+                                        "download cuDNN9",
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        textDecoration = Underline,
+                                        modifier = Modifier
+                                            .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
+                                            .cursorForHand()
+                                            .padding(horizontal = 5.dp),
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "download CUDA12",
-                            color = MaterialTheme.colorScheme.secondary,
-                            textDecoration = Underline,
-                            modifier = Modifier
-                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cuda-downloads") }
-                                .cursorForHand()
-                                .padding(horizontal = 5.dp),
-                        )
-                        Text(
-                            "download cuDNN9",
-                            color = MaterialTheme.colorScheme.secondary,
-                            textDecoration = Underline,
-                            modifier = Modifier
-                                .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
-                                .cursorForHand()
-                                .padding(horizontal = 5.dp),
-                        )
-                        Text(
-                            "download TensorRT",
-                            color = MaterialTheme.colorScheme.secondary,
-                            textDecoration = Underline,
-                            modifier = Modifier
-                                .clickable { uriHandler.openUri("https://developer.nvidia.com/tensorrt") }
-                                .cursorForHand()
-                                .padding(horizontal = 5.dp),
-                        )
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
 
-//        if (DesktopPlatform.Current == Linux)
-//            CheckboxWithLabel(
-//                checked = chosenProvider == ROCm,
-//                onCheckedChange = { onProviderChoice(ROCm) },
-//                label = { Text("ROCm (AMD GPUs, requires ROCm6 system install)") },
-//                modifier = Modifier.fillMaxWidth()
-//            )
+                TENSOR_RT -> CheckboxWithLabel(
+                    checked = chosenProvider == TENSOR_RT,
+                    onCheckedChange = { onProviderChoice(TENSOR_RT) },
+                    labelAlignment = Alignment.Top,
+                    label = {
+                        Column {
+                            Text("TensorRT (Nvidia GPUs, requires CUDA12, cuDNN9 and TensorRT system install)")
+                            Text(
+                                "Uses TensorRT to create optimized graph engine. Takes a significant time on model first load. After initial load engine is cached for future use",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    "download CUDA12",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    textDecoration = Underline,
+                                    modifier = Modifier
+                                        .clickable { uriHandler.openUri("https://developer.nvidia.com/cuda-downloads") }
+                                        .cursorForHand()
+                                        .padding(horizontal = 5.dp),
+                                )
+                                Text(
+                                    "download cuDNN9",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    textDecoration = Underline,
+                                    modifier = Modifier
+                                        .clickable { uriHandler.openUri("https://developer.nvidia.com/cudnn-downloads") }
+                                        .cursorForHand()
+                                        .padding(horizontal = 5.dp),
+                                )
+                                Text(
+                                    "download TensorRT",
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    textDecoration = Underline,
+                                    modifier = Modifier
+                                        .clickable { uriHandler.openUri("https://developer.nvidia.com/tensorrt") }
+                                        .cursorForHand()
+                                        .padding(horizontal = 5.dp),
+                                )
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        if (DesktopPlatform.Current == Windows)
-            CheckboxWithLabel(
-                checked = chosenProvider == DirectML,
-                onCheckedChange = { onProviderChoice(DirectML) },
-                label = { Text("DirectML (all GPUs)") },
-                modifier = Modifier.fillMaxWidth()
-            )
+                ROCm -> CheckboxWithLabel(
+                    checked = chosenProvider == ROCm,
+                    onCheckedChange = { onProviderChoice(ROCm) },
+                    label = { Text("ROCm (AMD GPUs, requires ROCm6 system install)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        if (DesktopPlatform.Current == Linux)
-            CheckboxWithLabel(
-                checked = chosenProvider == CPU,
-                onCheckedChange = { onProviderChoice(CPU) },
-                label = { Text("CPU") },
-                modifier = Modifier.fillMaxWidth()
-            )
+                DirectML -> CheckboxWithLabel(
+                    checked = chosenProvider == DirectML,
+                    onCheckedChange = { onProviderChoice(DirectML) },
+                    label = { Text("DirectML (all GPUs)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                CPU -> CheckboxWithLabel(
+                    checked = chosenProvider == CPU,
+                    onCheckedChange = { onProviderChoice(CPU) },
+                    label = { Text("CPU") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }
 
@@ -618,12 +594,12 @@ private fun RestartDialog(
 
 @Composable
 private fun MangaJaNaiDialog(
-    downloadFlow: Flow<UpdateProgress>,
+    onDownloadRequest: () -> Flow<UpdateProgress>,
     onDismiss: () -> Unit,
 ) {
     var progress by remember { mutableStateOf(UpdateProgress(0, 0)) }
     LaunchedEffect(Unit) {
-        downloadFlow.conflate().collect {
+        onDownloadRequest().conflate().collect {
             progress = it
             delay(100)
         }
@@ -654,6 +630,7 @@ private fun MangaJaNaiDialog(
     )
 }
 
-private fun OnnxRuntimeUpscaler.DeviceInfo.memoryGb(): String {
+
+private fun DeviceInfo.memoryGb(): String {
     return (memory / 1024.0f / 1024.0f / 1024.0f).formatDecimal(2)
 }

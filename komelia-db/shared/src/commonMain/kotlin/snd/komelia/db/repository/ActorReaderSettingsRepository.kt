@@ -1,5 +1,6 @@
 package snd.komelia.db.repository
 
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.SettingsStateActor
+import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.image.ReduceKernel
 
 class ActorReaderSettingsRepository(
     private val actor: SettingsStateActor<ImageReaderSettings>,
@@ -119,5 +122,61 @@ class ActorReaderSettingsRepository(
 
     override suspend fun putFlashWith(color: ReaderFlashColor) {
         actor.transform { it.copy(flashWith = color) }
+    }
+
+    override fun getDownsamplingKernel(): Flow<ReduceKernel> {
+        return actor.state.map { it.downsamplingKernel }.distinctUntilChanged()
+    }
+
+    override suspend fun putDownsamplingKernel(kernel: ReduceKernel) {
+        actor.transform { it.copy(downsamplingKernel = kernel) }
+    }
+
+    override fun getLinearLightDownsampling(): Flow<Boolean> {
+        return actor.state.map { it.linearLightDownsampling }.distinctUntilChanged()
+    }
+
+    override suspend fun putLinearLightDownsampling(linear: Boolean) {
+        actor.transform { it.copy(linearLightDownsampling = linear) }
+    }
+
+    override fun getUpsamplingMode(): Flow<UpsamplingMode> {
+        return actor.state.map { it.upsamplingMode }.distinctUntilChanged()
+    }
+
+    override suspend fun putUpsamplingMode(mode: UpsamplingMode) {
+        actor.transform { it.copy(upsamplingMode = mode) }
+    }
+
+    override fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode> {
+        return actor.state.map { it.onnxRuntimeMode }.distinctUntilChanged()
+    }
+
+    override suspend fun putOnnxRuntimeMode(mode: OnnxRuntimeUpscaleMode) {
+        actor.transform { it.copy(onnxRuntimeMode = mode) }
+    }
+
+    override fun getOnnxRuntimeDeviceId(): Flow<Int> {
+        return actor.state.map { it.onnxRuntimeDeviceId }.distinctUntilChanged()
+    }
+
+    override suspend fun putOnnxRuntimeDeviceId(deviceId: Int) {
+        actor.transform { it.copy(onnxRuntimeDeviceId = deviceId) }
+    }
+
+    override fun getOnnxRuntimeTileSize(): Flow<Int> {
+        return actor.state.map { it.onnxRuntimeTileSize }.distinctUntilChanged()
+    }
+
+    override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
+        actor.transform { it.copy(onnxRuntimeTileSize = tileSize) }
+    }
+
+    override fun getSelectedOnnxModel(): Flow<String?> {
+        return actor.state.map { it.onnxRuntimeModelPath }.distinctUntilChanged()
+    }
+
+    override suspend fun putSelectedOnnxModel(name: String?) {
+        actor.transform { it.copy(onnxRuntimeModelPath = name) }
     }
 }

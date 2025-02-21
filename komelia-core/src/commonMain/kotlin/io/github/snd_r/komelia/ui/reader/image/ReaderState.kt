@@ -6,13 +6,12 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
+import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.image.availableReduceKernels
+import io.github.snd_r.komelia.image.availableUpsamplingModes
 import io.github.snd_r.komelia.platform.CommonParcelable
 import io.github.snd_r.komelia.platform.CommonParcelize
 import io.github.snd_r.komelia.platform.CommonParcelizeRawValue
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.ui.BookSiblingsContext
 import io.github.snd_r.komelia.ui.LoadState
@@ -23,13 +22,11 @@ import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import snd.komelia.image.ReduceKernel
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
@@ -47,9 +44,7 @@ class ReaderState(
     private val readListClient: KomgaReadListClient,
     private val navigator: Navigator,
     private val appNotifications: AppNotifications,
-    private val settingsRepository: CommonSettingsRepository,
     private val readerSettingsRepository: ImageReaderSettingsRepository,
-    private val decoderDescriptor: Flow<PlatformDecoderDescriptor>,
     private val currentBookId: MutableStateFlow<KomgaBookId?>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
@@ -62,12 +57,17 @@ class ReaderState(
     val booksState = MutableStateFlow<BookState?>(null)
     val series = MutableStateFlow<KomgaSeries?>(null)
 
-    val currentDecoderDescriptor = MutableStateFlow<PlatformDecoderDescriptor?>(null)
-    val decoderSettings = MutableStateFlow<PlatformDecoderSettings?>(null)
+
     val readerType = MutableStateFlow(ReaderType.PAGED)
     val imageStretchToFit = MutableStateFlow(true)
     val cropBorders = MutableStateFlow(false)
     val readProgressPage = MutableStateFlow(1)
+
+    val upsamplingMode = MutableStateFlow<UpsamplingMode>(UpsamplingMode.NEAREST)
+    val downsamplingKernel = MutableStateFlow<ReduceKernel>(ReduceKernel.NEAREST)
+    val linearLightDownsampling = MutableStateFlow(false)
+    val availableUpsamplingModes = availableUpsamplingModes()
+    val availableDownsamplingKernels = availableReduceKernels()
 
     val flashOnPageChange = MutableStateFlow(false)
     val flashDuration = MutableStateFlow(100L)
@@ -75,15 +75,16 @@ class ReaderState(
     val flashWith = MutableStateFlow(ReaderFlashColor.BLACK)
 
     suspend fun initialize(bookId: KomgaBookId) {
-        decoderSettings.value = settingsRepository.getDecoderSettings().first()
+        upsamplingMode.value = readerSettingsRepository.getUpsamplingMode().first()
+        downsamplingKernel.value = readerSettingsRepository.getDownsamplingKernel().first()
+        linearLightDownsampling.value = readerSettingsRepository.getLinearLightDownsampling().first()
+
         imageStretchToFit.value = readerSettingsRepository.getStretchToFit().first()
         cropBorders.value = readerSettingsRepository.getCropBorders().first()
         flashOnPageChange.value = readerSettingsRepository.getFlashOnPageChange().first()
         flashDuration.value = readerSettingsRepository.getFlashDuration().first()
         flashEveryNPages.value = readerSettingsRepository.getFlashEveryNPages().first()
         flashWith.value = readerSettingsRepository.getFlashWith().first()
-
-        decoderDescriptor.onEach { currentDecoderDescriptor.value = it }.launchIn(stateScope)
 
         appNotifications.runCatchingToNotifications {
             state.value = LoadState.Loading
@@ -231,13 +232,6 @@ class ReaderState(
         readProgressPage.value = page
     }
 
-    fun onUpscaleMethodChange(upscaleOption: UpscaleOption) {
-        val currentDecoder = requireNotNull(this.decoderSettings.value)
-        val newDecoder = currentDecoder.copy(upscaleOption = upscaleOption)
-        this.decoderSettings.value = newDecoder
-        stateScope.launch { settingsRepository.putDecoderSettings(newDecoder) }
-    }
-
     fun onReaderTypeChange(type: ReaderType) {
         this.readerType.value = type
         stateScope.launch { readerSettingsRepository.putReaderType(type) }
@@ -271,6 +265,21 @@ class ReaderState(
     fun onFlashWithChange(flashWith: ReaderFlashColor) {
         this.flashWith.value = flashWith
         stateScope.launch { readerSettingsRepository.putFlashWith(flashWith) }
+    }
+
+    fun onUpsamplingModeChange(mode: UpsamplingMode) {
+        upsamplingMode.value = mode
+        stateScope.launch { readerSettingsRepository.putUpsamplingMode(mode) }
+    }
+
+    fun onDownsamplingKernelChange(kernel: ReduceKernel) {
+        downsamplingKernel.value = kernel
+        stateScope.launch { readerSettingsRepository.putDownsamplingKernel(kernel) }
+    }
+
+    fun onLinearLightDownsamplingChange(linear: Boolean) {
+        linearLightDownsampling.value = linear
+        stateScope.launch { readerSettingsRepository.putLinearLightDownsampling(linear) }
     }
 
     fun onDispose() {

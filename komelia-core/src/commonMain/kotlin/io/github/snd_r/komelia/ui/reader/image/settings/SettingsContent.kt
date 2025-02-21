@@ -37,6 +37,7 @@ import io.github.snd_r.komelia.ui.reader.image.common.PageSpreadProgressSlider
 import io.github.snd_r.komelia.ui.reader.image.common.ProgressSlider
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -45,6 +46,7 @@ fun BoxScope.SettingsOverlay(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
     screenScaleState: ScreenScaleState,
     isColorCorrectionsActive: Boolean,
     onColorCorrectionClick: () -> Unit,
@@ -58,8 +60,11 @@ fun BoxScope.SettingsOverlay(
     val readerType = commonReaderState.readerType.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
     val zoom = screenScaleState.zoom.collectAsState().value
-    val decoder = commonReaderState.decoderSettings.collectAsState().value
-    val decoderDescriptor = commonReaderState.currentDecoderDescriptor.collectAsState().value
+    val availableUpsamplingModes = commonReaderState.availableUpsamplingModes
+    val upsamplingMode = commonReaderState.upsamplingMode.collectAsState().value
+    val availableDownsamplingKernels = commonReaderState.availableDownsamplingKernels
+    val downsamplingKernel = commonReaderState.downsamplingKernel.collectAsState().value
+    val linearLightDownsampling = commonReaderState.linearLightDownsampling.collectAsState().value
     val stretchToFit = commonReaderState.imageStretchToFit.collectAsState().value
     val cropBorders = commonReaderState.cropBorders.collectAsState().value
     val flashEnabled = commonReaderState.flashOnPageChange.collectAsState().value
@@ -74,9 +79,14 @@ fun BoxScope.SettingsOverlay(
             onReaderTypeChange = commonReaderState::onReaderTypeChange,
             isColorCorrectionsActive = isColorCorrectionsActive,
             onColorCorrectionClick = onColorCorrectionClick,
-            decoder = decoder,
-            decoderDescriptor = decoderDescriptor,
-            onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
+            availableUpsamplingModes = availableUpsamplingModes,
+            upsamplingMode = upsamplingMode,
+            onUpsamplingModeChange = commonReaderState::onUpsamplingModeChange,
+            availableDownsamplingKernels = availableDownsamplingKernels,
+            downsamplingKernel = downsamplingKernel,
+            onDownsamplingKernelChange = commonReaderState::onDownsamplingKernelChange,
+            linearLightDownsampling = linearLightDownsampling,
+            onLinearLightDownsamplingChange = commonReaderState::onLinearLightDownsamplingChange,
             stretchToFit = stretchToFit,
             onStretchToFitChange = commonReaderState::onStretchToFitChange,
             cropBorders = cropBorders,
@@ -103,9 +113,14 @@ fun BoxScope.SettingsOverlay(
             onReaderTypeChange = commonReaderState::onReaderTypeChange,
             isColorCorrectionsActive = isColorCorrectionsActive,
             onColorCorrectionClick = onColorCorrectionClick,
-            decoder = decoder,
-            decoderDescriptor = decoderDescriptor,
-            onUpscaleMethodChange = commonReaderState::onUpscaleMethodChange,
+            availableUpsamplingModes = availableUpsamplingModes,
+            upsamplingMode = upsamplingMode,
+            onUpsamplingModeChange = commonReaderState::onUpsamplingModeChange,
+            availableDownsamplingKernels = availableDownsamplingKernels,
+            downsamplingKernel = downsamplingKernel,
+            onDownsamplingKernelChange = commonReaderState::onDownsamplingKernelChange,
+            linearLightDownsampling = linearLightDownsampling,
+            onLinearLightDownsamplingChange = commonReaderState::onLinearLightDownsamplingChange,
             stretchToFit = stretchToFit,
             onStretchToFitChange = commonReaderState::onStretchToFitChange,
             cropBorders = cropBorders,
@@ -125,6 +140,8 @@ fun BoxScope.SettingsOverlay(
 
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+            onnxRuntimeSettingsState = onnxRuntimeSettingsState,
+
             onBackPress = onBackPress,
             onShowHelpMenu = { ohShowHelpDialogChange(true) },
         )
@@ -180,8 +197,6 @@ fun PagedReaderPagesInfo(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
-        HorizontalDivider(Modifier.padding(vertical = 5.dp))
-
         val readerStrings = LocalStrings.current.reader
         spread.pages.forEach { page ->
             val pageImage = page.imageResult?.image
@@ -225,7 +240,6 @@ fun ContinuousReaderPagesInfo(
 
     val readerStrings = LocalStrings.current.reader
     Column(modifier) {
-        HorizontalDivider(Modifier.padding(vertical = 5.dp))
         for ((page, image) in visiblePages) {
             Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
 

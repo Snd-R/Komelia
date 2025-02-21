@@ -17,7 +17,7 @@ void add_to_jvm_list(JNIEnv *env, jobject list, struct DeviceInfo device_info) {
       (*env)->GetMethodID(env, array_list_class, "add", "(Ljava/lang/Object;)Z");
 
   jclass device_info_class =
-      (*env)->FindClass(env, "snd/komelia/image/OnnxRuntimeUpscaler$DeviceInfo");
+      (*env)->FindClass(env, "snd/komelia/image/OnnxRuntime$DeviceInfo");
   jmethodID device_info_constructor =
       (*env)->GetMethodID(env, device_info_class, "<init>", "(Ljava/lang/String;IJ)V");
 

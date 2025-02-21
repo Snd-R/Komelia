@@ -1,0 +1,50 @@
+Subject: [PATCH] vips_thumbnail resampling kernel
+---
+Index: libvips/resample/thumbnail.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
+--- a/libvips/resample/thumbnail.c	(revision ee7f8774c2b327e6097babfb7eade0177f98aa5e)
++++ b/libvips/resample/thumbnail.c	(date 1739963516336)
+@@ -153,6 +153,8 @@
+ 	 */
+ 	gboolean page_pyramid;
+ 
++	VipsKernel kernel;
++
+ } VipsThumbnail;
+ 
+ typedef struct _VipsThumbnailClass {
+@@ -811,7 +813,7 @@
+ 		in = t[4];
+ 	}
+ 
+-	if (vips_resize(in, &t[5], 1.0 / hshrink, "vscale", 1.0 / vshrink, NULL))
++	if (vips_resize(in, &t[5], 1.0 / hshrink, "vscale", 1.0 / vshrink, "kernel", thumbnail->kernel, NULL))
+ 		return -1;
+ 	in = t[5];
+ 
+@@ -1052,6 +1054,13 @@
+ 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+ 		G_STRUCT_OFFSET(VipsThumbnail, auto_rotate),
+ 		TRUE);
++
++	VIPS_ARG_ENUM(class, "kernel", 999,
++		_("Kernel"),
++		_("Resampling kernel"),
++		VIPS_ARGUMENT_OPTIONAL_INPUT,
++		G_STRUCT_OFFSET(VipsThumbnail, kernel),
++		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3);
+ }
+ 
+ static void
+@@ -1062,6 +1071,7 @@
+ 	thumbnail->auto_rotate = TRUE;
+ 	thumbnail->intent = VIPS_INTENT_RELATIVE;
+ 	thumbnail->fail_on = VIPS_FAIL_ON_NONE;
++	thumbnail->kernel = VIPS_KERNEL_LANCZOS3;
+ }
+ 
+ typedef struct _VipsThumbnailFile {

@@ -16,6 +16,7 @@ import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.AndroidReaderImageFactory
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
@@ -44,7 +45,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.io.files.Path
@@ -136,12 +136,11 @@ suspend fun initDependencies(
         cropBorders = imageReaderSettingsRepository.getCropBorders().stateIn(initScope),
         colorCorrectionStep = colorCorrectionStep
     )
-    val stretchImages = imageReaderSettingsRepository.getStretchToFit().stateIn(initScope)
-    val readerImageFactory = AndroidReaderImageFactory(
-        processingPipeline = imagePipeline,
-        stretchImages = stretchImages,
+    val readerImageFactory = createReaderImageFactory(
+        imagePreprocessingPipeline = imagePipeline,
+        settings = imageReaderSettingsRepository,
+        stateFlowScope = initScope
     )
-
 
     val vipsDecoder = VipsImageDecoder()
     val readerImageLoader = createReaderImageLoader(
@@ -177,7 +176,6 @@ suspend fun initDependencies(
         secretsRepository = secretsRepository,
 
         appUpdater = appUpdater,
-        imageDecoderDescriptor = emptyFlow(),
         komgaClientFactory = komgaClientFactory,
         coilImageLoader = coil,
         platformContext = context,
@@ -308,12 +306,7 @@ private suspend fun createCommonSettingsRepository(database: KomeliaDatabase): C
     val repository = ExposedSettingsRepository(database.database)
 
     val stateActor = SettingsStateActor(
-        settings = repository.get()
-            ?: AppSettings(
-                cardWidth = 150,
-                upscaleOption = "Default",
-                downscaleOption = "Default"
-            ),
+        settings = repository.get() ?: AppSettings(cardWidth = 150),
         saveSettings = repository::save
     )
     return ActorSettingsRepository(stateActor)
@@ -322,7 +315,7 @@ private suspend fun createCommonSettingsRepository(database: KomeliaDatabase): C
 private suspend fun createImageReaderSettingsRepository(database: KomeliaDatabase): ImageReaderSettingsRepository {
     val repository = ExposedImageReaderSettingsRepository(database.database)
     val stateActor = SettingsStateActor(
-        settings = repository.get() ?: ImageReaderSettings(),
+        settings = repository.get() ?: ImageReaderSettings(upsamplingMode = UpsamplingMode.BILINEAR),
         saveSettings = repository::save
     )
     return ActorReaderSettingsRepository(stateActor)
@@ -335,4 +328,18 @@ private suspend fun createEpubReaderSettings(database: KomeliaDatabase): EpubRea
         saveSettings = repository::save
     )
     return ActorEpubReaderSettingsRepository(stateActor)
+}
+
+private suspend fun createReaderImageFactory(
+    imagePreprocessingPipeline: ImageProcessingPipeline,
+    settings: ImageReaderSettingsRepository,
+    stateFlowScope: CoroutineScope,
+): AndroidReaderImageFactory {
+    return AndroidReaderImageFactory(
+        downSamplingKernel = settings.getDownsamplingKernel().stateIn(stateFlowScope),
+        upsamplingMode = settings.getUpsamplingMode().stateIn(stateFlowScope),
+        linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),
+        processingPipeline = imagePreprocessingPipeline,
+        stretchImages = settings.getStretchToFit().stateIn(stateFlowScope),
+    )
 }

@@ -1,27 +1,18 @@
 package io.github.snd_r.komelia.ui.reader.image.paged
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
@@ -30,12 +21,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.ui.LocalKeyEvents
-import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.PagedReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
+import io.github.snd_r.komelia.ui.reader.image.common.ReaderImageContent
 import io.github.snd_r.komelia.ui.reader.image.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.Page
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
@@ -163,7 +153,7 @@ private fun TransitionPage(page: TransitionPage) {
 
 @Composable
 private fun SinglePageLayout(page: Page) {
-    Layout(content = { PageContent(page.imageResult) }) { measurable, constraints ->
+    Layout(content = { ReaderImageContent(page.imageResult) }) { measurable, constraints ->
         val placeable = measurable.first().measure(constraints)
         val startPadding = (constraints.maxWidth - placeable.width) / 2
         val topPadding = ((constraints.maxHeight - placeable.height) / 2).coerceAtLeast(0)
@@ -181,10 +171,10 @@ private fun DoublePageLayout(
     Layout(content = {
         when (pages.size) {
             0 -> {}
-            1 -> PageContent(pages.first().imageResult)
+            1 -> ReaderImageContent(pages.first().imageResult)
             2 -> {
-                PageContent(pages[0].imageResult)
-                PageContent(pages[1].imageResult)
+                ReaderImageContent(pages[0].imageResult)
+                ReaderImageContent(pages[1].imageResult)
             }
 
             else -> error("can't display more than 2 images")
@@ -218,50 +208,6 @@ private fun DoublePageLayout(
             }
         }
     }
-}
-
-@Composable
-private fun PageContent(imageResult: ReaderImageResult?) {
-    when (imageResult) {
-        is ReaderImageResult.Success -> PageImageContent(imageResult.image)
-        is ReaderImageResult.Error -> Text(
-            "${imageResult.throwable::class.simpleName}: ${imageResult.throwable.message}",
-            color = MaterialTheme.colorScheme.error
-        )
-
-        null -> Box(
-            modifier = Modifier.widthIn(min = 200.dp).fillMaxHeight(),
-            contentAlignment = Alignment.Center,
-            content = { CircularProgressIndicator() }
-        )
-    }
-}
-
-@Composable
-private fun PageImageContent(image: ReaderImage) {
-    // reimplement collectAsState and call remember with image key,
-    // this avoids unnecessary recomposition and flickering caused by attempt to render old value on image change
-    // without remember key, old painter value is remembered until new value is collected from flow
-
-    // could've been avoided by extracting flow collection to the top ancestor
-    // and just accepting painter as function param here
-    val painter = remember(image) { mutableStateOf(image.painter.value) }
-    LaunchedEffect(image.painter) { image.painter.collect { painter.value = it } }
-
-    val error = image.error.collectAsState().value
-    if (error != null) {
-        Text(
-            "${error::class.simpleName}: ${error.message}",
-            color = MaterialTheme.colorScheme.error
-        )
-    } else {
-        Image(
-            modifier = Modifier.background(Color.White),
-            painter = painter.value,
-            contentDescription = null,
-        )
-    }
-
 }
 
 private suspend fun registerPagedReaderKeyboardEvents(

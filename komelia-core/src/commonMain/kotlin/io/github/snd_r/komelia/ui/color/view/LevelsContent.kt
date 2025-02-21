@@ -174,7 +174,7 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = lowValue.toFloat(),
             onvValueChange = { onLowValueChange(it.toInt()) },
-            label = "Low",
+            label = { Text("Low") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -184,7 +184,7 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = gammaValue,
             onvValueChange = onGammaValueChange,
-            label = "Gamma",
+            label = { Text("Gamma") },
             stepSize = 0.01f,
             minValue = 0.1f,
             maxValue = 10f,
@@ -194,7 +194,7 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
             onvValueChange = { onHighValueChange(it.toInt()) },
-            label = "High",
+            label = { Text("High") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -218,7 +218,7 @@ private fun OutputFields(
         NumberFieldWithIncrements(
             value = lowValue.toFloat(),
             onvValueChange = { onLowValueChange(it.toInt()) },
-            label = "Low",
+            label = { Text("Low") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -229,7 +229,7 @@ private fun OutputFields(
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
             onvValueChange = { onHighValueChange(it.toInt()) },
-            label = "High",
+            label = { Text("High") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,

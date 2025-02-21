@@ -1,5 +1,7 @@
 package snd.komelia.image
 
+import snd.komelia.image.OnnxRuntime.DeviceInfo
+
 object OnnxRuntimeUpscaler {
     external fun init(provider: String)
 
@@ -14,12 +16,6 @@ object OnnxRuntimeUpscaler {
     external fun closeCurrentSession()
 
     external fun upscale(image: VipsImage): VipsImage
-
-    data class DeviceInfo(
-        val name: String,
-        val id: Int,
-        val memory: Long,
-    )
 
     class OrtException : RuntimeException {
         constructor() : super()

@@ -17,7 +17,7 @@ class BookImageLoader(
     private val bookClient: KomgaBookClient,
     private val decoder: ImageDecoder,
     //TODO consider non coil disk cache implementation?
-    private val diskCache: DiskCache?,
+    val diskCache: DiskCache?,
 ) {
 
     suspend fun loadImage(bookId: KomgaBookId, page: Int): ImageResult {

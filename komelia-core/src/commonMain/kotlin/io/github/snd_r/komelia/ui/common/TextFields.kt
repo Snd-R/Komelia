@@ -367,7 +367,7 @@ fun NumberField(
 fun NumberFieldWithIncrements(
     value: Float?,
     onvValueChange: (Float) -> Unit,
-    label: String,
+    label: @Composable (() -> Unit)? = null,
     stepSize: Float,
     minValue: Float,
     maxValue: Float,
@@ -393,7 +393,7 @@ fun NumberFieldWithIncrements(
                 }
             },
             enabled = value != null,
-            label = { Text(label) },
+            label = label,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f, false)
         )

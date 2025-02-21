@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.DesktopReaderImageFactory
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
@@ -26,12 +27,6 @@ import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.image.processing.CropBordersStep
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import io.github.snd_r.komelia.platform.AwtWindowState
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.platform.UpscaleOption
-import io.github.snd_r.komelia.platform.mangaJaNai
-import io.github.snd_r.komelia.platform.skiaSamplerCatmullRom
-import io.github.snd_r.komelia.platform.upsamplingFilters
-import io.github.snd_r.komelia.platform.vipsDownscaleLanczos
 import io.github.snd_r.komelia.secrets.AppKeyring
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
@@ -40,8 +35,8 @@ import io.github.snd_r.komelia.settings.KeyringSecretsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.error.NonRestartableException
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
-import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
-import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
+import io.github.snd_r.komelia.updates.DesktopMangaJaNaiDownloader
+import io.github.snd_r.komelia.updates.DesktopOnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateClient
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -52,13 +47,8 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
@@ -89,11 +79,10 @@ import snd.komelia.image.VipsSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.webview.WebviewSharedLibraries
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 import kotlin.io.path.createDirectories
-import kotlin.io.path.isDirectory
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
@@ -131,7 +120,7 @@ suspend fun initDependencies(
 
     val database = KomeliaDatabase(AppDirectories.databaseFile.toString())
     val settingsRepository = createCommonSettingsRepository(database)
-    val imageReadRepository = createImageReaderSettingsRepository(database)
+    val imageReaderRepository = createImageReaderSettingsRepository(database)
     val epubReaderSettingsRepository = createEpubReaderSettings(database)
     val fontsRepository = ExposedUserFontsRepository(database.database)
     val colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(database.database)
@@ -142,7 +131,6 @@ suspend fun initDependencies(
 
     val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
     val komfUrl = settingsRepository.getKomfUrl().stateIn(initScope)
-    val decoderSettings = settingsRepository.getDecoderSettings().stateIn(initScope)
 
     val okHttpWithoutCache = createOkHttpClient()
     val okHttpWithCache = okHttpWithoutCache.newBuilder()
@@ -171,8 +159,8 @@ suspend fun initDependencies(
         }
     )
     val appUpdater = DesktopAppUpdater(updateClient)
-    val onnxRuntimeInstaller = OnnxRuntimeInstaller(updateClient)
-    val mangaJaNaiDownloader = MangaJaNaiDownloader(updateClient, notifications)
+    val onnxRuntimeInstaller = DesktopOnnxRuntimeInstaller(updateClient)
+    val mangaJaNaiDownloader = DesktopMangaJaNaiDownloader(updateClient, notifications)
 
     val vipsDecoder = VipsImageDecoder()
 
@@ -184,19 +172,17 @@ suspend fun initDependencies(
         tempDir = coilCachePath.createDirectories()
     )
 
-    val onnxUpscaler = createOnnxRuntimeUpscaler(settingsRepository)
+    val onnxUpscaler = createOnnxRuntimeUpscaler(imageReaderRepository)
     val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
     val imagePipeline = createImagePipeline(
-        cropBorders = imageReadRepository.getCropBorders().stateIn(initScope),
+        cropBorders = imageReaderRepository.getCropBorders().stateIn(initScope),
         colorCorrectionStep = colorCorrectionStep
     )
-    val stretchImages = imageReadRepository.getStretchToFit().stateIn(initScope)
-    val readerImageFactory = DesktopReaderImageFactory(
-        upscaleOptionFlow = decoderSettings.map { it.upscaleOption }.stateIn(initScope),
-        processingPipeline = imagePipeline,
-        stretchImages = stretchImages,
-        onnxUpscaler = onnxUpscaler,
-        showDebugGrid = settingsRepository.getImageReaderShowDebugGrid().stateIn(initScope),
+    val readerImageFactory = createReaderImageFactory(
+        imagePreprocessingPipeline = imagePipeline,
+        onnxRuntimeUpscaler = onnxUpscaler,
+        settings = imageReaderRepository,
+        stateFlowScope = initScope
     )
 
     val readerImageLoader = createReaderImageLoader(
@@ -206,11 +192,6 @@ suspend fun initDependencies(
         vipsDecoder = vipsDecoder
     )
 
-    val availableDecoders = createAvailableDecodersFlow(
-        settingsRepository,
-        mangaJaNaiDownloader,
-        initScope
-    )
     val komfClientFactory = KomfClientFactory.Builder()
         .baseUrl { komfUrl.value }
         .ktor(ktorWithCache)
@@ -219,7 +200,7 @@ suspend fun initDependencies(
     return DesktopDependencyContainer(
         settingsRepository = settingsRepository,
         epubReaderSettingsRepository = epubReaderSettingsRepository,
-        imageReaderSettingsRepository = imageReadRepository,
+        imageReaderSettingsRepository = imageReaderRepository,
         fontsRepository = fontsRepository,
         colorCurvesPresetsRepository = colorCurvesPresetsRepository,
         colorLevelsPresetRepository = colorLevelsPresetsRepository,
@@ -229,16 +210,16 @@ suspend fun initDependencies(
         komgaClientFactory = komgaClientFactory,
         appUpdater = appUpdater,
         coilImageLoader = coil,
-        imageDecoderDescriptor = availableDecoders,
         bookImageLoader = readerImageLoader,
         readerImageFactory = readerImageFactory,
         appNotifications = notifications,
         komfClientFactory = komfClientFactory,
-        onnxRuntimeInstaller = onnxRuntimeInstaller,
         windowState = windowState,
-        mangaJaNaiDownloader = mangaJaNaiDownloader,
         imageDecoder = vipsDecoder,
-        colorCorrectionStep = colorCorrectionStep
+        colorCorrectionStep = colorCorrectionStep,
+        mangaJaNaiDownloader = mangaJaNaiDownloader,
+        onnxRuntimeInstaller = onnxRuntimeInstaller,
+        onnxRuntime = onnxUpscaler,
     )
 }
 
@@ -251,11 +232,14 @@ private fun checkVipsLibraries() {
     SkiaBitmap.load()
 }
 
-private fun createOnnxRuntimeUpscaler(settingsRepository: CommonSettingsRepository): ManagedOnnxUpscaler? {
+private fun createOnnxRuntimeUpscaler(settingsRepository: ImageReaderSettingsRepository): ManagedOnnxUpscaler? {
     return measureTimedValue {
         try {
             OnnxRuntimeSharedLibraries.load()
-            ManagedOnnxUpscaler(settingsRepository).also { it.initialize() }
+            ManagedOnnxUpscaler(settingsRepository).also {
+                it.initialize()
+                Runtime.getRuntime().addShutdownHook(thread(start = false) { it.clearCache() })
+            }
         } catch (e: UnsatisfiedLinkError) {
             logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
             null
@@ -409,71 +393,12 @@ private fun createSecretsRepository(): KeyringSecretsRepository {
         .value
 }
 
-private suspend fun createAvailableDecodersFlow(
-    settingsRepository: CommonSettingsRepository,
-    mangaJaNaiDownloader: MangaJaNaiDownloader,
-    scope: CoroutineScope
-): Flow<PlatformDecoderDescriptor> {
-    val decoderFlow: Flow<PlatformDecoderDescriptor> =
-        if (OnnxRuntimeSharedLibraries.isAvailable) {
-            settingsRepository.getOnnxModelsPath()
-                .combine(mangaJaNaiDownloader.downloadCompletionEventFlow) { path, _ -> path }
-                .map { createVipsOrtDescriptor(Path.of(it)) }
-                .stateIn(scope)
-        } else {
-            MutableStateFlow(
-                PlatformDecoderDescriptor(
-                    upscaleOptions = upsamplingFilters,
-                    downscaleOptions = listOf(vipsDownscaleLanczos),
-                )
-            )
-        }
-
-    decoderFlow.onEach { currentDescriptor ->
-        val current = settingsRepository.getDecoderSettings().first()
-        if (!currentDescriptor.upscaleOptions.contains(current.upscaleOption)) {
-            settingsRepository.putDecoderSettings(current.copy(upscaleOption = currentDescriptor.upscaleOptions.first()))
-        }
-    }.launchIn(scope)
-
-    return decoderFlow
-}
-
-private fun createVipsOrtDescriptor(modelsPath: Path): PlatformDecoderDescriptor {
-    val defaultOptions =
-        if (AppDirectories.containsMangaJaNaiModels())
-            upsamplingFilters + mangaJaNai
-        else upsamplingFilters
-
-    try {
-        val models = Files.list(modelsPath)
-            .filter { !it.isDirectory() }
-            .map { it.fileName.toString() }
-            .filter { it.endsWith(".onnx") }
-            .sorted()
-            .toList()
-        return PlatformDecoderDescriptor(
-            upscaleOptions = defaultOptions + models.map { UpscaleOption(it) },
-            downscaleOptions = listOf(vipsDownscaleLanczos),
-        )
-    } catch (e: java.nio.file.NoSuchFileException) {
-        return PlatformDecoderDescriptor(
-            upscaleOptions = defaultOptions,
-            downscaleOptions = listOf(vipsDownscaleLanczos),
-        )
-    }
-
-}
-
 private suspend fun createCommonSettingsRepository(database: KomeliaDatabase): CommonSettingsRepository {
     val repository = ExposedSettingsRepository(database.database)
 
     val stateActor = SettingsStateActor(
         settings = repository.get()
-            ?: AppSettings(
-                upscaleOption = skiaSamplerCatmullRom.value,
-                downscaleOption = vipsDownscaleLanczos.value
-            ),
+            ?: AppSettings(),
         saveSettings = repository::save
     )
     return ActorSettingsRepository(stateActor)
@@ -482,7 +407,7 @@ private suspend fun createCommonSettingsRepository(database: KomeliaDatabase): C
 private suspend fun createImageReaderSettingsRepository(database: KomeliaDatabase): ImageReaderSettingsRepository {
     val repository = ExposedImageReaderSettingsRepository(database.database)
     val stateActor = SettingsStateActor(
-        settings = repository.get() ?: ImageReaderSettings(),
+        settings = repository.get() ?: ImageReaderSettings(upsamplingMode = UpsamplingMode.CATMULL_ROM),
         saveSettings = repository::save
     )
     return ActorReaderSettingsRepository(stateActor)
@@ -495,4 +420,20 @@ private suspend fun createEpubReaderSettings(database: KomeliaDatabase): EpubRea
         saveSettings = repository::save
     )
     return ActorEpubReaderSettingsRepository(stateActor)
+}
+
+private suspend fun createReaderImageFactory(
+    imagePreprocessingPipeline: ImageProcessingPipeline,
+    onnxRuntimeUpscaler: ManagedOnnxUpscaler?,
+    settings: ImageReaderSettingsRepository,
+    stateFlowScope: CoroutineScope,
+): DesktopReaderImageFactory {
+    return DesktopReaderImageFactory(
+        downSamplingKernel = settings.getDownsamplingKernel().stateIn(stateFlowScope),
+        upsamplingMode = settings.getUpsamplingMode().stateIn(stateFlowScope),
+        linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),
+        processingPipeline = imagePreprocessingPipeline,
+        stretchImages = settings.getStretchToFit().stateIn(stateFlowScope),
+        onnxUpscaler = onnxRuntimeUpscaler,
+    )
 }

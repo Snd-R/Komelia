@@ -13,7 +13,7 @@ interface ReaderImage : AutoCloseable {
     val originalSize: StateFlow<IntSize>
     val displaySize: StateFlow<IntSize?>
     val currentSize: StateFlow<IntSize?>
-    val painter: StateFlow<Painter>
+    val painter: StateFlow<Painter?>
     val error: StateFlow<Throwable?>
 
     fun calculateSizeForArea(maxDisplaySize: IntSize, allowUpscale: Boolean): IntSize {

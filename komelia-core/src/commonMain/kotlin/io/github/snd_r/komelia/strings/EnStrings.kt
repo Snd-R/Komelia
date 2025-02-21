@@ -260,4 +260,27 @@ val EnStrings = AppStrings(
             providerViz = "Viz",
         )
     ),
+    imageSettings = ImageSettingsStrings(
+        upsamplingMode = "Upsamling mode",
+        upsamplingModeNearest = "Nearest neighbour",
+        upsamplingModeBilinear = "Bilinear",
+        upsamplingModeMitchell = "Bicubic Mitchell",
+        upsamplingModeCatmullRom = "Bicubic Catmull-Rom",
+        downsamplingKernel = "Downsampling kernel",
+        downsamplingKernelNearest = "Nearest neighbour",
+        downsamplingKernelLinear = "Linear",
+        downsamplingKernelCubic = "Cubic",
+        downsamplingKernelMitchell = "Mitchell",
+        downsamplingKernelLanczos2 = "Lanczos2",
+        downsamplingKernelLanczos3 = "Lanczos3",
+        downsamplingKernelMKS2013 = "Magic Kernel Sharp 2013",
+        downsamplingKernelMKS2021 = "Magic Kernel Sharp 2021",
+        downsamplingKernelDefault = "Default",
+        onnxRuntimeExecutionProvider = "Onnx Runtime execution provider",
+
+        onnxRuntimeUpscaleMode = "Onnx Runtime upscale mode",
+        onnxRuntimeUpscaleModeNone = "Disabled",
+        onnxRuntimeUpscaleModeUserModel = "User specified model",
+        onnxRuntimeUpscaleModeMangaJaNai = "MangaJaNai preset"
+    ),
 )

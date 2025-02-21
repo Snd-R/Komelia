@@ -1,5 +1,6 @@
 package snd.komelia.db.settings
 
+import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
@@ -12,6 +13,8 @@ import snd.komelia.db.ExposedRepository
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.defaultBookId
 import snd.komelia.db.tables.ImageReaderSettingsTable
+import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.image.ReduceKernel
 
 class ExposedImageReaderSettingsRepository(database: Database) : ExposedRepository(database) {
 
@@ -35,6 +38,13 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         flashDuration = it[ImageReaderSettingsTable.flashDuration],
                         flashEveryNPages = it[ImageReaderSettingsTable.flashEveryNPages],
                         flashWith = ReaderFlashColor.valueOf(it[ImageReaderSettingsTable.flashWith]),
+                        downsamplingKernel = ReduceKernel.valueOf(it[ImageReaderSettingsTable.downsamplingKernel]),
+                        linearLightDownsampling = it[ImageReaderSettingsTable.linearLightDownsampling],
+                        upsamplingMode = UpsamplingMode.valueOf(it[ImageReaderSettingsTable.upsamplingMode]),
+                        onnxRuntimeMode = OnnxRuntimeUpscaleMode.valueOf(it[ImageReaderSettingsTable.onnxRuntimeMode]),
+                        onnxRuntimeModelPath = it[ImageReaderSettingsTable.onnxRuntimeModelPath],
+                        onnxRuntimeDeviceId = it[ImageReaderSettingsTable.onnxRuntimeDeviceId],
+                        onnxRuntimeTileSize = it[ImageReaderSettingsTable.onnxRuntimeTileSize],
                     )
                 }
         }
@@ -57,6 +67,13 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[flashDuration] = settings.flashDuration
                 it[flashEveryNPages] = settings.flashEveryNPages
                 it[flashWith] = settings.flashWith.name
+                it[downsamplingKernel] = settings.downsamplingKernel.name
+                it[linearLightDownsampling] = settings.linearLightDownsampling
+                it[upsamplingMode] = settings.upsamplingMode.name
+                it[onnxRuntimeMode] = settings.onnxRuntimeMode.name
+                it[onnxRuntimeModelPath] = settings.onnxRuntimeModelPath
+                it[onnxRuntimeDeviceId] = settings.onnxRuntimeDeviceId
+                it[onnxRuntimeTileSize] = settings.onnxRuntimeTileSize
             }
         }
     }

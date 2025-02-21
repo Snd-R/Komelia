@@ -38,6 +38,7 @@ import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderContent
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.reader.image.settings.SettingsOverlay
+import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
@@ -45,6 +46,7 @@ fun ReaderContent(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
     screenScaleState: ScreenScaleState,
 
     isColorCorrectionActive: Boolean,
@@ -115,6 +117,7 @@ fun ReaderContent(
             commonReaderState = commonReaderState,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+            onnxRuntimeSettingsState = onnxRuntimeSettingsState,
             screenScaleState = screenScaleState,
             isColorCorrectionsActive = isColorCorrectionActive,
             onColorCorrectionClick = onColorCorrectionClick,

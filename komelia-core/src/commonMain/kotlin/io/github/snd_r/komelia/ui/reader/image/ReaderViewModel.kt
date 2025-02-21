@@ -7,8 +7,6 @@ import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.ReaderImageFactory
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.ui.BookSiblingsContext
@@ -17,6 +15,7 @@ import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,6 +27,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
+import snd.komelia.image.OnnxRuntime
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.readlist.KomgaReadListClient
@@ -41,14 +41,13 @@ class ReaderViewModel(
     readListClient: KomgaReadListClient,
     navigator: Navigator,
     appNotifications: AppNotifications,
-    settingsRepository: CommonSettingsRepository,
     readerSettingsRepository: ImageReaderSettingsRepository,
     imageLoader: BookImageLoader,
-    decoderDescriptor: Flow<PlatformDecoderDescriptor>,
     appStrings: Flow<AppStrings>,
     readerImageFactory: ReaderImageFactory,
     markReadProgress: Boolean,
     currentBookId: MutableStateFlow<KomgaBookId?>,
+    onnxRuntime: OnnxRuntime?,
     val colorCorrectionIsActive: Flow<Boolean>,
     private val bookSiblingsContext: BookSiblingsContext,
 ) : ScreenModel {
@@ -58,15 +57,24 @@ class ReaderViewModel(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
+    val onnxRuntimeSettingsState = onnxRuntime?.let {
+        OnnxRuntimeSettingsState(
+            onnxRuntime = onnxRuntime,
+            onnxRuntimeInstaller = null,
+            mangaJaNaiDownloader = null,
+            appNotifications = appNotifications,
+            settingsRepository = readerSettingsRepository,
+            coroutineScope = screenModelScope,
+        )
+    }
+
     val readerState: ReaderState = ReaderState(
         bookClient = bookClient,
         seriesClient = seriesClient,
         readListClient = readListClient,
         navigator = navigator,
         appNotifications = appNotifications,
-        settingsRepository = settingsRepository,
         readerSettingsRepository = readerSettingsRepository,
-        decoderDescriptor = decoderDescriptor,
         currentBookId = currentBookId,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,

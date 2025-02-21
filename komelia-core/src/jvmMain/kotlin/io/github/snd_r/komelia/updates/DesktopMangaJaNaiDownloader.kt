@@ -25,14 +25,16 @@ import kotlin.io.path.outputStream
 
 private const val downloadLink = "https://github.com/Snd-R/mangajanai/releases/download/1.0.0/MangaJaNaiOnnxModels.zip"
 
-class MangaJaNaiDownloader(
+class DesktopMangaJaNaiDownloader(
     private val updateClient: UpdateClient,
     private val appNotifications: AppNotifications
-) {
-    val downloadCompletionEventFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-        .also { it.tryEmit(Unit) }
+) : MangaJaNaiDownloader {
+    override val downloadCompletionEventFlow = MutableSharedFlow<Unit>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    ).also { it.tryEmit(Unit) }
 
-    fun download(): Flow<UpdateProgress> {
+    override fun download(): Flow<UpdateProgress> {
         return flow {
             if (mangaJaNaiInstallPath.notExists()) {
                 mangaJaNaiInstallPath.createDirectories()

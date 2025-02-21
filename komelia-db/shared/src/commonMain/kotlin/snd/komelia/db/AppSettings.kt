@@ -23,17 +23,7 @@ data class AppSettings(
     val updateLastCheckedReleaseVersion: AppVersion? = null,
     val updateDismissedVersion: AppVersion? = null,
 
-    val upscaleOption: String,
-    val downscaleOption: String,
-
-    val onnxModelsPath: String = "/",
-    val onnxRuntimeDeviceId: Int = 0,
-    val onnxRuntimeTileSize: Int = 512,
-
-
     val komfEnabled: Boolean = false,
     val komfMode: KomfMode = KomfMode.REMOTE,
     val komfRemoteUrl: String = "http://localhost:8085",
-
-    val readerDebugTileGrid: Boolean = false
 )

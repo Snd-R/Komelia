@@ -37,6 +37,7 @@ kotlin {
             implementation(libs.flyway.core)
             implementation(libs.sqlite.xerial.jdbc)
             implementation(project(":komelia-db:shared"))
+            implementation(project(":komelia-image-decoder:shared"))
             implementation(project(":komelia-core"))
         }
     }

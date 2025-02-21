@@ -22,5 +22,13 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val flashEveryNPages = integer("flash_every_n_pages")
     val flashWith = text("flash_with")
 
+    val downsamplingKernel = text("downsampling_kernel")
+    val linearLightDownsampling = bool("linear_light_downsampling")
+    val upsamplingMode = text("upsampling_mode")
+    val onnxRuntimeMode = text("onnx_runtime_mode")
+    val onnxRuntimeDeviceId = integer("onnx_runtime_device_id")
+    val onnxRuntimeTileSize = integer("onnx_runtime_tile_size")
+    val onnxRuntimeModelPath = text("onnx_runtime_model_path").nullable()
+
     override val primaryKey = PrimaryKey(bookId)
 }

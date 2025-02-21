@@ -4,21 +4,17 @@ import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories
 import io.github.snd_r.komelia.AppDirectories.mangaJaNaiInstallPath
-import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.MANGAJANAI_PRESET
-import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.NONE
-import io.github.snd_r.komelia.image.ManagedOnnxUpscaler.UpscaleMode.USER_SPECIFIED_MODEL
-import io.github.snd_r.komelia.image.ReaderImage.PageId
-import io.github.snd_r.komelia.platform.mangaJaNai
-import io.github.snd_r.komelia.platform.upsamplingFilters
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,12 +22,18 @@ import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
 import snd.komelia.image.ImageFormat
 import snd.komelia.image.KomeliaImage
+import snd.komelia.image.OnnxRuntime
+import snd.komelia.image.OnnxRuntime.DeviceInfo
+import snd.komelia.image.OnnxRuntimeSharedLibraries
+import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.image.OnnxRuntimeUpscaleMode.MANGAJANAI_PRESET
+import snd.komelia.image.OnnxRuntimeUpscaleMode.NONE
+import snd.komelia.image.OnnxRuntimeUpscaleMode.USER_SPECIFIED_MODEL
+import snd.komelia.image.OnnxRuntimeUpscaler
 import snd.komelia.image.VipsBackedImage
 import snd.komelia.image.VipsImage
 import snd.komelia.image.toVipsImage
-import snd.komelia.image.OnnxRuntimeSharedLibraries
-import snd.komelia.image.OnnxRuntimeUpscaler
-import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.name
@@ -40,9 +42,18 @@ import kotlin.time.TimeSource
 
 private val logger = KotlinLogging.logger {}
 
-class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsRepository) {
-    val upscaleMode = MutableStateFlow(NONE)
+class ManagedOnnxUpscaler(private val settingsRepository: ImageReaderSettingsRepository) : OnnxRuntime {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    override val availableDevices = MutableStateFlow(emptyList<DeviceInfo>())
+    override val provider = OnnxRuntimeSharedLibraries.executionProvider
+    override val upscaleMode = settingsRepository.getOnnxRuntimeMode()
+        .stateIn(scope, SharingStarted.Eagerly, NONE)
+    override val mangaJaNaiIsAvailable = MutableStateFlow(
+        OnnxRuntimeSharedLibraries.isAvailable && AppDirectories.containsMangaJaNaiModels()
+    )
+    override val selectedModelPath = settingsRepository.getSelectedOnnxModel()
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
     private val mutex = Mutex()
 
     private val imageCache = DiskCache.Builder()
@@ -52,6 +63,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
 
     fun initialize() {
         require(OnnxRuntimeSharedLibraries.isAvailable)
+        runCatching { availableDevices.value = OnnxRuntimeUpscaler.enumerateDevices() }
 
         settingsRepository.getOnnxRuntimeDeviceId()
             .onEach { newDeviceId -> OnnxRuntimeUpscaler.setDeviceId(newDeviceId) }
@@ -61,63 +73,74 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
             .onEach { newTileSize -> OnnxRuntimeUpscaler.setTileSize(newTileSize) }
             .launchIn(scope)
 
-        settingsRepository.getDecoderSettings()
-            .conflate()
-            .onEach { decoderSettings ->
-                mutex.withLock {
-                    imageCache.clear()
-
-                    val option = decoderSettings.upscaleOption
-                    when (option) {
-                        mangaJaNai -> upscaleMode.value = MANGAJANAI_PRESET
-                        !in upsamplingFilters -> {
-                            val modelPath = Path.of(settingsRepository.getOnnxModelsPath().first())
-                                .resolve(decoderSettings.upscaleOption.value)
-                                .toString()
-
-                            scope.launch { OnnxRuntimeUpscaler.setModelPath(modelPath) }
-                            upscaleMode.value = USER_SPECIFIED_MODEL
-                        }
-
-                        else -> upscaleMode.value = NONE
-                    }
-
+        this.selectedModelPath.filterNotNull()
+            .combine(upscaleMode) { modelPath, mode ->
+                if (mode == USER_SPECIFIED_MODEL && Path(modelPath).exists()) {
+                    OnnxRuntimeUpscaler.setModelPath(modelPath)
                 }
             }.launchIn(scope)
     }
 
-    suspend fun upscale(pageId: PageId, image: KomeliaImage): KomeliaImage? {
+    override suspend fun upscale(image: KomeliaImage, cacheKey: String?): KomeliaImage? {
         val timeSource = TimeSource.Monotonic
 
         mutex.withLock {
             val start = timeSource.markNow()
             val vipsImage = image.toVipsImage()
             val result = withContext(Dispatchers.IO) {
-                imageCache.openSnapshot(pageId.toString()).use { snapshot ->
+                if (cacheKey == null) {
+                    when (upscaleMode.value) {
+                        USER_SPECIFIED_MODEL -> OnnxRuntimeUpscaler.upscale(vipsImage)
+                        MANGAJANAI_PRESET -> mangaJaNaiUpscale(vipsImage, cacheKey)
+                        NONE -> null
+                    }
+                } else imageCache.openSnapshot(cacheKey).use { snapshot ->
                     if (snapshot != null) {
                         return@withContext VipsImage.decodeFromFile(snapshot.data.toString())
                     }
                     val upscaled = when (upscaleMode.value) {
                         USER_SPECIFIED_MODEL -> OnnxRuntimeUpscaler.upscale(vipsImage)
-                        MANGAJANAI_PRESET -> mangaJaNaiUpscale(pageId, vipsImage)
+                        MANGAJANAI_PRESET -> mangaJaNaiUpscale(vipsImage, cacheKey)
                         NONE -> null
                     }
 
-                    upscaled?.let { image -> writeToDiskCache(pageId, image) }
+                    upscaled?.let { image -> writeToDiskCache(image, cacheKey) }
 
                     return@withContext upscaled
                 }
             }
             if (result != null) {
                 val end = timeSource.markNow()
-                logger.info { "page ${pageId.pageNumber} completed ORT upscaling in ${end - start}" }
+                logger.info { "image $cacheKey completed ORT upscaling in ${end - start}" }
             }
             return result?.let { VipsBackedImage(it) }
         }
     }
 
-    private fun writeToDiskCache(pageId: PageId, image: VipsImage) {
-        val editor = imageCache.openEditor(pageId.toString()) ?: return
+    override fun setOnnxModelPath(path: String?) {
+        if (path == null) {
+            scope.launch { settingsRepository.putSelectedOnnxModel(path) }
+        } else {
+            val filePath = Path(path)
+            if (filePath.name.endsWith(".onnx")) {
+                scope.launch { settingsRepository.putSelectedOnnxModel(path) }
+                if (filePath.exists()) {
+                    OnnxRuntimeUpscaler.setModelPath(filePath.toString())
+                }
+            }
+        }
+    }
+
+    override fun setUpscaleMode(mode: OnnxRuntimeUpscaleMode) {
+        scope.launch { settingsRepository.putOnnxRuntimeMode(mode) }
+    }
+
+    override fun clearCache() {
+        imageCache.clear()
+    }
+
+    private fun writeToDiskCache(image: VipsImage, cacheKey: String) {
+        val editor = imageCache.openEditor(cacheKey) ?: return
         try {
             image.encodeToFilePng(editor.data.toString())
             editor.commit()
@@ -127,7 +150,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
         }
     }
 
-    private fun mangaJaNaiUpscale(pageId: PageId, image: VipsImage): VipsImage {
+    private fun mangaJaNaiUpscale(image: VipsImage, cacheKey: String?): VipsImage {
         val isGrayscale = if (image.type == ImageFormat.GRAYSCALE_8) true else isRgbaIsGrayscale(image)
 
         val modelPath =
@@ -149,7 +172,7 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
                 else illustration4x
 
             }
-        logger.info { "page ${pageId.pageNumber}: using model ${modelPath.name}" }
+        logger.info { "image $cacheKey: using model ${modelPath.name}" }
 
         OnnxRuntimeUpscaler.setModelPath(modelPath.toString())
         val upscaled = OnnxRuntimeUpscaler.upscale(image)
@@ -178,11 +201,5 @@ class ManagedOnnxUpscaler(private val settingsRepository: CommonSettingsReposito
         // consider image grayscale if less than 10% are not grayscale pixels
         val rgbaPixelCount = rgba.size / 4
         return (rgbaPixelCount - grayScaleCount) < rgbaPixelCount / 10
-    }
-
-    enum class UpscaleMode {
-        USER_SPECIFIED_MODEL,
-        MANGAJANAI_PRESET,
-        NONE
     }
 }

@@ -456,7 +456,7 @@ private fun ChannelValues(
             onvValueChange = { newX ->
                 selectedPoint?.let { onPointChange(selectedPoint, IntOffset(newX.toInt(), currentPointOffset?.y ?: 0)) }
             },
-            label = "Input",
+            label = { Text("Input") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -468,7 +468,7 @@ private fun ChannelValues(
             onvValueChange = { newY ->
                 selectedPoint?.let { onPointChange(selectedPoint, IntOffset(currentPointOffset?.x ?: 0, newY.toInt())) }
             },
-            label = "Output",
+            label = { Text("Output") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,

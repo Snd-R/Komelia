@@ -10,16 +10,17 @@ import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.platform.AppWindowState
-import io.github.snd_r.komelia.platform.PlatformDecoderDescriptor
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.updates.AppUpdater
-import kotlinx.coroutines.flow.Flow
+import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
+import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komelia.image.ImageDecoder
+import snd.komelia.image.OnnxRuntime
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -36,7 +37,6 @@ class AndroidDependencyContainer(
     override val komgaClientFactory: KomgaClientFactory,
     override val komfClientFactory: KomfClientFactory,
     override val appUpdater: AppUpdater?,
-    override val imageDecoderDescriptor: Flow<PlatformDecoderDescriptor>,
     override val imageDecoder: ImageDecoder,
     override val coilImageLoader: ImageLoader,
     override val bookImageLoader: BookImageLoader,
@@ -47,4 +47,8 @@ class AndroidDependencyContainer(
 ) : DependencyContainer {
     override val appNotifications = AppNotifications()
     override val appStrings = MutableStateFlow(EnStrings)
+
+    override val onnxRuntimeInstaller: OnnxRuntimeInstaller? = null
+    override val mangaJaNaiDownloader: MangaJaNaiDownloader? = null
+    override val onnxRuntime: OnnxRuntime? = null
 }

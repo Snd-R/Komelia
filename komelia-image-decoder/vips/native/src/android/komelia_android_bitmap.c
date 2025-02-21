@@ -71,7 +71,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
 
   int allocation_error = AHardwareBuffer_allocate(&desc, &hardware_buffer);
   if (allocation_error) {
-    komelia_throw_jvm_vips_exception(env, "Could not allocate bitmap hardware buffer");
+    komelia_throw_jvm_vips_exception_message(env, "Could not allocate bitmap hardware buffer");
     g_object_unref(processed_input);
     return nullptr;
   }
@@ -85,7 +85,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
   AHardwareBuffer_Desc created_desc;
   AHardwareBuffer_describe(hardware_buffer, &created_desc);
   if (lock_error) {
-    komelia_throw_jvm_vips_exception(env, "Could not acquire created hardware hardware_buffer");
+    komelia_throw_jvm_vips_exception_message(env, "Could not acquire created hardware hardware_buffer");
     AHardwareBuffer_release(hardware_buffer);
     g_object_unref(processed_input);
     return nullptr;
@@ -103,7 +103,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createHardwareBuf
   g_object_unref(processed_input);
 
   if (unlock_error) {
-    komelia_throw_jvm_vips_exception(env, "Failed to unlock hardware buffer");
+    komelia_throw_jvm_vips_exception_message(env, "Failed to unlock hardware buffer");
     AHardwareBuffer_release(hardware_buffer);
     return nullptr;
   }
@@ -149,7 +149,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createSoftwareBit
   unsigned char *bitmap_data = nullptr;
   int lock_error = AndroidBitmap_lockPixels(env, jvm_bitmap, (void *)&bitmap_data);
   if (lock_error) {
-    komelia_throw_jvm_vips_exception(env, "Failed to lock Bitmap");
+    komelia_throw_jvm_vips_exception_message(env, "Failed to lock Bitmap");
     g_object_unref(processed_image);
     return nullptr;
   }
@@ -157,7 +157,7 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_AndroidBitmap_createSoftwareBit
 
   int unlock_error = AndroidBitmap_unlockPixels(env, jvm_bitmap);
   if (unlock_error) {
-    komelia_throw_jvm_vips_exception(env, "Failed to unlock Bitmap");
+    komelia_throw_jvm_vips_exception_message(env, "Failed to unlock Bitmap");
     return nullptr;
   }
 

@@ -3,9 +3,7 @@ package io.github.snd_r.komelia.ui.reader.image.continuous
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -24,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
@@ -57,6 +53,7 @@ import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.ContinuousReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
+import io.github.snd_r.komelia.ui.reader.image.common.ReaderImageContent
 import io.github.snd_r.komelia.ui.reader.image.common.ScalableContainer
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.BookPagesInterval
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
@@ -330,24 +327,7 @@ private fun ContinuousReaderImage(
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
-    ) {
-
-        when (val result = imageResult) {
-            is ReaderImageResult.Error -> Text(result.throwable.message ?: "Page load error")
-            is ReaderImageResult.Success ->
-                Image(
-                    modifier = modifier.background(Color.White),
-                    painter = result.image.painter.collectAsState().value,
-                    contentDescription = null,
-                )
-
-            null -> Box(
-                modifier = Modifier.fillMaxSize().background(Color.White),
-                contentAlignment = Alignment.TopCenter,
-                content = { CircularProgressIndicator(color = Color.Black) }
-            )
-        }
-    }
+    ) { ReaderImageContent(imageResult) }
 }
 
 private suspend fun registerKeyboardEvents(

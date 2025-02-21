@@ -46,7 +46,6 @@ class WasmSimpleReaderImage(
             val bitmap = image.resize(
                 scaleWidth = dstWidth,
                 scaleHeight = dstHeight,
-                crop = false
             ).toBitmap()
             val image = Image.makeFromBitmap(bitmap)
             currentImage = image

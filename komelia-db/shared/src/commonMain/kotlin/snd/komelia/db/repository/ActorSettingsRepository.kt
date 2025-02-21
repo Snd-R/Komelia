@@ -1,8 +1,5 @@
 package snd.komelia.db.repository
 
-import io.github.snd_r.komelia.platform.DownscaleOption
-import io.github.snd_r.komelia.platform.PlatformDecoderSettings
-import io.github.snd_r.komelia.platform.UpscaleOption
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
@@ -41,24 +38,6 @@ class ActorSettingsRepository(
 
     override suspend fun putCurrentUser(username: String) {
         actor.transform { it.copy(username = username) }
-    }
-
-    override fun getDecoderSettings(): Flow<PlatformDecoderSettings> {
-        return actor.state.map { settings ->
-            PlatformDecoderSettings(
-                upscaleOption = UpscaleOption(settings.upscaleOption),
-                downscaleOption = DownscaleOption(settings.downscaleOption)
-            )
-        }.distinctUntilChanged()
-    }
-
-    override suspend fun putDecoderSettings(decoder: PlatformDecoderSettings) {
-        actor.transform { settings ->
-            settings.copy(
-                upscaleOption = decoder.upscaleOption.value,
-                downscaleOption = decoder.downscaleOption.value
-            )
-        }
     }
 
     override fun getSeriesPageLoadSize(): Flow<Int> {
@@ -147,37 +126,5 @@ class ActorSettingsRepository(
 
     override suspend fun putKomfUrl(url: String) {
         actor.transform { it.copy(komfRemoteUrl = url) }
-    }
-
-    override fun getOnnxModelsPath(): Flow<String> {
-        return actor.state.map { it.onnxModelsPath }.distinctUntilChanged()
-    }
-
-    override suspend fun putOnnxModelsPath(path: String) {
-        actor.transform { it.copy(onnxModelsPath = path) }
-    }
-
-    override fun getOnnxRuntimeDeviceId(): Flow<Int> {
-        return actor.state.map { it.onnxRuntimeDeviceId }.distinctUntilChanged()
-    }
-
-    override suspend fun putOnnxRuntimeDeviceId(deviceId: Int) {
-        actor.transform { it.copy(onnxRuntimeDeviceId = deviceId) }
-    }
-
-    override fun getOnnxRuntimeTileSize(): Flow<Int> {
-        return actor.state.map { it.onnxRuntimeTileSize }.distinctUntilChanged()
-    }
-
-    override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
-        actor.transform { it.copy(onnxRuntimeTileSize = tileSize) }
-    }
-
-    override fun getImageReaderShowDebugGrid(): Flow<Boolean> {
-        return actor.state.map { it.readerDebugTileGrid }.distinctUntilChanged()
-    }
-
-    override suspend fun putImageReaderShowDebugGrid(showGrid: Boolean) {
-        actor.transform { it.copy(readerDebugTileGrid = showGrid) }
     }
 }

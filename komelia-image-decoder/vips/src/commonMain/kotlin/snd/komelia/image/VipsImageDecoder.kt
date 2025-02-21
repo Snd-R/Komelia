@@ -66,13 +66,31 @@ class VipsBackedImage(val vipsImage: VipsImage) : KomeliaImage {
         }
     }
 
-    override suspend fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): KomeliaImage {
+    override suspend fun resize(
+        scaleWidth: Int,
+        scaleHeight: Int,
+        linear: Boolean,
+        kernel: ReduceKernel,
+    ): KomeliaImage {
         return withContext(Dispatchers.Default) {
+            val vipsKernel = when (kernel) {
+                ReduceKernel.DEFAULT -> VipsKernel.LANCZOS3
+                ReduceKernel.NEAREST -> VipsKernel.NEAREST
+                ReduceKernel.LINEAR -> VipsKernel.LINEAR
+                ReduceKernel.CUBIC -> VipsKernel.CUBIC
+                ReduceKernel.MITCHELL -> VipsKernel.MITCHELL
+                ReduceKernel.LANCZOS2 -> VipsKernel.LANCZOS2
+                ReduceKernel.LANCZOS3 -> VipsKernel.LANCZOS3
+                ReduceKernel.MKS2013 -> VipsKernel.MKS2013
+                ReduceKernel.MKS2021 -> VipsKernel.MKS2021
+            }
+
             VipsBackedImage(
                 vipsImage.resize(
-                    scaleWidth = scaleWidth.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
-                    scaleHeight = scaleHeight.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
-                    crop = crop
+                    targetWidth = scaleWidth.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
+                    targetHeight = scaleHeight.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
+                    kernel = vipsKernel.name,
+                    linear = linear,
                 )
             )
         }

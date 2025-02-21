@@ -19,6 +19,7 @@ class MigrationResourcesProvider : ResourceProvider, ClassProvider<JavaMigration
         "V4__settings_reorganisation.sql",
         "V5__color_correction.sql",
         "V6__eink_screen_flash.sql",
+        "V7__reader_sampling_settings.sql",
     )
     private val resources: Map<String, MigrationResource> = runBlocking {
         migrations.associateWith {

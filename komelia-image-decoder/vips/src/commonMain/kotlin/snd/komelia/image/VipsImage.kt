@@ -59,7 +59,8 @@ class VipsImage private constructor(
     }
 
     external fun extractArea(rect: ImageRect): VipsImage
-    external fun resize(scaleWidth: Int, scaleHeight: Int, crop: Boolean): VipsImage
+    external fun resize(targetWidth: Int, targetHeight: Int, kernel: String, linear: Boolean): VipsImage
+
     external fun getBytes(): ByteArray
     external fun encodeToFile(path: String)
     external fun encodeToFilePng(path: String)
@@ -81,5 +82,7 @@ enum class VipsKernel {
     CUBIC,
     MITCHELL,
     LANCZOS2,
-    LANCZOS3
+    LANCZOS3,
+    MKS2013,
+    MKS2021,
 }
