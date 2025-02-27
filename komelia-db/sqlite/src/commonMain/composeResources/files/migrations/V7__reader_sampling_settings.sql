@@ -5,7 +5,7 @@ ALTER TABLE ImageReaderSettings
     ADD COLUMN linear_light_downsampling BOOLEAN DEFAULT 0 NOT NULL;
 
 ALTER TABLE ImageReaderSettings
-    ADD COLUMN upsampling_mode TEXT DEFAULT 'CATMULL-ROM' NOT NULL;
+    ADD COLUMN upsampling_mode TEXT DEFAULT 'CATMULL_ROM' NOT NULL;
 
 ALTER TABLE ImageReaderSettings
     ADD COLUMN onnx_runtime_mode BOOLEAN DEFAULT 0 NULL;
