@@ -488,13 +488,17 @@ class ViewModelFactory(
         )
     }
 
-    fun getKomfSettingsViewModel(enableKavita: Boolean): KomfSettingsViewModel {
+    fun getKomfSettingsViewModel(
+        enableKavita: Boolean,
+        integrationToggleEnabled: Boolean,
+    ): KomfSettingsViewModel {
         return KomfSettingsViewModel(
             komfConfigClient = dependencies.komfClientFactory.configClient(),
             komgaMediaServerClient = dependencies.komfClientFactory.mediaServerClient(KOMGA),
             kavitaMediaServerClient = if (enableKavita) dependencies.komfClientFactory.mediaServerClient(KAVITA) else null,
             appNotifications = dependencies.appNotifications,
             settingsRepository = settingsRepository,
+            integrationToggleEnabled = integrationToggleEnabled,
             komfSharedState = komfSharedState,
         )
     }

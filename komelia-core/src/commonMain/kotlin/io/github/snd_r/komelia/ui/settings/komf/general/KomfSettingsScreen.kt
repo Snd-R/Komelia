@@ -18,7 +18,12 @@ class KomfSettingsScreen(
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel { viewModelFactory.getKomfSettingsViewModel(enableKavita = showKavitaSettings) }
+        val vm = rememberScreenModel("${integrationToggleEnabled}_${showKavitaSettings}") {
+            viewModelFactory.getKomfSettingsViewModel(
+                enableKavita = showKavitaSettings,
+                integrationToggleEnabled = integrationToggleEnabled
+            )
+        }
         val vmState = vm.state.collectAsState().value
         LaunchedEffect(Unit) { vm.initialize() }
 

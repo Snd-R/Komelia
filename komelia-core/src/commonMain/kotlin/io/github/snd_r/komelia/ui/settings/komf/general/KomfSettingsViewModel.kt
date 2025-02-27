@@ -31,6 +31,7 @@ class KomfSettingsViewModel(
     kavitaMediaServerClient: KomfMediaServerClient?,
     private val appNotifications: AppNotifications,
     private val settingsRepository: CommonSettingsRepository,
+    private val integrationToggleEnabled: Boolean,
     val komfSharedState: KomfSharedState,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
     private val configListenerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -63,7 +64,7 @@ class KomfSettingsViewModel(
         komfMode.value = settingsRepository.getKomfMode().first()
         komfUrl.value = settingsRepository.getKomfUrl().first()
 
-        if (komfEnabled.value) {
+        if (!integrationToggleEnabled || komfEnabled.value) {
             launchConfigFlowListener()
         }
         mutableState.value = LoadState.Success(Unit)
