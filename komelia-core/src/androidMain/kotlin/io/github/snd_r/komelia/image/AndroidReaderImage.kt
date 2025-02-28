@@ -15,6 +15,7 @@ import io.github.snd_r.komelia.image.UpsamplingMode.NEAREST
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.image.AndroidBitmap.toBitmap
+import snd.komelia.image.ImageDecoder
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.ReduceKernel
@@ -22,8 +23,9 @@ import snd.komelia.image.ReduceKernel
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Bitmap
 
-class AndroidTilingReaderImage(
-    originalImage: KomeliaImage,
+class AndroidReaderImage(
+    imageDecoder: ImageDecoder,
+    imageSource: ImageSource,
     processingPipeline: ImageProcessingPipeline,
     stretchImages: StateFlow<Boolean>,
     pageId: PageId,
@@ -31,13 +33,14 @@ class AndroidTilingReaderImage(
     downSamplingKernel: StateFlow<ReduceKernel>,
     linearLightDownSampling: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    originalImage = originalImage,
+    imageDecoder = imageDecoder,
+    imageSource = imageSource,
     processingPipeline = processingPipeline,
     stretchImages = stretchImages,
     upsamplingMode = upsamplingMode,
     downSamplingKernel = downSamplingKernel,
     linearLightDownSampling = linearLightDownSampling,
-    pageId = pageId
+    pageId = pageId,
 ) {
 
     override fun closeTileBitmaps(tiles: List<ReaderImageTile>) {
@@ -58,16 +61,12 @@ class AndroidTilingReaderImage(
     }
 
     override suspend fun resizeImage(image: KomeliaImage, scaleWidth: Int, scaleHeight: Int): ReaderImageData {
-        val resized = image.resize(
+        return image.resize(
             scaleWidth = scaleWidth,
             scaleHeight = scaleHeight,
             linear = linearLightDownSampling.value,
             kernel = downSamplingKernel.value
-        )
-        val bitmap = resized.toBitmap()
-        val imageData = ReaderImageData(resized.width, resized.height, bitmap)
-        resized.close()
-        return imageData
+        ).toReaderImageData()
     }
 
     override suspend fun getImageRegion(
@@ -97,9 +96,23 @@ class AndroidTilingReaderImage(
         }
     }
 
-    private fun KomeliaImage.toReaderImageData(): ReaderImageData {
-        val bitmap = this.toBitmap()
-        return ReaderImageData(this.width, this.height, bitmap)
+    private suspend fun KomeliaImage.toReaderImageData(): ReaderImageData {
+        val frames = mutableListOf<RenderImage>()
+        val delays = pageDelays?.let { mutableListOf<Long>() }
+        for (i in 0 until this.pagesLoaded) {
+            val bitmap = this.extractArea(
+                ImageRect(
+                    left = 0,
+                    right = width,
+                    top = pageHeight * i,
+                    bottom = pageHeight * (i + 1),
+                )
+            ).toBitmap()
+
+            frames.add(bitmap)
+            delays?.add(this.pageDelays?.getOrNull(i)?.toLong() ?: defaultFrameDelay)
+        }
+        return ReaderImageData(width, pageHeight, frames, delays)
     }
 
     private fun IntRect.toImageRect() =

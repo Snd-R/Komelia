@@ -50,6 +50,7 @@ class ImageReaderSettingsViewModel(
         upsamplingMode.value = settingsRepository.getUpsamplingMode().first()
         downsamplingKernel.value = settingsRepository.getDownsamplingKernel().first()
         linearLightDownsampling.value = settingsRepository.getLinearLightDownsampling().first()
+        onnxRuntimeSettingsState.initialize()
     }
 
     fun onUpsamplingModeChange(mode: UpsamplingMode) {

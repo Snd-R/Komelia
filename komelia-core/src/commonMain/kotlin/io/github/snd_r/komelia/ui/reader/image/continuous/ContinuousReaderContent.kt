@@ -47,9 +47,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
-import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.ContinuousReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay

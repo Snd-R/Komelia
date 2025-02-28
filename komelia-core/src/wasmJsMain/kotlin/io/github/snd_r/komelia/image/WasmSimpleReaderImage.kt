@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.image
 
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +19,7 @@ class WasmSimpleReaderImage(
     private val stretchImages: StateFlow<Boolean>,
     override val pageId: ReaderImage.PageId,
 ) : ReaderImage {
-    override val painter by lazy { MutableStateFlow(noopPainter) }
+    override val painter by lazy { MutableStateFlow<Painter?>(null) }
     override val error: StateFlow<Exception?> = MutableStateFlow<Exception?>(null)
     override val currentSize = MutableStateFlow<IntSize?>(null)
     override val originalSize = MutableStateFlow(IntSize(image.width, image.height))
@@ -29,9 +30,9 @@ class WasmSimpleReaderImage(
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     override fun requestUpdate(
-        visibleDisplaySize: IntRect,
-        zoomFactor: Float,
         maxDisplaySize: IntSize,
+        zoomFactor: Float,
+        visibleDisplaySize: IntRect,
     ) {
         coroutineScope.launch {
             val displaySize = calculateSizeForArea(maxDisplaySize, stretchImages.value)
@@ -58,6 +59,9 @@ class WasmSimpleReaderImage(
         }
     }
 
+    override suspend fun getOriginalImageSize(): IntSize {
+        return IntSize(image.width, image.height)
+    }
 
     override fun close() {
         currentImage?.close()

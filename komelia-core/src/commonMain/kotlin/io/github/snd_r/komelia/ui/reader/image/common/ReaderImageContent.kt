@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import io.github.snd_r.komelia.image.ReaderImage
-import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
+import io.github.snd_r.komelia.image.ReaderImageResult
 
 @Composable
 fun ReaderImageContent(imageResult: ReaderImageResult?) {
@@ -56,9 +56,11 @@ private fun ImageContent(image: ReaderImage) {
     // could've been avoided by extracting flow collection to the top ancestor
     // and just accepting painter as function param here
     val painterState = remember(image) { mutableStateOf(image.painter.value) }
-    LaunchedEffect(image.painter) { image.painter.collect { painterState.value = it } }
+    LaunchedEffect(image) { image.painter.collect { painterState.value = it } }
+    val errorState = remember(image) { mutableStateOf(image.error.value) }
+    LaunchedEffect(image) { image.error.collect { errorState.value = it } }
 
-    val error = image.error.collectAsState().value
+    val error = errorState.value
     val painter = painterState.value
     if (error != null) {
         Text(
@@ -91,7 +93,6 @@ private fun ImageContent(image: ReaderImage) {
 
     } else {
         Image(
-            modifier = Modifier.background(Color.White),
             painter = painter,
             contentDescription = null,
         )

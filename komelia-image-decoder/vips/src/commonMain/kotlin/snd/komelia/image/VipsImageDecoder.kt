@@ -4,12 +4,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class VipsImageDecoder : ImageDecoder {
-    override suspend fun decode(encoded: ByteArray): KomeliaImage {
-        return withContext(Dispatchers.Default) { VipsBackedImage(VipsImage.decode(encoded)) }
+    override suspend fun decode(encoded: ByteArray, nPages: Int?): KomeliaImage {
+        return withContext(Dispatchers.Default) {
+            VipsBackedImage(
+                VipsImage.decode(
+                    encoded,
+                    nPages?.let { Integer.valueOf(it) } as Integer?
+                )
+            )
+        }
     }
 
-    override suspend fun decodeFromFile(path: String): KomeliaImage {
-        return withContext(Dispatchers.Default) { VipsBackedImage(VipsImage.decodeFromFile(path)) }
+    override suspend fun decodeFromFile(path: String, nPages: Int?): KomeliaImage {
+        return withContext(Dispatchers.Default) {
+            VipsBackedImage(
+                VipsImage.decodeFromFile(
+                    path,
+                    nPages?.let { Integer.valueOf(it) } as Integer?
+                )
+            )
+        }
     }
 
     override suspend fun decodeAndResize(
@@ -17,6 +31,7 @@ class VipsImageDecoder : ImageDecoder {
         scaleWidth: Int,
         scaleHeight: Int,
         crop: Boolean,
+        nPages: Int?
     ): KomeliaImage {
         return withContext(Dispatchers.Default) {
             VipsBackedImage(
@@ -34,7 +49,8 @@ class VipsImageDecoder : ImageDecoder {
         encoded: ByteArray,
         scaleWidth: Int,
         scaleHeight: Int,
-        crop: Boolean
+        crop: Boolean,
+        nPages: Int?
     ): KomeliaImage {
         return withContext(Dispatchers.Default) {
             VipsBackedImage(
@@ -59,6 +75,11 @@ class VipsBackedImage(val vipsImage: VipsImage) : KomeliaImage {
     override val height: Int = vipsImage.height
     override val bands: Int = vipsImage.bands
     override val type: ImageFormat = vipsImage.type
+
+    override val pagesLoaded: Int = vipsImage.pagesLoaded
+    override val pagesTotal: Int = vipsImage.pagesTotal
+    override val pageHeight: Int = vipsImage.pageHeight
+    override val pageDelays: IntArray? = vipsImage.pageDelays
 
     override suspend fun extractArea(rect: ImageRect): KomeliaImage {
         return withContext(Dispatchers.Default) {

@@ -6,6 +6,8 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toRect
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.image.ImageSource.FilePathSource
+import io.github.snd_r.komelia.image.ImageSource.MemorySource
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import kotlinx.coroutines.CoroutineScope
@@ -14,7 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.channels.BufferOverflow.SUSPEND
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -28,7 +30,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import snd.komelia.image.ImageDecoder
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.ReduceKernel
 import kotlin.concurrent.Volatile
@@ -41,12 +46,14 @@ private const val tileThreshold1 = 2048 * 2048
 private const val tileThreshold2 = 4096 * 4096
 private const val tileThreshold3 = 6144 * 6144
 
+
 expect class RenderImage
 
 private val logger = KotlinLogging.logger {}
 
 abstract class TilingReaderImage(
-    private val originalImage: KomeliaImage,
+    private val imageSource: ImageSource,
+    private val imageDecoder: ImageDecoder,
     private val processingPipeline: ImageProcessingPipeline,
     private val stretchImages: StateFlow<Boolean>,
     protected val upsamplingMode: StateFlow<UpsamplingMode>,
@@ -57,22 +64,27 @@ abstract class TilingReaderImage(
     final override val painter = MutableStateFlow<TiledPainter?>(null)
     final override val error = MutableStateFlow<Throwable?>(null)
 
-    final override val originalSize = MutableStateFlow(IntSize(originalImage.width, originalImage.height))
+    final override val originalSize = MutableStateFlow<IntSize?>(null)
     final override val displaySize = MutableStateFlow<IntSize?>(null)
     final override val currentSize = MutableStateFlow<IntSize?>(null)
+
+    private val imageAwaitScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val animationScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
+    protected val processingScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
+
+    private val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, BufferOverflow.DROP_OLDEST)
+    private val frameData = MutableStateFlow<FrameData?>(null)
+    protected val image = MutableStateFlow<KomeliaImage?>(null)
+    protected val defaultFrameDelay = 100L
+
+    @Volatile
+    private var originalImage: KomeliaImage? = null
 
     @Volatile
     protected var lastUpdateRequest: UpdateRequest? = null
 
     @Volatile
     protected var lastUsedScaleFactor: Double? = null
-
-    private val imageAwaitScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    protected val processingScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
-
-    private val jobFlow = MutableSharedFlow<UpdateRequest>(1, 0, SUSPEND)
-    private val tiles = MutableStateFlow<List<ReaderImageTile>>(emptyList())
-    protected val image = MutableStateFlow<KomeliaImage?>(null)
 
     data class UpdateRequest(
         val visibleDisplaySize: IntRect,
@@ -102,7 +114,7 @@ abstract class TilingReaderImage(
             }
 
             image.value = null
-            originalSize.value = IntSize(originalImage.width, originalImage.height)
+            originalSize.value = originalImage?.let { IntSize(it.width, it.pageHeight) }
             currentSize.value = null
             loadImage()
             reloadLastRequest()
@@ -117,6 +129,43 @@ abstract class TilingReaderImage(
             .launchIn(processingScope)
 
         processingScope.launch { loadImage() }
+
+        frameData.onEach { data ->
+            when {
+                data == null -> this.painter.value = null
+                data.frames.size == 1 -> {
+                    this.painter.value = createTilePainter(
+                        tiles = data.frames.first().tiles,
+                        displaySize = data.displaySize,
+                        scaleFactor = data.scaleFactor
+                    )
+                }
+
+                else -> launchAnimation(data)
+            }
+
+        }.launchIn(processingScope)
+    }
+
+    private fun launchAnimation(data: FrameData) {
+        animationScope.coroutineContext.cancelChildren()
+        animationScope.launch {
+            val painters = data.frames.map {
+                createTilePainter(
+                    tiles = it.tiles,
+                    displaySize = data.displaySize,
+                    scaleFactor = data.scaleFactor
+                )
+            }
+
+            while (isActive) {
+                for ((index, tiledPainter) in painters.withIndex()) {
+                    val frameDelay = data.frames[index].delay
+                    this@TilingReaderImage.painter.value = tiledPainter
+                    delay(if (frameDelay < 10) defaultFrameDelay else frameDelay)
+                }
+            }
+        }
     }
 
     protected suspend fun reloadLastRequest() {
@@ -126,11 +175,16 @@ abstract class TilingReaderImage(
         }
     }
 
+    override suspend fun getOriginalImageSize(): IntSize {
+        return withContext(imageAwaitScope.coroutineContext) { originalSize.filterNotNull().first() }
+    }
+
     private suspend fun loadImage() {
         try {
+            val originalImage = decodeImage(imageSource)
             val processed = processingPipeline.process(pageId, originalImage)
             image.value = processed
-            originalSize.value = IntSize(processed.width, processed.height)
+            originalSize.value = IntSize(processed.width, processed.pageHeight)
         } catch (e: Throwable) {
             currentCoroutineContext().ensureActive()
             logger.catching(e)
@@ -139,24 +193,39 @@ abstract class TilingReaderImage(
         }
     }
 
+    private suspend fun decodeImage(source: ImageSource): KomeliaImage {
+        val image = when (source) {
+            is FilePathSource -> imageDecoder.decodeFromFile(source.path)
+            is MemorySource -> imageDecoder.decode(source.data)
+        }
+        return if (image.pagesTotal != 1) {
+            image.close()
+            when (source) {
+                is FilePathSource -> imageDecoder.decodeFromFile(source.path, -1)
+                is MemorySource -> imageDecoder.decode(source.data, -1)
+            }
+        } else {
+            image
+        }
+
+    }
+
     private suspend fun getCurrentImage(): KomeliaImage {
         return imageAwaitScope.async { image.filterNotNull().first() }.await()
     }
 
     override fun requestUpdate(
-        visibleDisplaySize: IntRect,
-        zoomFactor: Float,
         maxDisplaySize: IntSize,
+        zoomFactor: Float,
+        visibleDisplaySize: IntRect,
     ) {
-        processingScope.launch {
-            jobFlow.emit(
-                UpdateRequest(
-                    visibleDisplaySize = visibleDisplaySize,
-                    zoomFactor = zoomFactor,
-                    maxDisplaySize = maxDisplaySize
-                )
+        jobFlow.tryEmit(
+            UpdateRequest(
+                visibleDisplaySize = visibleDisplaySize,
+                zoomFactor = zoomFactor,
+                maxDisplaySize = maxDisplaySize
             )
-        }
+        )
     }
 
     private suspend fun doUpdate(request: UpdateRequest) {
@@ -165,7 +234,7 @@ abstract class TilingReaderImage(
         val image = getCurrentImage()
         val displaySize = calculateSizeForArea(request.maxDisplaySize, stretchImages.value)
         val widthRatio = displaySize.width.toDouble() / image.width
-        val heightRatio = displaySize.height.toDouble() / image.height
+        val heightRatio = displaySize.height.toDouble() / image.pageHeight
         val displayScaleFactor = widthRatio.coerceAtMost(heightRatio)
 
         val zoomFactor = request.zoomFactor
@@ -187,7 +256,7 @@ abstract class TilingReaderImage(
             else -> 256
         }
 
-        if (tileSize == null) {
+        if (image.pagesLoaded > 1 || tileSize == null) {
             doFullResize(
                 image = image,
                 scaleFactor = actualScaleFactor,
@@ -212,13 +281,14 @@ abstract class TilingReaderImage(
         displayScaleFactor: Double,
         displayArea: IntSize
     ) {
-        if (lastUsedScaleFactor == scaleFactor) return
-        if (tiles.value.isEmpty()) {
-            painter.value = null
+        if (lastUsedScaleFactor == scaleFactor) {
+            error.value?.let { throw (it) }
+            return
         }
+
         lastUsedScaleFactor = scaleFactor
         val dstWidth = (image.width * scaleFactor).roundToInt()
-        val dstHeight = (image.height * scaleFactor).roundToInt()
+        val dstHeight = (image.pageHeight * scaleFactor).roundToInt()
 
         measureTime {
             val resizedImage = resizeImage(
@@ -226,30 +296,37 @@ abstract class TilingReaderImage(
                 dstWidth,
                 dstHeight,
             )
-            val previousTiles = tiles.value
-            tiles.value = listOf(
-                ReaderImageTile(
-                    size = IntSize(resizedImage.width, resizedImage.height),
-                    displayRegion = Rect(
-                        0f,
-                        0f,
-                        round(image.width * displayScaleFactor).toFloat(),
-                        round(image.height * displayScaleFactor).toFloat()
+            val previousTiles = frameData.value?.frames?.flatMap { it.tiles } ?: emptyList()
+            val frames = resizedImage.frames.mapIndexed { i, renderImage ->
+                ImageFrame(
+                    tiles = listOf(
+                        ReaderImageTile(
+                            size = IntSize(resizedImage.width, resizedImage.height),
+                            displayRegion = Rect(
+                                0f,
+                                0f,
+                                round(image.width * displayScaleFactor).toFloat(),
+                                round(image.pageHeight * displayScaleFactor).toFloat()
+                            ),
+                            isVisible = true,
+                            renderImage = renderImage
+                        )
                     ),
-                    isVisible = true,
-                    renderImage = resizedImage.renderImage
+                    delay = resizedImage.delays?.getOrNull(i)?.toLong() ?: defaultFrameDelay
                 )
+            }
+            frameData.value = FrameData(
+                frames = frames,
+                displaySize = displayArea,
+                scaleFactor = scaleFactor
             )
             closeTileBitmaps(previousTiles)
-            painter.value = createTilePainter(
-                tiles = tiles.value,
-                displaySize = displayArea,
-                scaleFactor = scaleFactor,
-            )
         }.also { logger.info { "page ${pageId.pageNumber} completed full resize to $dstWidth x $dstHeight in $it" } }
 
     }
 
+    // TODO support animations
+    // does not handle animated images and assumes that there's only one frame
     private suspend fun doTile(
         image: KomeliaImage,
         displayRegion: Rect,
@@ -260,9 +337,6 @@ abstract class TilingReaderImage(
     ) {
         val timeSource = TimeSource.Monotonic
         val start = timeSource.markNow()
-        if (tiles.value.isEmpty()) {
-            painter.value = null
-        }
 
         val visibilityWindow = Rect(
             left = displayRegion.left / 1.5f,
@@ -271,7 +345,7 @@ abstract class TilingReaderImage(
             bottom = displayRegion.bottom * 1.5f
         )
 
-        val oldTiles = tiles.value
+        val oldTiles = frameData.value?.frames?.first()?.tiles ?: emptyList()
         val newTiles = mutableListOf<ReaderImageTile>()
         val unusedTiles = mutableListOf<ReaderImageTile>()
         var addedNewTiles = false
@@ -323,7 +397,7 @@ abstract class TilingReaderImage(
                     size = IntSize(scaledTile.width, scaledTile.height),
                     displayRegion = tileDisplayRegion,
                     isVisible = true,
-                    renderImage = scaledTile.renderImage
+                    renderImage = scaledTile.frames.first()
                 )
 
                 newTiles.add(tile)
@@ -334,23 +408,30 @@ abstract class TilingReaderImage(
         }
 
         if (addedNewTiles) {
-            tiles.value = newTiles
-            painter.value = createTilePainter(tiles.value, displayArea, scaleFactor)
+            frameData.value = FrameData(
+                frames = listOf(ImageFrame(newTiles, 0)),
+                displaySize = displayArea,
+                scaleFactor = scaleFactor
+            )
             closeTileBitmaps(unusedTiles)
 
             val end = timeSource.markNow()
-            logger.info { "page ${pageId.pageNumber} completed tiled resize in ${end - start};  ${tiles.value.size} tiles" }
+            logger.info { "page ${pageId.pageNumber} completed tiled resize in ${end - start};  ${newTiles.size} tiles" }
         }
         lastUsedScaleFactor = scaleFactor
 
     }
 
     override fun close() {
-        originalImage.close()
-        closeTileBitmaps(tiles.value)
+        originalImage?.close()
+        frameData.value?.frames
+            ?.flatMap { it.tiles }
+            ?.let { closeTileBitmaps(it) }
         image.value?.close()
+        imageSource.close()
         processingScope.cancel()
         imageAwaitScope.cancel()
+        animationScope.cancel()
     }
 
     protected abstract fun closeTileBitmaps(tiles: List<ReaderImageTile>)
@@ -383,10 +464,22 @@ abstract class TilingReaderImage(
     data class ReaderImageData(
         val width: Int,
         val height: Int,
-        val renderImage: RenderImage,
+        val frames: List<RenderImage>,
+        val delays: List<Long>?,
     )
 
     abstract class TiledPainter() : Painter() {
         abstract fun withSamplingMode(upsamplingMode: UpsamplingMode): TiledPainter
     }
+
+    class FrameData(
+        val frames: List<ImageFrame>,
+        val displaySize: IntSize,
+        val scaleFactor: Double,
+    )
+
+    data class ImageFrame(
+        val tiles: List<ReaderImageTile>,
+        val delay: Long
+    )
 }

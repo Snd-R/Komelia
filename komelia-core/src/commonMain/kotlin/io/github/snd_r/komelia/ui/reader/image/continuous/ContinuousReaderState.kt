@@ -19,14 +19,13 @@ import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.BookImageLoader
-import io.github.snd_r.komelia.image.ImageResult
 import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.ReaderImageFactory
+import io.github.snd_r.komelia.image.ReaderImageResult
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
-import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
@@ -396,9 +395,9 @@ class ContinuousReaderState(
                     result.image?.let {
                         val size = getImageDisplaySize(it)
                         it.requestUpdate(
-                            screenScaleState.areaSize.value.toIntRect(),
-                            screenScaleState.transformation.value.scale,
-                            size.maxSize
+                            maxDisplaySize = size.maxSize,
+                            zoomFactor = screenScaleState.transformation.value.scale,
+                            visibleDisplaySize = screenScaleState.areaSize.value.toIntRect(),
                         )
                     }
 
@@ -414,19 +413,14 @@ class ContinuousReaderState(
         val cached = imageCache.get(pageId)
 
         val job = if (cached != null && !cached.isCancelled) cached
-        else imageLoadScope.async {
-            when (val result = imageLoader.loadImage(requestPage.bookId, requestPage.pageNumber)) {
-                is ImageResult.Success -> ReaderImageResult.Success(readerImageFactory.getImage(result.image, pageId))
-                is ImageResult.Error -> ReaderImageResult.Error(result.throwable)
-            }
-
-        }.also { imageCache.put(pageId, it) }
+        else imageLoadScope.async { imageLoader.loadReaderImage(requestPage.bookId, requestPage.pageNumber) }
+            .also { imageCache.put(pageId, it) }
 
 
         return job
     }
 
-    private fun updateVisibleImages() {
+    private suspend fun updateVisibleImages() {
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
         if (visibleItems.isEmpty()) return
 
@@ -483,7 +477,11 @@ class ContinuousReaderState(
             visibleImages.values.drop(1).dropLast(1).filterNotNull()
                 .forEach { image ->
                     val size = getImageDisplaySize(image)
-                    image.requestUpdate(size.displaySize.toIntRect(), scale, size.maxSize)
+                    image.requestUpdate(
+                        maxDisplaySize = size.maxSize,
+                        zoomFactor = scale,
+                        visibleDisplaySize = size.displaySize.toIntRect(),
+                    )
                 }
         }
 
@@ -525,7 +523,7 @@ class ContinuousReaderState(
         val maxSize: IntSize,
     )
 
-    private fun getImageDisplaySize(image: ReaderImage): ImageDisplaySize {
+    private suspend fun getImageDisplaySize(image: ReaderImage): ImageDisplaySize {
         val containerSize = screenScaleState.areaSize.value
         return when (readingDirection.value) {
             TOP_TO_BOTTOM -> {

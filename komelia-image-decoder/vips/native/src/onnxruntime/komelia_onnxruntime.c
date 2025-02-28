@@ -100,20 +100,20 @@ void release_session(struct SessionData *session_data) {
 #define ORT_RELEASE_ON_ERROR(jni_env, resources, expr)                                             \
   do {                                                                                             \
     OrtStatus *ort_status = (expr);                                                                \
-    if (ort_status != nullptr) {                                                                      \
+    if (ort_status != nullptr) {                                                                   \
       const char *msg = g_ort->GetErrorMessage(ort_status);                                        \
       throw_jvm_ort_exception(jni_env, g_ort->GetErrorMessage(ort_status));                        \
       g_ort->ReleaseStatus(ort_status);                                                            \
                                                                                                    \
       release_resources(resources);                                                                \
-      return nullptr;                                                                                 \
+      return nullptr;                                                                              \
     }                                                                                              \
   } while (0)
 
 #define ORT_INT_STATUS_THROW(jni_env, expr)                                                        \
   do {                                                                                             \
     OrtStatus *ort_status = (expr);                                                                \
-    if (ort_status != nullptr) {                                                                      \
+    if (ort_status != nullptr) {                                                                   \
       throw_jvm_ort_exception(jni_env, g_ort->GetErrorMessage(ort_status));                        \
       g_ort->ReleaseStatus(ort_status);                                                            \
       return -1;                                                                                   \
@@ -346,8 +346,10 @@ int preprocess_for_inference(JNIEnv *env, VipsImage *input_image, VipsImage **ou
   return 0;
 }
 
-OrtStatus *create_tensor_f32(VipsImage *input_image, OrtMemoryInfo *memory_info,
-                             float **tensor_data, OrtValue **tensor) {
+OrtStatus *create_tensor_f32(VipsImage *input_image,
+                             OrtMemoryInfo *memory_info,
+                             float **tensor_data,
+                             OrtValue **tensor) {
   int input_height = vips_image_get_height(input_image);
   int input_width = vips_image_get_width(input_image);
 
@@ -366,8 +368,10 @@ OrtStatus *create_tensor_f32(VipsImage *input_image, OrtMemoryInfo *memory_info,
                                                ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, tensor);
 }
 
-OrtStatus *create_tensor_f16(VipsImage *input_image, OrtMemoryInfo *memory_info,
-                             _Float16 **tensor_data, OrtValue **tensor) {
+OrtStatus *create_tensor_f16(VipsImage *input_image,
+                             OrtMemoryInfo *memory_info,
+                             _Float16 **tensor_data,
+                             OrtValue **tensor) {
   int input_height = vips_image_get_height(input_image);
   int input_width = vips_image_get_width(input_image);
 
@@ -383,6 +387,23 @@ OrtStatus *create_tensor_f16(VipsImage *input_image, OrtMemoryInfo *memory_info,
   return g_ort->CreateTensorWithDataAsOrtValue(memory_info, *tensor_data, tensor_data_len,
                                                tensor_shape, tensor_shape_len,
                                                ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16, tensor);
+}
+
+void copy_animation_metadata(VipsImage *input, VipsImage *output) {
+  int input_height = vips_image_get_height(input);
+  int input_page_height = vips_image_get_page_height(input);
+  int input_pages_loaded = input_height / input_page_height;
+
+  int out_page_height = vips_image_get_height(output) / input_pages_loaded;
+
+  vips_image_set_int(output, VIPS_META_N_PAGES, input_pages_loaded);
+  vips_image_set_int(output, VIPS_META_PAGE_HEIGHT, out_page_height);
+  if (vips_image_get_typeof(input, "delay") == VIPS_TYPE_ARRAY_INT) {
+    int out_delays_size = 0;
+    int *out_delays = nullptr;
+    vips_image_get_array_int(input, "delay", &out_delays, &out_delays_size);
+    vips_image_set_array_int(output, "delay", out_delays, out_delays_size);
+  }
 }
 
 VipsImage *run_inference(JNIEnv *env, struct SessionData *session_info, VipsImage *input_image) {
@@ -489,12 +510,16 @@ VipsImage *run_inference(JNIEnv *env, struct SessionData *session_info, VipsImag
 
   VipsImage *inferred_image = vips_image_new_from_memory_copy(
       output_image_data, output_size, output_width, output_height, 3, VIPS_FORMAT_UCHAR);
+
   free(output_image_data);
   release_resources(inference_data);
+
+  copy_animation_metadata(input_image, inferred_image);
   return inferred_image;
 }
 
-JNIEXPORT void JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_init(JNIEnv *env, jclass this,
+JNIEXPORT void JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_init(JNIEnv *env,
+                                                                       jclass this,
                                                                        jstring provider) {
   g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
   if (!g_ort) {
@@ -620,8 +645,7 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
       size_t region_size = 0;
       VipsPel *region_data = vips_region_fetch(region, region_rect.left, region_rect.top,
                                                region_rect.width, region_rect.height, &region_size);
-      VipsImage *unformatted_image = nullptr;
-      unformatted_image =
+      VipsImage *unformatted_image =
           vips_image_new_from_memory(region_data, region_size, region_rect.width,
                                      region_rect.height, image_bands, VIPS_FORMAT_UCHAR);
       if (!unformatted_image) {
@@ -715,9 +739,12 @@ VipsImage *tiled_inference(JNIEnv *env, VipsImage *input_image) {
       komelia_throw_jvm_vips_exception(env);
       return nullptr;
     }
+
+    copy_animation_metadata(input_image, cropped);
     return cropped;
   }
 
+  copy_animation_metadata(input_image, joined);
   return joined;
 }
 

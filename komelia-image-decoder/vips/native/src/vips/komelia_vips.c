@@ -5,9 +5,16 @@ JNIEXPORT void JNICALL Java_snd_komelia_image_VipsImage_vipsInit() {
   vips_cache_set_max(0);
 }
 
+int boxed_int_to_int(JNIEnv *env, jobject boxed) {
+  jclass integer_class = (*env)->FindClass(env, "java/lang/Integer");
+  jmethodID int_method = (*env)->GetMethodID(env, integer_class, "intValue", "()I");
+  return (*env)->CallIntMethod(env, boxed, int_method);
+}
+
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decode(JNIEnv *env,
                                                                   jobject this,
-                                                                  jbyteArray encoded) {
+                                                                  jbyteArray encoded,
+                                                                  jobject n_pages) {
   jsize input_len = (*env)->GetArrayLength(env, encoded);
   jbyte *input_bytes = (*env)->GetByteArrayElements(env, encoded, nullptr);
 
@@ -15,7 +22,13 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decode(JNIEnv *env,
   memcpy(internal_buffer, input_bytes, input_len);
   (*env)->ReleaseByteArrayElements(env, encoded, input_bytes, JNI_ABORT);
 
-  VipsImage *decoded = vips_image_new_from_buffer(internal_buffer, input_len, "", nullptr);
+  VipsImage *decoded;
+  if (n_pages != nullptr) {
+    decoded = vips_image_new_from_buffer(internal_buffer, input_len, "", "n",
+                                         boxed_int_to_int(env, n_pages), nullptr);
+  } else {
+    decoded = vips_image_new_from_buffer(internal_buffer, input_len, "", nullptr);
+  }
 
   if (!decoded) {
     komelia_throw_jvm_vips_exception(env);
@@ -34,9 +47,16 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decode(JNIEnv *env,
 
 JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_decodeFromFile(JNIEnv *env,
                                                                           jobject this,
-                                                                          jstring path) {
+                                                                          jstring path,
+                                                                          jobject n_pages) {
   const char *path_chars = (*env)->GetStringUTFChars(env, path, nullptr);
-  VipsImage *decoded = vips_image_new_from_file(path_chars, nullptr);
+  VipsImage *decoded;
+  if (n_pages != nullptr) {
+    decoded = vips_image_new_from_file(path_chars, "n", boxed_int_to_int(env, n_pages), nullptr);
+  } else {
+    decoded = vips_image_new_from_file(path_chars, nullptr);
+  }
+
   (*env)->ReleaseStringUTFChars(env, path, path_chars);
 
   if (!decoded) {
@@ -71,7 +91,6 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_thumbnail(
     return nullptr;
   }
 
-  vips_thread_shutdown();
   jobject jvm_handle = komelia_to_jvm_handle(env, thumbnail, nullptr);
   if (jvm_handle == nullptr) {
     g_object_unref(thumbnail);

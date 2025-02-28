@@ -12,18 +12,24 @@ class WorkerImageDecoder : ImageDecoder {
     private val worker = ImageWorker()
     suspend fun init() = worker.init()
 
-    override suspend fun decode(encoded: ByteArray): KomeliaImage {
+    override suspend fun decode(encoded: ByteArray, nPages: Int?): KomeliaImage {
         val jsArray = encoded.toJsArray()
         val message = decodeRequest(worker.getNextId(), jsArray)
         val result = worker.postMessage<ImageResponse>(message, jsArray(jsArray.buffer))
         return WorkerImage(worker, result)
     }
 
-    override suspend fun decodeFromFile(path: String): KomeliaImage {
+    override suspend fun decodeFromFile(path: String, nPages: Int?): KomeliaImage {
         error("File operations are not supported")
     }
 
-    override suspend fun decodeAndResize(path: String, scaleWidth: Int, scaleHeight: Int, crop: Boolean): KomeliaImage {
+    override suspend fun decodeAndResize(
+        path: String,
+        scaleWidth: Int,
+        scaleHeight: Int,
+        crop: Boolean,
+        nPages: Int?
+    ): KomeliaImage {
         error("File operations are not supported")
     }
 
@@ -31,7 +37,8 @@ class WorkerImageDecoder : ImageDecoder {
         encoded: ByteArray,
         scaleWidth: Int,
         scaleHeight: Int,
-        crop: Boolean
+        crop: Boolean,
+        nPages: Int?
     ): KomeliaImage {
         val jsArray = encoded.toJsArray()
         val message = decodeAndResizeRequest(

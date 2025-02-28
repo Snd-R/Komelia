@@ -6,6 +6,7 @@ import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.processing.ImageProcessingPipeline
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.skia.Image
+import snd.komelia.image.ImageDecoder
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.ReduceKernel
@@ -13,8 +14,9 @@ import snd.komelia.image.ReduceKernel
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Image
 
-class WasmTilingReaderImage(
-    originalImage: KomeliaImage,
+class WasmReaderImage(
+    imageDecoder: ImageDecoder,
+    imageSource: ImageSource,
     processingPipeline: ImageProcessingPipeline,
     stretchImages: StateFlow<Boolean>,
     upsamplingMode: StateFlow<UpsamplingMode>,
@@ -23,7 +25,8 @@ class WasmTilingReaderImage(
     pageId: PageId,
     private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    originalImage = originalImage,
+    imageDecoder = imageDecoder,
+    imageSource = imageSource,
     processingPipeline = processingPipeline,
     stretchImages = stretchImages,
     upsamplingMode = upsamplingMode,
@@ -82,7 +85,7 @@ class WasmTilingReaderImage(
         val bitmap = this.toBitmap()
         val image = Image.makeFromBitmap(bitmap)
         bitmap.close()
-        return ReaderImageData(this.width, this.height, image)
+        return ReaderImageData(this.width, this.height, listOf(image), null)
     }
 
     private fun IntRect.toImageRect() = ImageRect(left = left, top = top, right = right, bottom = bottom)

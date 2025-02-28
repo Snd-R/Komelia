@@ -13,14 +13,13 @@ import io.github.reactivecircus.cache4k.CacheEvent.Removed
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.BookImageLoader
-import io.github.snd_r.komelia.image.ImageResult
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.ReaderImageFactory
+import io.github.snd_r.komelia.image.ReaderImageResult
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.ui.reader.image.BookState
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
-import io.github.snd_r.komelia.ui.reader.image.ReaderImageResult
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.SpreadIndex
@@ -142,7 +141,7 @@ class PagedReaderState(
         imageCache.invalidateAll()
     }
 
-    private fun updateSpreadImageState(
+    private suspend fun updateSpreadImageState(
         spread: PageSpread,
         screenScaleState: ScreenScaleState,
         readingDirection: ReadingDirection
@@ -343,13 +342,7 @@ class PagedReaderState(
 
             if (cached != null && !cached.isCancelled) cached
             else pageLoadScope.async {
-                val imageResult = when (val result = imageLoader.loadImage(meta.bookId, meta.pageNumber)) {
-                    is ImageResult.Success -> ReaderImageResult.Success(
-                        readerImageFactory.getImage(result.image, pageId)
-                    )
-
-                    is ImageResult.Error -> ReaderImageResult.Error(result.throwable)
-                }
+                val imageResult = imageLoader.loadReaderImage(meta.bookId, meta.pageNumber)
                 Page(meta, imageResult)
             }.also { imageCache.put(pageId, it) }
         }
@@ -360,7 +353,7 @@ class PagedReaderState(
         }
     }
 
-    private fun completeLoadJob(pages: List<Page>): PagesLoadJob {
+    private suspend fun completeLoadJob(pages: List<Page>): PagesLoadJob {
         val containerSize = screenScaleState.areaSize.value
         val maxPageSize = getMaxPageSize(pages.map { it.metadata }, containerSize)
         val newScale = calculateScreenScale(
@@ -532,7 +525,7 @@ class PagedReaderState(
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
     }
 
-    private fun calculateScreenScale(
+    private suspend fun calculateScreenScale(
         pages: List<Page>,
         areaSize: IntSize,
         maxPageSize: IntSize,
@@ -561,7 +554,7 @@ class PagedReaderState(
         val actualSpreadSize = pages.map {
             when (val result = it.imageResult) {
                 is ReaderImageResult.Error, null -> maxPageSize
-                is ReaderImageResult.Success -> result.image.originalSize.value
+                is ReaderImageResult.Success -> result.image.getOriginalImageSize()
             }
         }.fold(IntSize.Zero) { total, current ->
             IntSize(

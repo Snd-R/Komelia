@@ -16,6 +16,7 @@ import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.AndroidReaderImageFactory
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
@@ -136,17 +137,19 @@ suspend fun initDependencies(
         cropBorders = imageReaderSettingsRepository.getCropBorders().stateIn(initScope),
         colorCorrectionStep = colorCorrectionStep
     )
+    val vipsDecoder = VipsImageDecoder()
     val readerImageFactory = createReaderImageFactory(
         imagePreprocessingPipeline = imagePipeline,
         settings = imageReaderSettingsRepository,
+        imageDecoder = vipsDecoder,
         stateFlowScope = initScope
     )
 
-    val vipsDecoder = VipsImageDecoder()
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
+        imageFactory = readerImageFactory,
         decoder = vipsDecoder
     )
 
@@ -229,6 +232,7 @@ private fun createReaderImageLoader(
     ktorClient: HttpClient,
     cookiesStorage: RememberMePersistingCookieStore,
     decoder: ImageDecoder,
+    imageFactory: ReaderImageFactory,
 ): BookImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -238,7 +242,8 @@ private fun createReaderImageLoader(
         .bookClient()
     return BookImageLoader(
         bookClient = bookClient,
-        decoder = decoder,
+        imageDecoder = decoder,
+        readerImageFactory = imageFactory,
         diskCache = DiskCache.Builder()
             .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "komelia_reader_cache")
             .build()
@@ -333,9 +338,11 @@ private suspend fun createEpubReaderSettings(database: KomeliaDatabase): EpubRea
 private suspend fun createReaderImageFactory(
     imagePreprocessingPipeline: ImageProcessingPipeline,
     settings: ImageReaderSettingsRepository,
+    imageDecoder: ImageDecoder,
     stateFlowScope: CoroutineScope,
 ): AndroidReaderImageFactory {
     return AndroidReaderImageFactory(
+        imageDecoder = imageDecoder,
         downSamplingKernel = settings.getDownsamplingKernel().stateIn(stateFlowScope),
         upsamplingMode = settings.getUpsamplingMode().stateIn(stateFlowScope),
         linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),

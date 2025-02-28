@@ -102,14 +102,28 @@ komelia_to_jvm_handle(JNIEnv *env, VipsImage *image, const unsigned char *extern
   }
 
   jclass jvm_vips_class = (*env)->FindClass(env, "snd/komelia/image/VipsImage");
-  jmethodID constructor =
-      (*env)->GetMethodID(env, jvm_vips_class, "<init>", "(IIILsnd/komelia/image/ImageFormat;JJ)V");
+  jmethodID constructor = (*env)->GetMethodID(env, jvm_vips_class, "<init>",
+                                              "(IIIIII[ILsnd/komelia/image/ImageFormat;JJ)V");
 
   jobject jvm_type_enum = get_jvm_enum_type(env, transformed);
 
   int height = vips_image_get_height(transformed);
   int width = vips_image_get_width(transformed);
   int bands = vips_image_get_bands(transformed);
-  return (*env)->NewObject(env, jvm_vips_class, constructor, width, height, bands, jvm_type_enum,
+  int pages_total = vips_image_get_n_pages(transformed);
+  int page_height = vips_image_get_page_height(transformed);
+  int pages_loaded = height / page_height;
+  GType type = vips_image_get_typeof(transformed, "delay");
+  jintArray jvm_delay_array = nullptr;
+  if (type == VIPS_TYPE_ARRAY_INT) {
+    int *delay = nullptr;
+    int size = 0;
+    vips_image_get_array_int(transformed, "delay", &delay, &size);
+    jvm_delay_array = (*env)->NewIntArray(env, size);
+    (*env)->SetIntArrayRegion(env, jvm_delay_array, 0, size, delay);
+  }
+
+  return (*env)->NewObject(env, jvm_vips_class, constructor, width, height, bands, pages_total,
+                           page_height, pages_loaded, jvm_delay_array, jvm_type_enum,
                            (int64_t)external_source_buffer, (int64_t)transformed);
 }

@@ -7,6 +7,10 @@ class VipsImage private constructor(
     val width: Int,
     val height: Int,
     val bands: Int,
+    val pagesTotal: Int,
+    val pageHeight: Int,
+    val pagesLoaded: Int,
+    val pageDelays: IntArray?,
     val type: ImageFormat,
     internalBuffer: NativePointer,
     vipsPointer: NativePointer,
@@ -26,11 +30,11 @@ class VipsImage private constructor(
         external fun getDimensions(encoded: ByteArray): ImageDimensions
 
         @JvmStatic
-        external fun decode(encoded: ByteArray): VipsImage
+        external fun decode(encoded: ByteArray, nPages: Integer? = null): VipsImage
 
 
         @JvmStatic
-        external fun decodeFromFile(path: String): VipsImage
+        external fun decodeFromFile(path: String, nPages: Integer? = null): VipsImage
 
         @JvmStatic
         external fun thumbnail(

@@ -4,7 +4,6 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.image.ReaderImage
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.availableReduceKernels
@@ -313,15 +312,6 @@ data class BookState(
 enum class ReaderType {
     PAGED,
     CONTINUOUS
-}
-
-sealed interface ReaderImageResult {
-    val image: ReaderImage?
-
-    data class Success(override val image: ReaderImage) : ReaderImageResult
-    data class Error(val throwable: Throwable) : ReaderImageResult {
-        override val image: ReaderImage? = null
-    }
 }
 
 enum class ReaderFlashColor {

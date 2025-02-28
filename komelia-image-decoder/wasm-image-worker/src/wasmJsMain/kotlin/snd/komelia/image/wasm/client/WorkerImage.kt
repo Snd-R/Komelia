@@ -32,6 +32,11 @@ class WorkerImage(
     override val bands: Int,
     override val type: ImageFormat
 ) : KomeliaImage {
+    override val pagesLoaded: Int = 1
+    override val pagesTotal: Int = 1
+    override val pageHeight: Int = height
+    override val pageDelays: IntArray? = null
+
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     constructor(worker: ImageWorker, response: ImageResponse) : this(

@@ -14,7 +14,7 @@ ALTER TABLE ImageReaderSettings
     ADD COLUMN onnx_runtime_device_id INTEGER DEFAULT 0 NOT NULL;
 
 ALTER TABLE ImageReaderSettings
-    ADD COLUMN onnx_runtime_tile_size INTEGER DEFAULT 0 NOT NULL;
+    ADD COLUMN onnx_runtime_tile_size INTEGER DEFAULT 512 NOT NULL;
 
 ALTER TABLE ImageReaderSettings
     ADD COLUMN onnx_runtime_model_path TEXT;

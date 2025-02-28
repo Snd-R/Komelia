@@ -6,6 +6,11 @@ interface KomeliaImage : AutoCloseable {
     val bands: Int
     val type: ImageFormat
 
+    val pagesLoaded: Int
+    val pagesTotal: Int
+    val pageHeight: Int
+    val pageDelays: IntArray?
+
 
     suspend fun extractArea(rect: ImageRect): KomeliaImage
     suspend fun resize(

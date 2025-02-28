@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.DesktopReaderImageFactory
 import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
+import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
@@ -179,6 +180,7 @@ suspend fun initDependencies(
         colorCorrectionStep = colorCorrectionStep
     )
     val readerImageFactory = createReaderImageFactory(
+        imageDecoder = vipsDecoder,
         imagePreprocessingPipeline = imagePipeline,
         onnxRuntimeUpscaler = onnxUpscaler,
         settings = imageReaderRepository,
@@ -189,7 +191,8 @@ suspend fun initDependencies(
         baseUrl = baseUrl,
         ktorClient = ktorWithoutCache,
         cookiesStorage = cookiesStorage,
-        vipsDecoder = vipsDecoder
+        imageDecoder = vipsDecoder,
+        imageFactory = readerImageFactory
     )
 
     val komfClientFactory = KomfClientFactory.Builder()
@@ -327,7 +330,8 @@ private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
     cookiesStorage: CookiesStorage,
-    vipsDecoder: VipsImageDecoder
+    imageFactory: ReaderImageFactory,
+    imageDecoder: ImageDecoder
 ): BookImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -336,12 +340,15 @@ private fun createReaderImageLoader(
         .build()
         .bookClient()
 
+    val diskCache = DiskCache.Builder()
+        .directory(readerCachePath.createDirectories().toOkioPath())
+        .build()
+    Runtime.getRuntime().addShutdownHook(thread(start = false) { diskCache.clear() })
     return BookImageLoader(
-        bookClient,
-        vipsDecoder,
-        DiskCache.Builder()
-            .directory(readerCachePath.createDirectories().toOkioPath())
-            .build()
+        bookClient = bookClient,
+        readerImageFactory = imageFactory,
+        imageDecoder = imageDecoder,
+        diskCache = diskCache
     )
 }
 
@@ -426,9 +433,11 @@ private suspend fun createReaderImageFactory(
     imagePreprocessingPipeline: ImageProcessingPipeline,
     onnxRuntimeUpscaler: ManagedOnnxUpscaler?,
     settings: ImageReaderSettingsRepository,
+    imageDecoder: ImageDecoder,
     stateFlowScope: CoroutineScope,
 ): DesktopReaderImageFactory {
     return DesktopReaderImageFactory(
+        imageDecoder = imageDecoder,
         downSamplingKernel = settings.getDownsamplingKernel().stateIn(stateFlowScope),
         upsamplingMode = settings.getUpsamplingMode().stateIn(stateFlowScope),
         linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),

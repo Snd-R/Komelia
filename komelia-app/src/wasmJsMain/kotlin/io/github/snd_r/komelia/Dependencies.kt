@@ -7,6 +7,7 @@ import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.WasmReaderImageFactory
 import io.github.snd_r.komelia.image.coil.BlobFetcher
 import io.github.snd_r.komelia.image.coil.CoilDecoder
@@ -37,6 +38,7 @@ import snd.komelia.db.repository.ActorReaderSettingsRepository
 import snd.komelia.db.repository.ActorSettingsRepository
 import snd.komelia.db.settings.LocalStorageSettingsRepository
 import snd.komelia.db.settings.NoopFontsRepository
+import snd.komelia.image.ImageDecoder
 import snd.komelia.image.wasm.client.WorkerImageDecoder
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
@@ -92,12 +94,14 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
     val readerImageFactory = createReaderImageFactory(
         imagePreprocessingPipeline = imagePipeline,
         settings = imageReaderSettingsRepository,
+        imageDecoder = workerDecoder,
         stateFlowScope = stateFlowScope
     )
     val readerImageLoader = createReaderImageLoader(
         baseUrl = baseUrl,
         ktorClient = ktorClient,
         decoder = workerDecoder,
+        imageFactory = readerImageFactory
     )
 
     return WasmDependencyContainer(
@@ -172,6 +176,7 @@ private fun createReaderImageLoader(
     baseUrl: StateFlow<String>,
     ktorClient: HttpClient,
     decoder: WorkerImageDecoder,
+    imageFactory: ReaderImageFactory
 ): BookImageLoader {
     val bookClient = KomgaClientFactory.Builder()
         .ktor(ktorClient)
@@ -181,7 +186,8 @@ private fun createReaderImageLoader(
 
     return BookImageLoader(
         bookClient = bookClient,
-        decoder = decoder,
+        imageDecoder = decoder,
+        readerImageFactory = imageFactory,
         diskCache = null
     )
 }
@@ -197,9 +203,11 @@ private fun createImagePipeline(
 private suspend fun createReaderImageFactory(
     imagePreprocessingPipeline: ImageProcessingPipeline,
     settings: ImageReaderSettingsRepository,
+    imageDecoder: ImageDecoder,
     stateFlowScope: CoroutineScope,
 ): WasmReaderImageFactory {
     return WasmReaderImageFactory(
+        imageDecoder = imageDecoder,
         downSamplingKernel = settings.getDownsamplingKernel().stateIn(stateFlowScope),
         upsamplingMode = settings.getUpsamplingMode().stateIn(stateFlowScope),
         linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),

@@ -109,6 +109,7 @@ class ReaderViewModel(
         val currentState = readerState.state.value
         if (currentState is LoadState.Success || currentState == LoadState.Loading) return
 
+        onnxRuntimeSettingsState?.initialize()
         readerState.initialize(bookId)
         screenScaleState.areaSize.takeWhile { it == IntSize.Zero }.collect()
 

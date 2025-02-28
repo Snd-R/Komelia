@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.onEach
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.SamplingMode
+import snd.komelia.image.ImageDecoder
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.ReduceKernel
@@ -27,8 +28,9 @@ import snd.komelia.image.SkiaBitmap.toSkiaBitmap
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Image
 
-class DesktopTilingReaderImage(
-    originalImage: KomeliaImage,
+class DesktopReaderImage(
+    imageDecoder: ImageDecoder,
+    imageSource: ImageSource,
     processingPipeline: ImageProcessingPipeline,
     stretchImages: StateFlow<Boolean>,
     pageId: PageId,
@@ -38,7 +40,8 @@ class DesktopTilingReaderImage(
     private val upscaler: ManagedOnnxUpscaler?,
     private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
-    originalImage = originalImage,
+    imageDecoder = imageDecoder,
+    imageSource = imageSource,
     processingPipeline = processingPipeline,
     stretchImages = stretchImages,
     upsamplingMode = upsamplingMode,
@@ -79,7 +82,7 @@ class DesktopTilingReaderImage(
         scaleWidth: Int,
         scaleHeight: Int
     ): ReaderImageData {
-        if (scaleWidth > image.width || scaleHeight > image.height) {
+        if (scaleWidth > image.width || scaleHeight > image.pageHeight) {
             return upscaleImage(image, scaleWidth, scaleHeight)
         }
 
@@ -128,7 +131,7 @@ class DesktopTilingReaderImage(
         val upscaled = upscaler?.upscale(image, pageId.toString())
 
         if (upscaled != null) {
-            if (upscaled.width > scaleWidth && upscaled.height > scaleHeight) {
+            if (upscaled.width > scaleWidth && upscaled.pageHeight > scaleHeight) {
                 val resized = upscaled.resize(
                     scaleWidth = scaleWidth,
                     scaleHeight = scaleHeight,
@@ -173,7 +176,7 @@ class DesktopTilingReaderImage(
                 region = upscaled.extractArea(targetRegion)
 
                 // downscale if region is bigger than requested scale
-                if (region.width > scaleWidth || region.height > scaleHeight) {
+                if (region.width > scaleWidth || region.pageHeight > scaleHeight) {
                     resized = region.resize(
                         scaleWidth = scaleWidth,
                         scaleHeight = scaleHeight,
@@ -197,12 +200,25 @@ class DesktopTilingReaderImage(
         }
     }
 
-    private fun KomeliaImage.toReaderImageData(): ReaderImageData {
-        val skiaBitmap = this.toSkiaBitmap()
+    private suspend fun KomeliaImage.toReaderImageData(): ReaderImageData {
+        val frames = mutableListOf<RenderImage>()
+        val delays = pageDelays?.let { mutableListOf<Long>() }
+        for (i in 0 until this.pagesLoaded) {
+            val skiaBitmap = this.extractArea(
+                ImageRect(
+                    left = 0,
+                    right = width,
+                    top = pageHeight * i,
+                    bottom = pageHeight * (i + 1),
+                )
+            ).toSkiaBitmap()
+            val image = Image.makeFromBitmap(skiaBitmap)
+            skiaBitmap.close()
 
-        val image = Image.makeFromBitmap(skiaBitmap)
-        skiaBitmap.close()
-        return ReaderImageData(width, height, image)
+            frames.add(image)
+            delays?.add(this.pageDelays?.getOrNull(i)?.toLong() ?: defaultFrameDelay)
+        }
+        return ReaderImageData(width, pageHeight, frames, delays)
     }
 
     private fun IntRect.toImageRect() = ImageRect(left = left, top = top, right = right, bottom = bottom)
@@ -262,4 +278,5 @@ class DesktopTilingReaderImage(
             )
         }
     }
+
 }

@@ -104,7 +104,9 @@ class ManagedOnnxUpscaler(private val settingsRepository: ImageReaderSettingsRep
                         NONE -> null
                     }
 
-                    upscaled?.let { image -> writeToDiskCache(image, cacheKey) }
+                    upscaled?.let { newImage ->
+                        if (image.pagesLoaded == 1) writeToDiskCache(newImage, cacheKey)
+                    }
 
                     return@withContext upscaled
                 }
