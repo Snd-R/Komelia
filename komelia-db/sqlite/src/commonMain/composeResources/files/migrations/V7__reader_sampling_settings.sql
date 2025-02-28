@@ -8,7 +8,7 @@ ALTER TABLE ImageReaderSettings
     ADD COLUMN upsampling_mode TEXT DEFAULT 'CATMULL_ROM' NOT NULL;
 
 ALTER TABLE ImageReaderSettings
-    ADD COLUMN onnx_runtime_mode BOOLEAN DEFAULT 0 NULL;
+    ADD COLUMN onnx_runtime_mode TEXT DEFAULT 'NONE' NULL;
 
 ALTER TABLE ImageReaderSettings
     ADD COLUMN onnx_runtime_device_id INTEGER DEFAULT 0 NOT NULL;
