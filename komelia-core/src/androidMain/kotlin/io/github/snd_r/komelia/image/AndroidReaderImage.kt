@@ -97,6 +97,10 @@ class AndroidReaderImage(
     }
 
     private suspend fun KomeliaImage.toReaderImageData(): ReaderImageData {
+        if (this.pagesLoaded == 1) {
+            return ReaderImageData(width, height, listOf(this.toBitmap()), null)
+        }
+
         val frames = mutableListOf<RenderImage>()
         val delays = pageDelays?.let { mutableListOf<Long>() }
         for (i in 0 until this.pagesLoaded) {

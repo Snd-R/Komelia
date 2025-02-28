@@ -201,6 +201,13 @@ class DesktopReaderImage(
     }
 
     private suspend fun KomeliaImage.toReaderImageData(): ReaderImageData {
+        if (this.pagesLoaded == 1) {
+            val skiaBitmap = this.toSkiaBitmap()
+            val image = Image.makeFromBitmap(skiaBitmap)
+            skiaBitmap.close()
+            return ReaderImageData(width, height, listOf(image), null)
+        }
+
         val frames = mutableListOf<RenderImage>()
         val delays = pageDelays?.let { mutableListOf<Long>() }
         for (i in 0 until this.pagesLoaded) {
