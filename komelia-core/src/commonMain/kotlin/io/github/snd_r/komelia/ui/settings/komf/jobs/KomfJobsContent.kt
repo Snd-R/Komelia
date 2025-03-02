@@ -169,7 +169,7 @@ private fun JobCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
             state = rememberTooltipState(isPersistent = true),
             tooltip = { if (series != null) SeriesTooltip(series, loading) },
             modifier = Modifier
@@ -217,7 +217,7 @@ private fun JobCard(
             RUNNING -> {}
             FAILED ->
                 TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
                     state = rememberTooltipState(isPersistent = true),
                     tooltip = {
                         Surface(

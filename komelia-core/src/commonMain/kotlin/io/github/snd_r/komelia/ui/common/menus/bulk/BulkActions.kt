@@ -112,7 +112,7 @@ fun BulkActionButton(
 
     if (iconOnly) {
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
             tooltip = {
                 Box(
                     Modifier

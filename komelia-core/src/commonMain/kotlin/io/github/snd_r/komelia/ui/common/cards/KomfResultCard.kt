@@ -83,7 +83,7 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
     ) {
         val strings = LocalStrings.current.komf.providerSettings
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
             state = rememberTooltipState(),
             tooltip = {
                 Surface(

@@ -292,7 +292,7 @@ private fun NavButton(
 @Composable
 private fun TaskQueueIndicator(queueStatus: TaskQueueStatus) {
     BasicTooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         tooltip = {
             Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .9f)) {
                 Column(Modifier.padding(10.dp)) {

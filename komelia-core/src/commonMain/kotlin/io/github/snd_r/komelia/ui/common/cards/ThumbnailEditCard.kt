@@ -182,7 +182,7 @@ private fun ThumbnailCardContent(
 @Composable
 private fun IconWithTooltip(tooltip: String, content: @Composable () -> Unit) {
     BasicTooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         tooltip = {
             Surface(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = .9f),

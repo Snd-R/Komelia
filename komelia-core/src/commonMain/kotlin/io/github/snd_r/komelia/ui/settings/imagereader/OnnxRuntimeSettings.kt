@@ -274,7 +274,7 @@ fun TileSizeSelector(
         )
 
         BasicTooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
             tooltip = {
                 Card(
                     modifier = Modifier.widthIn(max = 450.dp),
