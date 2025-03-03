@@ -72,8 +72,6 @@ fun ImageReaderSettingsContent(
                 inputFieldModifier = Modifier.fillMaxWidth(),
                 label = { Text(strings.downsamplingKernel) }
             )
-        } else {
-            Text("${strings.downsamplingKernel}: ${strings.forDownsamplingKernel(downsamplingKernel)}")
         }
         HorizontalDivider()
 

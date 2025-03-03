@@ -1,6 +1,8 @@
 package snd.jni
 
 import org.slf4j.LoggerFactory
+import snd.jni.SharedLibrariesLoader.LibraryLoadResult.BundledLibrary
+import snd.jni.SharedLibrariesLoader.LibraryLoadResult.SystemLibrary
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -35,16 +37,15 @@ object SharedLibrariesLoader {
     }
 
     @Suppress("UnsafeDynamicallyLoadedCode")
-    fun loadLibrary(libName: String) {
+    fun loadLibrary(libName: String): LibraryLoadResult {
         val filename = System.mapLibraryName(libName)
         try {
-
             if (composeResourcesDir != null) {
                 val filePath = composeResourcesDir.resolve(filename)
                 if (filePath.exists()) {
                     System.load(filePath.absolutePathString())
                     logger.info("loaded bundled native library $filename from resource directory")
-                    return
+                    return BundledLibrary
                 }
             }
 
@@ -55,14 +56,20 @@ object SharedLibrariesLoader {
                 libFile.deleteOnExit()
                 System.load(libFile.path)
                 logger.info("loaded bundled native library $filename from jar file")
-                return
+                return BundledLibrary
             }
 
             logger.warn("$filename is not found in bundled libraries. attempting to load system library")
             System.loadLibrary(libName)
+            return SystemLibrary
         } catch (e: UnsatisfiedLinkError) {
             logger.error("failed to load native library $filename", e)
             throw e
         }
+    }
+
+    sealed interface LibraryLoadResult {
+        data object BundledLibrary : LibraryLoadResult
+        data object SystemLibrary : LibraryLoadResult
     }
 }

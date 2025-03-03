@@ -272,32 +272,35 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_resize(JNIEnv *env,
   if (image == nullptr)
     return nullptr;
 
-  const char *name_chars = (*env)->GetStringUTFChars(env, jvm_kernel, nullptr);
-  VipsKernel kernel = VIPS_KERNEL_LANCZOS3;
-  if (strcmp(name_chars, "NEAREST") == 0) {
-    kernel = VIPS_KERNEL_NEAREST;
-  } else if (strcmp(name_chars, "LINEAR") == 0) {
-    kernel = VIPS_KERNEL_LINEAR;
-  } else if (strcmp(name_chars, "CUBIC") == 0) {
-    kernel = VIPS_KERNEL_CUBIC;
-  } else if (strcmp(name_chars, "MITCHELL") == 0) {
-    kernel = VIPS_KERNEL_MITCHELL;
-  } else if (strcmp(name_chars, "LANCZOS2") == 0) {
-    kernel = VIPS_KERNEL_LANCZOS2;
-  } else if (strcmp(name_chars, "LANCZOS3") == 0) {
-    kernel = VIPS_KERNEL_LANCZOS3;
-  }
-  //  else if (strcmp(name_chars, "MKS2013") == 0) {
-  //   kernel = VIPS_KERNEL_MKS2013;
-  // } else if (strcmp(name_chars, "MKS2021") == 0) {
-  //   kernel = VIPS_KERNEL_MKS2021;
-  // }
-  (*env)->ReleaseStringUTFChars(env, jvm_kernel, name_chars);
-
   VipsImage *resized = nullptr;
+  if (jvm_kernel == nullptr) {
+    vips_thumbnail_image(image, &resized, target_width, "height", target_height, "linear", linear,
+                         nullptr);
+  } else {
+    const char *name_chars = (*env)->GetStringUTFChars(env, jvm_kernel, nullptr);
+    VipsKernel kernel = VIPS_KERNEL_LANCZOS3;
+    if (strcmp(name_chars, "NEAREST") == 0) {
+      kernel = VIPS_KERNEL_NEAREST;
+    } else if (strcmp(name_chars, "LINEAR") == 0) {
+      kernel = VIPS_KERNEL_LINEAR;
+    } else if (strcmp(name_chars, "CUBIC") == 0) {
+      kernel = VIPS_KERNEL_CUBIC;
+    } else if (strcmp(name_chars, "MITCHELL") == 0) {
+      kernel = VIPS_KERNEL_MITCHELL;
+    } else if (strcmp(name_chars, "LANCZOS2") == 0) {
+      kernel = VIPS_KERNEL_LANCZOS2;
+    } else if (strcmp(name_chars, "LANCZOS3") == 0) {
+      kernel = VIPS_KERNEL_LANCZOS3;
+    } else if (strcmp(name_chars, "MKS2013") == 0) {
+      kernel = VIPS_KERNEL_MKS2013;
+    } else if (strcmp(name_chars, "MKS2021") == 0) {
+      kernel = VIPS_KERNEL_MKS2021;
+    }
+    (*env)->ReleaseStringUTFChars(env, jvm_kernel, name_chars);
 
-  vips_thumbnail_image(image, &resized, target_width, "height", target_height, "linear", linear,
-                       "kernel", kernel, nullptr);
+    vips_thumbnail_image(image, &resized, target_width, "height", target_height, "linear", linear,
+                         "kernel", kernel, nullptr);
+  }
 
   if (resized == nullptr) {
     komelia_throw_jvm_vips_exception(env);

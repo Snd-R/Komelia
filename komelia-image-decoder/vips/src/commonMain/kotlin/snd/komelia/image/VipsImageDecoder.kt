@@ -81,6 +81,7 @@ class VipsBackedImage(val vipsImage: VipsImage) : KomeliaImage {
     override val pageHeight: Int = vipsImage.pageHeight
     override val pageDelays: IntArray? = vipsImage.pageDelays
 
+
     override suspend fun extractArea(rect: ImageRect): KomeliaImage {
         return withContext(Dispatchers.Default) {
             VipsBackedImage(vipsImage.extractArea(rect))
@@ -94,7 +95,8 @@ class VipsBackedImage(val vipsImage: VipsImage) : KomeliaImage {
         kernel: ReduceKernel,
     ): KomeliaImage {
         return withContext(Dispatchers.Default) {
-            val vipsKernel = when (kernel) {
+            val vipsKernel = if (!vipsThumbnailKernelIsSupported) null
+            else when (kernel) {
                 ReduceKernel.DEFAULT -> VipsKernel.LANCZOS3
                 ReduceKernel.NEAREST -> VipsKernel.NEAREST
                 ReduceKernel.LINEAR -> VipsKernel.LINEAR
@@ -110,7 +112,7 @@ class VipsBackedImage(val vipsImage: VipsImage) : KomeliaImage {
                 vipsImage.resize(
                     targetWidth = scaleWidth.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
                     targetHeight = scaleHeight.coerceAtMost(VipsImage.DIMENSION_MAX_SIZE),
-                    kernel = vipsKernel.name,
+                    kernel = vipsKernel?.name,
                     linear = linear,
                 )
             )

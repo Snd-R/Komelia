@@ -63,7 +63,7 @@ class VipsImage private constructor(
     }
 
     external fun extractArea(rect: ImageRect): VipsImage
-    external fun resize(targetWidth: Int, targetHeight: Int, kernel: String, linear: Boolean): VipsImage
+    external fun resize(targetWidth: Int, targetHeight: Int, kernel: String?, linear: Boolean): VipsImage
 
     external fun getBytes(): ByteArray
     external fun encodeToFile(path: String)
@@ -90,3 +90,5 @@ enum class VipsKernel {
     MKS2013,
     MKS2021,
 }
+
+internal expect val vipsThumbnailKernelIsSupported: Boolean

@@ -7,7 +7,11 @@ import snd.jni.DesktopPlatform.MacOS
 import snd.jni.DesktopPlatform.Unknown
 import snd.jni.DesktopPlatform.Windows
 import snd.jni.SharedLibrariesLoader
+import snd.jni.SharedLibrariesLoader.LibraryLoadResult.BundledLibrary
 import java.util.concurrent.atomic.AtomicBoolean
+
+private const val linuxBundledLibVipsName = "vips"
+private const val windowsBundledLibVipsName = "libvips-42"
 
 object VipsSharedLibraries {
     private val logger = LoggerFactory.getLogger(VipsSharedLibraries::class.java)
@@ -15,6 +19,10 @@ object VipsSharedLibraries {
 
     @Volatile
     var isAvailable = false
+        private set
+
+    @Volatile
+    var libVipsIsBundled: Boolean = false
         private set
 
     @Volatile
@@ -49,7 +57,7 @@ object VipsSharedLibraries {
         "spng",
         "tiff",
         "heif",
-        "vips",
+        linuxBundledLibVipsName,
         "komelia_vips",
     )
 
@@ -85,7 +93,7 @@ object VipsSharedLibraries {
         "libspng",
         "libtiff",
         "libheif",
-        "libvips-42",
+        windowsBundledLibVipsName,
         "libkomelia_vips",
     )
 
@@ -109,7 +117,12 @@ object VipsSharedLibraries {
     private fun loadLibs(libs: List<String>) {
         logger.info("libraries search path: ${System.getProperty("java.library.path")}")
         for (libName in libs) {
-            SharedLibrariesLoader.loadLibrary(libName)
+            val loadResult = SharedLibrariesLoader.loadLibrary(libName)
+            if ((libName == linuxBundledLibVipsName || libName == windowsBundledLibVipsName)
+                && loadResult is BundledLibrary
+            ) {
+                libVipsIsBundled = true
+            }
         }
     }
 
