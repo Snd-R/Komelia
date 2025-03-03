@@ -361,6 +361,7 @@ class PagedReaderState(
             areaSize = containerSize,
             maxPageSize = maxPageSize,
             scaleType = scaleType.value,
+            displayLayout = layout.value,
             stretchToFit = readerState.imageStretchToFit.value
         )
         val spread = PageSpread(pages)
@@ -530,25 +531,49 @@ class PagedReaderState(
         areaSize: IntSize,
         maxPageSize: IntSize,
         scaleType: LayoutScaleType,
+        displayLayout: PageDisplayLayout,
         stretchToFit: Boolean,
     ): ScreenScaleState {
         val scaleState = ScreenScaleState()
         scaleState.setAreaSize(areaSize)
-        val fitToScreenSize = pages
-            .map {
-                when (it.imageResult) {
+
+        val fitToScreenSize = when (displayLayout) {
+            SINGLE_PAGE -> {
+                check(pages.size == 1)
+                val imageResult = pages.first().imageResult
+                when (imageResult) {
                     is ReaderImageResult.Error, null -> maxPageSize
-                    is ReaderImageResult.Success -> {
-                        it.imageResult.image.calculateSizeForArea(maxPageSize, true)
-                    }
+                    is ReaderImageResult.Success -> imageResult.image.calculateSizeForArea(maxPageSize, true)
                 }
             }
-            .reduce { total, current ->
-                IntSize(
-                    width = (total.width + current.width),
-                    height = max(total.height, current.height)
-                )
+
+            DOUBLE_PAGES, DOUBLE_PAGES_NO_COVER -> {
+                if (pages.size == 1 && !pages.first().metadata.isLandscape()) {
+                    val imageResult = pages.first().imageResult
+                    val singlePageSize = when (imageResult) {
+                        is ReaderImageResult.Error, null -> maxPageSize
+                        is ReaderImageResult.Success -> imageResult.image.calculateSizeForArea(maxPageSize, true)
+                    }
+                    IntSize(singlePageSize.width * 2, singlePageSize.height)
+                } else {
+                    pages
+                        .map {
+                            when (it.imageResult) {
+                                is ReaderImageResult.Error, null -> maxPageSize
+                                is ReaderImageResult.Success -> {
+                                    it.imageResult.image.calculateSizeForArea(maxPageSize, true)
+                                }
+                            }
+                        }
+                        .reduce { total, current ->
+                            IntSize(
+                                width = (total.width + current.width),
+                                height = max(total.height, current.height)
+                            )
+                        }
+                }
             }
+        }
         scaleState.setTargetSize(fitToScreenSize.toSize())
 
         val actualSpreadSize = pages.map {
