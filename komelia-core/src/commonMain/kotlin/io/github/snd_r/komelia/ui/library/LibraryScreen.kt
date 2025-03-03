@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,6 +85,10 @@ class LibraryScreen(
         LaunchedEffect(libraryId) {
             vm.initialize(seriesFilter)
             reloadEvents.collect { vm.reload() }
+        }
+        DisposableEffect(Unit) {
+            vm.startKomgaEventListener()
+            onDispose { vm.stopKomgaEventListener() }
         }
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {

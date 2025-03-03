@@ -16,6 +16,11 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.readlist.BookReadListsState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -62,11 +67,11 @@ class BookViewModel(
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     val bookMenuActions = BookMenuActions(bookClient, notifications, screenModelScope)
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return
 
-        registerEventListener()
         if (book.value == null) loadBook()
         else mutableState.value = Success(Unit)
         loadLibrary()
@@ -96,8 +101,12 @@ class BookViewModel(
         library = libraries.value.firstOrNull { library -> library.id == book.libraryId }
     }
 
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
 
-    private fun registerEventListener() {
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
         komgaEvents.onEach { event ->
             when (event) {
                 is BookChanged -> if (event.bookId == bookId) reload()
@@ -105,7 +114,10 @@ class BookViewModel(
                 is ReadProgressDeleted -> if (event.bookId == bookId) reload()
                 else -> {}
             }
-        }.launchIn(screenModelScope)
+        }.launchIn(komgaEventsScope)
     }
 
+    override fun onDispose() {
+        komgaEventsScope.cancel()
+    }
 }

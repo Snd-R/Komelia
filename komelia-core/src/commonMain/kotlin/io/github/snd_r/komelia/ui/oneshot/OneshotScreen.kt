@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.oneshot
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
@@ -64,7 +65,10 @@ class OneshotScreen(
         LaunchedEffect(seriesId) {
             vm.initialize()
             reloadEvents.collect { vm.reload() }
-
+        }
+        DisposableEffect(Unit) {
+            vm.startKomgaEventListener()
+            onDispose { vm.stopKomgaEventListener() }
         }
 
         val state = vm.state.collectAsState().value

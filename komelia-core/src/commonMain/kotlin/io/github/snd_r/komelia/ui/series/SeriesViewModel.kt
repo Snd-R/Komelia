@@ -16,6 +16,11 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.collection.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -76,6 +81,7 @@ class SeriesViewModel(
         screenModelScope = screenModelScope,
         cardWidth = cardWidth,
     )
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
         if (state.value !is Uninitialized) return
@@ -100,7 +106,6 @@ class SeriesViewModel(
 
         booksState.initialize()
         collectionsState.initialize()
-        registerEventListener()
     }
 
     fun reload() {
@@ -138,18 +143,27 @@ class SeriesViewModel(
 
     }
 
-    private fun registerEventListener() {
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
         events.onEach { event ->
             when (event) {
                 is KomgaEvent.SeriesChanged -> if (event.seriesId == seriesId) loadSeries()
                 else -> {}
             }
-        }.launchIn(screenModelScope)
+        }.launchIn(komgaEventsScope)
     }
 
     enum class SeriesTab {
         BOOKS,
         COLLECTIONS
+    }
+
+    override fun onDispose() {
+        komgaEventsScope.cancel()
     }
 }
 

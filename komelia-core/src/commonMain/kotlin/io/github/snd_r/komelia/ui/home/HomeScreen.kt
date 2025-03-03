@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.home
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -29,6 +30,11 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : ReloadableScre
         LaunchedEffect(Unit) {
             vm.initialize()
             reloadEvents.collect { vm.reload() }
+        }
+
+        DisposableEffect(Unit) {
+            vm.startKomgaEventListener()
+            onDispose { vm.stopKomgaEventListener() }
         }
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {

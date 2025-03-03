@@ -14,6 +14,11 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -71,6 +76,7 @@ class CollectionViewModel(
 
     private var isAnyItemDragging = MutableStateFlow(false)
 
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -79,8 +85,6 @@ class CollectionViewModel(
             loadCollection()
             loadSeriesPage(1)
         }
-
-        screenModelScope.launch { startEventListener() }
 
         reloadJobsFlow.onEach {
             reload()
@@ -195,8 +199,13 @@ class CollectionViewModel(
         }
     }
 
-    private suspend fun startEventListener() {
-        komgaEvents.collect { event ->
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+        komgaEvents.onEach { event ->
             when (event) {
                 is CollectionChanged -> onCollectionChanged(event)
                 is SeriesChanged -> onSeriesChanged(event)
@@ -205,7 +214,7 @@ class CollectionViewModel(
                 is ReadProgressSeriesEvent -> onReadProgressChanged(event)
                 else -> {}
             }
-        }
+        }.launchIn(komgaEventsScope)
     }
 
     private fun onCollectionChanged(event: CollectionChanged) {
@@ -222,4 +231,7 @@ class CollectionViewModel(
         if (series.any { it.id == event.seriesId }) reloadJobsFlow.tryEmit(Unit)
     }
 
+    override fun onDispose() {
+        komgaEventsScope.cancel()
+    }
 }

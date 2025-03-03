@@ -14,6 +14,11 @@ import io.github.snd_r.komelia.ui.collection.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.readlist.BookReadListsState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -78,6 +83,7 @@ class OneshotViewModel(
         screenModelScope = screenModelScope,
         cardWidth = cardWidth,
     )
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return
@@ -90,7 +96,6 @@ class OneshotViewModel(
             }
             library.value = newLibrary
         }.launchIn(screenModelScope)
-        registerEventListener()
     }
 
     private suspend fun initState() {
@@ -146,7 +151,12 @@ class OneshotViewModel(
 
     }
 
-    private fun registerEventListener() {
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
         events.onEach { event ->
             when (event) {
                 is SeriesChanged -> if (event.seriesId == seriesId) loadSeries()
@@ -155,6 +165,10 @@ class OneshotViewModel(
                 is ReadProgressDeleted -> if (event.bookId == book.value?.id) loadBook()
                 else -> {}
             }
-        }.launchIn(screenModelScope)
+        }.launchIn(komgaEventsScope)
+    }
+
+    override fun onDispose() {
+        komgaEventsScope.cancel()
     }
 }

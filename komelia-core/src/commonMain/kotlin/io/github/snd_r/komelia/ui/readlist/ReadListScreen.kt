@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.readlist
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -35,6 +36,10 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
         LaunchedEffect(readListId) {
             vm.initialize()
             reloadEvents.collect { vm.reload() }
+        }
+        DisposableEffect(Unit) {
+            vm.startKomgaEventListener()
+            onDispose { vm.stopKomgaEventListener() }
         }
 
         val navigator = LocalNavigator.currentOrThrow

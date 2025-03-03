@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.book
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -60,6 +61,11 @@ class BookScreen(
             vm.book.value?.let { if (it.oneshot) navigator.replace(OneshotScreen(it, bookSiblingsContext)) }
             reloadEvents.collect { vm.reload() }
         }
+        DisposableEffect(Unit) {
+            vm.startKomgaEventListener()
+            onDispose { vm.stopKomgaEventListener() }
+        }
+
         val book = vm.book.collectAsState().value
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {

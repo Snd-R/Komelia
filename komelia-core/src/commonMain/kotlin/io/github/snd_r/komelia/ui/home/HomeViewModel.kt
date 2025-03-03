@@ -13,6 +13,11 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -49,6 +54,7 @@ class HomeViewModel(
     private val komgaEvents: SharedFlow<KomgaEvent>,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     var keepReadingBooks by mutableStateOf<List<KomgaBook>>(emptyList())
@@ -75,7 +81,6 @@ class HomeViewModel(
     fun initialize() {
         if (state.value !is Uninitialized) return
 
-        screenModelScope.launch { startEventListener() }
 
         reloadJobsFlow.onEach {
             load()
@@ -184,8 +189,13 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun startEventListener() {
-        komgaEvents.collect { event ->
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+        komgaEvents.onEach { event ->
             when (event) {
                 is BookEvent -> {
                     reloadJobsFlow.tryEmit(Unit)
@@ -213,11 +223,15 @@ class HomeViewModel(
 
                 else -> {}
             }
-        }
+        }.launchIn(komgaEventsScope)
     }
 
     fun onFilterChange(filter: HomeScreenFilter) {
         this.activeFilter = filter
+    }
+
+    override fun onDispose() {
+        komgaEventsScope.cancel()
     }
 
     enum class HomeScreenFilter {

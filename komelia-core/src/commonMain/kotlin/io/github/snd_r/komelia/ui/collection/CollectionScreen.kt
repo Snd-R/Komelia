@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.ui.collection
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -30,6 +31,11 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : ReloadableScreen {
             vm.initialize()
             reloadEvents.collect { vm.reload() }
         }
+        DisposableEffect(Unit) {
+            vm.startKomgaEventListener()
+            onDispose { vm.stopKomgaEventListener() }
+        }
+
         val navigator = LocalNavigator.currentOrThrow
 
         when (vm.state.collectAsState().value) {

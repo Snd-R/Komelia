@@ -13,6 +13,11 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -70,6 +75,7 @@ class ReadListViewModel(
 
     private var isAnyItemDragging = MutableStateFlow(false)
 
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -94,7 +100,6 @@ class ReadListViewModel(
                     )
                 }
             }.launchIn(screenModelScope)
-        screenModelScope.launch { startEventListener() }
     }
 
     fun reload() {
@@ -201,8 +206,13 @@ class ReadListViewModel(
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    private suspend fun startEventListener() {
-        komgaEvents.collect { event ->
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+        komgaEvents.onEach { event ->
             when (event) {
                 is ReadListChanged -> onReadListChange(event)
                 is BookChanged -> onBookChange(event)
@@ -211,7 +221,7 @@ class ReadListViewModel(
                 is ReadProgressDeleted -> onReadProgressChange(event)
                 else -> {}
             }
-        }
+        }.launchIn(komgaEventsScope)
     }
 
     private fun onReadListChange(event: ReadListChanged) {
@@ -226,4 +236,7 @@ class ReadListViewModel(
         if (books.any { it.id == event.bookId }) reloadJobsFlow.tryEmit(Unit)
     }
 
+    override fun onDispose() {
+        komgaEventsScope.cancel()
+    }
 }
