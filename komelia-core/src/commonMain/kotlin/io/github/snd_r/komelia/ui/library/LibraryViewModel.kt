@@ -19,17 +19,14 @@ import io.github.snd_r.komelia.ui.common.menus.LibraryMenuActions
 import io.github.snd_r.komelia.ui.library.LibraryTab.COLLECTIONS
 import io.github.snd_r.komelia.ui.library.LibraryTab.READ_LISTS
 import io.github.snd_r.komelia.ui.library.LibraryTab.SERIES
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -70,7 +67,7 @@ class LibraryViewModel(
     var readListsCount by mutableStateOf(0)
         private set
 
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
 
     val seriesTabState = LibrarySeriesTabState(
@@ -105,8 +102,10 @@ class LibraryViewModel(
         if (seriesFilter != null) toBrowseTab()
 
         screenModelScope.launch { loadItemCounts() }
+        startKomgaEventListener()
 
         reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
             loadItemCounts()
             delay(1000)
         }.launchIn(screenModelScope)
@@ -154,12 +153,16 @@ class LibraryViewModel(
 
     fun libraryActions() = LibraryMenuActions(libraryClient, appNotifications, screenModelScope)
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
                 is ReadListAdded, is ReadListDeleted -> reloadJobsFlow.tryEmit(Unit)
@@ -167,11 +170,7 @@ class LibraryViewModel(
 
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
+        }.launchIn(screenModelScope)
     }
 }
 

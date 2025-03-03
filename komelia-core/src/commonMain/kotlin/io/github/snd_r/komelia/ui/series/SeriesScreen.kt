@@ -69,8 +69,8 @@ class SeriesScreen(
         }
 
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventHandler()
+            onDispose { vm.stopKomgaEventHandler() }
         }
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {

@@ -11,16 +11,13 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -50,18 +47,20 @@ class LibraryCollectionsTabState(
     var pageSize by mutableStateOf(50)
         private set
 
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val collectionsReloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
     fun initialize() {
         if (state.value !is Uninitialized) return
 
+        screenModelScope.launch { loadCollections(1) }
+        startKomgaEventListener()
+
         collectionsReloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
             loadCollections(currentPage)
             delay(1000)
         }.launchIn(screenModelScope)
-
-        screenModelScope.launch { loadCollections(1) }
     }
 
     fun reload() {
@@ -103,22 +102,20 @@ class LibraryCollectionsTabState(
         }
     }
 
-
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private fun startKomgaEventListener() {
         events.onEach {
             when (it) {
                 is CollectionEvent -> collectionsReloadJobsFlow.tryEmit(Unit)
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
+        }.launchIn(screenModelScope)
     }
 }

@@ -16,15 +16,13 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.readlist.BookReadListsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -55,6 +53,9 @@ class BookViewModel(
         private set
     val book = MutableStateFlow(book)
 
+    private val reloadEventsEnabled = MutableStateFlow(true)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+
     val readListsState = BookReadListsState(
         book = this.book,
         bookClient = bookClient,
@@ -67,7 +68,6 @@ class BookViewModel(
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     val bookMenuActions = BookMenuActions(bookClient, notifications, screenModelScope)
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return
@@ -76,6 +76,12 @@ class BookViewModel(
         else mutableState.value = Success(Unit)
         loadLibrary()
         readListsState.initialize()
+        startKomgaEventListener()
+
+        reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
+            reload()
+        }.launchIn(screenModelScope)
     }
 
     fun reload() {
@@ -101,23 +107,24 @@ class BookViewModel(
         library = libraries.value.firstOrNull { library -> library.id == book.libraryId }
     }
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
+        readListsState.stopKomgaEventHandler()
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventsHandler() {
+        reloadEventsEnabled.value = true
+        readListsState.startKomgaEventHandler()
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
-                is BookChanged -> if (event.bookId == bookId) reload()
-                is ReadProgressChanged -> if (event.bookId == bookId) reload()
-                is ReadProgressDeleted -> if (event.bookId == bookId) reload()
+                is BookChanged -> if (event.bookId == bookId) reloadJobsFlow.tryEmit(Unit)
+                is ReadProgressChanged -> if (event.bookId == bookId) reloadJobsFlow.tryEmit(Unit)
+                is ReadProgressDeleted -> if (event.bookId == bookId) reloadJobsFlow.tryEmit(Unit)
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
+        }.launchIn(screenModelScope)
     }
 }

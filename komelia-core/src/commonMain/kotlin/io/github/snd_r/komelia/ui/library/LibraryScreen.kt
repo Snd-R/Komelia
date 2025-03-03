@@ -87,8 +87,8 @@ class LibraryScreen(
             reloadEvents.collect { vm.reload() }
         }
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventHandler()
+            onDispose { vm.stopKomgaEventHandler() }
         }
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
@@ -126,8 +126,8 @@ class LibraryScreen(
         val navigator = LocalNavigator.currentOrThrow
         LaunchedEffect(libraryId) { seriesTabState.initialize(seriesFilter) }
         DisposableEffect(Unit) {
-            seriesTabState.startKomgaEventListener()
-            onDispose { seriesTabState.stopKomgaEventListener() }
+            seriesTabState.startKomgaEventHandler()
+            onDispose { seriesTabState.stopKomgaEventHandler() }
         }
 
         when (val state = seriesTabState.state.collectAsState().value) {
@@ -169,8 +169,8 @@ class LibraryScreen(
         val navigator = LocalNavigator.currentOrThrow
         LaunchedEffect(libraryId) { collectionsTabState.initialize() }
         DisposableEffect(Unit) {
-            collectionsTabState.startKomgaEventListener()
-            onDispose { collectionsTabState.stopKomgaEventListener() }
+            collectionsTabState.startKomgaEventHandler()
+            onDispose { collectionsTabState.stopKomgaEventHandler() }
         }
 
         when (val state = collectionsTabState.state.collectAsState().value) {
@@ -208,8 +208,8 @@ class LibraryScreen(
         val navigator = LocalNavigator.currentOrThrow
         LaunchedEffect(libraryId) { readListTabState.initialize() }
         DisposableEffect(Unit) {
-            readListTabState.startKomgaEventListener()
-            onDispose { readListTabState.stopKomgaEventListener() }
+            readListTabState.startKomgaEventHandler()
+            onDispose { readListTabState.stopKomgaEventHandler() }
         }
 
         when (val state = readListTabState.state.collectAsState().value) {

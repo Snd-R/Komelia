@@ -67,8 +67,8 @@ class OneshotScreen(
             reloadEvents.collect { vm.reload() }
         }
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventHandler()
+            onDispose { vm.stopKomgaEventHandler() }
         }
 
         val state = vm.state.collectAsState().value

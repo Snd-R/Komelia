@@ -62,8 +62,8 @@ class BookScreen(
             reloadEvents.collect { vm.reload() }
         }
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventsHandler()
+            onDispose { vm.stopKomgaEventHandler() }
         }
 
         val book = vm.book.collectAsState().value

@@ -11,13 +11,8 @@ import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,8 +64,9 @@ class LibrarySeriesTabState(
         onChange = { screenModelScope.launch { loadSeriesPage(1) } },
     )
 
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
+
     fun initialize(filter: SeriesScreenFilter? = null) {
         if (state.value !is LoadState.Uninitialized) return
 
@@ -89,8 +85,10 @@ class LibrarySeriesTabState(
                     }
                 }.launchIn(screenModelScope)
         }
+        startKomgaEventListener()
 
         reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
             loadSeriesPage(currentSeriesPage)
             delay(1000)
         }.launchIn(screenModelScope)
@@ -189,12 +187,15 @@ class LibrarySeriesTabState(
     }
 
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
                 is KomgaEvent.SeriesChanged -> onSeriesChange(event)
@@ -204,7 +205,7 @@ class LibrarySeriesTabState(
                 is KomgaEvent.ReadProgressSeriesDeleted -> onReadProgressChange(event)
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
+        }.launchIn(screenModelScope)
     }
 
     private fun onSeriesChange(event: KomgaEvent.SeriesEvent) {
@@ -233,10 +234,6 @@ class LibrarySeriesTabState(
 //        FOLDER_NAME_DESC(KomgaSeriesSort.byFolderNameDesc()),
 //        BOOKS_COUNT_ASC(KomgaSeriesSort.byBooksCountAsc()),
 //        BOOKS_COUNT_DESC(KomgaSeriesSort.byBooksCountDesc())
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
     }
 
 }

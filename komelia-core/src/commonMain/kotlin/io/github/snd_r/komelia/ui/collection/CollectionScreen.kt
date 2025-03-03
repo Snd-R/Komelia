@@ -32,8 +32,8 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : ReloadableScreen {
             reloadEvents.collect { vm.reload() }
         }
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventsHandler()
+            onDispose { vm.stopKomgaEventHandler() }
         }
 
         val navigator = LocalNavigator.currentOrThrow

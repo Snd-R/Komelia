@@ -33,8 +33,8 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : ReloadableScre
         }
 
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventsHandler()
+            onDispose { vm.stopKomgaEventsHandler() }
         }
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {

@@ -7,12 +7,16 @@ import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionClient
@@ -37,11 +41,27 @@ class SeriesCollectionsState(
     var collections by mutableStateOf<Map<KomgaCollection, List<KomgaSeries>>>(emptyMap())
         private set
 
+    private val reloadEventsEnabled = MutableStateFlow(true)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+
     suspend fun initialize() {
         if (mutableState.value != LoadState.Uninitialized) return
 
         loadCollections()
-        screenModelScope.launch { registerEventListener() }
+        screenModelScope.launch { startKomgaEventListener() }
+
+        reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
+            loadCollections()
+        }.launchIn(screenModelScope)
+    }
+
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
+    }
+
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
     }
 
     private suspend fun loadCollections() {
@@ -60,10 +80,10 @@ class SeriesCollectionsState(
         }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
-    private suspend fun registerEventListener() {
+    private suspend fun startKomgaEventListener() {
         events.collect { event ->
             if (event is CollectionEvent && collections.keys.any { it.id == event.collectionId }) {
-                loadCollections()
+                reloadJobsFlow.tryEmit(Unit)
             }
         }
     }

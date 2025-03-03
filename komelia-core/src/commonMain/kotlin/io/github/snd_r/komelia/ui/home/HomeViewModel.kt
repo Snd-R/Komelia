@@ -13,17 +13,14 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -54,7 +51,6 @@ class HomeViewModel(
     private val komgaEvents: SharedFlow<KomgaEvent>,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
     var keepReadingBooks by mutableStateOf<List<KomgaBook>>(emptyList())
@@ -76,18 +72,19 @@ class HomeViewModel(
     var activeFilter by mutableStateOf(HomeScreenFilter.ALL)
         private set
 
+
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
 
     fun initialize() {
         if (state.value !is Uninitialized) return
-
-
+        screenModelScope.launch { load() }
+        startKomgaEventListener()
         reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
             load()
             delay(5000)
         }.launchIn(screenModelScope)
-
-        screenModelScope.launch { load() }
     }
 
     fun reload() {
@@ -189,12 +186,15 @@ class HomeViewModel(
         }
     }
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventsHandler() {
+        reloadEventsEnabled.value = false
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventsHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
                 is BookEvent -> {
@@ -223,15 +223,11 @@ class HomeViewModel(
 
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
+        }.launchIn(screenModelScope)
     }
 
     fun onFilterChange(filter: HomeScreenFilter) {
         this.activeFilter = filter
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
     }
 
     enum class HomeScreenFilter {

@@ -14,17 +14,15 @@ import io.github.snd_r.komelia.ui.collection.SeriesCollectionsState
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.readlist.BookReadListsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -58,6 +56,10 @@ class OneshotViewModel(
     collectionClient: KomgaCollectionClient,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
+    private val reloadEventsEnabled = MutableStateFlow(true)
+    private val seriesReloadFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+    private val bookReloadFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+
     val series = MutableStateFlow(series)
     val library = MutableStateFlow<KomgaLibrary?>(null)
     val book = MutableStateFlow(book)
@@ -83,7 +85,6 @@ class OneshotViewModel(
         screenModelScope = screenModelScope,
         cardWidth = cardWidth,
     )
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
         if (state.value != Uninitialized) return
@@ -95,6 +96,18 @@ class OneshotViewModel(
                     Error(IllegalStateException("Failed to find library for oneshot ${book.metadata.title}"))
             }
             library.value = newLibrary
+        }.launchIn(screenModelScope)
+
+        startKomgaEventListener()
+
+        seriesReloadFlow.onEach {
+            reloadEventsEnabled.first { it }
+            loadSeries()
+        }.launchIn(screenModelScope)
+
+        bookReloadFlow.onEach {
+            reloadEventsEnabled.first { it }
+            loadBook()
         }.launchIn(screenModelScope)
     }
 
@@ -148,27 +161,29 @@ class OneshotViewModel(
             throw IllegalStateException("Failed to find library for oneshot ${book.metadata.title}")
         }
         return library
-
     }
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
+        readListsState.stopKomgaEventHandler()
+        collectionsState.stopKomgaEventHandler()
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+        readListsState.startKomgaEventHandler()
+        collectionsState.startKomgaEventHandler()
+    }
+
+    private fun startKomgaEventListener() {
         events.onEach { event ->
             when (event) {
-                is SeriesChanged -> if (event.seriesId == seriesId) loadSeries()
-                is BookChanged -> if (event.bookId == book.value?.id) loadBook()
-                is ReadProgressChanged -> if (event.bookId == book.value?.id) loadBook()
-                is ReadProgressDeleted -> if (event.bookId == book.value?.id) loadBook()
+                is SeriesChanged -> if (event.seriesId == seriesId) seriesReloadFlow.tryEmit(Unit)
+                is BookChanged -> if (event.bookId == book.value?.id) bookReloadFlow.tryEmit(Unit)
+                is ReadProgressChanged -> if (event.bookId == book.value?.id) bookReloadFlow.tryEmit(Unit)
+                is ReadProgressDeleted -> if (event.bookId == book.value?.id) bookReloadFlow.tryEmit(Unit)
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
+        }.launchIn(screenModelScope)
     }
 }

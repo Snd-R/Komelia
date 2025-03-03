@@ -38,8 +38,8 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
             reloadEvents.collect { vm.reload() }
         }
         DisposableEffect(Unit) {
-            vm.startKomgaEventListener()
-            onDispose { vm.stopKomgaEventListener() }
+            vm.startKomgaEventHandler()
+            onDispose { vm.stopKomgaEventHandler() }
         }
 
         val navigator = LocalNavigator.currentOrThrow

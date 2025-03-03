@@ -13,11 +13,6 @@ import io.github.snd_r.komelia.ui.LoadState.Error
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -75,7 +70,7 @@ class ReadListViewModel(
 
     private var isAnyItemDragging = MutableStateFlow(false)
 
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -85,10 +80,6 @@ class ReadListViewModel(
             loadBooks(1)
         }
 
-        reloadJobsFlow.onEach {
-            reloadData()
-            delay(1000)
-        }.launchIn(screenModelScope)
 
         isAnyItemDragging
             .filter { isDragging -> !isDragging && state.value != Uninitialized }
@@ -100,6 +91,13 @@ class ReadListViewModel(
                     )
                 }
             }.launchIn(screenModelScope)
+        startKomgaEventListener()
+
+        reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
+            reloadData()
+            delay(1000)
+        }.launchIn(screenModelScope)
     }
 
     fun reload() {
@@ -206,12 +204,15 @@ class ReadListViewModel(
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
                 is ReadListChanged -> onReadListChange(event)
@@ -221,7 +222,7 @@ class ReadListViewModel(
                 is ReadProgressDeleted -> onReadProgressChange(event)
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
+        }.launchIn(screenModelScope)
     }
 
     private fun onReadListChange(event: ReadListChanged) {
@@ -234,9 +235,5 @@ class ReadListViewModel(
 
     private fun onReadProgressChange(event: KomgaEvent.ReadProgressEvent) {
         if (books.any { it.id == event.bookId }) reloadJobsFlow.tryEmit(Unit)
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
     }
 }

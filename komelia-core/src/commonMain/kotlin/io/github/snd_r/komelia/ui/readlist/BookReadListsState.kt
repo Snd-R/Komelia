@@ -10,6 +10,8 @@ import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,11 +44,18 @@ class BookReadListsState(
     var readLists by mutableStateOf<Map<KomgaReadList, List<KomgaBook>>>(emptyMap())
         private set
 
+    private val reloadEventsEnabled = MutableStateFlow(true)
+    private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+
     suspend fun initialize() {
         if (mutableState.value != Uninitialized) return
 
         loadReadLists()
-        registerEventListener()
+        startKomgaEventListener()
+        reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
+            loadReadLists()
+        }.launchIn(stateScope)
     }
 
     fun reload() {
@@ -69,14 +78,22 @@ class BookReadListsState(
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    private fun registerEventListener() {
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
+    }
+
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
-                is BookChanged -> if (readLists.values.flatten()
-                        .any { it.id == event.bookId }
-                ) loadReadLists()
+                is BookChanged -> if (readLists.values.flatten().any { it.id == event.bookId })
+                    reloadJobsFlow.tryEmit(Unit)
 
-                is ReadListEvent -> if (readLists.keys.any { it.id == event.readListId }) loadReadLists()
+                is ReadListEvent -> if (readLists.keys.any { it.id == event.readListId })
+                    reloadJobsFlow.tryEmit(Unit)
 
                 else -> {}
             }

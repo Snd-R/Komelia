@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.BookBulkActions
@@ -36,7 +37,6 @@ import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
 
 class SeriesBooksState(
     val series: StateFlow<KomgaSeries?>,
@@ -68,6 +68,8 @@ class SeriesBooksState(
         appNotifications = notifications,
         onChange = { screenModelScope.launch { loadBooksPage(1) } },
     )
+
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
     private val reloadMutex = Mutex()
 
@@ -91,8 +93,9 @@ class SeriesBooksState(
             .onEach { booksLayout.value = it }
             .launchIn(screenModelScope)
 
-        screenModelScope.launch { registerEventListener() }
+        screenModelScope.launch { startKomgaEventListener() }
         reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
             loadBooksPage(currentBookPage)
             delay(1000)
         }.launchIn(screenModelScope)
@@ -181,8 +184,15 @@ class SeriesBooksState(
         if (selectedBooks.isNotEmpty()) setSelectionMode(true)
     }
 
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
+    }
 
-    private suspend fun registerEventListener() {
+    fun startKomgaEventHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private suspend fun startKomgaEventListener() {
         events.collect { event ->
             when (event) {
                 is KomgaEvent.BookEvent -> onBookChanged(event.seriesId)

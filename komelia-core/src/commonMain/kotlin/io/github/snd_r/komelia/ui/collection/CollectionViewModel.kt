@@ -14,11 +14,6 @@ import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.common.cards.defaultCardWidth
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -76,7 +71,7 @@ class CollectionViewModel(
 
     private var isAnyItemDragging = MutableStateFlow(false)
 
-    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -86,10 +81,6 @@ class CollectionViewModel(
             loadSeriesPage(1)
         }
 
-        reloadJobsFlow.onEach {
-            reload()
-            delay(1000)
-        }.launchIn(screenModelScope)
 
         isAnyItemDragging
             .filter { isDragging -> !isDragging && state.value != Uninitialized }
@@ -101,6 +92,13 @@ class CollectionViewModel(
                     )
                 }
             }.launchIn(screenModelScope)
+        startKomgaEventListener()
+
+        reloadJobsFlow.onEach {
+            reloadEventsEnabled.first { it }
+            reload()
+            delay(1000)
+        }.launchIn(screenModelScope)
     }
 
     suspend fun reload() {
@@ -199,12 +197,15 @@ class CollectionViewModel(
         }
     }
 
-    fun stopKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun stopKomgaEventHandler() {
+        reloadEventsEnabled.value = false
     }
 
-    fun startKomgaEventListener() {
-        komgaEventsScope.coroutineContext.cancelChildren()
+    fun startKomgaEventsHandler() {
+        reloadEventsEnabled.value = true
+    }
+
+    private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
                 is CollectionChanged -> onCollectionChanged(event)
@@ -214,7 +215,7 @@ class CollectionViewModel(
                 is ReadProgressSeriesEvent -> onReadProgressChanged(event)
                 else -> {}
             }
-        }.launchIn(komgaEventsScope)
+        }.launchIn(screenModelScope)
     }
 
     private fun onCollectionChanged(event: CollectionChanged) {
@@ -229,9 +230,5 @@ class CollectionViewModel(
 
     private fun onReadProgressChanged(event: ReadProgressSeriesEvent) {
         if (series.any { it.id == event.seriesId }) reloadJobsFlow.tryEmit(Unit)
-    }
-
-    override fun onDispose() {
-        komgaEventsScope.cancel()
     }
 }
