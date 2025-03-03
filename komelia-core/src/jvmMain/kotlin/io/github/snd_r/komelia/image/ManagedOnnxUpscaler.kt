@@ -79,6 +79,10 @@ class ManagedOnnxUpscaler(private val settingsRepository: ImageReaderSettingsRep
                     OnnxRuntimeUpscaler.setModelPath(modelPath)
                 }
             }.launchIn(scope)
+
+        upscaleMode
+            .onEach { mutex.withLock { clearCache() } }
+            .launchIn(scope)
     }
 
     override suspend fun upscale(image: KomeliaImage, cacheKey: String?): KomeliaImage? {
