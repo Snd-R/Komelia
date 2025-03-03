@@ -10,6 +10,11 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,12 +49,11 @@ class LibraryReadListsTabState(
     var pageSize by mutableStateOf(50)
         private set
 
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val readListsReloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
     fun initialize() {
         if (state.value !is Uninitialized) return
-
-        screenModelScope.launch { startEventListener() }
 
         readListsReloadJobsFlow.onEach {
             loadReadLists(currentPage)
@@ -97,12 +101,21 @@ class LibraryReadListsTabState(
         }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
-    private suspend fun startEventListener() {
-        komgaEvents.collect {
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+        komgaEvents.onEach {
             when (it) {
                 is KomgaEvent.ReadListEvent -> readListsReloadJobsFlow.tryEmit(Unit)
                 else -> {}
             }
-        }
+        }.launchIn(komgaEventsScope)
+    }
+
+    override fun onDispose() {
+        komgaEventsScope.cancel()
     }
 }

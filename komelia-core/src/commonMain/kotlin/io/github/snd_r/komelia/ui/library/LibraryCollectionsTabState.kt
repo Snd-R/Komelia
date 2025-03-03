@@ -11,6 +11,11 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LoadState.Loading
 import io.github.snd_r.komelia.ui.LoadState.Success
 import io.github.snd_r.komelia.ui.LoadState.Uninitialized
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,12 +50,11 @@ class LibraryCollectionsTabState(
     var pageSize by mutableStateOf(50)
         private set
 
+    private val komgaEventsScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val collectionsReloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
     fun initialize() {
         if (state.value !is Uninitialized) return
-
-        screenModelScope.launch { startEventListener() }
 
         collectionsReloadJobsFlow.onEach {
             loadCollections(currentPage)
@@ -100,12 +104,21 @@ class LibraryCollectionsTabState(
     }
 
 
-    private suspend fun startEventListener() {
-        events.collect {
+    fun stopKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+    }
+
+    fun startKomgaEventListener() {
+        komgaEventsScope.coroutineContext.cancelChildren()
+        events.onEach {
             when (it) {
                 is CollectionEvent -> collectionsReloadJobsFlow.tryEmit(Unit)
                 else -> {}
             }
-        }
+        }.launchIn(komgaEventsScope)
+    }
+
+    override fun onDispose() {
+        komgaEventsScope.cancel()
     }
 }

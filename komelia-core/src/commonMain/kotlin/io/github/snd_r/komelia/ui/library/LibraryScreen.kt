@@ -125,6 +125,10 @@ class LibraryScreen(
     private fun BrowseTab(seriesTabState: LibrarySeriesTabState) {
         val navigator = LocalNavigator.currentOrThrow
         LaunchedEffect(libraryId) { seriesTabState.initialize(seriesFilter) }
+        DisposableEffect(Unit) {
+            seriesTabState.startKomgaEventListener()
+            onDispose { seriesTabState.stopKomgaEventListener() }
+        }
 
         when (val state = seriesTabState.state.collectAsState().value) {
             is Error -> ErrorContent(
@@ -164,6 +168,10 @@ class LibraryScreen(
     private fun CollectionsTab(collectionsTabState: LibraryCollectionsTabState) {
         val navigator = LocalNavigator.currentOrThrow
         LaunchedEffect(libraryId) { collectionsTabState.initialize() }
+        DisposableEffect(Unit) {
+            collectionsTabState.startKomgaEventListener()
+            onDispose { collectionsTabState.stopKomgaEventListener() }
+        }
 
         when (val state = collectionsTabState.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
@@ -197,8 +205,12 @@ class LibraryScreen(
 
     @Composable
     private fun ReadListsTab(readListTabState: LibraryReadListsTabState) {
-        LaunchedEffect(libraryId) { readListTabState.initialize() }
         val navigator = LocalNavigator.currentOrThrow
+        LaunchedEffect(libraryId) { readListTabState.initialize() }
+        DisposableEffect(Unit) {
+            readListTabState.startKomgaEventListener()
+            onDispose { readListTabState.stopKomgaEventListener() }
+        }
 
         when (val state = readListTabState.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
