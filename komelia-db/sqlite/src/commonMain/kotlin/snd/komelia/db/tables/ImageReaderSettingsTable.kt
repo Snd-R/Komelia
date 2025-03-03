@@ -17,6 +17,8 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val continuousPageSpacing = integer("continuous_page_spacing")
     val cropBorders = bool("crop_borders")
 
+    val loadThumbnailPreviews = bool("load_thumbnail_previews")
+
     val flashOnPageChange = bool("flash_on_page_change")
     val flashDuration = long("flash_duration")
     val flashEveryNPages = integer("flash_every_n_pages")

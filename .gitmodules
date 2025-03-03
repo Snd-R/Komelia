@@ -7,9 +7,6 @@
 [submodule "third_party/ChipTextField"]
 	path = third_party/ChipTextField
 	url = https://github.com/Snd-R/ChipTextField
-[submodule "third_party/cache4k"]
-	path = third_party/cache4k
-	url = https://github.com/Snd-R/cache4k
 [submodule "third_party/indexeddb"]
 	path = third_party/indexeddb
 	url = https://github.com/Snd-R/indexeddb

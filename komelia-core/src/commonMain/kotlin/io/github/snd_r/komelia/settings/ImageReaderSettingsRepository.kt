@@ -58,6 +58,9 @@ interface ImageReaderSettingsRepository {
     fun getUpsamplingMode(): Flow<UpsamplingMode>
     suspend fun putUpsamplingMode(mode: UpsamplingMode)
 
+    fun getLoadThumbnailPreviews(): Flow<Boolean>
+    suspend fun putLoadThumbnailPreviews(load: Boolean)
+
     fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode>
     suspend fun putOnnxRuntimeMode(mode: OnnxRuntimeUpscaleMode)
 

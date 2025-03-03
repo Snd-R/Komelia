@@ -32,6 +32,7 @@ data class ImageReaderSettings(
     val downsamplingKernel: ReduceKernel = ReduceKernel.LANCZOS3,
     val linearLightDownsampling: Boolean = false,
     val upsamplingMode: UpsamplingMode = UpsamplingMode.CATMULL_ROM,
+    val loadThumbnailPreviews: Boolean = true,
 
     val onnxRuntimeMode: OnnxRuntimeUpscaleMode = OnnxRuntimeUpscaleMode.NONE,
     val onnxRuntimeModelPath: String? = null,

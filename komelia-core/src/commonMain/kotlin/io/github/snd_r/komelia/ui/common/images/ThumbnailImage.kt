@@ -19,6 +19,7 @@ fun ThumbnailImage(
     data: Any,
     cacheKey: String,
     contentScale: ContentScale = ContentScale.Fit,
+    placeholder: Painter? = NoopPainter,
     modifier: Modifier = Modifier,
 ) {
 
@@ -45,7 +46,7 @@ fun ThumbnailImage(
         model = request,
         contentDescription = null,
         modifier = modifier,
-        placeholder = NoopPainter,
+        placeholder = placeholder,
         contentScale = contentScale,
         filterQuality = FilterQuality.None
     )

@@ -2,6 +2,13 @@ package io.github.snd_r.komelia.ui.reader.image
 
 import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.request.ImageRequest
+import coil3.request.ImageResult
+import coil3.request.crossfade
+import coil3.size.Precision
+import coil3.size.SizeResolver
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.ReaderImage.PageId
@@ -17,13 +24,25 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.oneshot.OneshotScreen
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
+import io.github.snd_r.komelia.ui.reader.image.common.BookPageThumbnailRequest
 import io.github.snd_r.komelia.ui.series.SeriesScreen
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import snd.komelia.image.ReduceKernel
 import snd.komga.client.book.KomgaBook
@@ -48,14 +67,20 @@ class ReaderState(
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
     private val bookSiblingsContext: BookSiblingsContext,
+    private val coilImageLoader: ImageLoader,
+    private val coilContext: PlatformContext,
     val pageChangeFlow: SharedFlow<Unit>,
 ) {
+    private val previewLoadScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
     val state = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val expandImageSettings = MutableStateFlow(false)
 
     val booksState = MutableStateFlow<BookState?>(null)
     val series = MutableStateFlow<KomgaSeries?>(null)
 
+    val pagePreviews = MutableStateFlow<Map<PageId, ImageResult>?>(null)
+    private val loadThumbnailPreviews = readerSettingsRepository.getLoadThumbnailPreviews()
+        .stateIn(stateScope, SharingStarted.Eagerly, false)
 
     val readerType = MutableStateFlow(ReaderType.PAGED)
     val imageStretchToFit = MutableStateFlow(true)
@@ -125,6 +150,36 @@ class ReaderState(
 
             state.value = LoadState.Success(Unit)
         }.onFailure { state.value = LoadState.Error(it) }
+
+        booksState.mapNotNull { it?.currentBookPages }
+            .distinctUntilChanged()
+            .combine(loadThumbnailPreviews) { pages, enabled -> setPagePreviews(pages, enabled) }
+            .launchIn(stateScope)
+    }
+
+    private fun setPagePreviews(pages: List<PageMetadata>, enable: Boolean) {
+        previewLoadScope.coroutineContext.cancelChildren()
+        if (!enable) {
+            pagePreviews.value = null
+            return
+        }
+
+        pagePreviews.value = emptyMap()
+        previewLoadScope.launch {
+            pages.forEach { pageMetadata ->
+                val pageId = pageMetadata.toPageId()
+                val request = ImageRequest.Builder(coilContext)
+                    .data(BookPageThumbnailRequest(pageMetadata.bookId, pageMetadata.pageNumber))
+                    .memoryCacheKey(pageId.toString())
+                    .diskCacheKey(pageId.toString())
+                    .precision(Precision.INEXACT)
+                    .size(SizeResolver.ORIGINAL)
+                    .crossfade(true)
+                    .build()
+                val result = coilImageLoader.execute(request)
+                pagePreviews.update { (it ?: emptyMap()).plus(pageMetadata.toPageId() to result) }
+            }
+        }
     }
 
     private suspend fun loadBookPages(bookId: KomgaBookId): List<PageMetadata> {
@@ -283,6 +338,7 @@ class ReaderState(
 
     fun onDispose() {
         currentBookId.value = null
+        previewLoadScope.cancel()
     }
 }
 

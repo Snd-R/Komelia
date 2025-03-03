@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.image.coil.BlobFetcher
 import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
+import io.github.snd_r.komelia.image.coil.KomgaBookPageThumbnailMapper
 import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
@@ -155,6 +156,7 @@ private fun createCoil(
     return ImageLoader.Builder(PlatformContext.INSTANCE)
         .components {
             add(KomgaBookPageMapper(url))
+            add(KomgaBookPageThumbnailMapper(url))
             add(KomgaSeriesMapper(url))
             add(KomgaBookMapper(url))
             add(KomgaCollectionMapper(url))

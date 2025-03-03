@@ -4,6 +4,8 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.ImageLoader
+import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.ReaderImageFactory
@@ -43,6 +45,8 @@ class ReaderViewModel(
     appNotifications: AppNotifications,
     readerSettingsRepository: ImageReaderSettingsRepository,
     imageLoader: BookImageLoader,
+    coilImageLoader: ImageLoader,
+    coilContext: PlatformContext,
     appStrings: Flow<AppStrings>,
     readerImageFactory: ReaderImageFactory,
     markReadProgress: Boolean,
@@ -79,6 +83,8 @@ class ReaderViewModel(
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,
         bookSiblingsContext = bookSiblingsContext,
+        coilImageLoader = coilImageLoader,
+        coilContext = coilContext,
         pageChangeFlow = pageChangeFlow,
     )
 

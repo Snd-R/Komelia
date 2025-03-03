@@ -27,6 +27,8 @@ class ImageReaderSettingsScreen : Screen {
                 onDownsamplingKernelChange = vm::onDownsamplingKernelChange,
                 downsampleInLinearLight = vm.linearLightDownsampling.collectAsState().value,
                 onDownsampleInLinearLightChange = vm::onLinearLightDownsamplingChange,
+                loadThumbnailPreviews = vm.loadThumbnailsPreview.collectAsState().value,
+                onLoadThumbnailPreviewsChange = vm::onLoadThumbnailsPreviewChange,
 
                 onCacheClear = vm::onClearImageCache,
                 onnxRuntimeSettingsState = vm.onnxRuntimeSettingsState,

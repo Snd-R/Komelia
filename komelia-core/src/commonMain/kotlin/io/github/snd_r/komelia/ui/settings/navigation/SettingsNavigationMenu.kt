@@ -131,14 +131,12 @@ fun SettingsNavigationMenu(
             isSelected = currentScreen is AppSettingsScreen,
             color = contentColor,
         )
-        if (platform == DESKTOP) {
-            NavigationButton(
-                label = "Image Reader",
-                onClick = { onNavigation(ImageReaderSettingsScreen()) },
-                isSelected = currentScreen is ImageReaderSettingsScreen,
-                color = contentColor,
-            )
-        }
+        NavigationButton(
+            label = "Image Reader",
+            onClick = { onNavigation(ImageReaderSettingsScreen()) },
+            isSelected = currentScreen is ImageReaderSettingsScreen,
+            color = contentColor,
+        )
         if (webviewIsAvailable()) {
             NavigationButton(
                 label = "Epub Reader",

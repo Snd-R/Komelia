@@ -146,7 +146,7 @@ fun BoxScope.SettingsOverlay(
             onShowHelpMenu = { ohShowHelpDialogChange(true) },
         )
     }
-
+    val imagePreviews = commonReaderState.pagePreviews.collectAsState()
     when (readerType) {
         PAGED -> {
             val readingDirection = pagedReaderState.readingDirection.collectAsState().value
@@ -158,6 +158,7 @@ fun BoxScope.SettingsOverlay(
             }
             PageSpreadProgressSlider(
                 pageSpreads = pagedReaderState.pageSpreads.collectAsState().value,
+                imagePreviews = imagePreviews.value,
                 currentSpreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value,
                 onPageNumberChange = pagedReaderState::onPageChange,
                 show = show,
@@ -180,6 +181,7 @@ fun BoxScope.SettingsOverlay(
 
             ProgressSlider(
                 pages = continuousReaderState.currentBookPages.collectAsState(emptyList()).value,
+                imagePreviews = imagePreviews.value,
                 currentPageIndex = continuousReaderState.currentBookPageIndex.collectAsState(0).value,
                 onPageNumberChange = { coroutineScope.launch { continuousReaderState.scrollToBookPage(it + 1) } },
                 show = show,

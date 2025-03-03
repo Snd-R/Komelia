@@ -60,6 +60,7 @@ kotlin {
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.serialization.core)
 
+            api(libs.cache4k)
             api(libs.coil)
             api(libs.coil.compose)
             api(libs.coil.network.ktor3)
@@ -79,7 +80,6 @@ kotlin {
             api(libs.voyager.navigator)
             api(libs.voyager.transition)
 
-            api(project(":third_party:cache4k:cache4k"))
             api(project(":third_party:ChipTextField:chiptextfield-m3"))
             api(project(":third_party:compose-sonner:sonner"))
             implementation(project(":komelia-webview"))

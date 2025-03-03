@@ -20,6 +20,7 @@ import io.github.snd_r.komelia.image.coil.CoilDecoder
 import io.github.snd_r.komelia.image.coil.FileMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookMapper
 import io.github.snd_r.komelia.image.coil.KomgaBookPageMapper
+import io.github.snd_r.komelia.image.coil.KomgaBookPageThumbnailMapper
 import io.github.snd_r.komelia.image.coil.KomgaCollectionMapper
 import io.github.snd_r.komelia.image.coil.KomgaReadListMapper
 import io.github.snd_r.komelia.image.coil.KomgaSeriesMapper
@@ -374,6 +375,7 @@ private fun createCoil(
                 add(KomgaBookPageMapper(url))
                 add(KomgaSeriesMapper(url))
                 add(KomgaBookMapper(url))
+                add(KomgaBookPageThumbnailMapper(url))
                 add(KomgaCollectionMapper(url))
                 add(KomgaReadListMapper(url))
                 add(KomgaSeriesThumbnailMapper(url))

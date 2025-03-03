@@ -9,8 +9,6 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.SettingsStateActor
 import snd.komelia.image.OnnxRuntimeUpscaleMode
@@ -21,7 +19,7 @@ class ActorReaderSettingsRepository(
 ) : ImageReaderSettingsRepository {
 
     override fun getReaderType(): Flow<ReaderType> {
-        return actor.state.map { it.readerType }.distinctUntilChanged()
+        return actor.mapState { it.readerType }
     }
 
     override suspend fun putReaderType(type: ReaderType) {
@@ -29,7 +27,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getStretchToFit(): Flow<Boolean> {
-        return actor.state.map { it.stretchToFit }.distinctUntilChanged()
+        return actor.mapState { it.stretchToFit }
     }
 
     override suspend fun putStretchToFit(stretch: Boolean) {
@@ -37,7 +35,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getCropBorders(): Flow<Boolean> {
-        return actor.state.map { it.cropBorders }.distinctUntilChanged()
+        return actor.mapState { it.cropBorders }
     }
 
     override suspend fun putCropBorders(trim: Boolean) {
@@ -45,7 +43,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getPagedReaderScaleType(): Flow<LayoutScaleType> {
-        return actor.state.map { it.pagedScaleType }.distinctUntilChanged()
+        return actor.mapState { it.pagedScaleType }
     }
 
     override suspend fun putPagedReaderScaleType(type: LayoutScaleType) {
@@ -53,7 +51,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getPagedReaderReadingDirection(): Flow<PagedReaderState.ReadingDirection> {
-        return actor.state.map { it.pagedReadingDirection }.distinctUntilChanged()
+        return actor.mapState { it.pagedReadingDirection }
     }
 
     override suspend fun putPagedReaderReadingDirection(direction: PagedReaderState.ReadingDirection) {
@@ -61,7 +59,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getPagedReaderDisplayLayout(): Flow<PageDisplayLayout> {
-        return actor.state.map { it.pagedPageLayout }.distinctUntilChanged()
+        return actor.mapState { it.pagedPageLayout }
     }
 
     override suspend fun putPagedReaderDisplayLayout(layout: PageDisplayLayout) {
@@ -69,7 +67,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getContinuousReaderReadingDirection(): Flow<ContinuousReaderState.ReadingDirection> {
-        return actor.state.map { it.continuousReadingDirection }.distinctUntilChanged()
+        return actor.mapState { it.continuousReadingDirection }
     }
 
     override suspend fun putContinuousReaderReadingDirection(direction: ContinuousReaderState.ReadingDirection) {
@@ -77,7 +75,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getContinuousReaderPadding(): Flow<Float> {
-        return actor.state.map { it.continuousPadding }.distinctUntilChanged()
+        return actor.mapState { it.continuousPadding }
     }
 
     override suspend fun putContinuousReaderPadding(padding: Float) {
@@ -85,7 +83,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getContinuousReaderPageSpacing(): Flow<Int> {
-        return actor.state.map { it.continuousPageSpacing }.distinctUntilChanged()
+        return actor.mapState { it.continuousPageSpacing }
     }
 
     override suspend fun putContinuousReaderPageSpacing(spacing: Int) {
@@ -93,7 +91,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getFlashOnPageChange(): Flow<Boolean> {
-        return actor.state.map { it.flashOnPageChange }.distinctUntilChanged()
+        return actor.mapState { it.flashOnPageChange }
     }
 
     override suspend fun putFlashOnPageChange(flash: Boolean) {
@@ -101,7 +99,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getFlashDuration(): Flow<Long> {
-        return actor.state.map { it.flashDuration }.distinctUntilChanged()
+        return actor.mapState { it.flashDuration }
     }
 
     override suspend fun putFlashDuration(duration: Long) {
@@ -109,7 +107,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getFlashEveryNPages(): Flow<Int> {
-        return actor.state.map { it.flashEveryNPages }.distinctUntilChanged()
+        return actor.mapState { it.flashEveryNPages }
     }
 
     override suspend fun putFlashEveryNPages(pages: Int) {
@@ -117,7 +115,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getFlashWith(): Flow<ReaderFlashColor> {
-        return actor.state.map { it.flashWith }.distinctUntilChanged()
+        return actor.mapState { it.flashWith }
     }
 
     override suspend fun putFlashWith(color: ReaderFlashColor) {
@@ -125,7 +123,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getDownsamplingKernel(): Flow<ReduceKernel> {
-        return actor.state.map { it.downsamplingKernel }.distinctUntilChanged()
+        return actor.mapState { it.downsamplingKernel }
     }
 
     override suspend fun putDownsamplingKernel(kernel: ReduceKernel) {
@@ -133,7 +131,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getLinearLightDownsampling(): Flow<Boolean> {
-        return actor.state.map { it.linearLightDownsampling }.distinctUntilChanged()
+        return actor.mapState { it.linearLightDownsampling }
     }
 
     override suspend fun putLinearLightDownsampling(linear: Boolean) {
@@ -141,15 +139,23 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getUpsamplingMode(): Flow<UpsamplingMode> {
-        return actor.state.map { it.upsamplingMode }.distinctUntilChanged()
+        return actor.mapState { it.upsamplingMode }
     }
 
     override suspend fun putUpsamplingMode(mode: UpsamplingMode) {
         actor.transform { it.copy(upsamplingMode = mode) }
     }
 
+    override fun getLoadThumbnailPreviews(): Flow<Boolean> {
+        return actor.mapState { it.loadThumbnailPreviews }
+    }
+
+    override suspend fun putLoadThumbnailPreviews(load: Boolean) {
+        actor.transform { it.copy(loadThumbnailPreviews = load) }
+    }
+
     override fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode> {
-        return actor.state.map { it.onnxRuntimeMode }.distinctUntilChanged()
+        return actor.mapState { it.onnxRuntimeMode }
     }
 
     override suspend fun putOnnxRuntimeMode(mode: OnnxRuntimeUpscaleMode) {
@@ -157,7 +163,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getOnnxRuntimeDeviceId(): Flow<Int> {
-        return actor.state.map { it.onnxRuntimeDeviceId }.distinctUntilChanged()
+        return actor.mapState { it.onnxRuntimeDeviceId }
     }
 
     override suspend fun putOnnxRuntimeDeviceId(deviceId: Int) {
@@ -165,7 +171,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getOnnxRuntimeTileSize(): Flow<Int> {
-        return actor.state.map { it.onnxRuntimeTileSize }.distinctUntilChanged()
+        return actor.mapState { it.onnxRuntimeTileSize }
     }
 
     override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
@@ -173,7 +179,7 @@ class ActorReaderSettingsRepository(
     }
 
     override fun getSelectedOnnxModel(): Flow<String?> {
-        return actor.state.map { it.onnxRuntimeModelPath }.distinctUntilChanged()
+        return actor.mapState { it.onnxRuntimeModelPath }
     }
 
     override suspend fun putSelectedOnnxModel(name: String?) {

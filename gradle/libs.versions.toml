@@ -5,14 +5,14 @@ android-compileSdk = "35"
 android-minSdk = "26"
 android-targetSdk = "35"
 
-androidx-activityCompose = "1.10.0"
+androidx-activityCompose = "1.10.1"
 androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.15.0"
-androidx-datastore = "1.1.2"
-androidx-webkit = "1.12.1"
+androidx-datastore = "1.1.3"
 androidx-window = "1.3.0"
 
-coil = "3.0.4"
+cache4k = "0.14.0"
+coil = "3.1.0"
 commons-compress = "1.27.1"
 compose-multiplatform = "1.8.0-alpha03"
 directories = "26"
@@ -24,26 +24,24 @@ komf-client = "1.3.0"
 komga-client = "0.8.0"
 kotlin = "2.1.20-RC"
 kotlin-logging = "7.0.3"
-kotlinx-atomicfu = "0.26.1"
+kotlinx-atomicfu = "0.27.0"
 kotlinx-browser = "0.3"
 kotlinx-coroutines = "1.10.1"
-kotlinx-datetime = "0.6.1"
+kotlinx-datetime = "0.6.2"
 kotlinx-serialization = "1.8.0"
-kotlinx-io = "0.6.0"
-kotlinx-lincheck = "2.34"
-ktor = "3.0.3"
-ksoup = "0.2.0"
-logback = "1.5.12"
+kotlinx-io = "0.7.0"
+ktor = "3.1.1"
+ksoup = "0.2.2"
+logback = "1.5.17"
 logback-android = "3.0.0"
 markdown = "0.7.3"
 okhttp = "4.12.0"
 protobuf-plugin = "0.9.4"
 protobuf-lite = "3.21.11"
-reorderable = "2.4.0"
-richEditor = "1.0.0-rc10"
-slf4j = "2.0.16"
-statelyIso = "2.1.0"
-sqlite-jdbc = "3.47.1.0"
+reorderable = "2.4.3"
+richEditor = "1.0.0-rc11"
+slf4j = "2.0.17"
+sqlite-jdbc = "3.49.1.0"
 voyager = "1.1.0-beta03"
 
 [libraries]
@@ -51,9 +49,8 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidx-datastore" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "androidx-webkit" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
-cache4k = { module = "io.github.reactivecircus.cache4k:cache4k" }
+cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref ="cache4k" }
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
@@ -80,14 +77,13 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
-kotlinx-lincheck = { module = "org.jetbrains.kotlinx:lincheck", version.ref = "kotlinx-lincheck" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-ksoup = { module = "com.fleeksoft.ksoup:ksoup-lite", version.ref = "ksoup" }
+ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback-android" }
@@ -100,7 +96,6 @@ reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reo
 richEditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richEditor" }
 secret-service = { module = "de.swiesend:secret-service" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-stately-isoCollections = { module = "co.touchlab:stately-iso-collections", version.ref = "statelyIso" }
 sqlite-xerial-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }

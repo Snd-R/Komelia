@@ -9,7 +9,6 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.v2.LazyGridScrollbarAdapter
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -87,9 +86,7 @@ actual fun VerticalScrollbar(
     scrollState: LazyGridState,
     modifier: Modifier,
 ) = CustomVerticalScrollbar(
-    // TODO restore after https://github.com/JetBrains/compose-multiplatform/issues/1980 is fixed
-//    adapter = rememberScrollbarAdapter(scrollState),
-    adapter = remember(scrollState) { LazyGridScrollbarAdapter(scrollState) },
+    adapter = rememberScrollbarAdapter(scrollState),
     modifier = modifier,
     style = LocalScrollbarStyle.current.copy(
         unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),

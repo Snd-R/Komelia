@@ -41,6 +41,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         downsamplingKernel = ReduceKernel.valueOf(it[ImageReaderSettingsTable.downsamplingKernel]),
                         linearLightDownsampling = it[ImageReaderSettingsTable.linearLightDownsampling],
                         upsamplingMode = UpsamplingMode.valueOf(it[ImageReaderSettingsTable.upsamplingMode]),
+                        loadThumbnailPreviews = it[ImageReaderSettingsTable.loadThumbnailPreviews],
                         onnxRuntimeMode = OnnxRuntimeUpscaleMode.valueOf(it[ImageReaderSettingsTable.onnxRuntimeMode]),
                         onnxRuntimeModelPath = it[ImageReaderSettingsTable.onnxRuntimeModelPath],
                         onnxRuntimeDeviceId = it[ImageReaderSettingsTable.onnxRuntimeDeviceId],
@@ -69,6 +70,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[flashWith] = settings.flashWith.name
                 it[downsamplingKernel] = settings.downsamplingKernel.name
                 it[linearLightDownsampling] = settings.linearLightDownsampling
+                it[loadThumbnailPreviews] = settings.loadThumbnailPreviews
                 it[upsamplingMode] = settings.upsamplingMode.name
                 it[onnxRuntimeMode] = settings.onnxRuntimeMode.name
                 it[onnxRuntimeModelPath] = settings.onnxRuntimeModelPath

@@ -240,6 +240,8 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             readerSettingsRepository = readerSettingsRepository,
             imageLoader = dependencies.bookImageLoader,
+            coilImageLoader = dependencies.coilImageLoader,
+            coilContext = dependencies.platformContext,
             appStrings = dependencies.appStrings,
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,

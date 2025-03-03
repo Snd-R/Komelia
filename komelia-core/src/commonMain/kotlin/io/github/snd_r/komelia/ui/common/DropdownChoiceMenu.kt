@@ -224,7 +224,7 @@ fun <T> DropdownChoiceMenuWithSearch(
         InputField(
             value = selectedOptions.joinToString { it.label }.ifBlank { placeholder ?: "Any" },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(PrimaryNotEditable)
                 .then(textFieldModifier),
             label = label,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },

@@ -13,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
@@ -30,6 +32,9 @@ fun ImageReaderSettingsContent(
     onDownsamplingKernelChange: (ReduceKernel) -> Unit,
     downsampleInLinearLight: Boolean,
     onDownsampleInLinearLightChange: (Boolean) -> Unit,
+
+    loadThumbnailPreviews: Boolean,
+    onLoadThumbnailPreviewsChange: (Boolean) -> Unit,
 
     onCacheClear: () -> Unit,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState,
@@ -70,11 +75,22 @@ fun ImageReaderSettingsContent(
         } else {
             Text("${strings.downsamplingKernel}: ${strings.forDownsamplingKernel(downsamplingKernel)}")
         }
+        HorizontalDivider()
+
+        if (LocalPlatform.current != PlatformType.WEB_KOMF) {
+            SwitchWithLabel(
+                checked = downsampleInLinearLight,
+                onCheckedChange = onDownsampleInLinearLightChange,
+                label = { Text("Downscale images in linear light") },
+                supportingText = { Text("slower but potentially more accurate") },
+            )
+        }
+
         SwitchWithLabel(
-            checked = downsampleInLinearLight,
-            onCheckedChange = onDownsampleInLinearLightChange,
-            label = { Text("Downscale images in linear light") },
-            supportingText = { Text("slower but potentially more accurate") },
+            checked = loadThumbnailPreviews,
+            onCheckedChange = onLoadThumbnailPreviewsChange,
+            label = { Text("Load small previews when dragging navigation slider") },
+            supportingText = { Text("can be slow for high resolution images") },
         )
 
         if (isOnnxRuntimeSupported()) {
