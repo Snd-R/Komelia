@@ -46,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.platform.PlatformType
@@ -124,7 +123,6 @@ fun SettingsSideMenuOverlay(
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .pointerInput(Unit) {}
                 .width(350.dp)
                 .padding(horizontal = 10.dp)
                 .imePadding()

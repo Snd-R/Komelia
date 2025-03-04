@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.reader.image.common
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,11 +14,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -25,7 +30,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
-import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowState
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
@@ -39,7 +43,6 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderContent
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.reader.image.settings.SettingsOverlay
 import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
-import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun ReaderContent(
@@ -55,7 +58,6 @@ fun ReaderContent(
 ) {
     var showHelpDialog by remember { mutableStateOf(false) }
     var showSettingsMenu by remember { mutableStateOf(false) }
-    val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
     BackPressHandler { if (showSettingsMenu) showSettingsMenu = false else onExit() }
 
     if (LocalPlatform.current == MOBILE) {
@@ -72,16 +74,26 @@ fun ReaderContent(
         }
     }
 
-    LaunchedEffect(showSettingsMenu, showHelpDialog) {
-        registerCommonKeyboardEvents(
-            keyEvents = keyEvents,
-            showSettingsMenu = showSettingsMenu,
-            setShowSettingsDialog = { showSettingsMenu = it },
-            onShowHelpDialog = { showHelpDialog = !showHelpDialog },
-            onClose = onExit
-        )
-    }
-    Box(Modifier.fillMaxSize().onSizeChanged { screenScaleState.setAreaSize(it) }) {
+    val topLevelFocus = remember { FocusRequester() }
+    var hasFocus by remember { mutableStateOf(false) }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .onSizeChanged { screenScaleState.setAreaSize(it) }
+            .focusable()
+            .focusRequester(topLevelFocus)
+            .onFocusChanged { hasFocus = it.hasFocus }
+            .onKeyEvent { event ->
+                commonKeyboardEventsHandler(
+                    event = event,
+                    showSettingsMenu = showSettingsMenu,
+                    setShowSettingsDialog = { showSettingsMenu = it },
+                    onShowHelpDialog = { showHelpDialog = !showHelpDialog },
+                    onExit = onExit
+                )
+                false
+            }
+    ) {
         val areaSize = screenScaleState.areaSize.collectAsState()
         if (areaSize.value == IntSize.Zero) {
             LoadingMaxSizeIndicator()
@@ -97,6 +109,7 @@ fun ReaderContent(
                     onShowSettingsMenuChange = { showSettingsMenu = it },
                     screenScaleState = screenScaleState,
                     pagedReaderState = pagedReaderState,
+                    topLevelFocus = topLevelFocus
                 )
             }
 
@@ -108,6 +121,7 @@ fun ReaderContent(
                     onShowSettingsMenuChange = { showSettingsMenu = it },
                     screenScaleState = screenScaleState,
                     continuousReaderState = continuousReaderState,
+                    topLevelFocus = topLevelFocus
                 )
             }
         }
@@ -122,7 +136,7 @@ fun ReaderContent(
             isColorCorrectionsActive = isColorCorrectionActive,
             onColorCorrectionClick = onColorCorrectionClick,
             onBackPress = onExit,
-            ohShowHelpDialogChange = { showHelpDialog = it }
+            ohShowHelpDialogChange = { showHelpDialog = it },
         )
 
         EInkFlashOverlay(
@@ -132,6 +146,9 @@ fun ReaderContent(
             flashWith = commonReaderState.flashWith.collectAsState().value,
             flashDuration = commonReaderState.flashDuration.collectAsState().value
         )
+    }
+    LaunchedEffect(hasFocus) {
+        if (!hasFocus) topLevelFocus.requestFocus()
     }
 }
 
@@ -143,6 +160,8 @@ fun ReaderControlsOverlay(
     isSettingsMenuOpen: Boolean,
     onSettingsMenuToggle: () -> Unit,
     contentAreaSize: IntSize,
+    topLevelFocus: FocusRequester,
+    modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
     val leftAction = {
@@ -158,8 +177,9 @@ fun ReaderControlsOverlay(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
+            .focusable()
             .pointerInput(
                 contentAreaSize,
                 readingDirection,
@@ -167,6 +187,8 @@ fun ReaderControlsOverlay(
                 isSettingsMenuOpen
             ) {
                 detectTapGestures { offset ->
+                    topLevelFocus.requestFocus()
+
                     val actionWidth = contentAreaSize.width.toFloat() / 3
                     when (offset.x) {
                         in 0f..<actionWidth -> leftAction()
@@ -182,22 +204,21 @@ fun ReaderControlsOverlay(
 }
 
 
-private suspend fun registerCommonKeyboardEvents(
-    keyEvents: SharedFlow<KeyEvent>,
+private fun commonKeyboardEventsHandler(
+    event: KeyEvent,
     showSettingsMenu: Boolean,
     setShowSettingsDialog: (Boolean) -> Unit,
     onShowHelpDialog: () -> Unit,
-    onClose: () -> Unit,
-) {
-    keyEvents.collect { event ->
-        if (event.type != KeyUp) return@collect
+    onExit: () -> Unit,
+): Boolean {
+    if (event.type != KeyUp) return false
 
-        when (event.key) {
-            Key.M -> setShowSettingsDialog(!showSettingsMenu)
-            Key.Escape -> setShowSettingsDialog(false)
-            Key.H -> onShowHelpDialog()
-            Key.DirectionLeft -> if (event.isAltPressed) onClose()
-            else -> {}
-        }
+    when (event.key) {
+        Key.M -> setShowSettingsDialog(!showSettingsMenu)
+        Key.Escape -> setShowSettingsDialog(false)
+        Key.H -> onShowHelpDialog()
+        Key.DirectionLeft -> if (event.isAltPressed) onExit()
+        else -> return false
     }
+    return true
 }

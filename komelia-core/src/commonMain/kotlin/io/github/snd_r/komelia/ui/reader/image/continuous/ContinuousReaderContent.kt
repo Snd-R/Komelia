@@ -36,11 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -48,7 +50,6 @@ import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.image.ReaderImageResult
-import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.image.PageMetadata
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.ContinuousReaderHelpDialog
@@ -60,7 +61,6 @@ import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -72,6 +72,7 @@ fun BoxScope.ContinuousReaderContent(
     onShowSettingsMenuChange: (Boolean) -> Unit,
     screenScaleState: ScreenScaleState,
     continuousReaderState: ContinuousReaderState,
+    topLevelFocus: FocusRequester
 ) {
     val coroutineScope = rememberCoroutineScope()
     val readingDirection = continuousReaderState.readingDirection.collectAsState().value
@@ -100,6 +101,14 @@ fun BoxScope.ContinuousReaderContent(
         contentAreaSize = areaSize,
         isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
+        topLevelFocus = topLevelFocus,
+        modifier = Modifier.onKeyEvent { event ->
+            continuousReaderOnKeyEvents(
+                event = event,
+                state = continuousReaderState,
+                scrollScope = coroutineScope
+            )
+        }
     ) {
         ScalableContainer(continuousReaderState.screenScaleState) {
             ReaderPages(state = continuousReaderState)
@@ -133,15 +142,6 @@ private fun ReaderPages(state: ContinuousReaderState) {
             pageIntervals = pageIntervals,
             sidePadding = sidePadding,
             reversed = true
-        )
-    }
-    val coroutineScope = rememberCoroutineScope()
-    val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
-    LaunchedEffect(readingDirection) {
-        registerKeyboardEvents(
-            keyEvents = keyEvents,
-            state = state,
-            scrollScope = coroutineScope
         )
     }
 }
@@ -330,77 +330,82 @@ private fun ContinuousReaderImage(
     ) { ReaderImageContent(imageResult) }
 }
 
-private suspend fun registerKeyboardEvents(
-    keyEvents: SharedFlow<KeyEvent>,
+private fun continuousReaderOnKeyEvents(
+    event: KeyEvent,
     state: ContinuousReaderState,
     scrollScope: CoroutineScope
-) {
+): Boolean {
 
     var upKeyPressed = false
     var downKeyPressed = false
     var leftKeyPressed = false
     var rightKeyPressed = false
 
-    keyEvents.collect { event ->
-        val readingDirection = state.readingDirection.value
-        when (event.type) {
-            KeyDown -> {
-                when {
-                    event.key == Key.DirectionLeft && readingDirection == LEFT_TO_RIGHT -> state.scrollBy(100f)
-                    event.key == Key.DirectionRight && readingDirection == LEFT_TO_RIGHT -> state.scrollBy(-100f)
+    val readingDirection = state.readingDirection.value
+    var consumed = true
+    when (event.type) {
+        KeyDown -> {
+            when {
+                event.key == Key.DirectionLeft && readingDirection == LEFT_TO_RIGHT -> state.scrollBy(100f)
+                event.key == Key.DirectionRight && readingDirection == LEFT_TO_RIGHT -> state.scrollBy(-100f)
 
-                    event.key == Key.DirectionLeft && readingDirection == RIGHT_TO_LEFT -> state.scrollBy(100f)
-                    event.key == Key.DirectionRight && readingDirection == RIGHT_TO_LEFT -> state.scrollBy(-100f)
+                event.key == Key.DirectionLeft && readingDirection == RIGHT_TO_LEFT -> state.scrollBy(100f)
+                event.key == Key.DirectionRight && readingDirection == RIGHT_TO_LEFT -> state.scrollBy(-100f)
 
-                    event.key == Key.DirectionDown && readingDirection == TOP_TO_BOTTOM -> state.scrollBy(-100f)
-                    event.key == Key.DirectionUp && readingDirection == TOP_TO_BOTTOM -> state.scrollBy(100f)
+                event.key == Key.DirectionDown && readingDirection == TOP_TO_BOTTOM -> state.scrollBy(-100f)
+                event.key == Key.DirectionUp && readingDirection == TOP_TO_BOTTOM -> state.scrollBy(100f)
 
-                    event.key == Key.DirectionDown && readingDirection == LEFT_TO_RIGHT -> {
-                        if (!downKeyPressed) scrollScope.launch { state.scrollScreenForward() }
-                        downKeyPressed = true
-                    }
-
-                    event.key == Key.DirectionUp && readingDirection == LEFT_TO_RIGHT -> {
-                        if (!upKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
-                        upKeyPressed = true
-                    }
-
-                    event.key == Key.DirectionDown && readingDirection == RIGHT_TO_LEFT -> {
-                        if (!downKeyPressed) scrollScope.launch { state.scrollScreenForward() }
-                        downKeyPressed = true
-                    }
-
-                    event.key == Key.DirectionUp && readingDirection == RIGHT_TO_LEFT -> {
-                        if (!upKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
-                        upKeyPressed = true
-                    }
-
-                    event.key == Key.DirectionRight && readingDirection == TOP_TO_BOTTOM -> {
-                        if (!rightKeyPressed) scrollScope.launch { state.scrollScreenForward() }
-                        rightKeyPressed = true
-                    }
-
-                    event.key == Key.DirectionLeft && readingDirection == TOP_TO_BOTTOM -> {
-                        if (!leftKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
-                        leftKeyPressed = true
-                    }
+                event.key == Key.DirectionDown && readingDirection == LEFT_TO_RIGHT -> {
+                    if (!downKeyPressed) scrollScope.launch { state.scrollScreenForward() }
+                    downKeyPressed = true
                 }
+
+                event.key == Key.DirectionUp && readingDirection == LEFT_TO_RIGHT -> {
+                    if (!upKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
+                    upKeyPressed = true
+                }
+
+                event.key == Key.DirectionDown && readingDirection == RIGHT_TO_LEFT -> {
+                    if (!downKeyPressed) scrollScope.launch { state.scrollScreenForward() }
+                    downKeyPressed = true
+                }
+
+                event.key == Key.DirectionUp && readingDirection == RIGHT_TO_LEFT -> {
+                    if (!upKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
+                    upKeyPressed = true
+                }
+
+                event.key == Key.DirectionRight && readingDirection == TOP_TO_BOTTOM -> {
+                    if (!rightKeyPressed) scrollScope.launch { state.scrollScreenForward() }
+                    rightKeyPressed = true
+                }
+
+                event.key == Key.DirectionLeft && readingDirection == TOP_TO_BOTTOM -> {
+                    if (!leftKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
+                    leftKeyPressed = true
+                }
+
+                else -> consumed = false
             }
+        }
 
-            KeyUp -> {
-                when (event.key) {
-                    Key.MoveHome -> state.scrollToBookPage(0)
-                    Key.MoveEnd -> state.scrollToBookPage(state.currentBookPages.first().size)
-                    Key.V -> state.onReadingDirectionChange(TOP_TO_BOTTOM)
-                    Key.L -> state.onReadingDirectionChange(LEFT_TO_RIGHT)
-                    Key.R -> state.onReadingDirectionChange(RIGHT_TO_LEFT)
+        KeyUp -> {
+            when (event.key) {
+                Key.MoveHome -> scrollScope.launch { state.scrollToBookPage(0) }
+                Key.MoveEnd -> scrollScope.launch { state.scrollToBookPage(state.currentBookPages.first().size) }
+                Key.V -> state.onReadingDirectionChange(TOP_TO_BOTTOM)
+                Key.L -> state.onReadingDirectionChange(LEFT_TO_RIGHT)
+                Key.R -> state.onReadingDirectionChange(RIGHT_TO_LEFT)
 
-                    Key.DirectionDown -> downKeyPressed = false
-                    Key.DirectionUp -> upKeyPressed = false
-                    Key.DirectionRight -> rightKeyPressed = false
-                    Key.DirectionLeft -> leftKeyPressed = false
-                }
+                Key.DirectionDown -> downKeyPressed = false
+                Key.DirectionUp -> upKeyPressed = false
+                Key.DirectionRight -> rightKeyPressed = false
+                Key.DirectionLeft -> leftKeyPressed = false
+
+                else -> consumed = false
             }
         }
     }
+
+    return consumed
 }

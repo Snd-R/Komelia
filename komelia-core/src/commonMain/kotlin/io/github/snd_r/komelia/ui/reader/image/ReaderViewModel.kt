@@ -95,7 +95,6 @@ class ReaderViewModel(
         settingsRepository = readerSettingsRepository,
         imageLoader = imageLoader,
         appStrings = appStrings,
-        readerImageFactory = readerImageFactory,
         pageChangeFlow = pageChangeFlow,
         screenScaleState = screenScaleState,
     )

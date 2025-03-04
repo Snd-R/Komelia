@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -97,7 +96,6 @@ fun PageSpreadProgressSlider(
             Modifier
                 .fillMaxWidth()
                 .hoverable(interactionSource)
-                .pointerInput(Unit) { }
         )
     ) {
         if (show || isHovered.value) {

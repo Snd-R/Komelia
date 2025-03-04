@@ -14,7 +14,6 @@ import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.ReaderImage.PageId
-import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.ReaderImageResult
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.strings.AppStrings
@@ -61,7 +60,6 @@ class PagedReaderState(
     private val readerState: ReaderState,
     private val imageLoader: BookImageLoader,
     private val appStrings: Flow<AppStrings>,
-    private val readerImageFactory: ReaderImageFactory,
     private val pageChangeFlow: MutableSharedFlow<Unit>,
     val screenScaleState: ScreenScaleState,
 ) {
@@ -290,6 +288,13 @@ class PagedReaderState(
         if (currentSpreadIndex.value == page) return
         pageChangeFlow.tryEmit(Unit)
         loadPage(page)
+    }
+
+    fun moveToLastPage() {
+        val lastPageIndex = pageSpreads.value.size - 1
+        if (currentSpreadIndex.value == lastPageIndex) return
+        pageChangeFlow.tryEmit(Unit)
+        loadPage(lastPageIndex)
     }
 
     private fun loadPage(spreadIndex: Int) {

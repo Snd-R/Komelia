@@ -9,19 +9,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.LocalKeyEvents
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.PagedReaderHelpDialog
 import io.github.snd_r.komelia.ui.reader.image.common.ReaderControlsOverlay
@@ -37,7 +37,6 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDir
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookEnd
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookStart
-import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun BoxScope.PagedReaderContent(
@@ -47,6 +46,7 @@ fun BoxScope.PagedReaderContent(
     onShowSettingsMenuChange: (Boolean) -> Unit,
     screenScaleState: ScreenScaleState,
     pagedReaderState: PagedReaderState,
+    topLevelFocus: FocusRequester
 ) {
     if (showHelpDialog) {
         PagedReaderHelpDialog(onDismissRequest = { onShowHelpDialogChange(false) })
@@ -59,14 +59,7 @@ fun BoxScope.PagedReaderContent(
     }
     val pages = pagedReaderState.currentSpread.collectAsState().value.pages
     val layout = pagedReaderState.layout.collectAsState().value
-
-    val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
-    LaunchedEffect(readingDirection, pagedReaderState.layoutOffset.value) {
-        registerPagedReaderKeyboardEvents(
-            keyEvents = keyEvents,
-            pageState = pagedReaderState,
-        )
-    }
+    val layoutOffset = pagedReaderState.layoutOffset.collectAsState().value
 
     val currentContainerSize = screenScaleState.areaSize.collectAsState().value
     ReaderControlsOverlay(
@@ -76,6 +69,22 @@ fun BoxScope.PagedReaderContent(
         contentAreaSize = currentContainerSize,
         isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
+        topLevelFocus = topLevelFocus,
+        modifier = Modifier.onKeyEvent { event ->
+            pagedReaderOnKeyEvents(
+                event = event,
+                readingDirection = readingDirection,
+                layoutOffset = layoutOffset,
+                onReadingDirectionChange = pagedReaderState::onReadingDirectionChange,
+                onScaleTypeCycle = pagedReaderState::onScaleTypeCycle,
+                onLayoutCycle = pagedReaderState::onLayoutCycle,
+                onChangeLayoutOffset = pagedReaderState::onLayoutOffsetChange,
+                onPageChange = pagedReaderState::onPageChange,
+                onMoveToLastPage = pagedReaderState::moveToLastPage,
+                onMoveToNextPage = pagedReaderState::nextPage,
+                onMoveToPrevPage = pagedReaderState::previousPage
+            )
+        }
     ) {
         ScalableContainer(scaleState = screenScaleState) {
             val transitionPage = pagedReaderState.transitionPage.collectAsState().value
@@ -210,34 +219,41 @@ private fun DoublePageLayout(
     }
 }
 
-private suspend fun registerPagedReaderKeyboardEvents(
-    keyEvents: SharedFlow<KeyEvent>,
-    pageState: PagedReaderState,
-) {
-    val readingDirection = pageState.readingDirection.value
-    val layoutOffset = pageState.layoutOffset.value
+private fun pagedReaderOnKeyEvents(
+    event: KeyEvent,
+    readingDirection: ReadingDirection,
+    layoutOffset: Boolean,
+    onReadingDirectionChange: (ReadingDirection) -> Unit,
+    onScaleTypeCycle: () -> Unit,
+    onLayoutCycle: () -> Unit,
+    onChangeLayoutOffset: (Boolean) -> Unit,
+    onPageChange: (Int) -> Unit,
+    onMoveToLastPage: () -> Unit,
+    onMoveToNextPage: () -> Unit,
+    onMoveToPrevPage: () -> Unit,
+): Boolean {
+    if (event.type != KeyUp) return false
+
     val previousPage = {
-        if (readingDirection == LEFT_TO_RIGHT) pageState.previousPage()
-        else pageState.nextPage()
+        if (readingDirection == LEFT_TO_RIGHT) onMoveToPrevPage()
+        else onMoveToNextPage()
     }
     val nextPage = {
-        if (readingDirection == LEFT_TO_RIGHT) pageState.nextPage()
-        else pageState.previousPage()
+        if (readingDirection == LEFT_TO_RIGHT) onMoveToNextPage()
+        else onMoveToPrevPage()
     }
-    keyEvents.collect { event ->
-        if (event.type != KeyUp) return@collect
 
-        when (event.key) {
-            Key.DirectionLeft -> previousPage()
-            Key.DirectionRight -> nextPage()
-            Key.MoveHome -> pageState.onPageChange(0)
-            Key.MoveEnd -> pageState.onPageChange(pageState.pageSpreads.value.size - 1)
-            Key.L -> pageState.onReadingDirectionChange(LEFT_TO_RIGHT)
-            Key.R -> pageState.onReadingDirectionChange(RIGHT_TO_LEFT)
-            Key.C -> pageState.onScaleTypeCycle()
-            Key.D -> pageState.onLayoutCycle()
-            Key.O -> pageState.onLayoutOffsetChange(!layoutOffset)
-            else -> {}
-        }
+    when (event.key) {
+        Key.DirectionLeft -> previousPage()
+        Key.DirectionRight -> nextPage()
+        Key.MoveHome -> onPageChange(0)
+        Key.MoveEnd -> onMoveToLastPage()
+        Key.L -> onReadingDirectionChange(LEFT_TO_RIGHT)
+        Key.R -> onReadingDirectionChange(RIGHT_TO_LEFT)
+        Key.C -> onScaleTypeCycle
+        Key.D -> onLayoutCycle
+        Key.O -> onChangeLayoutOffset(!layoutOffset)
+        else -> return false
     }
+    return true
 }

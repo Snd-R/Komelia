@@ -113,7 +113,6 @@ fun BottomSheetSettingsOverlay(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .fillMaxWidth()
-            .pointerInput(Unit) {}
             .windowInsetsPadding(
                 WindowInsets.statusBars
                     .add(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
