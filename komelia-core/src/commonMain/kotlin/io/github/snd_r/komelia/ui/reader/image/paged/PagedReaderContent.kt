@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
@@ -46,7 +45,7 @@ fun BoxScope.PagedReaderContent(
     onShowSettingsMenuChange: (Boolean) -> Unit,
     screenScaleState: ScreenScaleState,
     pagedReaderState: PagedReaderState,
-    topLevelFocus: FocusRequester
+    volumeKeysNavigation: Boolean
 ) {
     if (showHelpDialog) {
         PagedReaderHelpDialog(onDismissRequest = { onShowHelpDialogChange(false) })
@@ -69,7 +68,6 @@ fun BoxScope.PagedReaderContent(
         contentAreaSize = currentContainerSize,
         isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
-        topLevelFocus = topLevelFocus,
         modifier = Modifier.onKeyEvent { event ->
             pagedReaderOnKeyEvents(
                 event = event,
@@ -82,7 +80,8 @@ fun BoxScope.PagedReaderContent(
                 onPageChange = pagedReaderState::onPageChange,
                 onMoveToLastPage = pagedReaderState::moveToLastPage,
                 onMoveToNextPage = pagedReaderState::nextPage,
-                onMoveToPrevPage = pagedReaderState::previousPage
+                onMoveToPrevPage = pagedReaderState::previousPage,
+                volumeKeysNavigation = volumeKeysNavigation
             )
         }
     ) {
@@ -231,8 +230,11 @@ private fun pagedReaderOnKeyEvents(
     onMoveToLastPage: () -> Unit,
     onMoveToNextPage: () -> Unit,
     onMoveToPrevPage: () -> Unit,
+    volumeKeysNavigation: Boolean,
 ): Boolean {
-    if (event.type != KeyUp) return false
+    if (event.type != KeyUp) {
+        return volumeKeysNavigation && (event.key == Key.VolumeUp || event.key == Key.VolumeDown)
+    }
 
     val previousPage = {
         if (readingDirection == LEFT_TO_RIGHT) onMoveToPrevPage()
@@ -243,6 +245,7 @@ private fun pagedReaderOnKeyEvents(
         else onMoveToPrevPage()
     }
 
+    var consumed = true
     when (event.key) {
         Key.DirectionLeft -> previousPage()
         Key.DirectionRight -> nextPage()
@@ -253,7 +256,9 @@ private fun pagedReaderOnKeyEvents(
         Key.C -> onScaleTypeCycle
         Key.D -> onLayoutCycle
         Key.O -> onChangeLayoutOffset(!layoutOffset)
-        else -> return false
+        Key.VolumeUp -> if (volumeKeysNavigation) previousPage() else consumed = false
+        Key.VolumeDown -> if (volumeKeysNavigation) nextPage() else consumed = false
+        else -> consumed = false
     }
-    return true
+    return consumed
 }

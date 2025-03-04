@@ -36,6 +36,9 @@ fun ImageReaderSettingsContent(
     loadThumbnailPreviews: Boolean,
     onLoadThumbnailPreviewsChange: (Boolean) -> Unit,
 
+    volumeKeysNavigation: Boolean,
+    onVolumeKeysNavigationChange: (Boolean) -> Unit,
+
     onCacheClear: () -> Unit,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState,
 ) {
@@ -43,6 +46,7 @@ fun ImageReaderSettingsContent(
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        val platform = LocalPlatform.current
 
         if (availableUpsamplingModes.size > 1) {
             DropdownChoiceMenu(
@@ -75,7 +79,7 @@ fun ImageReaderSettingsContent(
         }
         HorizontalDivider()
 
-        if (LocalPlatform.current != PlatformType.WEB_KOMF) {
+        if (platform != PlatformType.WEB_KOMF) {
             SwitchWithLabel(
                 checked = downsampleInLinearLight,
                 onCheckedChange = onDownsampleInLinearLightChange,
@@ -90,6 +94,14 @@ fun ImageReaderSettingsContent(
             label = { Text("Load small previews when dragging navigation slider") },
             supportingText = { Text("can be slow for high resolution images") },
         )
+
+        if (platform == PlatformType.MOBILE) {
+            SwitchWithLabel(
+                checked = volumeKeysNavigation,
+                onCheckedChange = onVolumeKeysNavigationChange,
+                label = { Text("Volume keys navigation") },
+            )
+        }
 
         if (isOnnxRuntimeSupported()) {
             HorizontalDivider(Modifier.padding(vertical = 10.dp))

@@ -154,6 +154,14 @@ class ActorReaderSettingsRepository(
         actor.transform { it.copy(loadThumbnailPreviews = load) }
     }
 
+    override fun getVolumeKeysNavigation(): Flow<Boolean> {
+        return actor.mapState { it.volumeKeysNavigation }
+    }
+
+    override suspend fun putVolumeKeysNavigation(enable: Boolean) {
+        actor.transform { it.copy(volumeKeysNavigation = enable) }
+    }
+
     override fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode> {
         return actor.mapState { it.onnxRuntimeMode }
     }

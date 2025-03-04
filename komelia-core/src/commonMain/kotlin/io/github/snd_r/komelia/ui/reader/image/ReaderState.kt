@@ -98,6 +98,8 @@ class ReaderState(
     val flashEveryNPages = MutableStateFlow(1)
     val flashWith = MutableStateFlow(ReaderFlashColor.BLACK)
 
+    val volumeKeysNavigation = MutableStateFlow(false)
+
     suspend fun initialize(bookId: KomgaBookId) {
         upsamplingMode.value = readerSettingsRepository.getUpsamplingMode().first()
         downsamplingKernel.value = readerSettingsRepository.getDownsamplingKernel().first()
@@ -109,6 +111,7 @@ class ReaderState(
         flashDuration.value = readerSettingsRepository.getFlashDuration().first()
         flashEveryNPages.value = readerSettingsRepository.getFlashEveryNPages().first()
         flashWith.value = readerSettingsRepository.getFlashWith().first()
+        volumeKeysNavigation.value = readerSettingsRepository.getVolumeKeysNavigation().first()
 
         appNotifications.runCatchingToNotifications {
             state.value = LoadState.Loading

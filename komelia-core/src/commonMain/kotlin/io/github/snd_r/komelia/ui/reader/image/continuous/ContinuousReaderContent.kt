@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
@@ -72,7 +71,7 @@ fun BoxScope.ContinuousReaderContent(
     onShowSettingsMenuChange: (Boolean) -> Unit,
     screenScaleState: ScreenScaleState,
     continuousReaderState: ContinuousReaderState,
-    topLevelFocus: FocusRequester
+    volumeKeysNavigation: Boolean
 ) {
     val coroutineScope = rememberCoroutineScope()
     val readingDirection = continuousReaderState.readingDirection.collectAsState().value
@@ -101,11 +100,11 @@ fun BoxScope.ContinuousReaderContent(
         contentAreaSize = areaSize,
         isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
-        topLevelFocus = topLevelFocus,
         modifier = Modifier.onKeyEvent { event ->
             continuousReaderOnKeyEvents(
                 event = event,
                 state = continuousReaderState,
+                volumeKeysNavigation = volumeKeysNavigation,
                 scrollScope = coroutineScope
             )
         }
@@ -333,16 +332,20 @@ private fun ContinuousReaderImage(
 private fun continuousReaderOnKeyEvents(
     event: KeyEvent,
     state: ContinuousReaderState,
+    volumeKeysNavigation: Boolean,
     scrollScope: CoroutineScope
 ): Boolean {
-
     var upKeyPressed = false
     var downKeyPressed = false
     var leftKeyPressed = false
     var rightKeyPressed = false
 
+    var volumeKeyUpPressed = false
+    var volumeKeyDownPressed = false
+
     val readingDirection = state.readingDirection.value
     var consumed = true
+
     when (event.type) {
         KeyDown -> {
             when {
@@ -385,6 +388,18 @@ private fun continuousReaderOnKeyEvents(
                     leftKeyPressed = true
                 }
 
+                event.key == Key.VolumeUp -> {
+                    if (!volumeKeysNavigation) consumed = false
+                    else if (!volumeKeyUpPressed) scrollScope.launch { state.scrollScreenBackward() }
+                    volumeKeyUpPressed = true
+                }
+
+                event.key == Key.VolumeDown -> {
+                    if (!volumeKeysNavigation) consumed = false
+                    else if (!volumeKeyDownPressed) scrollScope.launch { state.scrollScreenForward() }
+                    volumeKeyDownPressed = true
+                }
+
                 else -> consumed = false
             }
         }
@@ -401,6 +416,16 @@ private fun continuousReaderOnKeyEvents(
                 Key.DirectionUp -> upKeyPressed = false
                 Key.DirectionRight -> rightKeyPressed = false
                 Key.DirectionLeft -> leftKeyPressed = false
+
+                Key.VolumeUp -> if (!volumeKeysNavigation) {
+                    consumed = false
+                    volumeKeyUpPressed = false
+                }
+
+                Key.VolumeDown -> if (!volumeKeysNavigation) {
+                    volumeKeyDownPressed = false
+                    consumed = false
+                }
 
                 else -> consumed = false
             }

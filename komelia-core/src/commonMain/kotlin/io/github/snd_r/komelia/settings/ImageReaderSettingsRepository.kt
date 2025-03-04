@@ -61,6 +61,9 @@ interface ImageReaderSettingsRepository {
     fun getLoadThumbnailPreviews(): Flow<Boolean>
     suspend fun putLoadThumbnailPreviews(load: Boolean)
 
+    fun getVolumeKeysNavigation(): Flow<Boolean>
+    suspend fun putVolumeKeysNavigation(enable: Boolean)
+
     fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode>
     suspend fun putOnnxRuntimeMode(mode: OnnxRuntimeUpscaleMode)
 

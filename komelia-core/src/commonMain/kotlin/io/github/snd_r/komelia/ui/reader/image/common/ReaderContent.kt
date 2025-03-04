@@ -75,6 +75,7 @@ fun ReaderContent(
     }
 
     val topLevelFocus = remember { FocusRequester() }
+    val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
     var hasFocus by remember { mutableStateOf(false) }
     Box(
         Modifier
@@ -109,7 +110,7 @@ fun ReaderContent(
                     onShowSettingsMenuChange = { showSettingsMenu = it },
                     screenScaleState = screenScaleState,
                     pagedReaderState = pagedReaderState,
-                    topLevelFocus = topLevelFocus
+                    volumeKeysNavigation = volumeKeysNavigation
                 )
             }
 
@@ -121,7 +122,7 @@ fun ReaderContent(
                     onShowSettingsMenuChange = { showSettingsMenu = it },
                     screenScaleState = screenScaleState,
                     continuousReaderState = continuousReaderState,
-                    topLevelFocus = topLevelFocus
+                    volumeKeysNavigation = volumeKeysNavigation
                 )
             }
         }
@@ -160,7 +161,6 @@ fun ReaderControlsOverlay(
     isSettingsMenuOpen: Boolean,
     onSettingsMenuToggle: () -> Unit,
     contentAreaSize: IntSize,
-    topLevelFocus: FocusRequester,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -187,8 +187,6 @@ fun ReaderControlsOverlay(
                 isSettingsMenuOpen
             ) {
                 detectTapGestures { offset ->
-                    topLevelFocus.requestFocus()
-
                     val actionWidth = contentAreaSize.width.toFloat() / 3
                     when (offset.x) {
                         in 0f..<actionWidth -> leftAction()

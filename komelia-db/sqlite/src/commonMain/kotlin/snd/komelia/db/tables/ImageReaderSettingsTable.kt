@@ -18,6 +18,7 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val cropBorders = bool("crop_borders")
 
     val loadThumbnailPreviews = bool("load_thumbnail_previews")
+    val volumeKeysNavigation = bool("volume_keys_navigation")
 
     val flashOnPageChange = bool("flash_on_page_change")
     val flashDuration = long("flash_duration")

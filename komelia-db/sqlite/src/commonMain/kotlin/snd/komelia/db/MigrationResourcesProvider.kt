@@ -21,6 +21,7 @@ class MigrationResourcesProvider : ResourceProvider, ClassProvider<JavaMigration
         "V6__eink_screen_flash.sql",
         "V7__reader_sampling_settings.sql",
         "V8__thumbnail_previews.sql",
+        "V9__volume_keys_navigation.sql",
     )
     private val resources: Map<String, MigrationResource> = runBlocking {
         migrations.associateWith {

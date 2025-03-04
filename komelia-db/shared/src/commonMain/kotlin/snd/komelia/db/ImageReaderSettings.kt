@@ -33,6 +33,7 @@ data class ImageReaderSettings(
     val linearLightDownsampling: Boolean = false,
     val upsamplingMode: UpsamplingMode = UpsamplingMode.CATMULL_ROM,
     val loadThumbnailPreviews: Boolean = true,
+    val volumeKeysNavigation: Boolean = false,
 
     val onnxRuntimeMode: OnnxRuntimeUpscaleMode = OnnxRuntimeUpscaleMode.NONE,
     val onnxRuntimeModelPath: String? = null,
