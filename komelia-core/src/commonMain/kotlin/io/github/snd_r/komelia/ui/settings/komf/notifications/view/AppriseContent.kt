@@ -31,19 +31,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.cursorForHand
-import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.StateHolder
+import io.github.snd_r.komelia.ui.common.CheckboxWithLabel
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState
@@ -134,7 +131,8 @@ fun AddUrlDialog(
     val isFocused = interactionSource.collectIsFocusedAsState().value
 
     val isValidUrl = derivedStateOf { parseUrl(newWebhook) != null }
-    val isError = derivedStateOf { newWebhook.isNotBlank() && (!isValidUrl.value) }
+    val isError by derivedStateOf { newWebhook.isNotBlank() && (!isValidUrl.value) }
+    var confirmInvalidUrl by remember(isError) { mutableStateOf(false) }
 
     AppDialog(
         modifier = Modifier.widthIn(max = 600.dp),
@@ -151,18 +149,24 @@ fun AddUrlDialog(
         content = {
             Column(
                 modifier = Modifier.padding(10.dp).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TextField(
                     value = newWebhook,
                     onValueChange = { newWebhook = it },
                     label = { Text("URL") },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = isError.value,
+                    isError = isError,
                     interactionSource = interactionSource,
-                    supportingText = { if (isError.value) Text("Invalid URL") },
+                    supportingText = { if (isError) Text("failed to parse URL") },
                     visualTransformation = if (isFocused) VisualTransformation.None else PasswordVisualTransformation(),
                 )
+                if (isError) {
+                    CheckboxWithLabel(
+                        checked = confirmInvalidUrl,
+                        onCheckedChange = { confirmInvalidUrl = !confirmInvalidUrl },
+                        label = { Text("apply anyway") }
+                    )
+                }
             }
         },
         controlButtons = {
@@ -185,7 +189,7 @@ fun AddUrlDialog(
                     },
                     shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.cursorForHand(),
-                    enabled = isValidUrl.value
+                    enabled = !isError || confirmInvalidUrl
                 ) {
                     Text("Confirm")
                 }
