@@ -84,6 +84,7 @@ ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = 
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
+ksoup-kotlinx = { module = "com.fleeksoft.ksoup:ksoup-kotlinx", version.ref = "ksoup" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback-android" }
