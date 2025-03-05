@@ -295,6 +295,10 @@ class ContinuousReaderState(
         }
     }
 
+    suspend fun scrollToLastPage() {
+        scrollToBookPage(currentBookPages.first().size)
+    }
+
     suspend fun scrollToBookPage(pageNumber: Int) {
         val currentIntervalIndex = currentIntervalIndex.value
         val currentInterval = pageIntervals.value[currentIntervalIndex]

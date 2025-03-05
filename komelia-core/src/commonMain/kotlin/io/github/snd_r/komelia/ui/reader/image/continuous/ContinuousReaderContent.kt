@@ -37,7 +37,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.key
@@ -59,8 +58,6 @@ import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.LEFT_TO_RIGHT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.RIGHT_TO_LEFT
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState.ReadingDirection.TOP_TO_BOTTOM
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Composable
@@ -92,7 +89,18 @@ fun BoxScope.ContinuousReaderContent(
     }
 
     val areaSize = screenScaleState.areaSize.collectAsState().value
-
+    val keysState = remember(readingDirection, volumeKeysNavigation) {
+        KeyMapState(
+            readingDirection = readingDirection,
+            volumeKeysNavigation = volumeKeysNavigation,
+            scrollBy = continuousReaderState::scrollBy,
+            scrollForward = { coroutineScope.launch { continuousReaderState.scrollScreenForward() } },
+            scrollBackward = { coroutineScope.launch { continuousReaderState.scrollScreenBackward() } },
+            scrollToFirstPage = { coroutineScope.launch { continuousReaderState.scrollToBookPage(0) } },
+            scrollToLastPage = { coroutineScope.launch { continuousReaderState.scrollToLastPage() } },
+            changeReadingDirection = continuousReaderState::onReadingDirectionChange
+        )
+    }
     ReaderControlsOverlay(
         readingDirection = layoutDirection,
         onNexPageClick = { coroutineScope.launch { continuousReaderState.scrollScreenForward() } },
@@ -101,12 +109,40 @@ fun BoxScope.ContinuousReaderContent(
         isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
         modifier = Modifier.onKeyEvent { event ->
-            continuousReaderOnKeyEvents(
-                event = event,
-                state = continuousReaderState,
-                volumeKeysNavigation = volumeKeysNavigation,
-                scrollScope = coroutineScope
-            )
+            var consumed = true
+
+            when (event.type) {
+                KeyDown -> {
+                    consumed = when (event.key) {
+                        Key.DirectionLeft -> keysState.onLeftKeyDown()
+                        Key.DirectionRight -> keysState.onRightKeyDown()
+                        Key.DirectionDown -> keysState.onDownKeyDown()
+                        Key.DirectionUp -> keysState.onUpKeyDown()
+                        Key.VolumeUp -> keysState.onVolumeUpKeyDown()
+                        Key.VolumeDown -> keysState.onVolumeDownKeyDown()
+                        else -> false
+                    }
+                }
+
+                KeyUp -> {
+                    consumed = when (event.key) {
+                        Key.MoveHome -> keysState.onScrollToFirstPage()
+                        Key.MoveEnd -> keysState.onScrollToLastPage()
+                        Key.V -> keysState.onReadingDirectionChange(TOP_TO_BOTTOM)
+                        Key.L -> keysState.onReadingDirectionChange(LEFT_TO_RIGHT)
+                        Key.R -> keysState.onReadingDirectionChange(RIGHT_TO_LEFT)
+                        Key.DirectionDown -> keysState.onDownKeyUp()
+                        Key.DirectionUp -> keysState.onUpKeyUp()
+                        Key.DirectionRight -> keysState.onRightKeyUp()
+                        Key.DirectionLeft -> keysState.onLeftKeyUp()
+                        Key.VolumeUp -> keysState.onVolumeUpKeyUp()
+                        Key.VolumeDown -> keysState.onVolumeDownKeyUp()
+                        else -> false
+                    }
+                }
+            }
+
+            consumed
         }
     ) {
         ScalableContainer(continuousReaderState.screenScaleState) {
@@ -114,7 +150,6 @@ fun BoxScope.ContinuousReaderContent(
         }
     }
 }
-
 
 @Composable
 private fun ReaderPages(state: ContinuousReaderState) {
@@ -329,108 +364,3 @@ private fun ContinuousReaderImage(
     ) { ReaderImageContent(imageResult) }
 }
 
-private fun continuousReaderOnKeyEvents(
-    event: KeyEvent,
-    state: ContinuousReaderState,
-    volumeKeysNavigation: Boolean,
-    scrollScope: CoroutineScope
-): Boolean {
-    var upKeyPressed = false
-    var downKeyPressed = false
-    var leftKeyPressed = false
-    var rightKeyPressed = false
-
-    var volumeKeyUpPressed = false
-    var volumeKeyDownPressed = false
-
-    val readingDirection = state.readingDirection.value
-    var consumed = true
-
-    when (event.type) {
-        KeyDown -> {
-            when {
-                event.key == Key.DirectionLeft && readingDirection == LEFT_TO_RIGHT -> state.scrollBy(100f)
-                event.key == Key.DirectionRight && readingDirection == LEFT_TO_RIGHT -> state.scrollBy(-100f)
-
-                event.key == Key.DirectionLeft && readingDirection == RIGHT_TO_LEFT -> state.scrollBy(100f)
-                event.key == Key.DirectionRight && readingDirection == RIGHT_TO_LEFT -> state.scrollBy(-100f)
-
-                event.key == Key.DirectionDown && readingDirection == TOP_TO_BOTTOM -> state.scrollBy(-100f)
-                event.key == Key.DirectionUp && readingDirection == TOP_TO_BOTTOM -> state.scrollBy(100f)
-
-                event.key == Key.DirectionDown && readingDirection == LEFT_TO_RIGHT -> {
-                    if (!downKeyPressed) scrollScope.launch { state.scrollScreenForward() }
-                    downKeyPressed = true
-                }
-
-                event.key == Key.DirectionUp && readingDirection == LEFT_TO_RIGHT -> {
-                    if (!upKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
-                    upKeyPressed = true
-                }
-
-                event.key == Key.DirectionDown && readingDirection == RIGHT_TO_LEFT -> {
-                    if (!downKeyPressed) scrollScope.launch { state.scrollScreenForward() }
-                    downKeyPressed = true
-                }
-
-                event.key == Key.DirectionUp && readingDirection == RIGHT_TO_LEFT -> {
-                    if (!upKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
-                    upKeyPressed = true
-                }
-
-                event.key == Key.DirectionRight && readingDirection == TOP_TO_BOTTOM -> {
-                    if (!rightKeyPressed) scrollScope.launch { state.scrollScreenForward() }
-                    rightKeyPressed = true
-                }
-
-                event.key == Key.DirectionLeft && readingDirection == TOP_TO_BOTTOM -> {
-                    if (!leftKeyPressed) scrollScope.launch { state.scrollScreenBackward() }
-                    leftKeyPressed = true
-                }
-
-                event.key == Key.VolumeUp -> {
-                    if (!volumeKeysNavigation) consumed = false
-                    else if (!volumeKeyUpPressed) scrollScope.launch { state.scrollScreenBackward() }
-                    volumeKeyUpPressed = true
-                }
-
-                event.key == Key.VolumeDown -> {
-                    if (!volumeKeysNavigation) consumed = false
-                    else if (!volumeKeyDownPressed) scrollScope.launch { state.scrollScreenForward() }
-                    volumeKeyDownPressed = true
-                }
-
-                else -> consumed = false
-            }
-        }
-
-        KeyUp -> {
-            when (event.key) {
-                Key.MoveHome -> scrollScope.launch { state.scrollToBookPage(0) }
-                Key.MoveEnd -> scrollScope.launch { state.scrollToBookPage(state.currentBookPages.first().size) }
-                Key.V -> state.onReadingDirectionChange(TOP_TO_BOTTOM)
-                Key.L -> state.onReadingDirectionChange(LEFT_TO_RIGHT)
-                Key.R -> state.onReadingDirectionChange(RIGHT_TO_LEFT)
-
-                Key.DirectionDown -> downKeyPressed = false
-                Key.DirectionUp -> upKeyPressed = false
-                Key.DirectionRight -> rightKeyPressed = false
-                Key.DirectionLeft -> leftKeyPressed = false
-
-                Key.VolumeUp -> if (!volumeKeysNavigation) {
-                    consumed = false
-                    volumeKeyUpPressed = false
-                }
-
-                Key.VolumeDown -> if (!volumeKeysNavigation) {
-                    volumeKeyDownPressed = false
-                    consumed = false
-                }
-
-                else -> consumed = false
-            }
-        }
-    }
-
-    return consumed
-}
