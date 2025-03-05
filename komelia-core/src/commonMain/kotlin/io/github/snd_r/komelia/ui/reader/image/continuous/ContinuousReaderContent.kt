@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -134,7 +135,7 @@ fun BoxScope.ContinuousReaderContent(
                         Key.DirectionDown -> keysState.onDownKeyUp()
                         Key.DirectionUp -> keysState.onUpKeyUp()
                         Key.DirectionRight -> keysState.onRightKeyUp()
-                        Key.DirectionLeft -> keysState.onLeftKeyUp()
+                        Key.DirectionLeft -> keysState.onLeftKeyUp(event.isAltPressed)
                         Key.VolumeUp -> keysState.onVolumeUpKeyUp()
                         Key.VolumeDown -> keysState.onVolumeDownKeyUp()
                         else -> false

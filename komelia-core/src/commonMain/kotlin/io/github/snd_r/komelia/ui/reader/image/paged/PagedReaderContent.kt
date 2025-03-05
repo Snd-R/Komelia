@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -247,7 +248,11 @@ private fun pagedReaderOnKeyEvents(
 
     var consumed = true
     when (event.key) {
-        Key.DirectionLeft -> previousPage()
+        Key.DirectionLeft -> {
+            previousPage()
+            if (event.isAltPressed) consumed = false
+        }
+
         Key.DirectionRight -> nextPage()
         Key.MoveHome -> onPageChange(0)
         Key.MoveEnd -> onMoveToLastPage()

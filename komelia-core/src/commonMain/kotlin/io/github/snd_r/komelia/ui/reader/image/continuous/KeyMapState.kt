@@ -74,9 +74,9 @@ class KeyMapState(
         return true
     }
 
-    fun onLeftKeyUp(): Boolean {
+    fun onLeftKeyUp(altPressed: Boolean): Boolean {
         leftKeyPressed = false
-        return true
+        return !altPressed
     }
 
     fun onLeftKeyDown(): Boolean {

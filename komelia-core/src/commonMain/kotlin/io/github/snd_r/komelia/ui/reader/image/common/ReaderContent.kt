@@ -58,8 +58,6 @@ fun ReaderContent(
 ) {
     var showHelpDialog by remember { mutableStateOf(false) }
     var showSettingsMenu by remember { mutableStateOf(false) }
-    BackPressHandler { if (showSettingsMenu) showSettingsMenu = false else onExit() }
-
     if (LocalPlatform.current == MOBILE) {
         val windowState = LocalWindowState.current
         DisposableEffect(showSettingsMenu) {
@@ -85,14 +83,18 @@ fun ReaderContent(
             .focusRequester(topLevelFocus)
             .onFocusChanged { hasFocus = it.hasFocus }
             .onKeyEvent { event ->
-                commonKeyboardEventsHandler(
-                    event = event,
-                    showSettingsMenu = showSettingsMenu,
-                    setShowSettingsDialog = { showSettingsMenu = it },
-                    onShowHelpDialog = { showHelpDialog = !showHelpDialog },
-                    onExit = onExit
-                )
-                false
+                if (event.type != KeyUp) return@onKeyEvent false
+
+                var consumed = true
+                when (event.key) {
+                    Key.M -> showSettingsMenu = !showSettingsMenu
+                    Key.Escape -> showSettingsMenu = false
+                    Key.H -> showHelpDialog = true
+                    Key.DirectionLeft -> if (event.isAltPressed) onExit() else consumed = false
+                    Key.Back -> if (showSettingsMenu) showSettingsMenu = false else onExit()
+                    else -> consumed = false
+                }
+                consumed
             }
     ) {
         val areaSize = screenScaleState.areaSize.collectAsState()
@@ -199,24 +201,4 @@ fun ReaderControlsOverlay(
     ) {
         content()
     }
-}
-
-
-private fun commonKeyboardEventsHandler(
-    event: KeyEvent,
-    showSettingsMenu: Boolean,
-    setShowSettingsDialog: (Boolean) -> Unit,
-    onShowHelpDialog: () -> Unit,
-    onExit: () -> Unit,
-): Boolean {
-    if (event.type != KeyUp) return false
-
-    when (event.key) {
-        Key.M -> setShowSettingsDialog(!showSettingsMenu)
-        Key.Escape -> setShowSettingsDialog(false)
-        Key.H -> onShowHelpDialog()
-        Key.DirectionLeft -> if (event.isAltPressed) onExit()
-        else -> return false
-    }
-    return true
 }
