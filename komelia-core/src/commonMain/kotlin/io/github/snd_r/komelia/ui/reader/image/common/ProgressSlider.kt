@@ -247,6 +247,7 @@ private fun BookPageThumbnail(
                 painter = painter,
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
+                modifier = modifier
             )
         }
     }
