@@ -46,7 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbarWithFullSpans
 import io.github.snd_r.komelia.platform.WindowSizeClass.COMPACT
 import io.github.snd_r.komelia.platform.WindowSizeClass.EXPANDED
 import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
@@ -68,6 +68,7 @@ import io.github.snd_r.komelia.ui.common.menus.bulk.BooksBulkActionsContent
 import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
+import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.SeriesBooksState
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksData
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
@@ -177,9 +178,17 @@ fun SeriesContent(
 
             }
 
-            VerticalScrollbar(
+            val gridFullSpansCount = remember(currentTab, booksData) {
+                val fullSpans = if (booksData.totalPages > 1) 4 else 3
+                when (booksData.layout) {
+                    BooksLayout.GRID -> fullSpans
+                    BooksLayout.LIST -> fullSpans + booksData.books.size
+                }
+            }
+            VerticalScrollbarWithFullSpans(
                 scrollState = scrollState,
                 modifier = Modifier.align(Alignment.CenterEnd),
+                fullSpanLines = gridFullSpansCount,
             )
         }
     }

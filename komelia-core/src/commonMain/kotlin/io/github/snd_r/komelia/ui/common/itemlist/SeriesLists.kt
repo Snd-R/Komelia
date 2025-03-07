@@ -30,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.VerticalScrollbar
+import io.github.snd_r.komelia.platform.VerticalScrollbarWithFullSpans
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.common.Pagination
 import io.github.snd_r.komelia.ui.common.cards.DraggableImageCard
@@ -120,7 +120,7 @@ fun SeriesLazyCardGrid(
             }
         }
 
-        VerticalScrollbar(gridState, Modifier.align(Alignment.TopEnd))
+        VerticalScrollbarWithFullSpans(gridState, Modifier.align(Alignment.TopEnd), 2)
     }
 }
 

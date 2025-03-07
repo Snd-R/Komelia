@@ -42,3 +42,10 @@ actual fun HorizontalScrollbar(
     scrollState: ScrollState,
     modifier: Modifier,
 ) = Unit
+
+@Composable
+actual fun VerticalScrollbarWithFullSpans(
+    scrollState: LazyGridState,
+    modifier: Modifier,
+    fullSpanLines: Int
+) = Unit

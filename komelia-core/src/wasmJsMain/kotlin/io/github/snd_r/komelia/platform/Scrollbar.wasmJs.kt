@@ -114,3 +114,10 @@ private fun CustomVerticalScrollbar(
         interactionSource = interactionSource
     )
 }
+
+@Composable
+actual fun VerticalScrollbarWithFullSpans(
+    scrollState: LazyGridState,
+    modifier: Modifier,
+    fullSpanLines: Int
+) = VerticalScrollbar(scrollState, modifier)

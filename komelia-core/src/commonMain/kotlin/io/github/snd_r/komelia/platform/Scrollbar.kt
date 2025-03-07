@@ -14,14 +14,21 @@ expect fun VerticalScrollbar(
 
 @Composable
 expect fun VerticalScrollbar(
-    scrollState: LazyGridState,
+    scrollState: ScrollState,
     modifier: Modifier = Modifier,
 )
 
 @Composable
 expect fun VerticalScrollbar(
-    scrollState: ScrollState,
+    scrollState: LazyGridState,
     modifier: Modifier = Modifier,
+)
+
+@Composable
+expect fun VerticalScrollbarWithFullSpans(
+    scrollState: LazyGridState,
+    modifier: Modifier,
+    fullSpanLines: Int
 )
 
 @Composable

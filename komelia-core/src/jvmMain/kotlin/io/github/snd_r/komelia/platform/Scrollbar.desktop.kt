@@ -95,6 +95,20 @@ actual fun VerticalScrollbar(
 )
 
 @Composable
+actual fun VerticalScrollbarWithFullSpans(
+    scrollState: LazyGridState,
+    modifier: Modifier,
+    fullSpanLines: Int,
+) = CustomVerticalScrollbar(
+    adapter = remember(scrollState, fullSpanLines) { LazyGridScrollbarAdapterCustom(scrollState, fullSpanLines) },
+    modifier = modifier,
+    style = LocalScrollbarStyle.current.copy(
+        unhoverColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha = 0.9f),
+        hoverColor = MaterialTheme.colorScheme.secondary,
+    ),
+)
+
+@Composable
 private fun CustomVerticalScrollbar(
     adapter: androidx.compose.foundation.v2.ScrollbarAdapter,
     modifier: Modifier = Modifier,
