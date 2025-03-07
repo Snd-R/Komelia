@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.rounded.Edit
@@ -50,6 +52,7 @@ import io.github.snd_r.komelia.platform.WindowSizeClass.EXPANDED
 import io.github.snd_r.komelia.platform.WindowSizeClass.FULL
 import io.github.snd_r.komelia.platform.WindowSizeClass.MEDIUM
 import io.github.snd_r.komelia.platform.cursorForHand
+import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.collection.SeriesCollectionsContent
 import io.github.snd_r.komelia.ui.collection.SeriesCollectionsState
@@ -61,9 +64,12 @@ import io.github.snd_r.komelia.ui.common.TagList
 import io.github.snd_r.komelia.ui.common.images.SeriesThumbnail
 import io.github.snd_r.komelia.ui.common.menus.SeriesActionsMenu
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import io.github.snd_r.komelia.ui.common.menus.bulk.BooksBulkActionsContent
+import io.github.snd_r.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
 import io.github.snd_r.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
 import io.github.snd_r.komelia.ui.series.SeriesBooksState
+import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksData
 import io.github.snd_r.komelia.ui.series.SeriesViewModel.SeriesTab
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.collection.KomgaCollection
@@ -77,7 +83,6 @@ fun SeriesContent(
     onLibraryClick: (KomgaLibrary) -> Unit,
     seriesMenuActions: SeriesMenuActions,
     onFilterClick: (SeriesScreenFilter) -> Unit,
-
     currentTab: SeriesTab,
     onTabChange: (SeriesTab) -> Unit,
 
@@ -95,57 +100,99 @@ fun SeriesContent(
         EXPANDED -> Modifier.padding(start = 20.dp, end = 20.dp)
         FULL -> Modifier.padding(start = 30.dp, end = 30.dp)
     }
+    val gridMinWidth = booksState.cardWidth.collectAsState().value
+    val width = LocalWindowWidth.current
+    val booksLoadState = booksState.state.collectAsState().value
+    val bookMenuActions = remember { booksState.bookMenuActions() }
+
+    val booksData = remember(booksLoadState) {
+        if (booksLoadState is LoadState.Success<BooksData>) booksLoadState.value
+        else BooksData()
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (booksState.booksSelectionMode) {
+        if (booksData.selectionMode) {
             BooksBulkActionsToolbar(
                 onCancel = { booksState.setSelectionMode(false) },
-                books = booksState.books,
+                books = booksData.books,
                 actions = booksState.bookBulkMenuActions(),
-                selectedBooks = booksState.selectedBooks,
+                selectedBooks = booksData.selectedBooks,
                 onBookSelect = booksState::onBookSelect
             )
         } else SeriesToolBar(series, seriesMenuActions)
 
-        val scrollState = rememberScrollState()
+        val scrollState = rememberLazyGridState()
+
         Box {
-            Column(
-                modifier = contentPadding.verticalScroll(scrollState),
+            LazyVerticalGrid(
+                state = scrollState,
+                columns = GridCells.Adaptive(gridMinWidth),
+                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                modifier = contentPadding,
             ) {
 
                 if (series != null && library != null) {
-                    Series(
-                        series = series,
-                        library = library,
-                        onLibraryClick = onLibraryClick,
-                        onFilterClick = onFilterClick
-                    )
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Series(
+                            series = series,
+                            library = library,
+                            onLibraryClick = onLibraryClick,
+                            onFilterClick = onFilterClick
+                        )
+                    }
 
-                    TabRow(
-                        currentTab = currentTab,
-                        onTabChange = onTabChange,
-                        showCollectionsTab = collectionsState.collections.isNotEmpty() && !booksState.booksSelectionMode
-                    )
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        TabRow(
+                            currentTab = currentTab,
+                            onTabChange = onTabChange,
+                            showCollectionsTab = collectionsState.collections.isNotEmpty() && !booksData.selectionMode
+                        )
+                    }
 
                     when (currentTab) {
                         SeriesTab.BOOKS -> SeriesBooksContent(
-                            booksState = booksState,
+                            series = series,
                             onBookClick = onBookClick,
                             onBookReadClick = onBookReadClick,
-                            scrollState = scrollState
+                            scrollState = scrollState,
+                            booksLoadState = booksLoadState,
+                            onBooksLayoutChange = booksState::onBookLayoutChange,
+                            onBooksPageSizeChange = booksState::onBookPageSizeChange,
+                            onPageChange = booksState::onPageChange,
+                            onBookSelect = booksState::onBookSelect,
+                            booksFilterState = booksState.filterState,
+                            bookContextMenuActions = bookMenuActions,
                         )
 
-                        SeriesTab.COLLECTIONS -> SeriesCollectionsContent(
-                            collections = collectionsState.collections,
-                            onCollectionClick = onCollectionClick,
-                            onSeriesClick = onSeriesClick,
-                            cardWidth = collectionsState.cardWidth.collectAsState().value
-                        )
+                        SeriesTab.COLLECTIONS -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            SeriesCollectionsContent(
+                                collections = collectionsState.collections,
+                                onCollectionClick = onCollectionClick,
+                                onSeriesClick = onSeriesClick,
+                                cardWidth = collectionsState.cardWidth.collectAsState().value
+                            )
+                        }
                     }
                 }
 
             }
-            VerticalScrollbar(scrollState, Modifier.align(Alignment.CenterEnd))
+
+            VerticalScrollbar(
+                scrollState = scrollState,
+                modifier = Modifier.align(Alignment.CenterEnd),
+            )
+        }
+    }
+
+    if (currentTab == SeriesTab.BOOKS &&
+        (width == COMPACT || width == MEDIUM) && booksData.selectedBooks.isNotEmpty()
+    ) {
+        BottomPopupBulkActionsPanel {
+            BooksBulkActionsContent(
+                books = booksData.selectedBooks,
+                actions = booksState.bookBulkMenuActions(),
+                iconOnly = false
+            )
         }
     }
 }

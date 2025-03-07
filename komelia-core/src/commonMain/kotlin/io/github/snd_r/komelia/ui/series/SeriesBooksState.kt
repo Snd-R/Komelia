@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -39,7 +40,7 @@ import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 
 class SeriesBooksState(
-    val series: StateFlow<KomgaSeries?>,
+    private val series: StateFlow<KomgaSeries?>,
     private val settingsRepository: CommonSettingsRepository,
     private val notifications: AppNotifications,
     private val seriesClient: KomgaSeriesClient,
@@ -49,24 +50,25 @@ class SeriesBooksState(
     val cardWidth: StateFlow<Dp>,
     referentialClient: KomgaReferentialClient,
 ) {
-    private val mutableState = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
+    data class BooksData(
+        val books: List<KomgaBook> = emptyList(),
+        val pageSize: Int = 20,
+        val totalPages: Int = 1,
+        val currentPage: Int = 1,
+        val layout: BooksLayout = BooksLayout.GRID,
+        val selectionMode: Boolean = false,
+        val selectedBooks: List<KomgaBook> = emptyList(),
+    )
+
+    private val mutableState = MutableStateFlow<LoadState<BooksData>>(LoadState.Uninitialized)
     val state = mutableState.asStateFlow()
 
-    val booksPageSize = MutableStateFlow(20)
-    val booksLayout = MutableStateFlow(BooksLayout.GRID)
-
-    var books by mutableStateOf<List<KomgaBook>>(emptyList())
-    var booksSelectionMode by mutableStateOf(false)
-    var selectedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
-
-    var totalBookPages by mutableStateOf(1)
-    var currentBookPage by mutableStateOf(1)
 
     val filterState = BooksFilterState(
         series = this.series,
         referentialClient = referentialClient,
         appNotifications = notifications,
-        onChange = { screenModelScope.launch { loadBooksPage(1) } },
+        onChange = { screenModelScope.launch { loadBookData(1) } },
     )
 
     private val reloadEventsEnabled = MutableStateFlow(true)
@@ -76,39 +78,39 @@ class SeriesBooksState(
     suspend fun initialize() {
         if (state.value != LoadState.Uninitialized) return
 
-        booksPageSize.value = settingsRepository.getBookPageLoadSize().first()
-        booksLayout.value = settingsRepository.getBookListLayout().first()
-        loadBooksPage(1)
+        loadBookData(1)
         filterState.initialize()
-
-        settingsRepository.getBookPageLoadSize()
-            .onEach {
-                if (booksPageSize.value != it) {
-                    booksPageSize.value = it
-                    loadBooksPage(1)
-                }
-            }.launchIn(screenModelScope)
-
-        settingsRepository.getBookListLayout()
-            .onEach { booksLayout.value = it }
-            .launchIn(screenModelScope)
 
         screenModelScope.launch { startKomgaEventListener() }
         reloadJobsFlow.onEach {
             reloadEventsEnabled.first { it }
-            loadBooksPage(currentBookPage)
+            val state = state.value
+            if (state is LoadState.Success) loadBookData(state.value.currentPage)
             delay(1000)
         }.launchIn(screenModelScope)
     }
 
     suspend fun reload() {
-        loadBooksPage(1)
+        when (val currentState = state.value) {
+            is LoadState.Success<BooksData> -> loadBookData(currentState.value.currentPage)
+            else -> loadBookData(1)
+        }
     }
 
-    private suspend fun loadBooksPage(page: Int) {
+    private suspend fun loadBookData(page: Int) {
         notifications.runCatchingToNotifications {
-            if (page !in 0..totalBookPages + 1) return@runCatchingToNotifications
-            mutableState.value = LoadState.Loading
+            val currentState = state.value
+            val pageLoadSize = when (currentState) {
+                is LoadState.Success<BooksData> -> {
+                    currentState.value.pageSize
+                }
+
+                else -> {
+                    mutableState.value = LoadState.Loading
+                    settingsRepository.getBookPageLoadSize().first()
+                }
+            }
+
 
             val series = series.filterNotNull().first()
 
@@ -119,29 +121,46 @@ class SeriesBooksState(
                 authors = filterState.authors,
                 pageRequest = KomgaPageRequest(
                     pageIndex = page - 1,
-                    size = booksPageSize.value,
+                    size = pageLoadSize,
                     sort = filterState.sortOrder.komgaSort
                 )
             )
-            books = pageResponse.content
-            currentBookPage = pageResponse.number + 1
-            totalBookPages = pageResponse.totalPages
 
-            mutableState.value = LoadState.Success(Unit)
+            val newState = when (currentState) {
+                is LoadState.Success<BooksData> -> currentState.value.copy(
+                    books = pageResponse.content,
+                    pageSize = pageLoadSize,
+                    totalPages = pageResponse.totalPages,
+                    currentPage = pageResponse.number + 1,
+                )
+
+                else -> BooksData(
+                    books = pageResponse.content,
+                    pageSize = pageLoadSize,
+                    totalPages = pageResponse.totalPages,
+                    currentPage = pageResponse.number + 1,
+                    layout = settingsRepository.getBookListLayout().first(),
+                    selectionMode = false,
+                    selectedBooks = emptyList()
+                )
+            }
+            mutableState.value = LoadState.Success(newState)
         }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
     fun onBookPageSizeChange(pageSize: Int) {
-        booksPageSize.value = pageSize
+        updateCurrentState { it.copy(pageSize = pageSize) }
         screenModelScope.launch {
             settingsRepository.putBookPageLoadSize(pageSize)
-            loadBooksPage(1)
+            loadBookData(1)
         }
     }
 
-    suspend fun onPageChange(page: Int) {
-        setSelectionMode(false)
-        loadBooksPage(page)
+    fun onPageChange(page: Int) {
+        screenModelScope.launch {
+            setSelectionMode(false)
+            loadBookData(page)
+        }
     }
 
     fun bookMenuActions() = BookMenuActions(bookClient, notifications, screenModelScope)
@@ -166,22 +185,38 @@ class SeriesBooksState(
     }
 
     fun onBookLayoutChange(layout: BooksLayout) {
-        booksLayout.value = layout
+        updateCurrentState { it.copy(layout = layout) }
         screenModelScope.launch { settingsRepository.putBookListLayout(layout) }
     }
 
     fun setSelectionMode(editMode: Boolean) {
-        this.booksSelectionMode = editMode
-        if (!editMode) selectedBooks = emptyList()
-
+        updateCurrentState {
+            it.copy(
+                selectionMode = editMode,
+                selectedBooks = if (!editMode) emptyList() else it.selectedBooks
+            )
+        }
     }
 
     fun onBookSelect(book: KomgaBook) {
-        if (selectedBooks.any { it.id == book.id }) {
-            selectedBooks = selectedBooks.filter { it.id != book.id }
-        } else this.selectedBooks += book
+        val currState = state.value
+        if (currState !is LoadState.Success<BooksData>) return
+        val currentlySelected = currState.value.selectedBooks
 
-        if (selectedBooks.isNotEmpty()) setSelectionMode(true)
+        if (currentlySelected.any { it.id == book.id }) {
+            val selection = currentlySelected.filter { it.id != book.id }
+            updateCurrentState { state ->
+                state.copy(
+                    selectedBooks = currentlySelected.filter { it.id != book.id },
+                    selectionMode = selection.isNotEmpty()
+                )
+            }
+        } else updateCurrentState { state ->
+            state.copy(
+                selectedBooks = state.selectedBooks + book,
+                selectionMode = true
+            )
+        }
     }
 
     fun stopKomgaEventHandler() {
@@ -209,8 +244,20 @@ class SeriesBooksState(
     }
 
     private suspend fun onBookReadProgressChanged(eventBookId: KomgaBookId) {
-        if (books.any { it.id == eventBookId }) {
+        val currentState = state.value
+        if (currentState !is LoadState.Success<BooksData>) return
+
+        if (currentState.value.books.any { it.id == eventBookId }) {
             reloadMutex.withLock { reloadJobsFlow.tryEmit(Unit) }
+        }
+    }
+
+    private fun updateCurrentState(transform: (settings: BooksData) -> BooksData) {
+        mutableState.update {
+            when (it) {
+                is LoadState.Success<BooksData> -> LoadState.Success(transform(it.value))
+                else -> it
+            }
         }
     }
 
