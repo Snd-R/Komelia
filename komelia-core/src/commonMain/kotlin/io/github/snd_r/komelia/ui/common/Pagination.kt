@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -37,49 +38,63 @@ fun Pagination(
         return
     }
 
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+    BoxWithConstraints(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
-        if (navigationButtons)
-            IconButton(
-                enabled = currentPage != 1,
-                onClick = { onPageChange(currentPage - 1) },
-                modifier = Modifier.cursorForHand()
-            ) {
-                Icon(
-                    Icons.Rounded.ChevronLeft,
-                    contentDescription = null,
-                )
+        val buttonDistance = when (maxWidth) {
+            in 0.dp..500.dp -> 1
+            in 0.dp..600.dp -> 2
+            in 600.dp..700.dp -> 3
+            in 700.dp..800.dp -> 4
+            else -> 5
+        }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (navigationButtons)
+                IconButton(
+                    enabled = currentPage != 1,
+                    onClick = { onPageChange(currentPage - 1) },
+                    modifier = Modifier.cursorForHand()
+                ) {
+                    Icon(
+                        Icons.Rounded.ChevronLeft,
+                        contentDescription = null,
+                    )
+                }
+
+            PageNumberButton(1, currentPage, onPageChange)
+
+            val minValue = (currentPage - buttonDistance).coerceAtLeast(2)
+            val maxValue = (currentPage + buttonDistance).coerceAtMost(totalPages - 1)
+            val buttonsRange = minValue..maxValue
+
+            if (buttonsRange.first > 2) {
+                Text("...", Modifier.width(20.dp))
+            }
+            for (pageNumber in buttonsRange) {
+                PageNumberButton(pageNumber, currentPage, onPageChange)
+            }
+            if (buttonsRange.last < totalPages - 1) {
+                Text("...", Modifier.width(20.dp))
             }
 
-        PageNumberButton(1, currentPage, onPageChange)
+            PageNumberButton(totalPages, currentPage, onPageChange)
 
-        val buttonsRange = (currentPage - 2).coerceAtLeast(2)..(currentPage + 2).coerceAtMost(totalPages - 1)
-        if (buttonsRange.first > 2) {
-            Text("...", Modifier.width(40.dp))
+            if (navigationButtons)
+                IconButton(
+                    enabled = currentPage != totalPages,
+                    onClick = { onPageChange(currentPage + 1) },
+                    modifier = Modifier.cursorForHand()
+                ) {
+                    Icon(
+                        Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                    )
+                }
         }
-        for (pageNumber in buttonsRange) {
-            PageNumberButton(pageNumber, currentPage, onPageChange)
-        }
-        if (buttonsRange.last < totalPages - 1) {
-            Text("...", Modifier.width(40.dp))
-        }
-
-        PageNumberButton(totalPages, currentPage, onPageChange)
-
-        if (navigationButtons)
-            IconButton(
-                enabled = currentPage != totalPages,
-                onClick = { onPageChange(currentPage + 1) },
-                modifier = Modifier.cursorForHand()
-            ) {
-                Icon(
-                    Icons.Rounded.ChevronRight,
-                    contentDescription = null,
-                )
-            }
     }
 }
 
