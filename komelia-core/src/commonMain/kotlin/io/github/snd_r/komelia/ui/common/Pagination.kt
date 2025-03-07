@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,13 +43,19 @@ fun Pagination(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        val buttonDistance = when (maxWidth) {
-            in 0.dp..500.dp -> 1
-            in 0.dp..600.dp -> 2
-            in 600.dp..700.dp -> 3
-            in 700.dp..800.dp -> 4
-            else -> 5
+        val buttonsRange = remember(maxWidth, currentPage, totalPages) {
+            val buttonDistance = when (maxWidth) {
+                in 0.dp..500.dp -> 1
+                in 0.dp..600.dp -> 2
+                in 600.dp..700.dp -> 3
+                in 700.dp..800.dp -> 4
+                else -> 5
+            }
+            val minValue = (currentPage - buttonDistance).coerceAtLeast(2)
+            val maxValue = (currentPage + buttonDistance).coerceAtMost(totalPages - 1)
+            minValue..maxValue
         }
+
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -66,10 +73,6 @@ fun Pagination(
                 }
 
             PageNumberButton(1, currentPage, onPageChange)
-
-            val minValue = (currentPage - buttonDistance).coerceAtLeast(2)
-            val maxValue = (currentPage + buttonDistance).coerceAtMost(totalPages - 1)
-            val buttonsRange = minValue..maxValue
 
             if (buttonsRange.first > 2) {
                 Text("...", Modifier.width(20.dp))
