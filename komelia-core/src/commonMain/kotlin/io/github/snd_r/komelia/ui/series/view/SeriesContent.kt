@@ -178,8 +178,13 @@ fun SeriesContent(
 
             }
 
-            val gridFullSpansCount = remember(currentTab, booksData) {
-                val fullSpans = if (booksData.totalPages > 1) 4 else 3
+            val gridFullSpansCount = remember(currentTab, booksLoadState) {
+                if (currentTab == SeriesTab.COLLECTIONS) return@remember 3
+
+                val fullSpans = when (booksLoadState) {
+                    is LoadState.Success<BooksData> -> if (booksLoadState.value.totalPages > 1) 4 else 3
+                    else -> 2
+                }
                 when (booksData.layout) {
                     BooksLayout.GRID -> fullSpans
                     BooksLayout.LIST -> fullSpans + booksData.books.size

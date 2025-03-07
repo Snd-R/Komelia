@@ -154,8 +154,8 @@ private fun LoadIndicator() {
     }
     Box(
         modifier = Modifier
-            .padding(bottom = 30.dp)
-            .height(400.dp)
+            .padding(vertical = 30.dp)
+            .height(500.dp)
             .fillMaxWidth()
             .background(animatedColor.value)
             .clip(RoundedCornerShape(10.dp))
