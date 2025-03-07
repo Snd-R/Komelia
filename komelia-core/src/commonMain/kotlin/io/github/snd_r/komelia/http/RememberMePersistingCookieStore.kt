@@ -5,7 +5,9 @@ import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.StateFlow
 
-private const val rememberMeCookie = "remember-me"
+@Deprecated("changed to komga-remember-me since komga 1.21.0")
+private const val deprecatedRememberMeCookie = "remember-me"
+private const val rememberMeCookie = "komga-remember-me"
 
 class RememberMePersistingCookieStore(
     private val komgaUrl: StateFlow<Url>,
@@ -21,7 +23,9 @@ class RememberMePersistingCookieStore(
     }
 
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
-        if (cookie.name == rememberMeCookie && cookie.value.isNotBlank()
+        if (
+            (cookie.name == rememberMeCookie || cookie.name == deprecatedRememberMeCookie)
+            && cookie.value.isNotBlank()
             && komgaUrl.value.host == requestUrl.host
         ) {
             secretsRepository.setCookie(komgaUrl.value.toString(), renderSetCookieHeader(cookie))
