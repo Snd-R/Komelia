@@ -47,8 +47,8 @@ RUN mkdir /rocm_hip_download && mkdir /rocm && cd /rocm_hip_download \
     && cd / && rm -rf /rocm_hip_download
 
 RUN mkdir /skia && cd /skia \
-    && wget -q --show-progress https://github.com/JetBrains/skia-pack/releases/download/m126-1d69d9b-2/Skia-m126-1d69d9b-2-linux-Release-x64.zip \
-    && unzip Skia-m126-1d69d9b-2-linux-Release-x64.zip \
+    && wget -q --show-progress https://github.com/JetBrains/skia-pack/releases/download/m126-6bfb13368b/Skia-m126-6bfb13368b-linux-Release-x64.zip \
+    && unzip Skia-m126-6bfb13368b-linux-Release-x64.zip \
     && mkdir ./lib && mv ./out/Release-linux-x64/* ./lib \
     && rm -rf Skia-m126-1d69d9b-2-linux-Release-x64.zip
 

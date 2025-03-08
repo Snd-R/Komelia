@@ -173,24 +173,24 @@ if (WIN32)
     install(TARGETS komelia_onnxruntime_dml LIBRARY)
 endif ()
 
-if (SKIA_CUSTOM_PATH)
-    find_library(SKIA_LIB NAMES skia PATHS ${SKIA_CUSTOM_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
-    add_library(komelia_skia SHARED
-            src/skia/komelia_skia.cpp
-            src/vips/vips_common_jni.h
-    )
-    target_include_directories(komelia_skia PRIVATE
-            ${VIPS_INCLUDE_DIRS}
-            ${JNI_INCLUDE_DIRS}
-            ${SKIA_CUSTOM_PATH}
-    )
-    target_link_libraries(komelia_skia
-            komelia_vips
-            PkgConfig::VIPS
-            ${SKIA_LIB}
-    )
-    install(TARGETS komelia_skia LIBRARY)
-endif ()
+#if (SKIA_CUSTOM_PATH)
+#    find_library(SKIA_LIB NAMES skia PATHS ${SKIA_CUSTOM_PATH} PATH_SUFFIXES lib REQUIRED NO_DEFAULT_PATH)
+#    add_library(komelia_skia SHARED
+#            src/skia/komelia_skia.cpp
+#            src/vips/vips_common_jni.h
+#    )
+#    target_include_directories(komelia_skia PRIVATE
+#            ${VIPS_INCLUDE_DIRS}
+#            ${JNI_INCLUDE_DIRS}
+#            ${SKIA_CUSTOM_PATH}
+#    )
+#    target_link_libraries(komelia_skia
+#            komelia_vips
+#            PkgConfig::VIPS
+#            ${SKIA_LIB}
+#    )
+#    install(TARGETS komelia_skia LIBRARY)
+#endif ()
 
 if (ANDROID)
     add_library(komelia_android_bitmap SHARED
