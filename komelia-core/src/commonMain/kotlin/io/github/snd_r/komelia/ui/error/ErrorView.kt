@@ -89,7 +89,7 @@ fun ErrorView(
                     horizontalArrangement = Arrangement.spacedBy(40.dp),
                 ) {
                     TooltipBox(
-                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = { Text("Copied to clipboard") },
                         state = tooltipState,
                         enableUserInput = false

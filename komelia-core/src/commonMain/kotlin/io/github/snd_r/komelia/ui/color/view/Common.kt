@@ -21,7 +21,7 @@ import io.github.snd_r.komelia.color.HistogramPaths
 @Composable
 fun Tooltip(text: String, content: @Composable () -> Unit) {
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(5.dp),
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(5.dp),
         tooltip = { PlainTooltip { Text(text) } },
         state = rememberTooltipState(),
         content = content
