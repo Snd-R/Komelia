@@ -9,8 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,9 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.VerticalScrollbarWithFullSpans
@@ -76,6 +74,7 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaSeries
+import kotlin.math.max
 
 @Composable
 fun SeriesContent(
@@ -256,7 +255,6 @@ fun SeriesToolBar(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Series(
     series: KomgaSeries,
@@ -275,55 +273,79 @@ fun Series(
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-            SeriesThumbnail(
-                seriesId = series.id,
-                modifier = Modifier
-                    .animateContentSize(animationSpec = animation)
-                    .heightIn(min = 100.dp, max = 400.dp)
-                    .widthIn(min = 300.dp, max = 500.dp),
-                contentScale = ContentScale.Fit
-            )
+        Layout(
+            content = {
+                SeriesThumbnail(
+                    seriesId = series.id,
+                    modifier = Modifier
+                        .animateContentSize(animationSpec = animation)
+                        .heightIn(min = 100.dp, max = 400.dp)
+                        .widthIn(min = 300.dp, max = 500.dp),
+                    contentScale = ContentScale.Fit
+                )
 
-            val maxWidth = when (LocalWindowWidth.current) {
-                FULL -> 1200.dp
-                else -> Dp.Unspecified
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SeriesDescriptionRow(
+                        library = library,
+                        onLibraryClick = onLibraryClick,
+                        releaseDate = series.booksMetadata.releaseDate,
+                        status = series.metadata.status,
+                        ageRating = series.metadata.ageRating,
+                        language = series.metadata.language,
+                        readingDirection = series.metadata.readingDirection,
+                        deleted = series.deleted || library.unavailable,
+                        alternateTitles = series.metadata.alternateTitles,
+                        onFilterClick = onFilterClick,
+                        modifier = Modifier,
+                    )
+                    HorizontalDivider(Modifier.padding(vertical = 10.dp))
+                    SeriesSummary(
+                        seriesSummary = series.metadata.summary,
+                        bookSummary = series.booksMetadata.summary,
+                        bookSummaryNumber = series.booksMetadata.summaryNumber,
+                    )
+                }
+
             }
-            Column(
-                modifier = Modifier
-                    .weight(1f, false)
-                    .widthIn(min = 350.dp, max = maxWidth)
-                    .fillMaxWidth(),
-            ) {
-                SeriesDescriptionRow(
-                    library = library,
-                    onLibraryClick = onLibraryClick,
-                    releaseDate = series.booksMetadata.releaseDate,
-                    status = series.metadata.status,
-                    ageRating = series.metadata.ageRating,
-                    language = series.metadata.language,
-                    readingDirection = series.metadata.readingDirection,
-                    deleted = series.deleted || library.unavailable,
-                    alternateTitles = series.metadata.alternateTitles,
-                    onFilterClick = onFilterClick,
-                    modifier = Modifier,
+        ) { measurables, constraints ->
+            val spacing = 15.dp.roundToPx()
+            val infoMinWidth = 350.dp.toPx().toInt()
+
+            val thumbnail = measurables[0].measure(constraints)
+            val availableWidth = (constraints.maxWidth - thumbnail.width).coerceAtMost(1200.dp.toPx().toInt())
+            val isRow = availableWidth > infoMinWidth + spacing
+
+            val infoConstraints = if (isRow) {
+                constraints.copy(
+                    minWidth = infoMinWidth.dp.toPx().toInt().coerceAtMost(availableWidth),
+                    maxWidth = availableWidth
                 )
-                HorizontalDivider(Modifier.padding(vertical = 10.dp))
-                SeriesSummary(
-                    seriesSummary = series.metadata.summary,
-                    bookSummary = series.booksMetadata.summary,
-                    bookSummaryNumber = series.booksMetadata.summaryNumber,
-                )
+            } else constraints
+
+            val info = measurables[1].measure(infoConstraints)
+
+            val (totalWidth, totalHeight) = if (isRow) {
+                thumbnail.width + info.width + spacing to max(thumbnail.height, info.height)
+            } else {
+                max(thumbnail.width, info.width) to thumbnail.height + info.height + spacing
+
+            }
+            layout(totalWidth, totalHeight) {
+                thumbnail.placeRelative(0, 0)
+                if (isRow) {
+                    info.placeRelative(thumbnail.width + spacing, 0)
+                } else {
+                    info.placeRelative(0, thumbnail.height + spacing)
+                }
             }
         }
 
-        SeriesInfoLower(series, onFilterClick)
-
+        SeriesChipTags(series, onFilterClick)
     }
 }
 
 @Composable
-fun SeriesInfoLower(
+fun SeriesChipTags(
     series: KomgaSeries,
     onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {

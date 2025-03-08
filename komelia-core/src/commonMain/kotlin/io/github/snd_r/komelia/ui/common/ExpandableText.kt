@@ -19,7 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 
@@ -32,8 +33,7 @@ fun ExpandableText(
     if (text.isBlank()) return
 
     var isExpanded by remember { mutableStateOf(false) }
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val isExpandable by remember { derivedStateOf { textLayoutResult?.didOverflowHeight ?: false } }
+    var isExpandable by remember { mutableStateOf(false) }
     val isButtonShown by remember { derivedStateOf { isExpandable || isExpanded } }
 
 
@@ -44,9 +44,9 @@ fun ExpandableText(
         SelectionContainer {
             Text(
                 text = text,
-                maxLines = if (isExpanded) Int.MAX_VALUE else 10,
+                maxLines = if (isExpanded) Int.MAX_VALUE else 9,
                 overflow = TextOverflow.Ellipsis,
-                onTextLayout = { textLayoutResult = it },
+                onTextLayout = { isExpandable = it.didOverflowHeight },
                 style = style
             )
         }
@@ -55,7 +55,7 @@ fun ExpandableText(
 
             TextButton(
                 onClick = { isExpanded = !isExpanded },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
                 shape = RectangleShape,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
