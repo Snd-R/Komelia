@@ -158,6 +158,7 @@ fun BottomSheetSettingsOverlay(
                 sheetState = sheetState,
                 dragHandle = {},
                 scrimColor = Color.Transparent,
+                containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 var selectedTab by remember { mutableStateOf(0) }
                 TabRow(

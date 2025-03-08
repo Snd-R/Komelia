@@ -5,7 +5,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
-enum class AppTheme(val colorScheme: ColorScheme) {
+enum class AppTheme(
+    val colorScheme: ColorScheme,
+    val type: ThemeType,
+) {
     DARK(
         darkColorScheme(
             primary = Color.White,
@@ -40,7 +43,8 @@ enum class AppTheme(val colorScheme: ColorScheme) {
             onError = Color.White,
             errorContainer = Color(red = 140, green = 29, blue = 24),
             onErrorContainer = Color.White
-        )
+        ),
+        ThemeType.DARK
     ),
     LIGHT(
         lightColorScheme(
@@ -54,7 +58,7 @@ enum class AppTheme(val colorScheme: ColorScheme) {
             secondaryContainer = Color(red = 70, green = 100, blue = 160),
             onSecondaryContainer = Color.White,
 
-            tertiary = Color(red = 249, green = 168, blue = 37),
+            tertiary = Color(red = 232, green = 156, blue = 35),
             onTertiary = Color.White,
             tertiaryContainer = Color(red = 181, green = 130, blue = 49),
             onTertiaryContainer = Color.White,
@@ -76,6 +80,50 @@ enum class AppTheme(val colorScheme: ColorScheme) {
             onError = Color.White,
             errorContainer = Color(red = 195, green = 65, blue = 60),
             onErrorContainer = Color.White
-        )
+        ),
+        ThemeType.LIGHT
+    ),
+
+    DARKER(
+        darkColorScheme(
+            primary = Color.White,
+            onPrimary = Color.Black,
+            primaryContainer = Color.Black,
+            onPrimaryContainer = Color.White,
+
+            secondary = Color(red = 75, green = 125, blue = 205),
+            onSecondary = Color.White,
+            secondaryContainer = Color(red = 50, green = 65, blue = 97),
+            onSecondaryContainer = Color(red = 230, green = 230, blue = 230),
+
+            tertiary = Color(red = 140, green = 102, blue = 43),
+            onTertiary = Color.White,
+            tertiaryContainer = Color(red = 115, green = 84, blue = 10),
+            onTertiaryContainer = Color.White,
+
+            background = Color.Black,
+            onBackground = Color.White,
+
+            surface = Color.Black,
+            onSurface = Color.White,
+
+            surfaceVariant = Color(red = 30, green = 30, blue = 30),
+            surfaceContainerHighest = Color(red = 30, green = 30, blue = 30),
+            onSurfaceVariant = Color.White,
+
+            surfaceDim = Color(red = 25, green = 25, blue = 25),
+            surfaceBright = Color(red = 65, green = 65, blue = 65),
+
+            error = Color(red = 240, green = 70, blue = 60),
+            onError = Color.White,
+            errorContainer = Color(red = 140, green = 29, blue = 24),
+            onErrorContainer = Color.White
+        ),
+        ThemeType.DARK
     );
+
+    enum class ThemeType {
+        LIGHT,
+        DARK
+    }
 }

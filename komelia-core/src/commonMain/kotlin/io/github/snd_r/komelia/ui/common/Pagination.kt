@@ -111,8 +111,8 @@ private fun PageNumberButton(
         enabled = pageNumber != currentPage,
         onClick = { onClick(pageNumber) },
         colors = IconButtonDefaults.iconButtonColors(
-            disabledContainerColor = MaterialTheme.colorScheme.secondary,
-            disabledContentColor = MaterialTheme.colorScheme.onSecondary,
+            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
         modifier = Modifier.cursorForHand()
 

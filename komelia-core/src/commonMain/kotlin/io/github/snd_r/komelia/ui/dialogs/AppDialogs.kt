@@ -74,7 +74,7 @@ fun BasicAppDialog(
     ) {
         val focusManager = LocalFocusManager.current
         Surface(
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant),
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceContainerHighest),
             shape = RoundedCornerShape(12.dp),
             color = color,
             modifier = modifier

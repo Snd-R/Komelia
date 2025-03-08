@@ -383,6 +383,7 @@ data class SettingsStrings(
     val appTheme: String,
     val appThemeDark: String,
     val appThemeLight: String,
+    val appThemeOled: String,
     val imageCardSize: String,
     val decoder: String,
 
@@ -402,6 +403,7 @@ data class SettingsStrings(
         return when (theme) {
             AppTheme.DARK -> appThemeDark
             AppTheme.LIGHT -> appThemeLight
+            AppTheme.DARKER -> appThemeOled
         }
     }
 

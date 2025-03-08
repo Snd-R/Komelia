@@ -31,8 +31,8 @@ fun CheckboxWithLabel(
     modifier: Modifier = Modifier
 ) {
     val colors = CheckboxDefaults.colors(
-        checkedColor = MaterialTheme.colorScheme.secondary,
-        checkmarkColor = MaterialTheme.colorScheme.onSecondary
+        checkedColor = MaterialTheme.colorScheme.secondaryContainer,
+        checkmarkColor = MaterialTheme.colorScheme.onSecondaryContainer
     )
     Row(
         verticalAlignment = labelAlignment,

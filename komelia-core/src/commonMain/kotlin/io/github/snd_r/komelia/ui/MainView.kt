@@ -43,6 +43,7 @@ import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.toToast
+import io.github.snd_r.komelia.ui.common.AppTheme.ThemeType
 import io.github.snd_r.komelia.ui.KomgaSharedState.DataState.AuthenticationRequired
 import io.github.snd_r.komelia.ui.KomgaSharedState.DataState.Loaded
 import io.github.snd_r.komelia.ui.common.AppTheme
@@ -198,7 +199,7 @@ fun AppNotifications(
     Toaster(
         state = toaster,
         richColors = true,
-        darkTheme = theme == AppTheme.DARK,
+        darkTheme = theme.type == ThemeType.DARK,
         showCloseButton = true,
         widthPolicy = { ToastWidthPolicy(max = 500.dp) },
         actionSlot = { toast ->

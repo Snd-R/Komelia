@@ -263,7 +263,7 @@ fun PosterEditContent(
             Text(
                 "Choose an image - drag and drop",
                 textDecoration = TextDecoration.Underline,
-                color = MaterialTheme.colorScheme.tertiaryContainer,
+                color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Bold
             )
         }
