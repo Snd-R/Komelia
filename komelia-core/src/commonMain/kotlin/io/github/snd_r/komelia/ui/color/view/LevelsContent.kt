@@ -204,7 +204,7 @@ private fun InputFields(
             minValue = 0.1f,
             maxValue = 10f,
             digitsAfterDecimal = 2,
-            modifier = Modifier.widthIn(max = 115.dp)
+            modifier = Modifier.widthIn(max = 115.dp).padding(start = 25.dp)
         )
         Spacer(Modifier.weight(1f))
         NumberFieldWithIncrements(
