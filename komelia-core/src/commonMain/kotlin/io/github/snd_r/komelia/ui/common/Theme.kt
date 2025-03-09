@@ -93,10 +93,10 @@ enum class AppTheme(
 
             secondary = Color(red = 75, green = 125, blue = 205),
             onSecondary = Color.White,
-            secondaryContainer = Color(red = 50, green = 65, blue = 97),
+            secondaryContainer = Color(red = 50, green = 70, blue = 120),
             onSecondaryContainer = Color(red = 230, green = 230, blue = 230),
 
-            tertiary = Color(red = 140, green = 102, blue = 43),
+            tertiary = Color(red = 193, green = 127, blue = 31),
             onTertiary = Color.White,
             tertiaryContainer = Color(red = 115, green = 84, blue = 10),
             onTertiaryContainer = Color.White,
