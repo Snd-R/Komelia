@@ -40,13 +40,13 @@ import kotlin.io.path.name
 import kotlin.io.path.outputStream
 
 
-class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxRuntimeInstaller {
+class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient) : OnnxRuntimeInstaller {
 
-   override suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
+    override suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress> {
         onnxRuntimeInstallPath.createDirectories()
 
         val downloadInfo = when (provider) {
-            TENSOR_RT, CUDA -> getCudaDownloadInfo()
+            TENSOR_RT, CUDA -> getCudaDownloadInfo(withTRT = provider == TENSOR_RT)
             CPU -> getCpuDownloadInfo()
             DirectML -> getDirectMlDownloadInfo()
             ROCm -> getROCmDownloadInfo()
@@ -150,7 +150,7 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxR
         }
     }
 
-    private suspend fun getCudaDownloadInfo(): OnnxRuntimeDownloadInfo {
+    private suspend fun getCudaDownloadInfo(withTRT: Boolean): OnnxRuntimeDownloadInfo {
         val version = "1.20.1"
         val release = updateClient.getOnnxRuntimeRelease("v$version")
         return when (DesktopPlatform.Current) {
@@ -160,13 +160,13 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxR
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    listOf(
+                    listOfNotNull(
                         "libonnxruntime.so",
                         "libonnxruntime.so.1",
                         "libonnxruntime.so.$version",
                         "libonnxruntime_providers_cuda.so",
                         "libonnxruntime_providers_shared.so",
-                        "libonnxruntime_providers_tensorrt.so",
+                        if (withTRT) "libonnxruntime_providers_tensorrt.so" else null,
                     ).map { basePath.resolve(it) }
                 )
             }
@@ -177,11 +177,11 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxR
                 OnnxRuntimeDownloadInfo(
                     asset.name,
                     asset.browserDownloadUrl,
-                    listOf(
+                    listOfNotNull(
                         "onnxruntime.dll",
                         "onnxruntime_providers_cuda.dll",
                         "onnxruntime_providers_shared.dll",
-                        "onnxruntime_providers_tensorrt.dll",
+                        if (withTRT) "onnxruntime_providers_tensorrt.dll" else null,
                     ).map { basePath.resolve(it) }
                 )
             }
