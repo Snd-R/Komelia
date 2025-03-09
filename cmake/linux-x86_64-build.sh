@@ -7,8 +7,8 @@ cd ./cmake/build
 
 wget --retry-connrefused --waitretry=1 \
 	--read-timeout=20 --timeout=15 -t 0 \
-        https://github.com/microsoft/onnxruntime/releases/download/v1.21.0/onnxruntime-linux-x64-1.21.0.tgz \
-        && tar -xzvf onnxruntime-linux-x64-1.21.0.tgz --strip-components=1 -C ./sysroot
+        https://github.com/microsoft/onnxruntime/releases/download/v1.20.1/onnxruntime-linux-x64-1.20.1.tgz \
+        && tar -xzvf onnxruntime-linux-x64-1.20.1.tgz --strip-components=1 -C ./sysroot
 
 export PKG_CONFIG_PATH="$(readlink -f .)/sysroot/lib/pkgconfig"
 export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/sysroot/lib/pkgconfig"
