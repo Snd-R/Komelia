@@ -18,14 +18,14 @@ actual fun supportedOnnxRuntimeExecutionProviders(): List<OnnxRuntimeExecutionPr
         Linux -> listOf(
             TENSOR_RT,
             CUDA,
-            ROCm,
+//            ROCm,
             CPU,
         )
 
         Windows -> listOf(
             TENSOR_RT,
             CUDA,
-            ROCm,
+//            ROCm,
             DirectML,
         )
 

@@ -7,10 +7,11 @@ mkdir -p ./cmake/build-w64/sysroot/include
 mkdir -p ./cmake/build-w64/sysroot/lib
 cd ./cmake/build-w64
 
+mkdir onnxruntime-win-x64
 wget --retry-connrefused --waitretry=1 \
 	--read-timeout=20 --timeout=15 -t 0 \
-        https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/Microsoft.ML.OnnxRuntime.DirectML.1.18.0.zip \
-        && unzip Microsoft.ML.OnnxRuntime.DirectML.1.18.0.zip -d onnxruntime-win-x64 \
+        https://globalcdn.nuget.org/packages/microsoft.ml.onnxruntime.directml.1.21.0.nupkg \
+        && unzip microsoft.ml.onnxruntime.directml.1.21.0.nupkg -d onnxruntime-win-x64 \
         && mv ./onnxruntime-win-x64/build/native/include/* ./sysroot/include \
         && mv ./onnxruntime-win-x64/runtimes/win-x64/native/* ./sysroot/lib
 

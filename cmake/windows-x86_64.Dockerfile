@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:24.10
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential \
@@ -26,9 +26,9 @@ RUN update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32
 
 RUN wget --retry-connrefused --waitretry=1 \
 	--read-timeout=20 --timeout=15 -t 0 -O jdk.zip \
-        https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_windows_hotspot_21.0.3_9.zip \
+        https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.6%2B7/OpenJDK21U-jdk_x64_windows_hotspot_21.0.6_7.zip \
     && unzip jdk.zip \
-    && mv jdk-21.0.3+9 jdk \
+    && mv jdk-21.0.6+7 jdk \
     && rm -rf jdk.zip
 
 RUN mkdir /cuda_download && mkdir /cuda \

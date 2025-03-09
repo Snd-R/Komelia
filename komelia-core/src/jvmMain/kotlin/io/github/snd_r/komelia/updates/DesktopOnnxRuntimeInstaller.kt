@@ -74,7 +74,7 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxR
             }
             if (DesktopPlatform.Current == Linux) createOrtSymlinks()
 
-            val directMlDownloadFilename = "microsoft.ai.directml.1.15.2.nupkg"
+            val directMlDownloadFilename = "microsoft.ai.directml.1.15.4.nupkg"
             val directMlLink = "https://globalcdn.nuget.org/packages/$directMlDownloadFilename"
             val directMlDllPath = Path("bin/x64-win/DirectML.dll")
             if (provider == DirectML) {
@@ -151,7 +151,7 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxR
     }
 
     private suspend fun getCudaDownloadInfo(): OnnxRuntimeDownloadInfo {
-        val version = "1.20.1"
+        val version = "1.21.0"
         val release = updateClient.getOnnxRuntimeRelease("v$version")
         return when (DesktopPlatform.Current) {
             Linux -> {
@@ -191,14 +191,14 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient): OnnxR
     }
 
     private fun getDirectMlDownloadInfo() = OnnxRuntimeDownloadInfo(
-        "microsoft.ml.onnxruntime.directml.1.20.1.nupkg",
-        "https://globalcdn.nuget.org/packages/microsoft.ml.onnxruntime.directml.1.20.1.nupkg?packageVersion=1.20.1",
+        "microsoft.ml.onnxruntime.directml.1.21.0.nupkg",
+        "https://globalcdn.nuget.org/packages/microsoft.ml.onnxruntime.directml.1.21.0.nupkg",
         listOf(Path("runtimes/win-x64/native/onnxruntime.dll"))
     )
 
 
     private suspend fun getCpuDownloadInfo(): OnnxRuntimeDownloadInfo {
-        val version = "1.20.1"
+        val version = "1.21.0"
         val release = updateClient.getOnnxRuntimeRelease("v$version")
         return when (DesktopPlatform.Current) {
             Linux -> {
