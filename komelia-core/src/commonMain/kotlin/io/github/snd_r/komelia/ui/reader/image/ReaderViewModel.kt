@@ -7,6 +7,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.PlatformContext
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.color.repository.BookColorCorrectionRepository
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
@@ -52,8 +53,9 @@ class ReaderViewModel(
     markReadProgress: Boolean,
     currentBookId: MutableStateFlow<KomgaBookId?>,
     onnxRuntime: OnnxRuntime?,
+    bookSiblingsContext: BookSiblingsContext,
+    colorCorrectionRepository: BookColorCorrectionRepository,
     val colorCorrectionIsActive: Flow<Boolean>,
-    private val bookSiblingsContext: BookSiblingsContext,
 ) : ScreenModel {
     val screenScaleState = ScreenScaleState()
     private val pageChangeFlow = MutableSharedFlow<Unit>(
@@ -85,6 +87,7 @@ class ReaderViewModel(
         bookSiblingsContext = bookSiblingsContext,
         coilImageLoader = coilImageLoader,
         coilContext = coilContext,
+        colorCorrectionRepository = colorCorrectionRepository,
         pageChangeFlow = pageChangeFlow,
     )
 

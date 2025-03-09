@@ -170,6 +170,7 @@ private fun EditorContent(
                     selectedChannel = curvesState.currentChannel.collectAsState().value,
                     onChannelChange = curvesState::onCurveChannelChange,
                     onChannelReset = curvesState::onPointsReset,
+                    onAllChannelsReset = curvesState::onAllPointsReset,
                     selectedPoint = curvesState.selectedPoint.collectAsState().value,
                     currentPointOffset = curvesState.selectedPointOffset255.collectAsState().value,
                     onPointChange = curvesState::onSelectedPointOffsetChange,

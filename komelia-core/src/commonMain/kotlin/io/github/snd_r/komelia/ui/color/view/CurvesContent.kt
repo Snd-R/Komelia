@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -88,6 +89,7 @@ fun ColorCurvesContent(
     selectedChannel: ColorChannel,
     onChannelChange: (ColorChannel) -> Unit,
     onChannelReset: () -> Unit,
+    onAllChannelsReset: () -> Unit,
 
     selectedPoint: SelectedPoint?,
     currentPointOffset: IntOffset?,
@@ -122,12 +124,6 @@ fun ColorCurvesContent(
                 state = presetsState,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
-            ChannelSelection(
-                selectedChannel = selectedChannel,
-                onChannelChange = onChannelChange,
-                onChannelReset = onChannelReset,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
             PointTypeSelection(
                 pointType = pointType,
                 onPointTypeChange = onPointTypeChange,
@@ -139,6 +135,22 @@ fun ColorCurvesContent(
                 onPointChange = onPointChange,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
+            ChannelSelection(
+                selectedChannel = selectedChannel,
+                onChannelChange = onChannelChange,
+                onChannelReset = onChannelReset,
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+
+            OutlinedButton(
+                onClick = onAllChannelsReset,
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .pointerHoverIcon(PointerIcon.Hand),
+            ) {
+                Text("Reset All")
+            }
         }
 
         Row(
@@ -366,6 +378,7 @@ fun ChannelSelection(
     modifier: Modifier = Modifier
 ) {
     Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
     ) {

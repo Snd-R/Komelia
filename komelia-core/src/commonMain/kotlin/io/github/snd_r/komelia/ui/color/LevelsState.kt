@@ -298,6 +298,14 @@ class LevelsState(
         presetsState.deselectCurrent()
     }
 
+    fun onAllChannelsReset() {
+        colorLevels.reset()
+        redLevels.reset()
+        greenLevels.reset()
+        blueLevels.reset()
+        presetsState.deselectCurrent()
+    }
+
     fun onHistogramCanvasSizeChange(size: IntSize) {
         histogramCanvasSize.value = size.toSize()
     }

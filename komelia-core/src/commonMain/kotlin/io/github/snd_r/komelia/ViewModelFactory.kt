@@ -246,6 +246,7 @@ class ViewModelFactory(
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,
             onnxRuntime = dependencies.onnxRuntime,
+            colorCorrectionRepository = dependencies.bookColorCorrectionRepository,
             colorCorrectionIsActive = dependencies.colorCorrectionStep.isActive,
             bookSiblingsContext = bookSiblingsContext,
             markReadProgress = markReadProgress,

@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +28,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.Stroke.Companion.HairlineWidth
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -76,6 +80,15 @@ fun ColorLevelContent(
                 onChannelReset = state::onChannelReset,
                 modifier = Modifier.align(Alignment.CenterVertically),
             )
+            OutlinedButton(
+                onClick = state::onAllChannelsReset,
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .pointerHoverIcon(PointerIcon.Hand),
+            ) {
+                Text("Reset All")
+            }
         }
 
         HistogramContent(
@@ -174,13 +187,15 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = lowValue.toFloat(),
             onvValueChange = { onLowValueChange(it.toInt()) },
-            label = { Text("Low") },
+            label = { Text("Black") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
             digitsAfterDecimal = 0,
             modifier = Modifier.widthIn(max = 115.dp),
         )
+
+        Spacer(Modifier.weight(1f))
         NumberFieldWithIncrements(
             value = gammaValue,
             onvValueChange = onGammaValueChange,
@@ -189,12 +204,13 @@ private fun InputFields(
             minValue = 0.1f,
             maxValue = 10f,
             digitsAfterDecimal = 2,
-            modifier = Modifier.widthIn(max = 115.dp).padding(start = 25.dp).weight(1f)
+            modifier = Modifier.widthIn(max = 115.dp)
         )
+        Spacer(Modifier.weight(1f))
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
             onvValueChange = { onHighValueChange(it.toInt()) },
-            label = { Text("High") },
+            label = { Text("White") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -218,7 +234,7 @@ private fun OutputFields(
         NumberFieldWithIncrements(
             value = lowValue.toFloat(),
             onvValueChange = { onLowValueChange(it.toInt()) },
-            label = { Text("Low") },
+            label = { Text("Black") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -229,7 +245,7 @@ private fun OutputFields(
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
             onvValueChange = { onHighValueChange(it.toInt()) },
-            label = { Text("High") },
+            label = { Text("White") },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,

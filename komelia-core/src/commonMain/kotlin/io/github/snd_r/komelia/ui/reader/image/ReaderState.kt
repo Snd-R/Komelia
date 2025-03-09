@@ -11,6 +11,7 @@ import coil3.size.Precision
 import coil3.size.SizeResolver
 import io.github.snd_r.komelia.AppNotification
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.color.repository.BookColorCorrectionRepository
 import io.github.snd_r.komelia.image.ReaderImage.PageId
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.availableReduceKernels
@@ -69,6 +70,7 @@ class ReaderState(
     private val bookSiblingsContext: BookSiblingsContext,
     private val coilImageLoader: ImageLoader,
     private val coilContext: PlatformContext,
+    private val colorCorrectionRepository: BookColorCorrectionRepository,
     val pageChangeFlow: SharedFlow<Unit>,
 ) {
     private val previewLoadScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1) + SupervisorJob())
@@ -87,8 +89,8 @@ class ReaderState(
     val cropBorders = MutableStateFlow(false)
     val readProgressPage = MutableStateFlow(1)
 
-    val upsamplingMode = MutableStateFlow<UpsamplingMode>(UpsamplingMode.NEAREST)
-    val downsamplingKernel = MutableStateFlow<ReduceKernel>(ReduceKernel.NEAREST)
+    val upsamplingMode = MutableStateFlow(UpsamplingMode.NEAREST)
+    val downsamplingKernel = MutableStateFlow(ReduceKernel.NEAREST)
     val linearLightDownsampling = MutableStateFlow(false)
     val availableUpsamplingModes = availableUpsamplingModes()
     val availableDownsamplingKernels = availableReduceKernels()
@@ -299,6 +301,12 @@ class ReaderState(
         stateScope.launch { readerSettingsRepository.putStretchToFit(stretch) }
     }
 
+    fun onStretchToFitCycle() {
+        val newValue = !imageStretchToFit.value
+        imageStretchToFit.value = newValue
+        stateScope.launch { readerSettingsRepository.putStretchToFit(newValue) }
+    }
+
     fun onCropBordersChange(trim: Boolean) {
         cropBorders.value = trim
         stateScope.launch { readerSettingsRepository.putCropBorders(trim) }
@@ -337,6 +345,12 @@ class ReaderState(
     fun onLinearLightDownsamplingChange(linear: Boolean) {
         linearLightDownsampling.value = linear
         stateScope.launch { readerSettingsRepository.putLinearLightDownsampling(linear) }
+    }
+
+    fun onColorCorrectionDisable() {
+        stateScope.launch {
+            booksState.value?.currentBook?.let { colorCorrectionRepository.deleteSettings(it.id) }
+        }
     }
 
     fun onDispose() {

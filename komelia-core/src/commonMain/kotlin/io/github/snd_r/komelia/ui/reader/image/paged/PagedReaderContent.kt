@@ -258,8 +258,8 @@ private fun pagedReaderOnKeyEvents(
         Key.MoveEnd -> onMoveToLastPage()
         Key.L -> onReadingDirectionChange(LEFT_TO_RIGHT)
         Key.R -> onReadingDirectionChange(RIGHT_TO_LEFT)
-        Key.C -> onScaleTypeCycle
-        Key.D -> onLayoutCycle
+        Key.C -> if (event.isAltPressed) consumed = false else onScaleTypeCycle()
+        Key.D -> onLayoutCycle()
         Key.O -> onChangeLayoutOffset(!layoutOffset)
         Key.VolumeUp -> if (volumeKeysNavigation) previousPage() else consumed = false
         Key.VolumeDown -> if (volumeKeysNavigation) nextPage() else consumed = false

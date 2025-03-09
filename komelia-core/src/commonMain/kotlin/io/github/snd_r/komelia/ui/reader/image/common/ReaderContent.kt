@@ -18,7 +18,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.key
@@ -28,7 +27,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
-import io.github.snd_r.komelia.platform.BackPressHandler
 import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalWindowState
@@ -92,6 +90,8 @@ fun ReaderContent(
                     Key.H -> showHelpDialog = true
                     Key.DirectionLeft -> if (event.isAltPressed) onExit() else consumed = false
                     Key.Back -> if (showSettingsMenu) showSettingsMenu = false else onExit()
+                    Key.U -> commonReaderState.onStretchToFitCycle()
+                    Key.C -> if (event.isAltPressed) commonReaderState.onColorCorrectionDisable() else consumed = false
                     else -> consumed = false
                 }
                 consumed

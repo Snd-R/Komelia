@@ -292,6 +292,14 @@ class CurvesState(
         presetsState.deselectCurrent()
     }
 
+    fun onAllPointsReset() {
+        colorCurve.resetPoints()
+        redCurve.resetPoints()
+        greenCurve.resetPoints()
+        blueCurve.resetPoints()
+        presetsState.deselectCurrent()
+    }
+
     fun onPointTypeChange(type: CurvePointType) {
         pointType.value = type
         selectedPoint.value?.let { selectedCurve.value.updatePointType(it.index, type) }
