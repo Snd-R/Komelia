@@ -103,6 +103,8 @@ private fun PagedDialogContent(
             listOf("C") to "Cycle scale",
             listOf("D") to "Cycle page layout",
             listOf("O") to "Toggle double page offset",
+            listOf("U") to "Toggle image stretch to fit",
+            listOf("Alt", "C") to "Disable color correction",
             listOf("F11") to "Enter/exit full screen"
         ),
         elementsModifier
@@ -156,6 +158,8 @@ private fun ContinuousDialogContent(
             listOf("V") to "Top to bottom",
             listOf("L") to "Left to right",
             listOf("R") to "Right to left",
+            listOf("U") to "Toggle image stretch to fit",
+            listOf("Alt", "C") to "Disable color correction",
             listOf("F11") to "Enter/exit full screen"
         ),
         elementsModifier
