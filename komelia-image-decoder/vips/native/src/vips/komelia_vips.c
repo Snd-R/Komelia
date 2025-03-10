@@ -291,11 +291,12 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_image_VipsImage_resize(JNIEnv *env,
       kernel = VIPS_KERNEL_LANCZOS2;
     } else if (strcmp(name_chars, "LANCZOS3") == 0) {
       kernel = VIPS_KERNEL_LANCZOS3;
-    } else if (strcmp(name_chars, "MKS2013") == 0) {
-      kernel = VIPS_KERNEL_MKS2013;
-    } else if (strcmp(name_chars, "MKS2021") == 0) {
-      kernel = VIPS_KERNEL_MKS2021;
     }
+    // else if (strcmp(name_chars, "MKS2013") == 0) {
+    //   kernel = VIPS_KERNEL_MKS2013;
+    // } else if (strcmp(name_chars, "MKS2021") == 0) {
+    //   kernel = VIPS_KERNEL_MKS2021;
+    // }
     (*env)->ReleaseStringUTFChars(env, jvm_kernel, name_chars);
 
     vips_thumbnail_image(image, &resized, target_width, "height", target_height, "linear", linear,
