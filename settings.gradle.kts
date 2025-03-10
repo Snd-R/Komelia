@@ -33,7 +33,6 @@ include(":third_party:ChipTextField:chiptextfield-m3")
 include(":third_party:compose-sonner:sonner")
 include(":third_party:indexeddb:core")
 include(":third_party:indexeddb:external")
-include(":third_party:cache4k:cache4k")
 
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
