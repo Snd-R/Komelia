@@ -3,10 +3,9 @@ package io.github.snd_r.komelia.ui.settings.komf.general
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.error.formatExceptionMessage
-import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,14 +29,13 @@ class KomfSettingsViewModel(
     komgaMediaServerClient: KomfMediaServerClient,
     kavitaMediaServerClient: KomfMediaServerClient?,
     private val appNotifications: AppNotifications,
-    private val settingsRepository: CommonSettingsRepository,
+    private val settingsRepository: KomfSettingsRepository,
     private val integrationToggleEnabled: Boolean,
     val komfSharedState: KomfSharedState,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
     private val configListenerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     val komfEnabled = MutableStateFlow(false)
-    val komfMode = MutableStateFlow(KomfMode.REMOTE)
     val komfUrl = MutableStateFlow("http://localhost:8085")
 
     val komfConnectionError = komfSharedState.configError
@@ -61,7 +59,6 @@ class KomfSettingsViewModel(
 
     suspend fun initialize() {
         komfEnabled.value = settingsRepository.getKomfEnabled().first()
-        komfMode.value = settingsRepository.getKomfMode().first()
         komfUrl.value = settingsRepository.getKomfUrl().first()
 
         if (!integrationToggleEnabled || komfEnabled.value) {

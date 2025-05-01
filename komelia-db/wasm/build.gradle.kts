@@ -20,7 +20,7 @@ kotlin {
     sourceSets {
         wasmJsMain.dependencies {
             implementation(project(":komelia-core"))
-            implementation(project(":komelia-db:shared"))
+            api(project(":komelia-db:shared"))
             implementation(project(":komelia-image-decoder:shared"))
             api(project(":third_party:indexeddb:core"))
             implementation(libs.kotlinx.coroutines.core)

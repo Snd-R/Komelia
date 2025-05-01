@@ -20,7 +20,7 @@ import io.github.snd_r.komelia.ui.LocalKomfIntegration
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import io.github.snd_r.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialog
+import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetSeriesMetadataDialog
 import io.github.snd_r.komelia.ui.dialogs.readlistadd.AddToReadListDialog
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.series.KomgaSeries
@@ -82,7 +82,7 @@ fun OneshotActionsMenu(
     }
     var showKomfResetDialog by remember { mutableStateOf(false) }
     if (showKomfResetDialog) {
-        KomfResetMetadataDialog(
+        KomfResetSeriesMetadataDialog(
             series = series,
             onDismissRequest = {
                 showKomfResetDialog = false

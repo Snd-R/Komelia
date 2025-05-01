@@ -19,9 +19,5 @@ object AppSettingsTable : Table("AppSettings") {
     val updateLastCheckedReleaseVersion = text("update_last_checked_release_version").nullable()
     val updateDismissedVersion = text("update_dismissed_version").nullable()
 
-    val komfEnabled = bool("komf_enabled")
-    val komfMode = text("komf_mode")
-    val komfRemoteUrl = text("komf_remote_url")
-
     override val primaryKey = PrimaryKey(version)
 }

@@ -20,7 +20,7 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LocalKomfIntegration
 import io.github.snd_r.komelia.ui.LocalViewModelFactory
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialog
+import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetLibraryMetadataDialog
 import io.github.snd_r.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
 import kotlinx.coroutines.CoroutineScope
 import snd.komga.client.library.KomgaLibrary
@@ -84,7 +84,7 @@ fun LibraryActionsMenu(
 
     var showKomfResetDialog by remember { mutableStateOf(false) }
     if (showKomfResetDialog) {
-        KomfResetMetadataDialog(
+        KomfResetLibraryMetadataDialog(
             library = library,
             onDismissRequest = {
                 showKomfResetDialog = false

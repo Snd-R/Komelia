@@ -20,51 +20,74 @@ import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.dialogs.DialogConfirmCancelButtons
 import io.github.snd_r.komelia.ui.dialogs.DialogSimpleHeader
 import kotlinx.coroutines.launch
+import snd.komf.api.KomfServerLibraryId
+import snd.komf.api.KomfServerSeriesId
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaSeries
 
-private val seriesText = """
+val resetSeriesText = """
     All series metadata will be reset including field locks and thumbnails uploaded by Komf.
     No files will be modified. Continue?
 """.trimIndent()
-private val libraryText = """
+val resetLibraryText = """
     All metadata of all series inside this library will be reset including field locks and thumbnails uploaded by Komf. No files will be modified. Continue?
 """.trimIndent()
 
 @Composable
-fun KomfResetMetadataDialog(
+fun KomfResetSeriesMetadataDialog(
     series: KomgaSeries,
     onDismissRequest: () -> Unit,
 ) {
-    val viewModelFactory = LocalViewModelFactory.current
-    val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest) }
-    ResetDialog(
-        dialogText = seriesText,
-        removeComicInfo = vm.removeComicInfo,
-        onRemoveComicInfoChange = vm::removeComicInfo::set,
-        onConfirm = { vm.onSeriesReset(series) },
+    KomfResetSeriesMetadataDialog(
+        seriesId = KomfServerSeriesId(value = series.id.value),
+        libraryId = KomfServerLibraryId(series.libraryId.value),
         onDismissRequest = onDismissRequest
     )
 }
 
 @Composable
-fun KomfResetMetadataDialog(
-    library: KomgaLibrary,
+fun KomfResetSeriesMetadataDialog(
+    seriesId: KomfServerSeriesId,
+    libraryId: KomfServerLibraryId,
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalViewModelFactory.current
     val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest) }
     ResetDialog(
-        dialogText = libraryText,
+        dialogText = resetSeriesText,
         removeComicInfo = vm.removeComicInfo,
         onRemoveComicInfoChange = vm::removeComicInfo::set,
-        onConfirm = { vm.onLibraryReset(library) },
+        onConfirm = { vm.onSeriesReset(seriesId, libraryId) },
         onDismissRequest = onDismissRequest
     )
 }
 
 @Composable
-private fun ResetDialog(
+fun KomfResetLibraryMetadataDialog(
+    library: KomgaLibrary,
+    onDismissRequest: () -> Unit,
+) {
+    KomfResetLibraryMetadataDialog(KomfServerLibraryId(library.id.value), onDismissRequest)
+}
+
+@Composable
+fun KomfResetLibraryMetadataDialog(
+    libraryId: KomfServerLibraryId,
+    onDismissRequest: () -> Unit,
+) {
+    val viewModelFactory = LocalViewModelFactory.current
+    val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest) }
+    ResetDialog(
+        dialogText = resetLibraryText,
+        removeComicInfo = vm.removeComicInfo,
+        onRemoveComicInfoChange = vm::removeComicInfo::set,
+        onConfirm = { vm.onLibraryReset(libraryId) },
+        onDismissRequest = onDismissRequest
+    )
+}
+
+@Composable
+fun ResetDialog(
     dialogText: String,
     removeComicInfo: Boolean,
     onRemoveComicInfoChange: (Boolean) -> Unit,

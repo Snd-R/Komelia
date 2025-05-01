@@ -603,7 +603,7 @@ class TtsuReaderState(
                 val srcAttr = when (image.tag().normalName()) {
                     "img" -> "src"
                     "image" -> if (image.hasAttr("xlink:href")) "xlink:href" else "href"
-                    else -> error("unexpected image tag ${image.tag().name}")
+                    else -> error("unexpected image tag ${image.tag().name()}")
                 }
                 val imageUri = image.attr(srcAttr).ifBlank { null } ?: continue
                 val imageAbsoluteUrl = baseUrl.resolve(imageUri)

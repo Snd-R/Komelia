@@ -25,8 +25,8 @@ class KomfSharedState(
     private val config = MutableStateFlow<KomfConfig?>(null)
     val configError = MutableStateFlow<Throwable?>(null)
 
-    suspend fun getConfig(): Flow<KomfConfig> {
-        loadConfig()
+    fun getConfig(): Flow<KomfConfig> {
+        coroutineScope.launch { loadConfig() }
         return config.filterNotNull()
     }
 

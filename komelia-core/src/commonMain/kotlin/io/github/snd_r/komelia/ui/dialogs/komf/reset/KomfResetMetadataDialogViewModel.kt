@@ -7,8 +7,6 @@ import io.github.snd_r.komelia.AppNotifications
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komf.client.KomfMetadataClient
-import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.series.KomgaSeries
 
 class KomfResetMetadataDialogViewModel(
     private val appNotifications: AppNotifications,
@@ -18,20 +16,23 @@ class KomfResetMetadataDialogViewModel(
 
     var removeComicInfo by mutableStateOf(false)
 
-    suspend fun onSeriesReset(series: KomgaSeries) {
+    suspend fun onSeriesReset(
+        seriesId: KomfServerSeriesId,
+        libraryId: KomfServerLibraryId,
+    ) {
         appNotifications.runCatchingToNotifications {
             komfMetadataClient.resetSeries(
-                libraryId = KomfServerLibraryId(series.libraryId.value),
-                seriesId = KomfServerSeriesId(series.id.value),
+                libraryId = libraryId,
+                seriesId = seriesId,
                 removeComicInfo = removeComicInfo
             )
         }.onFailure { onDismiss() }
     }
 
-    suspend fun onLibraryReset(library:KomgaLibrary) {
+    suspend fun onLibraryReset(libraryId: KomfServerLibraryId) {
         appNotifications.runCatchingToNotifications {
             komfMetadataClient.resetLibrary(
-                libraryId = KomfServerLibraryId(library.id.value),
+                libraryId = libraryId,
                 removeComicInfo = removeComicInfo
             )
         }.onFailure { onDismiss() }

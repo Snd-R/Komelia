@@ -19,7 +19,7 @@ import snd.komga.client.series.KomgaSeriesId
 
 class KomfJobsViewModel(
     private val jobClient: KomfJobClient,
-    private val seriesClient: KomgaSeriesClient,
+    private val seriesClient: KomgaSeriesClient?,
     private val appNotifications: AppNotifications,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
@@ -38,7 +38,7 @@ class KomfJobsViewModel(
     suspend fun getSeries(seriesId: KomgaSeriesId): KomgaSeries? {
         return appNotifications.runCatchingToNotifications {
             try {
-                seriesCache.get(seriesId) { seriesClient.getOneSeries(seriesId) }
+                seriesClient?.let { seriesCache.get(seriesId) { seriesClient.getOneSeries(seriesId) } }
             } catch (e: ClientRequestException) {
                 if (e.response.status != HttpStatusCode.NotFound) throw e
                 else null

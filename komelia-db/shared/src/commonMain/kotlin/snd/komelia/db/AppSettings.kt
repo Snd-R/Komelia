@@ -2,7 +2,6 @@ package snd.komelia.db
 
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
-import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -22,8 +21,4 @@ data class AppSettings(
     val updateLastCheckedTimestamp: Instant? = null,
     val updateLastCheckedReleaseVersion: AppVersion? = null,
     val updateDismissedVersion: AppVersion? = null,
-
-    val komfEnabled: Boolean = false,
-    val komfMode: KomfMode = KomfMode.REMOTE,
-    val komfRemoteUrl: String = "http://localhost:8085",
 )

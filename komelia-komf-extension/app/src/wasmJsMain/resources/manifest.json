@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "name": "Komf Extension",
+  "description": "",
+  "version": "0.1.0",
+  "action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "64": "icon64.png",
+    "128": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        @wasmFiles@
+      ]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "optional_permissions": [
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ]
+}

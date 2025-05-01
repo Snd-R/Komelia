@@ -106,7 +106,7 @@ fun <T> LibraryTabs(
                     ) {
                         Text(
                             libraries.firstOrNull { it.id == libraryId }?.name
-                                ?: "Unknown library $libraryId",
+                                ?: "Unknown library ${libraryId.value}",
                             overflow = TextOverflow.Ellipsis, maxLines = 1
                         )
                         Box(

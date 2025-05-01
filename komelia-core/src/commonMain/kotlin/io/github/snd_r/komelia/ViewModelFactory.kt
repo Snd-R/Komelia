@@ -72,6 +72,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import snd.komf.api.KomfServerLibraryId
+import snd.komf.api.KomfServerSeriesId
 import snd.komf.api.MediaServer
 import snd.komf.api.MediaServer.KAVITA
 import snd.komf.api.MediaServer.KOMGA
@@ -443,7 +445,7 @@ class ViewModelFactory(
             currentServerUrl = settingsRepository.getServerUrl(),
             bookClient = komgaClientFactory.bookClient(),
             latestVersion = settingsRepository.getLastCheckedReleaseVersion(),
-            komfEnabled = settingsRepository.getKomfEnabled(),
+            komfEnabled = dependencies.komfSettingsRepository.getKomfEnabled(),
             platformType = platformType,
             updatesEnabled = dependencies.appUpdater != null
         )
@@ -500,7 +502,7 @@ class ViewModelFactory(
             komgaMediaServerClient = dependencies.komfClientFactory.mediaServerClient(KOMGA),
             kavitaMediaServerClient = if (enableKavita) dependencies.komfClientFactory.mediaServerClient(KAVITA) else null,
             appNotifications = dependencies.appNotifications,
-            settingsRepository = settingsRepository,
+            settingsRepository = dependencies.komfSettingsRepository,
             integrationToggleEnabled = integrationToggleEnabled,
             komfSharedState = komfSharedState,
         )
@@ -545,7 +547,9 @@ class ViewModelFactory(
         onDismissRequest: () -> Unit
     ): KomfIdentifyDialogViewModel {
         return KomfIdentifyDialogViewModel(
-            series = series,
+            seriesId = KomfServerSeriesId(series.id.value),
+            libraryId = KomfServerLibraryId(series.libraryId.value),
+            seriesName = series.metadata.title,
             komfConfig = komfSharedState,
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(KOMGA),
             komfJobClient = dependencies.komfClientFactory.jobClient(),
@@ -568,7 +572,7 @@ class ViewModelFactory(
         library: KomgaLibrary
     ): KomfLibraryIdentifyViewmodel {
         return KomfLibraryIdentifyViewmodel(
-            library = library,
+            libraryId = KomfServerLibraryId(library.id.value),
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(KOMGA),
             appNotifications = dependencies.appNotifications,
         )

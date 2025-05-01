@@ -33,10 +33,11 @@ import snd.komf.api.metadata.KomfIdentifyRequest
 import snd.komf.api.metadata.KomfMetadataSeriesSearchResult
 import snd.komf.client.KomfJobClient
 import snd.komf.client.KomfMetadataClient
-import snd.komga.client.series.KomgaSeries
 
 class KomfIdentifyDialogViewModel(
-    series: KomgaSeries,
+    seriesId: KomfServerSeriesId,
+    libraryId: KomfServerLibraryId,
+    seriesName: String,
     komfMetadataClient: KomfMetadataClient,
     komfJobClient: KomfJobClient,
     private val komfConfig: KomfSharedState,
@@ -50,7 +51,9 @@ class KomfIdentifyDialogViewModel(
     val state = mutableState.asStateFlow()
 
     val configState = ConfigState(
-        series = series,
+        seriesId = seriesId,
+        libraryId = libraryId,
+        seriesName = seriesName,
         komfMetadataClient = komfMetadataClient,
         appNotifications = appNotifications,
         state = mutableState,
@@ -65,7 +68,8 @@ class KomfIdentifyDialogViewModel(
         onDismiss = onDismiss,
     )
     val searchResultsState = SearchResultsState(
-        series = series,
+        seriesId = seriesId,
+        libraryId = libraryId,
         komfMetadataClient = komfMetadataClient,
         appNotifications = appNotifications,
         onComplete = {
@@ -217,7 +221,9 @@ class KomfIdentifyDialogViewModel(
 
 
     class SearchResultsState(
-        private val series: KomgaSeries,
+//        private val series: KomgaSeries,
+        private val seriesId: KomfServerSeriesId,
+        private val libraryId: KomfServerLibraryId,
         private val komfMetadataClient: KomfMetadataClient,
         private val appNotifications: AppNotifications,
         private val onComplete: (KomfMetadataJobId) -> Unit,
@@ -232,8 +238,8 @@ class KomfIdentifyDialogViewModel(
             appNotifications.runCatchingToNotifications {
                 val response = komfMetadataClient.identifySeries(
                     KomfIdentifyRequest(
-                        libraryId = KomfServerLibraryId(series.libraryId.value),
-                        seriesId = KomfServerSeriesId(series.id.value),
+                        libraryId = libraryId,
+                        seriesId = seriesId,
                         provider = result.provider,
                         providerSeriesId = result.resultId
                     )
@@ -245,7 +251,7 @@ class KomfIdentifyDialogViewModel(
         suspend fun getSeriesCover(result: KomfMetadataSeriesSearchResult): ByteArray? {
             return appNotifications.runCatchingToNotifications {
                 komfMetadataClient.getSeriesCover(
-                    libraryId = KomfServerLibraryId(series.libraryId.value),
+                    libraryId = libraryId,
                     provider = result.provider,
                     providerSeriesId = result.resultId
                 )
@@ -254,7 +260,9 @@ class KomfIdentifyDialogViewModel(
     }
 
     class ConfigState(
-        private val series: KomgaSeries,
+        private val seriesId: KomfServerSeriesId,
+        private val libraryId: KomfServerLibraryId,
+        seriesName: String,
         private val komfMetadataClient: KomfMetadataClient,
         private val appNotifications: AppNotifications,
         private val onSearch: (List<KomfMetadataSeriesSearchResult>) -> Unit,
@@ -262,7 +270,7 @@ class KomfIdentifyDialogViewModel(
         private val state: MutableStateFlow<LoadState<Unit>>,
         val onDismiss: () -> Unit,
     ) {
-        var searchName by mutableStateOf(series.metadata.title)
+        var searchName by mutableStateOf(seriesName)
         val isLoading = state.map { it is LoadState.Loading }
 
         suspend fun onSearch() {
@@ -271,8 +279,8 @@ class KomfIdentifyDialogViewModel(
 
                 val results = komfMetadataClient.searchSeries(
                     name = searchName,
-                    libraryId = KomfServerLibraryId(series.libraryId.value),
-                    seriesId = KomfServerSeriesId(series.id.value)
+                    libraryId = libraryId,
+                    seriesId = seriesId
                 )
                 state.value = LoadState.Success(Unit)
                 onSearch(results)
@@ -284,8 +292,8 @@ class KomfIdentifyDialogViewModel(
                 state.value = LoadState.Loading
 
                 val response = komfMetadataClient.matchSeries(
-                    libraryId = KomfServerLibraryId(series.libraryId.value),
-                    seriesId = KomfServerSeriesId(series.id.value)
+                    libraryId = libraryId,
+                    seriesId = seriesId
                 )
                 state.value = LoadState.Success(Unit)
                 onAutoIdentify(response.jobId)

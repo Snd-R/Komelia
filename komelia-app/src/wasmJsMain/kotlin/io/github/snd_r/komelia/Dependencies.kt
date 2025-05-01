@@ -35,6 +35,7 @@ import snd.komelia.db.color.IDBColorCurvesPresetRepository
 import snd.komelia.db.color.IDBColorLevelsPresetRepository
 import snd.komelia.db.getIndexedDb
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
+import snd.komelia.db.repository.ActorKomfSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
 import snd.komelia.db.repository.ActorSettingsRepository
 import snd.komelia.db.settings.LocalStorageSettingsRepository
@@ -67,6 +68,12 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
             localStorageRepository::saveEpubReaderSettings
         )
     )
+    val komfSettingsRepository = ActorKomfSettingsRepository(
+        SettingsStateActor(
+            localStorageRepository.getKomfSettings(),
+            localStorageRepository::saveKomfSettings
+        )
+    )
     val secretsRepository = CookieStoreSecretsRepository()
 
     val idb = getIndexedDb()
@@ -75,7 +82,7 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
     val levelsPresetsRepository = IDBColorLevelsPresetRepository(idb)
 
     val baseUrl = appSettingsRepository.getServerUrl().stateIn(stateFlowScope)
-    val komfUrl = appSettingsRepository.getKomfUrl().stateIn(stateFlowScope)
+    val komfUrl = komfSettingsRepository.getKomfUrl().stateIn(stateFlowScope)
     overrideFetch { baseUrl.value }
 
     val ktorClient = createKtorClient(baseUrl)
@@ -111,6 +118,7 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): WasmDependencyCont
         imageReaderSettingsRepository = imageReaderSettingsRepository,
         fontsRepository = NoopFontsRepository(),
         secretsRepository = secretsRepository,
+        komfSettingsRepository = komfSettingsRepository,
         colorCurvesPresetsRepository = curvePresetsRepository,
         colorLevelsPresetRepository = levelsPresetsRepository,
         bookColorCorrectionRepository = bookColorCorrectionRepository,

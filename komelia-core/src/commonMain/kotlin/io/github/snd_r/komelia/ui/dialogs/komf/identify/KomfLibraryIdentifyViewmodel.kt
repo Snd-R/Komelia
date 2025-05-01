@@ -7,18 +7,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.client.KomfMetadataClient
-import snd.komga.client.library.KomgaLibrary
 
 class KomfLibraryIdentifyViewmodel(
-    private val library: KomgaLibrary,
+    private val libraryId: KomfServerLibraryId,
     private val appNotifications: AppNotifications,
     private val komfMetadataClient: KomfMetadataClient,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
-     fun autoIdentify() {
+    fun autoIdentify() {
         appNotifications.runCatchingToNotifications(scope) {
-            komfMetadataClient.matchLibrary(KomfServerLibraryId(library.id.value))
+            komfMetadataClient.matchLibrary(libraryId)
             appNotifications.add(AppNotification.Normal("Launched library auto-identification"))
         }
     }

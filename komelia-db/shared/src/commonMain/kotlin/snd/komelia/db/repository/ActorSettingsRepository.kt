@@ -3,7 +3,6 @@ package snd.komelia.db.repository
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
-import io.github.snd_r.komelia.ui.settings.komf.KomfMode
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -102,29 +101,5 @@ class ActorSettingsRepository(
 
     override suspend fun putAppTheme(theme: AppTheme) {
         actor.transform { it.copy(appTheme = theme) }
-    }
-
-    override fun getKomfEnabled(): Flow<Boolean> {
-        return actor.state.map { it.komfEnabled }.distinctUntilChanged()
-    }
-
-    override suspend fun putKomfEnabled(enabled: Boolean) {
-        actor.transform { it.copy(komfEnabled = enabled) }
-    }
-
-    override fun getKomfMode(): Flow<KomfMode> {
-        return actor.state.map { it.komfMode }.distinctUntilChanged()
-    }
-
-    override suspend fun putKomfMode(mode: KomfMode) {
-        actor.transform { it.copy(komfMode = mode) }
-    }
-
-    override fun getKomfUrl(): Flow<String> {
-        return actor.state.map { it.komfRemoteUrl }.distinctUntilChanged()
-    }
-
-    override suspend fun putKomfUrl(url: String) {
-        actor.transform { it.copy(komfRemoteUrl = url) }
     }
 }

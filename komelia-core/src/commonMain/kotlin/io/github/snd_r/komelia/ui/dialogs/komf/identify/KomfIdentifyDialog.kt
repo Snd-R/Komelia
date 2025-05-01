@@ -81,17 +81,17 @@ fun KomfIdentifyDialog(
                 contentAlignment = Alignment.Center
             ) {
                 when (vm.currentTab) {
-                    IDENTIFY_SETTINGS -> ConfigContent(vm.configState)
-                    SEARCH_RESULTS -> ResultsContent(vm.searchResultsState)
+                    IDENTIFY_SETTINGS -> IdenitfyConfigContent(vm.configState)
+                    SEARCH_RESULTS -> IdentiufyResultsContent(vm.searchResultsState)
                     IDENTIFICATION_PROGRESS -> IdentificationProgressContent(vm.identificationState)
                 }
             }
         },
         controlButtons = {
             when (vm.currentTab) {
-                IDENTIFY_SETTINGS -> ConfigButtons(vm.configState)
-                SEARCH_RESULTS -> SearchResultsButtons(vm.searchResultsState)
-                IDENTIFICATION_PROGRESS -> IdentificationButtons(vm.identificationState, isLoading.value)
+                IDENTIFY_SETTINGS -> IdentifyConfigButtons(vm.configState)
+                SEARCH_RESULTS -> IdentifySearchResultsButtons(vm.searchResultsState)
+                IDENTIFICATION_PROGRESS -> IdentificationProgressButtons(vm.identificationState, isLoading.value)
             }
         },
         onDismissRequest = { if (!isLoading.value) onDismissRequest() },
@@ -100,7 +100,7 @@ fun KomfIdentifyDialog(
 }
 
 @Composable
-private fun ConfigContent(state: ConfigState) {
+fun IdenitfyConfigContent(state: ConfigState) {
     val coroutineScope = rememberCoroutineScope()
     val isLoading = state.isLoading.collectAsState(false)
     var searchInProgress by remember { mutableStateOf(false) }
@@ -158,7 +158,7 @@ private fun ConfigContent(state: ConfigState) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ResultsContent(
+fun IdentiufyResultsContent(
     state: SearchResultsState,
 ) {
     if (state.searchResults.isEmpty()) {
@@ -189,7 +189,7 @@ private fun ResultsContent(
 }
 
 @Composable
-private fun IdentificationProgressContent(
+fun IdentificationProgressContent(
     state: IdentificationState
 ) {
     Column(
@@ -279,7 +279,7 @@ private fun ProcessingProgressCard() {
 }
 
 @Composable
-private fun ConfigButtons(state: ConfigState) {
+fun IdentifyConfigButtons(state: ConfigState) {
     val isLoading = state.isLoading.collectAsState(false)
     var autoIdentifyProgress by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -322,7 +322,7 @@ private fun ConfigButtons(state: ConfigState) {
 }
 
 @Composable
-private fun SearchResultsButtons(state: SearchResultsState) {
+fun IdentifySearchResultsButtons(state: SearchResultsState) {
     ControlButtons(
         confirmationText = "Confirm",
         onConfirm = { state.onResultConfirm() },
@@ -331,7 +331,7 @@ private fun SearchResultsButtons(state: SearchResultsState) {
 }
 
 @Composable
-private fun IdentificationButtons(
+fun IdentificationProgressButtons(
     state: IdentificationState,
     isLoading: Boolean
 ) {

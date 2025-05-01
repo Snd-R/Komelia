@@ -13,6 +13,7 @@ import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
+import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.updates.AppUpdater
@@ -33,6 +34,7 @@ interface DependencyContainer {
     val colorLevelsPresetRepository: ColorLevelsPresetRepository
     val bookColorCorrectionRepository: BookColorCorrectionRepository
     val secretsRepository: SecretsRepository
+    val komfSettingsRepository: KomfSettingsRepository
 
     val komgaClientFactory: KomgaClientFactory
     val komfClientFactory: KomfClientFactory

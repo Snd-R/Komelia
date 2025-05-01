@@ -43,10 +43,10 @@ import io.github.snd_r.komelia.platform.PlatformType.MOBILE
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
 import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.toToast
-import io.github.snd_r.komelia.ui.common.AppTheme.ThemeType
 import io.github.snd_r.komelia.ui.KomgaSharedState.DataState.AuthenticationRequired
 import io.github.snd_r.komelia.ui.KomgaSharedState.DataState.Loaded
 import io.github.snd_r.komelia.ui.common.AppTheme
+import io.github.snd_r.komelia.ui.common.AppTheme.ThemeType
 import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.dialogs.update.UpdateDialog
 import io.github.snd_r.komelia.ui.dialogs.update.UpdateProgressDialog
@@ -105,7 +105,7 @@ fun MainView(
                 LocalViewModelFactory provides viewModelFactory,
                 LocalToaster provides notificationToaster,
                 LocalKomgaEvents provides viewModelFactory.getKomgaEvents(),
-                LocalKomfIntegration provides dependencies.settingsRepository.getKomfEnabled(),
+                LocalKomfIntegration provides dependencies.komfSettingsRepository.getKomfEnabled(),
                 LocalKeyEvents provides keyEvents,
                 LocalPlatform provides platformType,
                 LocalTheme provides theme,
@@ -185,7 +185,8 @@ private fun MainContent(
 @Composable
 fun AppNotifications(
     appNotifications: AppNotifications,
-    theme: AppTheme
+    theme: AppTheme,
+    showCloseButton: Boolean = true,
 ) {
     val toaster =
         rememberToasterState(onToastDismissed = { appNotifications.remove(it.id as Long) })
@@ -200,7 +201,7 @@ fun AppNotifications(
         state = toaster,
         richColors = true,
         darkTheme = theme.type == ThemeType.DARK,
-        showCloseButton = true,
+        showCloseButton = showCloseButton,
         widthPolicy = { ToastWidthPolicy(max = 500.dp) },
         actionSlot = { toast ->
             when (toast.action) {

@@ -34,6 +34,7 @@ import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KeyringSecretsRepository
+import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.error.NonRestartableException
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
@@ -61,16 +62,19 @@ import snd.komelia.db.AppSettings
 import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomeliaDatabase
+import snd.komelia.db.KomfSettings
 import snd.komelia.db.SettingsStateActor
 import snd.komelia.db.color.ExposedBookColorCorrectionRepository
 import snd.komelia.db.color.ExposedColorCurvesPresetRepository
 import snd.komelia.db.color.ExposedColorLevelsPresetRepository
 import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
+import snd.komelia.db.repository.ActorKomfSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
 import snd.komelia.db.repository.ActorSettingsRepository
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
+import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.image.ImageDecoder
 import snd.komelia.image.OnnxRuntimeSharedLibraries
@@ -125,6 +129,8 @@ suspend fun initDependencies(
     val imageReaderRepository = createImageReaderSettingsRepository(database)
     val epubReaderSettingsRepository = createEpubReaderSettings(database)
     val fontsRepository = ExposedUserFontsRepository(database.database)
+    val komfSettingsRepository = createKomfSettingsRepository(database)
+
     val colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(database.database)
     val colorLevelsPresetsRepository = ExposedColorLevelsPresetRepository(database.database)
     val bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(database.database)
@@ -132,7 +138,7 @@ suspend fun initDependencies(
     val secretsRepository = createSecretsRepository()
 
     val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
-    val komfUrl = settingsRepository.getKomfUrl().stateIn(initScope)
+    val komfUrl = komfSettingsRepository.getKomfUrl().stateIn(initScope)
 
     val okHttpWithoutCache = createOkHttpClient()
     val okHttpWithCache = okHttpWithoutCache.newBuilder()
@@ -210,6 +216,7 @@ suspend fun initDependencies(
         colorLevelsPresetRepository = colorLevelsPresetsRepository,
         bookColorCorrectionRepository = bookColorCorrectionRepository,
         secretsRepository = secretsRepository,
+        komfSettingsRepository = komfSettingsRepository,
 
         komgaClientFactory = komgaClientFactory,
         appUpdater = appUpdater,
@@ -429,6 +436,15 @@ private suspend fun createEpubReaderSettings(database: KomeliaDatabase): EpubRea
         saveSettings = repository::save
     )
     return ActorEpubReaderSettingsRepository(stateActor)
+}
+
+private suspend fun createKomfSettingsRepository(database: KomeliaDatabase): KomfSettingsRepository {
+    val repository = ExposedKomfSettingsRepository(database.database)
+    val stateActor = SettingsStateActor(
+        settings = repository.get() ?: KomfSettings(),
+        saveSettings = repository::save
+    )
+    return ActorKomfSettingsRepository(stateActor)
 }
 
 private suspend fun createReaderImageFactory(

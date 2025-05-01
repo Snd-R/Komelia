@@ -150,7 +150,7 @@ compose.desktop {
         }
 
         buildTypes.release.proguard {
-            version.set("7.6.1")
+            version.set("7.7.0")
             optimize.set(false)
             configurationFiles.from(project.file("desktop.pro"))
         }
