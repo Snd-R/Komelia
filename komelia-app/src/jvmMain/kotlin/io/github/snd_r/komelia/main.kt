@@ -13,10 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -63,8 +62,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
@@ -75,9 +72,11 @@ import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger {}
 private var shouldRestart = true
-private var appWindowState = MutableStateFlow<WindowState?>(null)
+private val appWindow = MutableStateFlow<ComposeWindow?>(null)
+private val windowState = AwtWindowState(appWindow.filterNotNull())
+
 private val initScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-private val windowPlacementFlow = MutableStateFlow(Maximized)
+private val keyEvents = MutableSharedFlow<KeyEvent>(extraBufferCapacity = Int.MAX_VALUE)
 
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -96,9 +95,10 @@ fun main() {
     val lastError = MutableStateFlow<Throwable?>(null)
     val dependencies = MutableStateFlow<DesktopDependencyContainer?>(null)
     val initError = MutableStateFlow<Throwable?>(null)
+
     initScope.launch {
         try {
-            dependencies.value = initDependencies(initScope, AwtWindowState(windowPlacementFlow))
+            dependencies.value = initDependencies(initScope, windowState)
         } catch (e: Throwable) {
             ensureActive()
             initError.value = e
@@ -107,21 +107,6 @@ fun main() {
 
     while (shouldRestart) {
         application(exitProcessOnExit = false) {
-            val windowState = rememberWindowState(placement = Maximized, size = DpSize(1280.dp, 720.dp))
-            LaunchedEffect(windowState) {
-                appWindowState.value = windowState
-
-                snapshotFlow { windowState.placement }
-                    .onEach { windowPlacementFlow.value = it }
-                    .launchIn(this)
-
-                windowPlacementFlow.collect {
-                    if (windowState.placement != it) {
-                        windowState.placement = it
-                    }
-                }
-            }
-
             LaunchedEffect(Unit) {
                 initError.filterNotNull().collect {
                     lastError.value = it
@@ -152,7 +137,7 @@ fun main() {
         val error = lastError.value
         if (error != null) {
             errorApp(
-                initialWindowState = appWindowState.value,
+                initialWindowState = windowState,
                 error = error,
                 onRestart = {
                     shouldRestart = true
@@ -169,13 +154,11 @@ fun main() {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ApplicationScope.MainAppContent(
-    windowState: WindowState,
+    windowState: AwtWindowState,
     dependencies: DesktopDependencyContainer?,
     onCloseRequest: () -> Unit,
 ) {
     var showLogWindow by remember { mutableStateOf(false) }
-    val keyEvents = remember { MutableSharedFlow<KeyEvent>() }
-    val coroutineScope = rememberCoroutineScope()
     val undecorated = remember { canIntegrateWithSystemBar() && DesktopPlatform.Current == Linux }
 
     Window(
@@ -192,26 +175,24 @@ private fun ApplicationScope.MainAppContent(
 //        transparent = undecorated,
         transparent = false,
         onPreviewKeyEvent = {
-            coroutineScope.launch { keyEvents.emit(it) }
-
-            if (it.key == Key.F11 && it.type == KeyUp) {
-
-                if (windowState.placement == Fullscreen) {
-                    // Does not switch back to maximized. https://github.com/JetBrains/compose-multiplatform/issues/4006
-                    windowState.placement = Floating
-                } else {
-                    windowState.placement = Fullscreen
-                }
-            }
-            if (it.key == Key.F12 && it.type == KeyUp) {
-                showLogWindow = !showLogWindow
-            }
-
+            keyEvents.tryEmit(it)
             false
         }
     ) {
         LaunchedEffect(Unit) {
             window.minimumSize = Dimension(800, 540)
+            appWindow.value = window
+            keyEvents.collect {
+                if (it.key == Key.F11 && it.type == KeyUp) {
+                    if (windowState.placement == Fullscreen) {
+                        windowState.setFullscreen(false)
+                    } else {
+                        windowState.setFullscreen(true)
+                    }
+                } else if (it.key == Key.F12 && it.type == KeyUp) {
+                    showLogWindow = !showLogWindow
+                }
+            }
         }
 
         val verticalInsets = remember { window.insets.left + window.insets.right }
@@ -219,14 +200,17 @@ private fun ApplicationScope.MainAppContent(
         val widthClass = WindowSizeClass.fromDp(windowState.size.width - verticalInsets.dp)
         val heightClass = WindowSizeClass.fromDp(windowState.size.height - horizontalInsets.dp)
 
-        CompositionLocalProvider(LocalWindow provides window) {
+        CompositionLocalProvider(
+            LocalWindow provides window,
+            LocalWindowState provides windowState
+        ) {
             val borderModifier = derivedStateOf {
                 if (undecorated && windowState.placement == Floating)
                     Modifier
                         //Loses transparency on secondary monitor. See https://bugs.openjdk.org/browse/JDK-8304900
                         // fixed in jdk22
 //                        .clip(RoundedCornerShape(5.dp))
-                        .border(1.dp, windowBorder.value ?: Color.Unspecified)
+                        .border(1.dp, windowBorder.value)
                 else Modifier
             }
 
