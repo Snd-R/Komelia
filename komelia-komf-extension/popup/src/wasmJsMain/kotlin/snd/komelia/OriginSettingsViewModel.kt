@@ -30,10 +30,10 @@ class OriginSettingsViewModel {
     }
 
     fun onOriginAdd(origin: String) {
-        val redactedOrigin = buildString {
-            append(origin)
-            if (!origin.endsWith("/")) append("/")
-            if (!origin.endsWith('*')) append("*")
+        val redactedOrigin = when {
+            origin.endsWith("/*") -> origin
+            origin.endsWith("/") -> origin + "*"
+            else -> origin + "/*"
         }
 
         newOriginError.value = null
