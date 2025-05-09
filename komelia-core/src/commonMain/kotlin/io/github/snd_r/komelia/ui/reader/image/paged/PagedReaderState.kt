@@ -39,6 +39,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
@@ -102,18 +103,11 @@ class PagedReaderState(
         screenScaleState.setScrollState(null)
         screenScaleState.setScrollOrientation(Orientation.Vertical, false)
 
-        readerState.imageStretchToFit
-            .drop(1)
-            .onEach { loadPage(spreadIndexOf(currentSpread.value.pages.first().metadata)) }
-            .launchIn(stateScope)
-
-        screenScaleState.areaSize
-            .drop(1)
-            .onEach { loadPage(currentSpreadIndex.value) }
-            .launchIn(stateScope)
-
-        screenScaleState.transformation
-            .drop(1)
+        combine(
+            screenScaleState.transformation,
+            screenScaleState.areaSize,
+            readerState.imageStretchToFit
+        ) { }.drop(1)
             .conflate()
             .onEach {
                 updateSpreadImageState(
