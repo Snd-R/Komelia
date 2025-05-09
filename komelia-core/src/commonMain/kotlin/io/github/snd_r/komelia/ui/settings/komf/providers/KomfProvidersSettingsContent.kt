@@ -63,6 +63,7 @@ import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsV
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProvidersConfigState
 import sh.calvin.reorderable.ReorderableColumn
 import snd.komf.api.KomfAuthorRole
+import snd.komf.api.KomfCoreProviders
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfNameMatchingMode
 import snd.komf.api.KomfProviders
@@ -204,7 +205,7 @@ private fun AddNewProviderButton(
                 .widthIn(min = 200.dp)
                 .scrollbar(scrollState, Orientation.Vertical)
         ) {
-            KomfProviders.entries.filter { it !in enabledProviders }.forEach {
+            KomfCoreProviders.entries.filter { it !in enabledProviders }.forEach {
                 DropdownMenuItem(
                     text = { Text(strings.forProvider(it)) },
                     onClick = {

@@ -23,24 +23,26 @@ import snd.komf.api.KomfAuthorRole.INKER
 import snd.komf.api.KomfAuthorRole.LETTERER
 import snd.komf.api.KomfAuthorRole.PENCILLER
 import snd.komf.api.KomfAuthorRole.WRITER
+import snd.komf.api.KomfCoreProviders.ANILIST
+import snd.komf.api.KomfCoreProviders.BANGUMI
+import snd.komf.api.KomfCoreProviders.BOOK_WALKER
+import snd.komf.api.KomfCoreProviders.COMIC_VINE
+import snd.komf.api.KomfCoreProviders.HENTAG
+import snd.komf.api.KomfCoreProviders.KODANSHA
+import snd.komf.api.KomfCoreProviders.MAL
+import snd.komf.api.KomfCoreProviders.MANGADEX
+import snd.komf.api.KomfCoreProviders.MANGA_BAKA
+import snd.komf.api.KomfCoreProviders.MANGA_UPDATES
+import snd.komf.api.KomfCoreProviders.NAUTILJON
+import snd.komf.api.KomfCoreProviders.VIZ
+import snd.komf.api.KomfCoreProviders.YEN_PRESS
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfNameMatchingMode
 import snd.komf.api.KomfProviders
-import snd.komf.api.KomfProviders.ANILIST
-import snd.komf.api.KomfProviders.BANGUMI
-import snd.komf.api.KomfProviders.BOOK_WALKER
-import snd.komf.api.KomfProviders.COMIC_VINE
-import snd.komf.api.KomfProviders.HENTAG
-import snd.komf.api.KomfProviders.KODANSHA
-import snd.komf.api.KomfProviders.MAL
-import snd.komf.api.KomfProviders.MANGADEX
-import snd.komf.api.KomfProviders.MANGA_UPDATES
-import snd.komf.api.KomfProviders.NAUTILJON
-import snd.komf.api.KomfProviders.VIZ
-import snd.komf.api.KomfProviders.YEN_PRESS
 import snd.komf.api.MangaDexLink
 import snd.komf.api.PatchValue
 import snd.komf.api.PatchValue.Some
+import snd.komf.api.UnknownKomfProvider
 import snd.komf.api.config.AniListConfigDto
 import snd.komf.api.config.AniListConfigUpdateRequest
 import snd.komf.api.config.BookMetadataConfigUpdateRequest
@@ -167,6 +169,7 @@ class KomfProvidersSettingsViewModel(
         private val mal = GenericProviderConfigState(MAL, config?.mal, this::onProviderConfigUpdate)
         private val mangaUpdates =
             GenericProviderConfigState(MANGA_UPDATES, config?.mangaUpdates, this::onProviderConfigUpdate)
+        private val mangaBaka = GenericProviderConfigState(MANGA_BAKA, config?.mangaBaka, this::onProviderConfigUpdate)
         private val mangaDex = MangaDexConfigState(MANGADEX, config?.mangaDex, this::onMangaDexConfigUpdate)
         private val nautiljon = GenericProviderConfigState(NAUTILJON, config?.nautiljon, this::onProviderConfigUpdate)
         private val yenPress = GenericProviderConfigState(YEN_PRESS, config?.yenPress, this::onProviderConfigUpdate)
@@ -214,6 +217,8 @@ class KomfProvidersSettingsViewModel(
                 NAUTILJON -> nautiljon
                 YEN_PRESS -> yenPress
                 VIZ -> viz
+                MANGA_BAKA -> mangaBaka
+                is UnknownKomfProvider -> error("Can't add config for unknown provider ${provider.name}")
             }
 
             enabledProviders = enabledProviders.plus(configState)
@@ -256,11 +261,12 @@ class KomfProvidersSettingsViewModel(
                 HENTAG -> ProvidersConfigUpdateRequest(hentag = Some(config))
                 KODANSHA -> ProvidersConfigUpdateRequest(kodansha = Some(config))
                 MAL -> ProvidersConfigUpdateRequest(mal = Some(config))
+                MANGA_BAKA -> ProvidersConfigUpdateRequest(mangaBaka = Some(config))
                 MANGA_UPDATES -> ProvidersConfigUpdateRequest(mangaUpdates = Some(config))
                 NAUTILJON -> ProvidersConfigUpdateRequest(nautiljon = Some(config))
                 YEN_PRESS -> ProvidersConfigUpdateRequest(yenPress = Some(config))
                 VIZ -> ProvidersConfigUpdateRequest(viz = Some(config))
-                MANGADEX, ANILIST -> error("Unexpected provider $provider")
+                MANGADEX, ANILIST, is UnknownKomfProvider -> error("Unexpected provider $provider")
             }
 
             val providersUpdate = if (libraryId == null) {

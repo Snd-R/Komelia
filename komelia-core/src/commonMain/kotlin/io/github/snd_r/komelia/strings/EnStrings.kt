@@ -254,6 +254,7 @@ val EnStrings = AppStrings(
             providerHentag = "Hentag",
             providerKodansha = "Kodansha US",
             providerMal = "MyAnimeList",
+            providerMangaBaka = "MangaBaka",
             providerMangaUpdates = "MangaUpdates",
             providerMangaDex = "MangaDex",
             providerNautiljon = "Nautiljon",

@@ -31,7 +31,9 @@ import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.Books
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType
 import snd.komelia.image.OnnxRuntimeUpscaleMode
 import snd.komelia.image.ReduceKernel
+import snd.komf.api.KomfCoreProviders
 import snd.komf.api.KomfProviders
+import snd.komf.api.UnknownKomfProvider
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.book.KomgaReadStatus.IN_PROGRESS
 import snd.komga.client.book.KomgaReadStatus.READ
@@ -94,6 +96,7 @@ data class KomfProviderSettingsStrings(
     val providerHentag: String,
     val providerKodansha: String,
     val providerMal: String,
+    val providerMangaBaka: String,
     val providerMangaUpdates: String,
     val providerMangaDex: String,
     val providerNautiljon: String,
@@ -104,18 +107,20 @@ data class KomfProviderSettingsStrings(
 
     fun forProvider(provider: KomfProviders) =
         when (provider) {
-            KomfProviders.ANILIST -> providerAniList
-            KomfProviders.BANGUMI -> providerBangumi
-            KomfProviders.BOOK_WALKER -> providerBookWalker
-            KomfProviders.COMIC_VINE -> providerComicVine
-            KomfProviders.HENTAG -> providerHentag
-            KomfProviders.KODANSHA -> providerKodansha
-            KomfProviders.MAL -> providerMal
-            KomfProviders.MANGA_UPDATES -> providerMangaUpdates
-            KomfProviders.MANGADEX -> providerMangaDex
-            KomfProviders.NAUTILJON -> providerNautiljon
-            KomfProviders.YEN_PRESS -> providerYenPress
-            KomfProviders.VIZ -> providerViz
+            KomfCoreProviders.ANILIST -> providerAniList
+            KomfCoreProviders.BANGUMI -> providerBangumi
+            KomfCoreProviders.BOOK_WALKER -> providerBookWalker
+            KomfCoreProviders.COMIC_VINE -> providerComicVine
+            KomfCoreProviders.HENTAG -> providerHentag
+            KomfCoreProviders.KODANSHA -> providerKodansha
+            KomfCoreProviders.MAL -> providerMal
+            KomfCoreProviders.MANGA_UPDATES -> providerMangaUpdates
+            KomfCoreProviders.MANGADEX -> providerMangaDex
+            KomfCoreProviders.NAUTILJON -> providerNautiljon
+            KomfCoreProviders.YEN_PRESS -> providerYenPress
+            KomfCoreProviders.VIZ -> providerViz
+            KomfCoreProviders.MANGA_BAKA -> providerMangaBaka
+            is UnknownKomfProvider -> provider.name
         }
 }
 
