@@ -29,7 +29,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -50,24 +52,26 @@ import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
 import io.github.snd_r.komelia.ui.common.DropdownMultiChoiceMenu
 import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
+import io.github.snd_r.komelia.ui.common.UpdateProgressContent
+import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
 import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
 import io.github.snd_r.komelia.ui.settings.komf.LibraryTabs
 import io.github.snd_r.komelia.ui.settings.komf.SavableTextField
 import io.github.snd_r.komelia.ui.settings.komf.komfLanguageTagsSuggestions
-import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState
-import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.AniListConfigState
-import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.GenericProviderConfigState
-import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProviderConfigState.MangaDexConfigState
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProvidersConfigState
+import io.github.snd_r.komelia.updates.UpdateProgress
+import kotlinx.coroutines.flow.Flow
 import sh.calvin.reorderable.ReorderableColumn
 import snd.komf.api.KomfAuthorRole
 import snd.komf.api.KomfCoreProviders
 import snd.komf.api.KomfMediaType
 import snd.komf.api.KomfNameMatchingMode
 import snd.komf.api.KomfProviders
+import snd.komf.api.MangaBakaMode
 import snd.komf.api.MangaDexLink
+import snd.komf.api.config.MangaBakaDownloadProgress
 import snd.komf.api.mediaserver.KomfMediaServerLibrary
 import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 
@@ -88,6 +92,9 @@ fun KomfProvidersSettingsContent(
 
     malClientId: String?,
     onMalClientIdSave: (String) -> Unit,
+
+    mangaBakaDbAvailable: Boolean,
+    onMangaBakaUpdate: () -> Flow<MangaBakaDownloadProgress>
 ) {
 
     LibraryTabs(
@@ -108,7 +115,9 @@ fun KomfProvidersSettingsContent(
                     comicVineClientId = comicVineClientId,
                     onComicVineClientIdSave = onComicVineClientIdSave,
                     malClientId = malClientId,
-                    onMalClientIdSave = onMalClientIdSave
+                    onMalClientIdSave = onMalClientIdSave,
+                    mangaBakaDbAvailable = mangaBakaDbAvailable,
+                    onMangaBakaUpdate = onMangaBakaUpdate
                 )
 
             }
@@ -231,7 +240,11 @@ private fun CommonSettingsContent(
 
     malClientId: String?,
     onMalClientIdSave: (String) -> Unit,
+    mangaBakaDbAvailable: Boolean,
+    onMangaBakaUpdate: () -> Flow<MangaBakaDownloadProgress>
 ) {
+    var showMangaBakaDownloadProgress by remember { mutableStateOf(false) }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         DropdownChoiceMenu(
             selectedOption = remember(nameMatchingMode) {
@@ -258,9 +271,97 @@ private fun CommonSettingsContent(
             useEditButton = true,
             label = { Text("MyAnimeList client id") }
         )
+
+        FilledTonalButton(
+            onClick = { showMangaBakaDownloadProgress = true },
+            shape = RoundedCornerShape(5.dp),
+            modifier = Modifier.cursorForHand()
+        ) {
+            Text(if (mangaBakaDbAvailable) "Update MangaBaka database" else "Download MangaBaka database")
+        }
+        if (showMangaBakaDownloadProgress) {
+            MangaBakaDbDownloadContent(
+                onMangaBakaUpdate,
+                { showMangaBakaDownloadProgress = false })
+        }
     }
 }
 
+@Composable
+private fun MangaBakaDbDownloadContent(
+    onDownloadRequest: () -> Flow<MangaBakaDownloadProgress>,
+    onDismiss: () -> Unit,
+) {
+    var progress by remember { mutableStateOf(UpdateProgress(0, 0)) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var completed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        onDownloadRequest().collect { event ->
+            when (event) {
+                is MangaBakaDownloadProgress.ProgressEvent -> progress = UpdateProgress(
+                    event.total,
+                    event.completed,
+                    event.info
+                )
+
+                is MangaBakaDownloadProgress.ErrorEvent -> {
+                    error = event.message
+                    completed = true
+                }
+
+                MangaBakaDownloadProgress.FinishedEvent -> completed = true
+            }
+        }
+    }
+
+    AppDialog(
+        modifier = Modifier.widthIn(max = 600.dp),
+        header = {
+            Column(modifier = Modifier.padding(10.dp)) {
+                Text("Downloading MangaBaka database", style = MaterialTheme.typography.titleLarge)
+                HorizontalDivider(Modifier.padding(top = 10.dp))
+            }
+        },
+        content = {
+            val errorText = error
+            when {
+                errorText != null -> Text(errorText, Modifier.padding(20.dp))
+                completed -> Text("Done", Modifier.padding(20.dp))
+                else -> UpdateProgressContent(
+                    progress.total,
+                    progress.completed,
+                    progress.description
+                )
+            }
+        },
+        controlButtons = {
+            Box(modifier = Modifier.padding(bottom = 10.dp, end = 10.dp)) {
+                if (completed) {
+                    FilledTonalButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.cursorForHand(),
+                        content = {
+                            Text("Close")
+                        }
+                    )
+
+                } else {
+                    TextButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.cursorForHand(),
+                        content = {
+                            Text("Close")
+                        }
+                    )
+                }
+            }
+        },
+        onDismissRequest = onDismiss
+    )
+}
 
 @Composable
 private fun ProviderCard(
@@ -558,6 +659,7 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
                 is GenericProviderConfigState -> {}
                 is AniListConfigState -> AniListProviderSettings(state)
                 is MangaDexConfigState -> MangaDexProviderSettings(state)
+                is MangaBakaConfigState -> MangaBakaProviderSettings(state)
             }
 
         }
@@ -600,6 +702,26 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
                 inputFieldModifier = Modifier.fillMaxWidth()
             )
         }
+    }
+
+    @Composable
+    private fun MangaBakaProviderSettings(state: MangaBakaConfigState) {
+        HorizontalDivider()
+
+        DropdownChoiceMenu(
+            selectedOption = remember(state.mode) {
+                LabeledEntry(
+                    state.mode,
+                    state.mode.name
+                )
+            },
+            options = remember {
+                MangaBakaMode.entries.map { LabeledEntry(it, it.name) }
+            },
+            onOptionChange = { state.onModeChange(it.value) },
+            label = { Text("Datasource type") },
+            inputFieldModifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

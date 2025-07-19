@@ -102,6 +102,7 @@ data class KomfProviderSettingsStrings(
     val providerNautiljon: String,
     val providerYenPress: String,
     val providerViz: String,
+    val providerWebtoons: String,
 
     ) {
 
@@ -120,6 +121,7 @@ data class KomfProviderSettingsStrings(
             KomfCoreProviders.YEN_PRESS -> providerYenPress
             KomfCoreProviders.VIZ -> providerViz
             KomfCoreProviders.MANGA_BAKA -> providerMangaBaka
+            KomfCoreProviders.WEBTOONS -> providerWebtoons
             is UnknownKomfProvider -> provider.name
         }
 }

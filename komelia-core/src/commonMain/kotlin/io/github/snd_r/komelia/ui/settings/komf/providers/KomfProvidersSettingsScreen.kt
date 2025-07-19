@@ -42,7 +42,9 @@ class KomfProvidersSettingsScreen : Screen {
                     comicVineClientId = vm.comicVineClientId,
                     onComicVineClientIdSave = vm::onComicVineClientIdChange,
                     malClientId = vm.malClientId,
-                    onMalClientIdSave = vm::onMalClientIdChange
+                    onMalClientIdSave = vm::onMalClientIdChange,
+                    mangaBakaDbAvailable = vm.mangaBakaDbAvailable,
+                    onMangaBakaUpdate = vm::onMangaBakaDbUpdate
                 )
             }
 

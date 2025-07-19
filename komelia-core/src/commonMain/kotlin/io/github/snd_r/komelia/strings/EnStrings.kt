@@ -260,6 +260,7 @@ val EnStrings = AppStrings(
             providerNautiljon = "Nautiljon",
             providerYenPress = "YenPress",
             providerViz = "Viz",
+            providerWebtoons = "Webtoons",
         )
     ),
     imageSettings = ImageSettingsStrings(

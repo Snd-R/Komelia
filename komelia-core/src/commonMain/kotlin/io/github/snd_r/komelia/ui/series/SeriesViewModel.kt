@@ -56,7 +56,7 @@ class SeriesViewModel(
     private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
-    val series = MutableStateFlow(series)
+    val series = MutableStateFlow(series?.withSortedTags())
     val library = MutableStateFlow<KomgaLibrary?>(null)
     var currentTab by mutableStateOf(defaultTab)
     val cardWidth = settingsRepository.getCardWidth().map { it.dp }
@@ -132,7 +132,7 @@ class SeriesViewModel(
         notifications.runCatchingToNotifications {
             mutableState.value = Loading
             val series = seriesClient.getOneSeries(seriesId)
-            this.series.value = series
+            this.series.value = series.withSortedTags()
             this.library.value = getLibraryOrThrow(series)
 
             mutableState.value = Success(Unit)
@@ -174,6 +174,13 @@ class SeriesViewModel(
         BOOKS,
         COLLECTIONS
     }
+
+    private fun KomgaSeries.withSortedTags() = this.copy(
+        metadata = this.metadata.copy(
+            tags = this.metadata.tags.sorted(),
+            genres = this.metadata.genres.sorted()
+        )
+    )
 }
 
 enum class BooksLayout {

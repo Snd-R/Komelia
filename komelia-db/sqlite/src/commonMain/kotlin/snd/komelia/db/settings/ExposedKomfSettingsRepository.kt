@@ -21,7 +21,7 @@ class ExposedKomfSettingsRepository(database: Database) : ExposedRepository(data
 
     suspend fun save(settings: KomfSettings) {
         transaction {
-            AppSettingsTable.upsert {
+            KomfSettingsTable.upsert {
                 it[version] = 1
                 it[KomfSettingsTable.enabled] = settings.enabled
                 it[KomfSettingsTable.remoteUrl] = settings.remoteUrl
