@@ -36,6 +36,7 @@ import snd.komf.api.config.AniListConfigUpdateRequest
 import snd.komf.api.config.KomfConfig
 import snd.komf.api.config.KomfConfigUpdateRequest
 import snd.komf.api.config.MangaBakaConfigUpdateRequest
+import snd.komf.api.config.MangaBakaDatabaseDto
 import snd.komf.api.config.MangaBakaDownloadProgress
 import snd.komf.api.config.MangaDexConfigUpdateRequest
 import snd.komf.api.config.MetadataProvidersConfigUpdateRequest
@@ -72,7 +73,7 @@ class KomfProvidersSettingsViewModel(
         private set
     var nameMatchingMode by mutableStateOf(KomfNameMatchingMode.CLOSEST_MATCH)
         private set
-    var mangaBakaDbAvailable by mutableStateOf(false)
+    var mangaBakaDbMetadata by mutableStateOf<MangaBakaDatabaseDto?>(null)
         private set
 
     suspend fun initialize() {
@@ -95,7 +96,7 @@ class KomfProvidersSettingsViewModel(
         comicVineClientId = config.metadataProviders.comicVineClientId
         malClientId = config.metadataProviders.malClientId
         nameMatchingMode = config.metadataProviders.nameMatchingMode
-        mangaBakaDbAvailable = config.metadataProviders.mangaBakaDbAvailable
+        mangaBakaDbMetadata = config.metadataProviders.mangaBakaDatabase
     }
 
     private fun updateConfig(request: MetadataProvidersConfigUpdateRequest) {

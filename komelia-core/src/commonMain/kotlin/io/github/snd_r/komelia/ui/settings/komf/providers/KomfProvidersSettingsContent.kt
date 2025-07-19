@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateFormat
 import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.cursorForMove
@@ -63,6 +64,9 @@ import io.github.snd_r.komelia.ui.settings.komf.komfLanguageTagsSuggestions
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProvidersConfigState
 import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.toLocalDateTime
 import sh.calvin.reorderable.ReorderableColumn
 import snd.komf.api.KomfAuthorRole
 import snd.komf.api.KomfCoreProviders
@@ -71,6 +75,7 @@ import snd.komf.api.KomfNameMatchingMode
 import snd.komf.api.KomfProviders
 import snd.komf.api.MangaBakaMode
 import snd.komf.api.MangaDexLink
+import snd.komf.api.config.MangaBakaDatabaseDto
 import snd.komf.api.config.MangaBakaDownloadProgress
 import snd.komf.api.mediaserver.KomfMediaServerLibrary
 import snd.komf.api.mediaserver.KomfMediaServerLibraryId
@@ -93,7 +98,7 @@ fun KomfProvidersSettingsContent(
     malClientId: String?,
     onMalClientIdSave: (String) -> Unit,
 
-    mangaBakaDbAvailable: Boolean,
+    mangaBakaDbMetadata: MangaBakaDatabaseDto?,
     onMangaBakaUpdate: () -> Flow<MangaBakaDownloadProgress>
 ) {
 
@@ -116,7 +121,7 @@ fun KomfProvidersSettingsContent(
                     onComicVineClientIdSave = onComicVineClientIdSave,
                     malClientId = malClientId,
                     onMalClientIdSave = onMalClientIdSave,
-                    mangaBakaDbAvailable = mangaBakaDbAvailable,
+                    mangaBakaDbMetadata = mangaBakaDbMetadata,
                     onMangaBakaUpdate = onMangaBakaUpdate
                 )
 
@@ -240,7 +245,7 @@ private fun CommonSettingsContent(
 
     malClientId: String?,
     onMalClientIdSave: (String) -> Unit,
-    mangaBakaDbAvailable: Boolean,
+    mangaBakaDbMetadata: MangaBakaDatabaseDto?,
     onMangaBakaUpdate: () -> Flow<MangaBakaDownloadProgress>
 ) {
     var showMangaBakaDownloadProgress by remember { mutableStateOf(false) }
@@ -272,12 +277,24 @@ private fun CommonSettingsContent(
             label = { Text("MyAnimeList client id") }
         )
 
-        FilledTonalButton(
-            onClick = { showMangaBakaDownloadProgress = true },
-            shape = RoundedCornerShape(5.dp),
-            modifier = Modifier.cursorForHand()
-        ) {
-            Text(if (mangaBakaDbAvailable) "Update MangaBaka database" else "Download MangaBaka database")
+        HorizontalDivider()
+        Text("MangaBaka Offline Database", style = MaterialTheme.typography.titleLarge)
+        Column {
+            if (mangaBakaDbMetadata != null) {
+                val downloadDate = remember(mangaBakaDbMetadata) {
+                    mangaBakaDbMetadata.downloadTimestamp.toLocalDateTime(TimeZone.currentSystemDefault())
+                        .format(localDateFormat)
+                }
+                Text("Download date $downloadDate")
+                Text("Checksum ${mangaBakaDbMetadata.checksum}")
+            }
+            FilledTonalButton(
+                onClick = { showMangaBakaDownloadProgress = true },
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier.cursorForHand()
+            ) {
+                Text(if (mangaBakaDbMetadata != null) "Update MangaBaka database" else "Download MangaBaka database")
+            }
         }
         if (showMangaBakaDownloadProgress) {
             MangaBakaDbDownloadContent(
