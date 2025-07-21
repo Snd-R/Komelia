@@ -2,25 +2,25 @@ package snd.komelia.komga
 
 import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.asList
-import snd.komelia.logger
+import snd.komelia.KomfActiveDialog
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
-import kotlin.collections.plus
 
-class SeriesActions(
+class KomgaSeriesActions(
     private val theme: StateFlow<AppTheme>,
-    onIdentifyClick: () -> Unit,
-    onResetClick: () -> Unit,
+    private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) {
     val element: HTMLButtonElement
     private val dropdown = KomgaDropdown(
         listOf(
-            KomgaDropdown.DropdownItem("Identify", onIdentifyClick),
-            KomgaDropdown.DropdownItem("Reset Metadata", onResetClick),
+            KomgaDropdown.DropdownItem("Identify", this::onIdentifyClick),
+            KomgaDropdown.DropdownItem("Reset Metadata", this::onResetMetadataClick),
         )
     )
 
@@ -56,8 +56,38 @@ class SeriesActions(
 
     }
 
+    private fun onIdentifyClick() {
+        val seriesId = getSeriesId()
+        val libraryId = getLibraryId()
+        val seriesTitle = getSeriesTitle()
+        when {
+            seriesId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to fine seriesId")
+            libraryId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find libraryId")
+            seriesTitle == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find series title")
+            else -> currentDialog.value = KomfActiveDialog.SeriesIdentify(
+                seriesId = seriesId,
+                libraryId = libraryId,
+                seriesTitle = seriesTitle
+            )
+        }
+    }
+
+    private fun onResetMetadataClick() {
+        val seriesId = getSeriesId()
+        val libraryId = getLibraryId()
+        when {
+            seriesId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to fine seriesId")
+            libraryId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find libraryId")
+            else -> currentDialog.value = KomfActiveDialog.SeriesReset(
+                seriesId = seriesId,
+                libraryId = libraryId,
+            )
+        }
+
+    }
+
+
     fun onMount() {
-        logger.info { "seriesActions on mount" }
         if (theme.value == AppTheme.LIGHT) {
             (element.getElementsByClassName("theme--dark").asList().toList() + element
                     + dropdown.element.getElementsByClassName("theme--dark").asList().toList())
@@ -82,10 +112,10 @@ class SeriesActions(
     }
 
     fun getSeriesId(): KomfServerSeriesId? {
-        val urlPath = document.location?.pathname?.split("/") ?: return null
+        val urlPath = window.location.pathname.split("/")
         val idx = urlPath.indexOfFirst { it == "series" || it == "oneshot" }
+        if (idx == -1) return null
         val seriesId = urlPath.getOrNull(idx + 1)?.let { KomfServerSeriesId(it) }
-        logger.info { "detected seriesId ${seriesId?.value}" }
         return seriesId
     }
 
@@ -97,7 +127,6 @@ class SeriesActions(
             href.contains("libraries")
         }?.getAttribute("href")?.split("/")?.getOrNull(2)
 
-        logger.info { "detected libraryId $libraryId" }
         return libraryId?.let { KomfServerLibraryId(it) }
     }
 }

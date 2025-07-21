@@ -82,6 +82,7 @@ class KomfViewModelFactory(
         seriesId: KomfServerSeriesId,
         libraryId: KomfServerLibraryId,
         seriesName: String,
+        mediaServer: MediaServer,
         onDismissRequest: () -> Unit
     ): KomfIdentifyDialogViewModel {
         return KomfIdentifyDialogViewModel(
@@ -89,7 +90,7 @@ class KomfViewModelFactory(
             libraryId = libraryId,
             seriesName = seriesName,
             komfConfig = komfSharedState,
-            komfMetadataClient = komfClientFactory.metadataClient(KOMGA),
+            komfMetadataClient = komfClientFactory.metadataClient(mediaServer),
             komfJobClient = komfClientFactory.jobClient(),
             appNotifications = appNotifications,
             onDismiss = onDismissRequest,
@@ -97,21 +98,23 @@ class KomfViewModelFactory(
     }
 
     fun getKomfResetMetadataDialogViewModel(
-        onDismissRequest: () -> Unit
+        onDismissRequest: () -> Unit,
+        mediaServer: MediaServer,
     ): KomfResetMetadataDialogViewModel {
         return KomfResetMetadataDialogViewModel(
-            komfMetadataClient = komfClientFactory.metadataClient(KOMGA),
+            komfMetadataClient = komfClientFactory.metadataClient(mediaServer),
             appNotifications = appNotifications,
             onDismiss = onDismissRequest,
         )
     }
 
     fun getKomfLibraryIdentifyViewModel(
-        libraryId: KomfServerLibraryId
+        libraryId: KomfServerLibraryId,
+        mediaServer: MediaServer,
     ): KomfLibraryIdentifyViewmodel {
         return KomfLibraryIdentifyViewmodel(
             libraryId = libraryId,
-            komfMetadataClient = komfClientFactory.metadataClient(KOMGA),
+            komfMetadataClient = komfClientFactory.metadataClient(mediaServer),
             appNotifications = appNotifications,
         )
     }

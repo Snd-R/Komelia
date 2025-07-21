@@ -14,7 +14,7 @@ import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsContent
 import snd.komelia.LocalKomfViewModelFactory
 import snd.komf.api.MediaServer
 
-class ConnectionTab : DialogTab {
+class ConnectionTab(private val mediaServer: MediaServer) : DialogTab {
 
     override fun options() = TabItem(
         title = "Connection",
@@ -24,7 +24,7 @@ class ConnectionTab : DialogTab {
     @Composable
     override fun Content() {
         val viewModelFactory = LocalKomfViewModelFactory.current
-        val vm = remember { viewModelFactory.getKomfSettingsViewModel(mediaServer = MediaServer.KOMGA) }
+        val vm = remember { viewModelFactory.getKomfSettingsViewModel(mediaServer = mediaServer) }
         val vmState = vm.state.collectAsState().value
         LaunchedEffect(Unit) { vm.initialize() }
 
@@ -37,17 +37,9 @@ class ConnectionTab : DialogTab {
                 onKomfUrlChange = vm::onKomfUrlChange,
                 komfConnectionError = vm.komfConnectionError.collectAsState().value,
                 integrationToggleEnabled = false,
-                komgaState = vm.komgaConnectionState,
-                kavitaState = vm.kavitaConnectionState,
+                komgaState = if (mediaServer == MediaServer.KOMGA) vm.komgaConnectionState else null,
+                kavitaState = if (mediaServer == MediaServer.KAVITA) vm.kavitaConnectionState else null,
             )
         }
     }
 }
-
-
-
-
-
-
-
-

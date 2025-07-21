@@ -49,7 +49,9 @@ class ProvidersTab : DialogTab {
                 comicVineClientId = vm.comicVineClientId,
                 onComicVineClientIdSave = vm::onComicVineClientIdChange,
                 malClientId = vm.malClientId,
-                onMalClientIdSave = vm::onMalClientIdChange
+                onMalClientIdSave = vm::onMalClientIdChange,
+                mangaBakaDbMetadata = vm.mangaBakaDbMetadata,
+                onMangaBakaUpdate = vm::onMangaBakaDbUpdate
             )
         }
 

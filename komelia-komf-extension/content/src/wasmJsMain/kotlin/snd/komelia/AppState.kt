@@ -15,243 +15,159 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.WindowSizeClass
-import io.github.snd_r.komelia.ui.*
+import io.github.snd_r.komelia.ui.AppNotifications
+import io.github.snd_r.komelia.ui.LocalKeyEvents
+import io.github.snd_r.komelia.ui.LocalPlatform
+import io.github.snd_r.komelia.ui.LocalTheme
+import io.github.snd_r.komelia.ui.LocalWindowHeight
+import io.github.snd_r.komelia.ui.LocalWindowWidth
 import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.browser.document
-import kotlinx.browser.localStorage
 import kotlinx.browser.window
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import org.w3c.dom.*
-import snd.komelia.komga.LibraryActions
-import snd.komelia.komga.SeriesActions
-import snd.komelia.settings.KomfSettingsDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import org.w3c.dom.AddEventListenerOptions
+import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.HTMLDialogElement
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.MutationObserver
+import org.w3c.dom.MutationObserverInit
+import org.w3c.dom.Node
+import org.w3c.dom.asList
+import snd.komelia.dialogs.ErrorDialog
+import snd.komelia.dialogs.IdentifyDialog
+import snd.komelia.dialogs.LibraryAutoIdentifyDialog
+import snd.komelia.dialogs.ResetLibraryMetadataDialog
+import snd.komelia.dialogs.ResetSeriesMetadataDialog
+import snd.komelia.kavita.KavitaComponent
+import snd.komelia.komga.KomgaComponent
+import snd.komelia.dialogs.SettingsDialog
+import snd.komf.api.KomfServerLibraryId
+import snd.komf.api.KomfServerSeriesId
+import snd.komf.api.MediaServer
 
 class AppState(
     private val viewModelFactory: KomfViewModelFactory,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val observer: MutationObserver
-
     private val keyEvents = MutableSharedFlow<KeyEvent>()
+
+    private val komfErrorCanvas: HTMLCanvasElement = (document.createElement("canvas") as HTMLCanvasElement)
+    private val komfDialogCanvas: HTMLCanvasElement = (document.createElement("canvas") as HTMLCanvasElement)
+    private val komfDialog: HTMLDialogElement
     private val windowWidth = MutableStateFlow(WindowSizeClass.fromDp(window.innerWidth.dp))
     private val windowHeight = MutableStateFlow(WindowSizeClass.fromDp(window.innerHeight.dp))
 
-    private val mounted = MutableStateFlow(false)
-    private val currentDialog = MutableStateFlow(KomfDialog.NONE)
     private val theme = MutableStateFlow(AppTheme.DARK)
+    private val currentDialog = MutableStateFlow<KomfActiveDialog>(KomfActiveDialog.None)
 
-    private val komfErrorCanvas: HTMLCanvasElement
-    private val komfDialogCanvas: HTMLCanvasElement
-    private val komfDialog: HTMLDialogElement
-    private val settingsButton: HTMLDivElement
-    private val seriesActions = SeriesActions(
-        theme = theme,
-        onIdentifyClick = {
-            currentDialog.value = KomfDialog.SERIES_IDENTIFY
-            komfDialog.showModal()
-        },
-        onResetClick = {
-            currentDialog.value = KomfDialog.SERIES_RESET
-            komfDialog.showModal()
-        },
-    )
-    private val libraryActions = LibraryActions(
-        theme = theme,
-        onIdentifyClick = {
-            currentDialog.value = KomfDialog.LIBRARY_IDENTIFY
-            komfDialog.showModal()
-        },
-        onResetClick = {
-            currentDialog.value = KomfDialog.LIBRARY_RESET
-            komfDialog.showModal()
-        },
-    )
+    private val mediaServer = MutableStateFlow(MediaServer.KOMGA)
+    private val mediaServerComponent: MediaServerComponent
+    private val observer: MutationObserver
+
+    var mountEvent = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
     init {
-        komfErrorCanvas = (document.createElement("canvas") as HTMLCanvasElement)
         komfErrorCanvas.id = "komf-error-canvas"
-        komfErrorCanvas.style.position = "absolute"
+        komfErrorCanvas.style.position = "fixed"
+        komfErrorCanvas.style.width = "100vw"
+        komfErrorCanvas.style.height = "100vh"
+        komfErrorCanvas.style.maxWidth = "100vw"
+        komfErrorCanvas.style.maxHeight = "100vh"
         komfErrorCanvas.style.top = "0"
         komfErrorCanvas.style.left = "0"
         komfErrorCanvas.style.zIndex = "10000"
         komfErrorCanvas.style.setProperty("pointer-events", "none")
+        komfErrorCanvas.style.overflowX = "hidden"
+        komfErrorCanvas.style.overflowY = "hidden"
 
-        komfDialogCanvas = (document.createElement("canvas") as HTMLCanvasElement)
         komfDialogCanvas.id = "komf-canvas"
-        komfDialogCanvas.style.position = "absolute"
         komfDialogCanvas.style.zIndex = "10000"
 
         komfDialog = document.createElement("dialog") as HTMLDialogElement
         komfDialog.appendChild(komfDialogCanvas)
-        komfDialog.style.width = "100%"
-        komfDialog.style.height = "100%"
+        komfDialog.style.width = "100vw"
+        komfDialog.style.height = "100vh"
         komfDialog.style.maxWidth = "100vw"
         komfDialog.style.maxHeight = "100vh"
         komfDialog.style.padding = "0"
         komfDialog.style.border = "0"
         komfDialog.style.background = "transparent"
-        komfDialog.style.position = "absolute"
+        komfDialog.style.overflowX = "hidden"
+        komfDialog.style.overflowY = "hidden"
 
-        settingsButton = document.createElement("div") as HTMLDivElement
-        settingsButton.className = "v-list-group v-list-group--no-action"
-        settingsButton.innerHTML = """
-<div tabindex="0" aria-expanded="false" role="button" class="v-list-group__header v-list-item v-list-item--link theme--dark">
-   <div class="v-list-item__icon v-list-group__header__prepend-icon"><i aria-hidden="true" class="v-icon notranslate mdi mdi-puzzle theme--dark"></i></div>
-   <div class="v-list-item__title">Komf settings</div>
-</div>
-"""
-        settingsButton.addEventListener("click") { event ->
-            currentDialog.value = KomfDialog.SETTINGS
-            komfDialog.showModal()
-        }
-        (settingsButton.children[0] as HTMLElement).addEventListener("focus") { event ->
-            (event.target as HTMLElement).blur()
-        }
+        when (document.title.split(' ')[0]) {
+            "Kavita" -> {
+                mediaServer.value = MediaServer.KAVITA
+                mediaServerComponent = KavitaComponent(theme, currentDialog)
+            }
 
+            else -> {
+                mediaServer.value = MediaServer.KOMGA
+                mediaServerComponent = KomgaComponent(theme, currentDialog)
+            }
+        }
         observer = MutationObserver { mutations, observer ->
             mutations.toList().forEach { mutation ->
                 if (mutation.removedNodes.length == 0 && mutation.addedNodes.length == 0) return@forEach
-                checkMutation(mutation)
+                for (node in mutation.addedNodes.asList()) {
+                    if (node.nodeType != Node.ELEMENT_NODE || node.childNodes.length == 0) continue
+                    mediaServerComponent.tryMount(node as HTMLElement)
+                }
             }
         }
     }
 
     fun launch() {
-        observer.observe(document, mutationObserverConfig())
+        mountEvent.onEach {
+            document.body?.appendChild(komfDialog)
+            document.body?.appendChild(komfErrorCanvas)
+
+            startDialogContentApp()
+            startErrorNotificationsApp()
+            logger.info { "Started Komf extension app" }
+        }.launchIn(coroutineScope)
+
+        currentDialog.onEach {
+            if (it is KomfActiveDialog.None) komfDialog.close()
+            else komfDialog.showModal()
+        }.launchIn(coroutineScope)
+
         window.addEventListener("resize") {
             windowWidth.value = WindowSizeClass.fromDp(window.innerWidth.dp)
             windowHeight.value = WindowSizeClass.fromDp(window.innerHeight.dp)
         }
 
-        localStorage.getItem("vuex")?.let {
-            val json = Json.decodeFromString<JsonObject>(it)
-            val persistedState = json["persistedState"] as? JsonObject
-            val komgaTheme = persistedState?.get("theme") as? JsonPrimitive
-            if (komgaTheme != null) {
-                when (komgaTheme.content) {
-                    "theme.dark" -> this.theme.value = AppTheme.DARK
-                    "theme.system" -> {
-                        if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-                            this.theme.value = AppTheme.DARK
-                        else this.theme.value = AppTheme.LIGHT
-
-                    }
-
-                    else -> this.theme.value = AppTheme.LIGHT
-                }
-            }
-        }
-
-        if (theme.value == AppTheme.LIGHT) {
-            settingsButton.getElementsByClassName("theme--dark").asList().toList().forEach { elem ->
-                elem.classList.replace("theme--dark", "theme--light")
-            }
-        }
-
-        tryMount()
-
-        mounted.onEach { mounted ->
-            if (!mounted) return@onEach
-            document.body?.appendChild(komfDialog)
-            document.body?.appendChild(komfErrorCanvas)
-            seriesActions.onMount()
-            libraryActions.onMount()
-
-            startDialogContentApp()
-            startErrorNotificationsApp()
-            logger.info { "started compose app" }
-        }.launchIn(coroutineScope)
-
         window.addEventListener(
             type = "scroll",
-            callback = { event -> if (currentDialog.value != KomfDialog.NONE) event.preventDefault() },
+            callback = { event -> if (currentDialog.value != KomfActiveDialog.None) event.preventDefault() },
             options = AddEventListenerOptions(passive = false)
         )
         window.addEventListener(
             type = "wheel",
-            callback = { event -> if (currentDialog.value != KomfDialog.NONE) event.preventDefault() },
+            callback = { event -> if (currentDialog.value != KomfActiveDialog.None) event.preventDefault() },
             options = AddEventListenerOptions(passive = false)
         )
 
-    }
-
-    private fun tryMount() {
-
-        if (document.body != null) {
+        observer.observe(document, mutationObserverConfig())
+        val body = document.body
+        if (body != null) {
             logger.info { "document already has body. Checking if mount point is present" }
-            document.body?.let { tryMountHtmlElements(it) }
-            if (mounted.value) return
-            else logger.info { "could not find mount point" }
-        }
-        coroutineScope.launch {
-            try {
-                logger.info { "awaiting mount point result from mutation observer; 500ms timeout" }
-                withTimeout(500) { mounted.first { it } }
-            } catch (_: TimeoutCancellationException) {
-                logger.info { "mount await timeout, polling document body" }
-                if (document.body == null) {
-                    logger.info { "document body is null; waiting 500ms until retry" }
-                    delay(500)
-                }
-                if (!mounted.value)
-                    document.body?.let { tryMountHtmlElements(it) } ?: error("document body is null")
-
-                if (!mounted.value) error("failed to find mount point")
-            }
-        }
-    }
-
-    private fun checkMutation(mutation: MutationRecord) {
-        if (mutation.removedNodes.length == 0 && mutation.addedNodes.length == 0) return
-
-        mutation.addedNodes.asList().forEach { node ->
-            if (node.nodeName != "DIV" || node.childNodes.length == 0) {
-                return@forEach
-            }
-            tryMountHtmlElements(node as HTMLElement)
-        }
-    }
-
-
-    private fun tryMountHtmlElements(parentElement: HTMLElement) {
-        val drawer_content = parentElement.getElementsByClassName("v-navigation-drawer__content").asList()
-        val menus = drawer_content
-            .find { drawerNode -> drawerNode.parentElement?.tagName == "NAV" }
-            ?.children?.item(2)
-
-        if (menus != null) {
-            logger.info { "detected settings button mount point" }
-            menus.insertBefore(settingsButton, menus.children.asList().last())
-            mounted.value = true
-        }
-        val toolbar = parentElement.querySelector(".v-main__wrap .v-toolbar__content")
-        val toolbarParent = toolbar?.parentElement
-        if (toolbar != null && toolbarParent != null && !toolbarParent.classList.contains("hidden-sm-and-up")) {
-            val path = window.location.pathname.split("/").reversed()
-            logger.info { "detecting current screen from url; current path: $path" }
-            if (path.any { it == "libraries" }) {
-                logger.info { "detected library screen; mounting library actions" }
-                toolbar.children[4]?.insertAdjacentElement("afterend", libraryActions.element)
-            } else if (path.any { it == "series" }) {
-                logger.info { "detected series screen; mounting series actions" }
-                toolbar.children[4]?.insertAdjacentElement("afterend", seriesActions.element)
-            } else if (path.any { it == "oneshot" }) {
-                logger.info { "detected oneshot screen; mounting series actions" }
-                toolbar.children.asList()
-                    .find { it.tagName == "BUTTON" }
-                    ?.insertAdjacentElement("afterend", seriesActions.element)
-            }
+            val mounted = mediaServerComponent.tryMount(body)
+            if (mounted) mountEvent.tryEmit(Unit)
         }
     }
 
     @OptIn(ExperimentalComposeUiApi::class)
     private fun startDialogContentApp() {
         CanvasBasedWindow(canvasElementId = komfDialogCanvas.id) {
-            var theme = this.theme.collectAsState().value
+            val theme = this.theme.collectAsState().value
             Box(
                 modifier = Modifier
                     .drawBehind {
@@ -273,38 +189,50 @@ class AppState(
                         LocalKomfViewModelFactory provides viewModelFactory
                     ) {
                         val currentDialog = currentDialog.collectAsState().value
-                        val dismissRequest = {
-                            this@AppState.currentDialog.value = KomfDialog.NONE
-                            komfDialog.close()
+                        val onDismissRequest = {
+                            this@AppState.currentDialog.value = KomfActiveDialog.None
                         }
+                        val mediaServer = mediaServer.collectAsState().value
 
                         when (currentDialog) {
-                            KomfDialog.SETTINGS -> KomfSettingsDialog(onDismiss = dismissRequest)
+                            KomfActiveDialog.None -> {}
 
-                            KomfDialog.SERIES_IDENTIFY -> IdentifyDialog(
-                                seriesActions.getSeriesId(),
-                                seriesActions.getLibraryId(),
-                                seriesName = seriesActions.getSeriesTitle(),
-                                onDismissRequest = dismissRequest
+                            is KomfActiveDialog.LibraryIdentify -> LibraryAutoIdentifyDialog(
+                                mediaServer = mediaServer,
+                                libraryId = currentDialog.libraryId,
+                                onDismissRequest = onDismissRequest
                             )
 
-                            KomfDialog.SERIES_RESET -> ResetSeriesMetadataDialog(
-                                seriesId = seriesActions.getSeriesId(),
-                                libraryId = seriesActions.getLibraryId(),
-                                onDismissRequest = dismissRequest
+                            is KomfActiveDialog.LibraryReset -> ResetLibraryMetadataDialog(
+                                mediaServer = mediaServer,
+                                libraryId = currentDialog.libraryId,
+                                onDismissRequest = onDismissRequest
                             )
 
-                            KomfDialog.LIBRARY_RESET -> ResetLibraryMetadataDialog(
-                                libraryId = libraryActions.getLibraryId(),
-                                onDismissRequest = dismissRequest
+                            is KomfActiveDialog.SeriesIdentify -> IdentifyDialog(
+                                mediaServer = mediaServer,
+                                currentDialog.seriesId,
+                                currentDialog.libraryId,
+                                seriesName = currentDialog.seriesTitle,
+                                onDismissRequest = onDismissRequest
                             )
 
-                            KomfDialog.LIBRARY_IDENTIFY -> LibraryAutoIdentifyDialog(
-                                libraryId = libraryActions.getLibraryId(),
-                                onDismissRequest = dismissRequest
+                            is KomfActiveDialog.SeriesReset -> ResetSeriesMetadataDialog(
+                                mediaServer = mediaServer,
+                                seriesId = currentDialog.seriesId,
+                                libraryId = currentDialog.libraryId,
+                                onDismissRequest = onDismissRequest
                             )
 
-                            KomfDialog.NONE -> {}
+                            KomfActiveDialog.Settings -> SettingsDialog(
+                                mediaServer = mediaServer,
+                                onDismiss = onDismissRequest
+                            )
+
+                            is KomfActiveDialog.ErrorDialog -> ErrorDialog(
+                                currentDialog.message,
+                                onDismissRequest = onDismissRequest
+                            )
                         }
                     }
                 }
@@ -315,7 +243,7 @@ class AppState(
     @OptIn(ExperimentalComposeUiApi::class)
     private fun startErrorNotificationsApp() {
         CanvasBasedWindow(canvasElementId = komfErrorCanvas.id) {
-            var theme = this.theme.collectAsState().value
+            val theme = this.theme.collectAsState().value
             Box(
                 modifier = Modifier
                     .drawBehind {
@@ -338,11 +266,34 @@ class AppState(
     }
 }
 
-enum class KomfDialog {
-    SETTINGS,
-    SERIES_IDENTIFY,
-    SERIES_RESET,
-    LIBRARY_RESET,
-    LIBRARY_IDENTIFY,
-    NONE
+sealed interface KomfActiveDialog {
+    object Settings : KomfActiveDialog
+    data class SeriesIdentify(
+        val seriesId: KomfServerSeriesId,
+        val libraryId: KomfServerLibraryId,
+        val seriesTitle: String
+    ) : KomfActiveDialog
+
+    data class SeriesReset(
+        val seriesId: KomfServerSeriesId,
+        val libraryId: KomfServerLibraryId,
+    ) : KomfActiveDialog
+
+    data class LibraryReset(
+        val libraryId: KomfServerLibraryId
+    ) : KomfActiveDialog
+
+    data class LibraryIdentify(
+        val libraryId: KomfServerLibraryId
+    ) : KomfActiveDialog
+
+    data class ErrorDialog(
+        val message: String
+    ) : KomfActiveDialog
+
+    data object None : KomfActiveDialog
+}
+
+fun mutationObserverConfig(): MutationObserverInit {
+    js("return { childList: true, subtree: true };")
 }

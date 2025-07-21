@@ -16,7 +16,7 @@ import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSetting
 import snd.komelia.LocalKomfViewModelFactory
 import snd.komf.api.MediaServer
 
-class ProcessingTab : DialogTab {
+class ProcessingTab(private val mediaServer: MediaServer) : DialogTab {
 
     override fun options() = TabItem(
         title = "Processing",
@@ -26,7 +26,7 @@ class ProcessingTab : DialogTab {
     @Composable
     override fun Content() {
         val viewModelFactory = LocalKomfViewModelFactory.current
-        val vm = remember { viewModelFactory.getKomfProcessingViewModel(MediaServer.KOMGA) }
+        val vm = remember { viewModelFactory.getKomfProcessingViewModel(mediaServer) }
         val vmState = vm.state.collectAsState().value
         val komfConfigLoadError = vm.komfSharedState.configError.collectAsState().value
         LaunchedEffect(Unit) { vm.initialize() }
@@ -45,7 +45,7 @@ class ProcessingTab : DialogTab {
                 onLibraryConfigAdd = vm::onNewLibraryTabAdd,
                 onLibraryConfigRemove = vm::onLibraryTabRemove,
                 libraries = vm.libraries.collectAsState(emptyList()).value,
-                serverType = MediaServer.KOMGA,
+                serverType = mediaServer,
             )
         }
 

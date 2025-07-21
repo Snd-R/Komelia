@@ -105,6 +105,7 @@ fun KomfSettingsContent(
                             )
 
                             komgaState != null -> KomgaConnectionDetails(komgaState)
+                            kavitaState != null -> KavitaConnectionDetails(kavitaState)
                         }
                     }
                 }

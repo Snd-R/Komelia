@@ -1,8 +1,16 @@
-package snd.komelia
+package snd.komelia.dialogs
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -10,30 +18,36 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.dialogs.DialogConfirmCancelButtons
 import io.github.snd_r.komelia.ui.dialogs.DialogSimpleHeader
-import io.github.snd_r.komelia.ui.dialogs.komf.identify.*
-import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.*
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdenitfyConfigContent
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentificationProgressButtons
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentificationProgressContent
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentifyConfigButtons
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentifySearchResultsButtons
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentiufyResultsContent
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.IDENTIFICATION_PROGRESS
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.IDENTIFY_SETTINGS
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.SEARCH_RESULTS
+import snd.komelia.LocalKomfViewModelFactory
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
+import snd.komf.api.MediaServer
 
 @Composable
 fun IdentifyDialog(
-    seriesId: KomfServerSeriesId?,
-    libraryId: KomfServerLibraryId?,
+    mediaServer: MediaServer,
+    seriesId: KomfServerSeriesId,
+    libraryId: KomfServerLibraryId,
     seriesName: String?,
     onDismissRequest: () -> Unit,
 ) {
-    if (seriesId == null || seriesId.value.isBlank() || libraryId == null || libraryId.value.isBlank()) {
-        ErrorDialog(seriesId, libraryId, onDismissRequest)
-        return
-    }
-
     val viewModelFactory = LocalKomfViewModelFactory.current
     val vm = remember {
         viewModelFactory.getKomfIdentifyDialogViewModel(
             seriesId = seriesId,
             libraryId = libraryId,
             seriesName = seriesName ?: "",
-            onDismissRequest = onDismissRequest
+            mediaServer = mediaServer,
+            onDismissRequest = onDismissRequest,
         )
     }
     val state = vm.state.collectAsState().value
@@ -69,17 +83,13 @@ fun IdentifyDialog(
 
 @Composable
 fun LibraryAutoIdentifyDialog(
-    libraryId: KomfServerLibraryId?,
+    mediaServer: MediaServer,
+    libraryId: KomfServerLibraryId,
     onDismissRequest: () -> Unit,
 ) {
-    if (libraryId == null || libraryId.value.isBlank()) {
-        ErrorDialog(libraryId, onDismissRequest)
-        return
-    }
-
     val viewModelFactory = LocalKomfViewModelFactory.current
     val vm = remember {
-        viewModelFactory.getKomfLibraryIdentifyViewModel(libraryId = libraryId)
+        viewModelFactory.getKomfLibraryIdentifyViewModel(libraryId = libraryId, mediaServer = mediaServer)
     }
 
     AppDialog(

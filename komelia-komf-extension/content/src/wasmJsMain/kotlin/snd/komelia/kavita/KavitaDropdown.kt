@@ -1,11 +1,12 @@
-package snd.komelia.komga
+package snd.komelia.kavita
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 
 
-class KomgaDropdown(
+class KavitaDropdown(
     items: List<DropdownItem>,
 ) {
     val element: HTMLDivElement
@@ -14,15 +15,15 @@ class KomgaDropdown(
     init {
         element = document.createElement("div") as HTMLDivElement
         element.setAttribute("role", "menu")
-        element.classList.value = "v-menu__content theme--dark menuable__content__active"
-        element.style.minWidth = "48px"
+        element.classList.value = "dropdown"
+        element.style.position = "absolute"
         element.style.transformOrigin = "left top"
         element.style.zIndex = "8"
         element.style.display = "block"
         element.style.visibility = "hidden"
 
         val listContainer = document.createElement("div") as HTMLDivElement
-        listContainer.classList.value = "v-list v-sheet theme--dark v-list--dense"
+        listContainer.classList.value = "dropdown-menu show"
 
         items.forEach { item ->
             listContainer.appendChild(createMenuItem(item.name, item.onClick))
@@ -46,17 +47,11 @@ class KomgaDropdown(
         isShown = false
     }
 
-    private fun createMenuItem(title: String, onClick: () -> Unit): HTMLDivElement {
-        val item = document.createElement("div") as HTMLDivElement
-        item.setAttribute("role", "menuitem")
-        item.classList.value = "v-list-item v-list-item--link theme--dark"
+    private fun createMenuItem(title: String, onClick: () -> Unit): HTMLButtonElement {
+        val item = document.createElement("button") as HTMLButtonElement
+        item.classList.value = "dropdown-item"
         item.addEventListener("click") { event -> onClick() }
-
-        val itemTitle = document.createElement("div") as HTMLDivElement
-        itemTitle.classList.value = "v-list-item__title"
-        itemTitle.innerText = title
-        item.appendChild(itemTitle)
-
+        item.innerText = title
         return item
     }
 
