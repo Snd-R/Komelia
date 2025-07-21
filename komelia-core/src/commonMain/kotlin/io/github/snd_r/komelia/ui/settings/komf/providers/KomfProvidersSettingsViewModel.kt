@@ -186,6 +186,7 @@ class KomfProvidersSettingsViewModel(
                     if (config.nautiljon.enabled) nautiljon else null,
                     if (config.yenPress.enabled) yenPress else null,
                     if (config.viz.enabled) viz else null,
+                    if (config.webtoons.enabled) webtoons else null,
                 ).sortedBy { it.priority }
             } ?: emptyList()
         )
