@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
     wasmJs {
-        moduleName = "background"
+        outputModuleName = "background"
         binaries.executable()
         browser()
         compilerOptions {

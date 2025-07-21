@@ -16,7 +16,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "komeliaImageWorker"
+        outputModuleName = "komeliaImageWorker"
         browser {
             commonWebpackConfig {
                 outputFileName = "komeliaImageWorker.js"

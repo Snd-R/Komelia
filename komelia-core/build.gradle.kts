@@ -38,7 +38,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "komelia-core"
+        outputModuleName = "komelia-core"
         browser()
     }
 

@@ -16,7 +16,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "komelia-db-shared"
+        outputModuleName = "komelia-db-shared"
         browser()
     }
 

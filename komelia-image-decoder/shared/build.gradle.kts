@@ -23,7 +23,7 @@ kotlin {
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "komelia-image-decoder-shared"
+        outputModuleName = "komelia-image-decoder-shared"
         browser()
     }
 

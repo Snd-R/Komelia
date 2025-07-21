@@ -11,7 +11,7 @@ plugins {
 
 kotlin {
     wasmJs {
-        moduleName = "popup"
+        outputModuleName = "popup"
         binaries.executable()
         browser()
         compilerOptions {

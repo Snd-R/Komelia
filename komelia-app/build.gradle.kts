@@ -26,7 +26,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "komelia-app"
+        outputModuleName = "komelia-app"
         browser {
             commonWebpackConfig {
                 outputFileName = "komelia-app.js"

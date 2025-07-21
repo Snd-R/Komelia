@@ -13,7 +13,7 @@ kotlin {
     jvmToolchain(17)
 
     wasmJs {
-        moduleName = "komeliaImageWorker"
+        outputModuleName = "komeliaImageWorker"
         browser()
     }
 
