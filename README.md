@@ -66,3 +66,7 @@ Requires jdk 17 or higher
 
 - debug apk build:`./gradlew :komelia-app:assemble` (output in `komelia-app/build/outputs/apk/debug`)
 - unsigned release apk build:`./gradlew :komelia-app:assembleRelease` (output in `komelia-app/build/outputs/apk/release`)
+
+## Komf Extension Build
+run`./gradlew :komelia-komf-extension:app:packageExtension` \
+output archive will be in `./komelia-komf-extension/app/build/distributions`
