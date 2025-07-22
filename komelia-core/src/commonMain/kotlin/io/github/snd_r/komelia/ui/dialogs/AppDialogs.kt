@@ -1,6 +1,5 @@
 package io.github.snd_r.komelia.ui.dialogs
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +32,9 @@ import androidx.compose.ui.window.DialogProperties
 import io.github.snd_r.komelia.platform.VerticalScrollbar
 import io.github.snd_r.komelia.platform.cursorForHand
 import kotlin.math.roundToInt
+
+// FIXME starting from compose 1.8.0 Android doesn't properly display animatedContentSize inside dialog
+expect val dialogAnimateContentSize: Modifier
 
 @Composable
 fun AppDialog(
@@ -79,7 +81,7 @@ fun BasicAppDialog(
             color = color,
             modifier = modifier
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
-                .animateContentSize(),
+                .then(dialogAnimateContentSize),
             content = content
         )
     }
