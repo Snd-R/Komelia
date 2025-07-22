@@ -19,6 +19,7 @@ fun main() {
     chrome.storage.onChanged.addListener { changes, namespace ->
         updateContentScripts()
     }
+    updateContentScripts()
 }
 
 private fun updateContentScripts() {

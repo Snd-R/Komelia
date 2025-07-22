@@ -118,7 +118,8 @@ class AppState(
                 if (mutation.removedNodes.length == 0 && mutation.addedNodes.length == 0) return@forEach
                 for (node in mutation.addedNodes.asList()) {
                     if (node.nodeType != Node.ELEMENT_NODE || node.childNodes.length == 0) continue
-                    mediaServerComponent.tryMount(node as HTMLElement)
+                    val mounted = mediaServerComponent.tryMount(node as HTMLElement)
+                    if (mounted) mountEvent.tryEmit(Unit)
                 }
             }
         }
@@ -126,8 +127,10 @@ class AppState(
 
     fun launch() {
         mountEvent.onEach {
-            document.body?.appendChild(komfDialog)
-            document.body?.appendChild(komfErrorCanvas)
+            val body = document.body
+            if (body == null || body.contains(komfDialog) || body.contains(komfErrorCanvas)) return@onEach
+            body.appendChild(komfDialog)
+            body.appendChild(komfErrorCanvas)
 
             startDialogContentApp()
             startErrorNotificationsApp()
@@ -158,7 +161,6 @@ class AppState(
         observer.observe(document, mutationObserverConfig())
         val body = document.body
         if (body != null) {
-            logger.info { "document already has body. Checking if mount point is present" }
             val mounted = mediaServerComponent.tryMount(body)
             if (mounted) mountEvent.tryEmit(Unit)
         }

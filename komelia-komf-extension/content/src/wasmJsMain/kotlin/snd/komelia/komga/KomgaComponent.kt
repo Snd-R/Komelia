@@ -65,7 +65,6 @@ class KomgaComponent(
                 elem.classList.replace("theme--dark", "theme--light")
             }
         }
-
     }
 
 
