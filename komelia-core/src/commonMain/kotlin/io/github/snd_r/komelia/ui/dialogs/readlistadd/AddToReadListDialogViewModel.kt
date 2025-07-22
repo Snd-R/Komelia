@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import snd.komga.client.book.KomgaBook
+import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.PatchValue
 import snd.komga.client.readlist.KomgaReadList
 import snd.komga.client.readlist.KomgaReadListClient
@@ -22,7 +23,8 @@ class AddToReadListDialogViewModel(
         private set
 
     suspend fun initialize() {
-        readLists = readListClient.getAll().content.sortedByDescending { it.lastModifiedDate }
+        readLists = readListClient.getAll(pageRequest = KomgaPageRequest(unpaged = true))
+            .content.sortedByDescending { it.lastModifiedDate }
     }
 
     suspend fun addTo(readList: KomgaReadList) {

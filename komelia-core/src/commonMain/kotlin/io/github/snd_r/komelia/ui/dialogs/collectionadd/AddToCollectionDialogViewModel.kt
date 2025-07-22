@@ -8,6 +8,7 @@ import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionClient
 import snd.komga.client.collection.KomgaCollectionCreateRequest
 import snd.komga.client.collection.KomgaCollectionUpdateRequest
+import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.PatchValue
 import snd.komga.client.series.KomgaSeries
 
@@ -22,7 +23,8 @@ class AddToCollectionDialogViewModel(
         private set
 
     suspend fun initialize() {
-        collections = collectionClient.getAll().content.sortedByDescending { it.lastModifiedDate }
+        collections = collectionClient.getAll(pageRequest = KomgaPageRequest(unpaged = true))
+            .content.sortedByDescending { it.lastModifiedDate }
     }
 
     suspend fun addTo(collection: KomgaCollection) {
