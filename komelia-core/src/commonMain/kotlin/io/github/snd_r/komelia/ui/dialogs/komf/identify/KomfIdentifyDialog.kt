@@ -81,8 +81,8 @@ fun KomfIdentifyDialog(
                 contentAlignment = Alignment.Center
             ) {
                 when (vm.currentTab) {
-                    IDENTIFY_SETTINGS -> IdenitfyConfigContent(vm.configState)
-                    SEARCH_RESULTS -> IdentiufyResultsContent(vm.searchResultsState)
+                    IDENTIFY_SETTINGS -> IdentifyConfigContent(vm.configState)
+                    SEARCH_RESULTS -> IdentifyResultsContent(vm.searchResultsState)
                     IDENTIFICATION_PROGRESS -> IdentificationProgressContent(vm.identificationState)
                 }
             }
@@ -100,7 +100,7 @@ fun KomfIdentifyDialog(
 }
 
 @Composable
-fun IdenitfyConfigContent(state: ConfigState) {
+fun IdentifyConfigContent(state: ConfigState) {
     val coroutineScope = rememberCoroutineScope()
     val isLoading = state.isLoading.collectAsState(false)
     var searchInProgress by remember { mutableStateOf(false) }
@@ -110,7 +110,7 @@ fun IdenitfyConfigContent(state: ConfigState) {
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             TextField(
                 value = state.searchName,
@@ -135,30 +135,12 @@ fun IdenitfyConfigContent(state: ConfigState) {
                 else Text("Search")
             }
         }
-//
-//        HorizontalDivider()
-//
-//        var isLoading by remember { mutableStateOf(false) }
-//        FilledTonalButton(
-//            onClick = {
-//                coroutineScope.launch {
-//                    isLoading = true
-//                    state.onAutoIdentify()
-//                    isLoading = false
-//                }
-//            },
-//            shape = RoundedCornerShape(5.dp),
-//            modifier = Modifier.cursorForHand()
-//        ) {
-//            if (isLoading) CircularProgressIndicator(Modifier.size(25.dp))
-//            else Text("Auto-identify")
-//        }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun IdentiufyResultsContent(
+fun IdentifyResultsContent(
     state: SearchResultsState,
 ) {
     if (state.searchResults.isEmpty()) {
@@ -311,14 +293,6 @@ fun IdentifyConfigButtons(state: ConfigState) {
             else Text("Auto-Identify")
         }
     }
-
-//    ControlButtons(
-//        confirmationText = "Auto-Identify",
-//        onConfirm = {
-//            state.onAutoIdentify()
-//        },
-//        onDismissRequest = state.onDismiss
-//    )
 }
 
 @Composable

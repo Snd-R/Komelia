@@ -18,12 +18,12 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.dialogs.DialogConfirmCancelButtons
 import io.github.snd_r.komelia.ui.dialogs.DialogSimpleHeader
-import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdenitfyConfigContent
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentifyConfigContent
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentificationProgressButtons
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentificationProgressContent
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentifyConfigButtons
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentifySearchResultsButtons
-import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentiufyResultsContent
+import io.github.snd_r.komelia.ui.dialogs.komf.identify.IdentifyResultsContent
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.IDENTIFICATION_PROGRESS
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.IDENTIFY_SETTINGS
 import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.SEARCH_RESULTS
@@ -63,8 +63,8 @@ fun IdentifyDialog(
                 contentAlignment = Alignment.Center
             ) {
                 when (vm.currentTab) {
-                    IDENTIFY_SETTINGS -> IdenitfyConfigContent(vm.configState)
-                    SEARCH_RESULTS -> IdentiufyResultsContent(vm.searchResultsState)
+                    IDENTIFY_SETTINGS -> IdentifyConfigContent(vm.configState)
+                    SEARCH_RESULTS -> IdentifyResultsContent(vm.searchResultsState)
                     IDENTIFICATION_PROGRESS -> IdentificationProgressContent(vm.identificationState)
                 }
             }
