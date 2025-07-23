@@ -105,13 +105,14 @@ fun ScalableContainer(
                 }
             }
             .onPointerEvent(PointerEventType.Scroll) { event ->
-                val delta = with(density) { with(scrollConfig) { calculateMouseWheelScroll(event, size) } }
+                val scrollDelta = with(density) { with(scrollConfig) { calculateMouseWheelScroll(event, size) } }
                 if (isCtrlPressed) {
                     val centroid = event.changes[0].position
-                    val zoom = if (delta.y >= 0) 0.2f else -0.2f
+                    val delta = if (scrollDelta.y != 0f) scrollDelta.y else scrollDelta.x
+                    val zoom = if (delta >= 0) 0.2f else -0.2f
                     scaleState.addZoom(zoom, centroid - areaCenter)
                 } else {
-                    val maxDelta = if (abs(delta.y) > abs(delta.x)) delta.y else delta.x
+                    val maxDelta = if (abs(scrollDelta.y) > abs(scrollDelta.x)) scrollDelta.y else scrollDelta.x
                     val pan = (if (scaleState.scrollReversed.value) -maxDelta else maxDelta)
                     when (scrollOrientation) {
                         Vertical -> scaleState.addPan(Offset(0f, pan))
