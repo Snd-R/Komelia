@@ -37,7 +37,7 @@ class DesktopReaderImage(
     upsamplingMode: StateFlow<UpsamplingMode>,
     downSamplingKernel: StateFlow<ReduceKernel>,
     linearLightDownSampling: StateFlow<Boolean>,
-    private val upscaler: ManagedOnnxUpscaler?,
+    private val upscaler: DesktopOnnxRuntimeUpscaler?,
     private val showDebugGrid: StateFlow<Boolean>,
 ) : TilingReaderImage(
     imageDecoder = imageDecoder,

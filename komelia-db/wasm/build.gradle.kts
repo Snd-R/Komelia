@@ -3,10 +3,10 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform")
+    alias(libs.plugins.kotlinMultiplatform)
 }
 
-group = "io.github.snd_r"
+group = "io.github.snd_r.komelia.db.wasm"
 version = "unspecified"
 
 kotlin {
@@ -19,12 +19,12 @@ kotlin {
 
     sourceSets {
         wasmJsMain.dependencies {
-            implementation(project(":komelia-core"))
-            api(project(":komelia-db:shared"))
-            implementation(project(":komelia-image-decoder:shared"))
-            api(project(":third_party:indexeddb:core"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.browser)
+            implementation(projects.komeliaCore)
+            implementation(projects.komeliaDb.shared)
+            implementation(projects.komeliaImageDecoder.shared)
+            implementation(projects.thirdParty.indexeddb.core)
         }
     }
 }

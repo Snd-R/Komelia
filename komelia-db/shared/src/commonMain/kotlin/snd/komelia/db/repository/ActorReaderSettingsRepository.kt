@@ -1,6 +1,7 @@
 package snd.komelia.db.repository
 
 import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.image.UpscaleMode
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
@@ -11,7 +12,6 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDispla
 import kotlinx.coroutines.flow.Flow
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.SettingsStateActor
-import snd.komelia.image.OnnxRuntimeUpscaleMode
 import snd.komelia.image.ReduceKernel
 
 class ActorReaderSettingsRepository(
@@ -162,35 +162,35 @@ class ActorReaderSettingsRepository(
         actor.transform { it.copy(volumeKeysNavigation = enable) }
     }
 
-    override fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode> {
-        return actor.mapState { it.onnxRuntimeMode }
+    override fun getOnnxRuntimeMode(): Flow<UpscaleMode> {
+        return actor.mapState { it.ortUpscalerMode }
     }
 
-    override suspend fun putOnnxRuntimeMode(mode: OnnxRuntimeUpscaleMode) {
-        actor.transform { it.copy(onnxRuntimeMode = mode) }
+    override suspend fun putOnnxRuntimeMode(mode: UpscaleMode) {
+        actor.transform { it.copy(ortUpscalerMode = mode) }
     }
 
     override fun getOnnxRuntimeDeviceId(): Flow<Int> {
-        return actor.mapState { it.onnxRuntimeDeviceId }
+        return actor.mapState { it.ortUpscalerDeviceId }
     }
 
     override suspend fun putOnnxRuntimeDeviceId(deviceId: Int) {
-        actor.transform { it.copy(onnxRuntimeDeviceId = deviceId) }
+        actor.transform { it.copy(ortUpscalerDeviceId = deviceId) }
     }
 
     override fun getOnnxRuntimeTileSize(): Flow<Int> {
-        return actor.mapState { it.onnxRuntimeTileSize }
+        return actor.mapState { it.ortUpscalerTileSize }
     }
 
     override suspend fun putOnnxRuntimeTileSize(tileSize: Int) {
-        actor.transform { it.copy(onnxRuntimeTileSize = tileSize) }
+        actor.transform { it.copy(ortUpscalerTileSize = tileSize) }
     }
 
     override fun getSelectedOnnxModel(): Flow<String?> {
-        return actor.mapState { it.onnxRuntimeModelPath }
+        return actor.mapState { it.ortUpscalerUserModelPath }
     }
 
     override suspend fun putSelectedOnnxModel(name: String?) {
-        actor.transform { it.copy(onnxRuntimeModelPath = name) }
+        actor.transform { it.copy(ortUpscalerUserModelPath = name) }
     }
 }

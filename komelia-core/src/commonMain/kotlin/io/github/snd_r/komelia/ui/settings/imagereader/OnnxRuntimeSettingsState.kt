@@ -1,6 +1,8 @@
 package io.github.snd_r.komelia.ui.settings.imagereader
 
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.image.KomeliaUpscaler
+import io.github.snd_r.komelia.image.UpscaleMode
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
@@ -19,43 +21,42 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import snd.komelia.image.OnnxRuntime
-import snd.komelia.image.OnnxRuntime.DeviceInfo
-import snd.komelia.image.OnnxRuntimeExecutionProvider
-import snd.komelia.image.OnnxRuntimeUpscaleMode
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 
 class OnnxRuntimeSettingsState(
-    private val onnxRuntime: OnnxRuntime?,
+    private val upscaler: KomeliaUpscaler?,
     private val onnxRuntimeInstaller: OnnxRuntimeInstaller?,
     private val mangaJaNaiDownloader: MangaJaNaiDownloader?,
     private val appNotifications: AppNotifications,
     private val settingsRepository: ImageReaderSettingsRepository,
     private val coroutineScope: CoroutineScope,
 ) {
-    val onnxModelPath = onnxRuntime?.selectedModelPath
+    val deviceId = MutableStateFlow(0)
+    val availableDevices = upscaler?.availableDevices
+        ?.stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
+        ?: MutableStateFlow(emptyList())
+
+    val upscaleModelPath = upscaler?.userModelPath
         ?.stateIn(coroutineScope, SharingStarted.Eagerly, null)
         ?: MutableStateFlow<String?>(null)
+    val upscaleMode = MutableStateFlow(UpscaleMode.NONE)
+    val upscalerTileSize = MutableStateFlow(0)
+    val currentExecutionProvider = upscaler?.provider ?: OnnxRuntimeExecutionProvider.CPU
 
-    val onnxRuntimeMode = MutableStateFlow(OnnxRuntimeUpscaleMode.NONE)
+
     val installProgress = MutableStateFlow<UpdateProgress?>(null)
     val installError = MutableStateFlow<String?>(null)
-    val availableDevices = onnxRuntime?.availableDevices
-        ?.stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
-        ?: MutableStateFlow(emptyList<DeviceInfo>())
-    val tileSize = MutableStateFlow(0)
-    val deviceId = MutableStateFlow(0)
-    val currentExecutionProvider = onnxRuntime?.provider ?: OnnxRuntimeExecutionProvider.CPU
 
-    val mangaJaNaiIsInstalled = onnxRuntime?.mangaJaNaiIsAvailable
+    val mangaJaNaiIsInstalled = upscaler?.mangaJaNaiIsAvailable
         ?.stateIn(coroutineScope, SharingStarted.Eagerly, false)
         ?: MutableStateFlow(false)
 
     private val ortInstallScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun initialize() {
-        tileSize.value = settingsRepository.getOnnxRuntimeTileSize().first()
+        upscalerTileSize.value = settingsRepository.getOnnxRuntimeTileSize().first()
         deviceId.value = settingsRepository.getOnnxRuntimeDeviceId().first()
-        onnxRuntimeMode.value = settingsRepository.getOnnxRuntimeMode().first()
+        upscaleMode.value = settingsRepository.getOnnxRuntimeMode().first()
     }
 
 
@@ -82,7 +83,7 @@ class OnnxRuntimeSettingsState(
     }
 
     fun onTileSizeChange(tileSize: Int) {
-        this.tileSize.value = tileSize
+        this.upscalerTileSize.value = tileSize
         coroutineScope.launch { settingsRepository.putOnnxRuntimeTileSize(tileSize) }
     }
 
@@ -91,13 +92,13 @@ class OnnxRuntimeSettingsState(
         coroutineScope.launch { settingsRepository.putOnnxRuntimeDeviceId(deviceId) }
     }
 
-    fun onOnnxRuntimeUpscaleModeChange(mode: OnnxRuntimeUpscaleMode) {
-        this.onnxRuntimeMode.value = mode
+    fun onOnnxRuntimeUpscaleModeChange(mode: UpscaleMode) {
+        this.upscaleMode.value = mode
         coroutineScope.launch { settingsRepository.putOnnxRuntimeMode(mode) }
     }
 
     fun onOnnxModelSelect(path: String?) {
-        this.onnxRuntime?.setOnnxModelPath(path)
+        this.upscaler?.setOnnxModelPath(path)
     }
 
     fun onInstallationCancel() {

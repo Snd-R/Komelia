@@ -20,11 +20,14 @@ dependencyResolutionManagement {
 
 include(":komelia-app")
 include(":komelia-core")
+include(":komelia-jni")
+include(":komelia-webview")
+
 include(":komelia-db:shared")
 include(":komelia-db:sqlite")
 include(":komelia-db:wasm")
-include(":komelia-jni")
-include(":komelia-webview")
+include(":komelia-onnxruntime:api")
+include(":komelia-onnxruntime:jvm")
 include(":komelia-image-decoder:shared")
 include(":komelia-image-decoder:vips")
 include(":komelia-image-decoder:wasm-image-worker")

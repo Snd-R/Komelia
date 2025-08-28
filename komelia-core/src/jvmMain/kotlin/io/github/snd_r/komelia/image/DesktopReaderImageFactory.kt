@@ -14,7 +14,7 @@ class DesktopReaderImageFactory(
     private val linearLightDownSampling: StateFlow<Boolean>,
     private val stretchImages: StateFlow<Boolean>,
     private val processingPipeline: ImageProcessingPipeline,
-    private val onnxUpscaler: ManagedOnnxUpscaler?,
+    private val onnxUpscaler: DesktopOnnxRuntimeUpscaler?,
 ) : ReaderImageFactory {
 
     override suspend fun getImage(imageSource: ImageSource, pageId: PageId): ReaderImage {

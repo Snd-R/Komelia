@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
-group = "io.github.snd_r"
+group = "io.github.snd_r.komelia.db.sqlite"
 version = "unspecified"
 
 kotlin {
@@ -36,15 +36,15 @@ kotlin {
             api(libs.exposed.kotlin.datetime)
             implementation(libs.flyway.core)
             implementation(libs.sqlite.xerial.jdbc)
-            implementation(project(":komelia-db:shared"))
-            implementation(project(":komelia-image-decoder:shared"))
-            implementation(project(":komelia-core"))
+            implementation(projects.komeliaDb.shared)
+            implementation(projects.komeliaImageDecoder.shared)
+            implementation(projects.komeliaCore)
         }
     }
 }
 
 android {
-    namespace = "io.github.snd_r.db.sqlite"
+    namespace = "io.github.snd_r.komelia.db.sqlite"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

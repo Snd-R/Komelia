@@ -237,9 +237,9 @@ fun SettingsSideMenuOverlay(
                 AnimatedVisibility(showOnnxRuntimeSettings) {
                     Column(Modifier.padding(start = 10.dp)) {
                         OnnxRuntimeModeSelector(
-                            currentMode = onnxRuntimeSettingsState.onnxRuntimeMode.collectAsState().value,
+                            currentMode = onnxRuntimeSettingsState.upscaleMode.collectAsState().value,
                             onModeChange = onnxRuntimeSettingsState::onOnnxRuntimeUpscaleModeChange,
-                            currentModelPath = onnxRuntimeSettingsState.onnxModelPath.collectAsState().value,
+                            currentModelPath = onnxRuntimeSettingsState.upscaleModelPath.collectAsState().value,
                             onModelPathChange = onnxRuntimeSettingsState::onOnnxModelSelect
                         )
                         DeviceSelector(
@@ -250,7 +250,7 @@ fun SettingsSideMenuOverlay(
                         )
 
                         TileSizeSelector(
-                            tileSize = onnxRuntimeSettingsState.tileSize.collectAsState().value,
+                            tileSize = onnxRuntimeSettingsState.upscalerTileSize.collectAsState().value,
                             onTileSizeChange = onnxRuntimeSettingsState::onTileSizeChange
                         )
                     }

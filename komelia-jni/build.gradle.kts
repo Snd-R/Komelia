@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
 
-group = "io.github.snd_r"
+group = "io.github.snd_r.komelia.jni"
 version = "unspecified"
 
 kotlin {
@@ -32,7 +32,7 @@ kotlin {
     }
 }
 android {
-    namespace = "io.github.snd_r.jni"
+    namespace = "io.github.snd_r.komelia.jni"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

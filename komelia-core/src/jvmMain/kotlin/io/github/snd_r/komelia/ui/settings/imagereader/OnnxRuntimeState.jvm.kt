@@ -3,13 +3,12 @@ package io.github.snd_r.komelia.ui.settings.imagereader
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
 import io.github.snd_r.komelia.DesktopPlatform.Windows
-import snd.komelia.image.OnnxRuntimeExecutionProvider
-import snd.komelia.image.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.image.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.image.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.image.OnnxRuntimeExecutionProvider.ROCm
-import snd.komelia.image.OnnxRuntimeExecutionProvider.TENSOR_RT
-import snd.komelia.image.OnnxRuntimeSharedLibraries
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 
 actual fun isOnnxRuntimeSupported() = true
 

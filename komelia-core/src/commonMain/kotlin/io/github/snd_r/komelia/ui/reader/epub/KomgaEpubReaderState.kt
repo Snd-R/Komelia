@@ -6,6 +6,7 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser.Companion.xmlParser
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.core.komelia_core.generated.resources.Res
 import io.github.snd_r.komelia.platform.AppWindowState
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.platform.PlatformType.WEB_KOMF
@@ -17,7 +18,6 @@ import io.github.snd_r.komelia.ui.LoadState.Uninitialized
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
-import io.github.snd_r.komelia_core.generated.resources.Res
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

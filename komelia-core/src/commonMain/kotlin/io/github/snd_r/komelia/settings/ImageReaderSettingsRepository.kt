@@ -1,12 +1,12 @@
 package io.github.snd_r.komelia.settings
 
 import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.image.UpscaleMode
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import kotlinx.coroutines.flow.Flow
-import snd.komelia.image.OnnxRuntimeUpscaleMode
 import snd.komelia.image.ReduceKernel
 
 interface ImageReaderSettingsRepository {
@@ -64,8 +64,8 @@ interface ImageReaderSettingsRepository {
     fun getVolumeKeysNavigation(): Flow<Boolean>
     suspend fun putVolumeKeysNavigation(enable: Boolean)
 
-    fun getOnnxRuntimeMode(): Flow<OnnxRuntimeUpscaleMode>
-    suspend fun putOnnxRuntimeMode(mode: OnnxRuntimeUpscaleMode)
+    fun getOnnxRuntimeMode(): Flow<UpscaleMode>
+    suspend fun putOnnxRuntimeMode(mode: UpscaleMode)
 
     fun getOnnxRuntimeDeviceId(): Flow<Int>
     suspend fun putOnnxRuntimeDeviceId(deviceId: Int)

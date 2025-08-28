@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-group = "io.github.snd-r"
+group = "io.github.snd-r.komelia.db.shared"
 version = "unspecified"
 
 kotlin {
@@ -22,21 +22,20 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":komelia-core"))
-            implementation(project(":komelia-image-decoder:shared"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.ktor.client.core)
             implementation(libs.komga.client)
-
+            implementation(projects.komeliaCore)
+            implementation(projects.komeliaImageDecoder.shared)
         }
     }
 }
 
 android {
-    namespace = "io.github.snd_r.db.shared"
+    namespace = "io.github.snd_r.komelia.db.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

@@ -44,6 +44,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration.Companion.Underline
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.image.UpscaleMode
+import io.github.snd_r.komelia.image.UpscaleMode.USER_SPECIFIED_MODEL
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.formatDecimal
 import io.github.snd_r.komelia.ui.LocalStrings
@@ -60,15 +62,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import kotlinx.io.files.Path
-import snd.komelia.image.OnnxRuntime.DeviceInfo
-import snd.komelia.image.OnnxRuntimeExecutionProvider
-import snd.komelia.image.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.image.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.image.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.image.OnnxRuntimeExecutionProvider.ROCm
-import snd.komelia.image.OnnxRuntimeExecutionProvider.TENSOR_RT
-import snd.komelia.image.OnnxRuntimeUpscaleMode
-import snd.komelia.image.OnnxRuntimeUpscaleMode.USER_SPECIFIED_MODEL
+import snd.komelia.onnxruntime.DeviceInfo
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.ROCm
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -130,9 +130,9 @@ fun OnnxRuntimeSettings(
     }
     Text("ONNX Runtime $ortExecutionProvider execution provider", style = MaterialTheme.typography.titleLarge)
     OnnxRuntimeModeSelector(
-        currentMode = state.onnxRuntimeMode.collectAsState().value,
+        currentMode = state.upscaleMode.collectAsState().value,
         onModeChange = state::onOnnxRuntimeUpscaleModeChange,
-        currentModelPath = state.onnxModelPath.collectAsState().value,
+        currentModelPath = state.upscaleModelPath.collectAsState().value,
         onModelPathChange = state::onOnnxModelSelect
     )
 
@@ -144,7 +144,7 @@ fun OnnxRuntimeSettings(
     )
 
     TileSizeSelector(
-        tileSize = state.tileSize.collectAsState().value,
+        tileSize = state.upscalerTileSize.collectAsState().value,
         onTileSizeChange = state::onTileSizeChange
     )
 
@@ -176,8 +176,8 @@ fun OnnxRuntimeSettings(
 
 @Composable
 fun OnnxRuntimeModeSelector(
-    currentMode: OnnxRuntimeUpscaleMode,
-    onModeChange: (OnnxRuntimeUpscaleMode) -> Unit,
+    currentMode: UpscaleMode,
+    onModeChange: (UpscaleMode) -> Unit,
     currentModelPath: String?,
     onModelPathChange: (String?) -> Unit,
 ) {
@@ -185,7 +185,7 @@ fun OnnxRuntimeModeSelector(
     DropdownChoiceMenu(
         selectedOption = LabeledEntry(currentMode, strings.forOnnxRuntimeUpscaleMode(currentMode)),
         options = remember {
-            OnnxRuntimeUpscaleMode.entries.map {
+            UpscaleMode.entries.map {
                 LabeledEntry(it, strings.forOnnxRuntimeUpscaleMode(it))
             }
         },

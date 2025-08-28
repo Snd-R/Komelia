@@ -7,6 +7,7 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
+import io.github.snd_r.komelia.core.komelia_core.generated.resources.Res
 import io.github.snd_r.komelia.fonts.UserFont
 import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.fonts.getSystemFontNames
@@ -22,7 +23,6 @@ import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.MainScreen
 import io.github.snd_r.komelia.ui.book.BookScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
-import io.github.snd_r.komelia_core.generated.resources.Res
 import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType

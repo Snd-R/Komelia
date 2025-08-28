@@ -15,14 +15,14 @@ import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import snd.komelia.image.OnnxRuntime
+import io.github.snd_r.komelia.image.KomeliaUpscaler
 import snd.komelia.image.ReduceKernel
 
 class ImageReaderSettingsViewModel(
     private val settingsRepository: ImageReaderSettingsRepository,
     private val appNotifications: AppNotifications,
     private val onnxRuntimeInstaller: OnnxRuntimeInstaller?,
-    private val onnxRuntime: OnnxRuntime?,
+    private val onnxRuntime: KomeliaUpscaler?,
     private val mangaJaNaiDownloader: MangaJaNaiDownloader?,
     private val coilMemoryCache: MemoryCache?,
     private val coilDiskCache: DiskCache?,
@@ -30,7 +30,7 @@ class ImageReaderSettingsViewModel(
 ) : ScreenModel {
 
     val onnxRuntimeSettingsState = OnnxRuntimeSettingsState(
-        onnxRuntime = onnxRuntime,
+        upscaler = onnxRuntime,
         onnxRuntimeInstaller = onnxRuntimeInstaller,
         mangaJaNaiDownloader = mangaJaNaiDownloader,
         appNotifications = appNotifications,

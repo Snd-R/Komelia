@@ -28,10 +28,11 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val downsamplingKernel = text("downsampling_kernel")
     val linearLightDownsampling = bool("linear_light_downsampling")
     val upsamplingMode = text("upsampling_mode")
-    val onnxRuntimeMode = text("onnx_runtime_mode")
-    val onnxRuntimeDeviceId = integer("onnx_runtime_device_id")
-    val onnxRuntimeTileSize = integer("onnx_runtime_tile_size")
-    val onnxRuntimeModelPath = text("onnx_runtime_model_path").nullable()
+
+    val ortDeviceId = integer("onnx_runtime_device_id")
+    val ortUpscalerMode = text("onnx_runtime_mode")
+    val ortUpscalerTileSize = integer("onnx_runtime_tile_size")
+    val ortUpscalerUserModelPath = text("onnx_runtime_model_path").nullable()
 
     override val primaryKey = PrimaryKey(bookId)
 }

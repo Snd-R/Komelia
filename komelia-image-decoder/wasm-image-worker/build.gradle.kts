@@ -4,7 +4,7 @@ plugins {
     kotlin("multiplatform")
 }
 
-group = "io.github.snd_r"
+group = "io.github.snd_r.komelia.image_decoder"
 version = "unspecified"
 
 repositories {
@@ -23,17 +23,14 @@ kotlin {
             }
         }
         binaries.executable()
-//        compilerOptions{
-//            freeCompilerArgs.add("-Xwasm-use-new-exception-proposal")
-//        }
     }
 
     sourceSets {
         wasmJsMain.dependencies {
-            api(project(":komelia-image-decoder:shared"))
             implementation(libs.kotlin.logging)
             implementation(libs.kotlinx.browser)
             implementation(libs.kotlinx.coroutines.core)
+            api(projects.komeliaImageDecoder.shared)
 //            implementation(npm("wasm-vips", "0.0.11"))
         }
     }

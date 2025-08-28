@@ -12,8 +12,8 @@ import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.DesktopOnnxRuntimeUpscaler
 import io.github.snd_r.komelia.image.DesktopReaderImageFactory
-import io.github.snd_r.komelia.image.ManagedOnnxUpscaler
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.coil.CoilDecoder
@@ -41,13 +41,15 @@ import io.github.snd_r.komelia.updates.DesktopAppUpdater
 import io.github.snd_r.komelia.updates.DesktopMangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.DesktopOnnxRuntimeInstaller
 import io.github.snd_r.komelia.updates.UpdateClient
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.cookies.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.http.Url
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -77,11 +79,13 @@ import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.image.ImageDecoder
-import snd.komelia.image.OnnxRuntimeSharedLibraries
-import snd.komelia.image.OnnxRuntimeUpscaler
 import snd.komelia.image.SkiaBitmap
 import snd.komelia.image.VipsImageDecoder
 import snd.komelia.image.VipsSharedLibraries
+import snd.komelia.onnxruntime.JvmOnnxRuntime
+import snd.komelia.onnxruntime.JvmOnnxRuntimeUpscaler
+import snd.komelia.onnxruntime.OnnxRuntimeException
+import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import snd.webview.WebviewSharedLibraries
@@ -114,6 +118,16 @@ fun loadVipsLibraries() {
     }.also { logger.info { "completed vips load in $it" } }
 }
 
+fun loadOnnxRuntimeLibraries() {
+    try {
+        OnnxRuntimeSharedLibraries.load()
+    } catch (e: UnsatisfiedLinkError) {
+        logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+    } catch (e: OnnxRuntimeException) {
+        logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
+    }
+}
+
 suspend fun initDependencies(
     initScope: CoroutineScope,
     windowState: AwtWindowState,
@@ -123,6 +137,7 @@ suspend fun initDependencies(
         loadWebviewLibraries()
     }
     checkVipsLibraries()
+    loadOnnxRuntimeLibraries()
 
     val database = KomeliaDatabase(AppDirectories.databaseFile.toString())
     val settingsRepository = createCommonSettingsRepository(database)
@@ -180,7 +195,8 @@ suspend fun initDependencies(
         tempDir = coilCachePath.createDirectories()
     )
 
-    val onnxUpscaler = createOnnxRuntimeUpscaler(imageReaderRepository)
+    val onnxRuntime = createOnnxRuntime()
+    val onnxUpscaler = onnxRuntime?.let { ort -> createOnnxRuntimeUpscaler(ort, imageReaderRepository) }
     val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
     val imagePipeline = createImagePipeline(
         cropBorders = imageReaderRepository.getCropBorders().stateIn(initScope),
@@ -243,24 +259,23 @@ private fun checkVipsLibraries() {
     SkiaBitmap.load()
 }
 
-private fun createOnnxRuntimeUpscaler(settingsRepository: ImageReaderSettingsRepository): ManagedOnnxUpscaler? {
-    return measureTimedValue {
-        try {
-            OnnxRuntimeSharedLibraries.load()
-            ManagedOnnxUpscaler(settingsRepository).also {
-                it.initialize()
-                Runtime.getRuntime().addShutdownHook(thread(start = false) { it.clearCache() })
-            }
-        } catch (e: UnsatisfiedLinkError) {
-            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-            null
-        } catch (e: OnnxRuntimeUpscaler.OrtException) {
-            logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-            null
-        }
+private fun createOnnxRuntime(): JvmOnnxRuntime? {
+    if (!OnnxRuntimeSharedLibraries.isAvailable) {
+        logger.warn { "OnnxRuntime is Not available" }
+        return null
+    }
+    return JvmOnnxRuntime.create()
+}
 
-    }.also { logger.info { "completed ONNX Runtime load in ${it.duration}" } }
-        .value
+private fun createOnnxRuntimeUpscaler(
+    ort: JvmOnnxRuntime,
+    settingsRepository: ImageReaderSettingsRepository
+): DesktopOnnxRuntimeUpscaler {
+    val upscaler = JvmOnnxRuntimeUpscaler.create(ort)
+    return DesktopOnnxRuntimeUpscaler(settingsRepository, upscaler).also {
+        it.initialize()
+        Runtime.getRuntime().addShutdownHook(thread(start = false) { it.clearCache() })
+    }
 }
 
 private fun createOkHttpClient(): OkHttpClient {
@@ -449,7 +464,7 @@ private suspend fun createKomfSettingsRepository(database: KomeliaDatabase): Kom
 
 private suspend fun createReaderImageFactory(
     imagePreprocessingPipeline: ImageProcessingPipeline,
-    onnxRuntimeUpscaler: ManagedOnnxUpscaler?,
+    onnxRuntimeUpscaler: DesktopOnnxRuntimeUpscaler?,
     settings: ImageReaderSettingsRepository,
     imageDecoder: ImageDecoder,
     stateFlowScope: CoroutineScope,

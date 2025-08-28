@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
 
-group = "io.github.snd_r"
+group = "io.github.snd_r.komelia.image_decoder"
 version = "unspecified"
 
 kotlin {
@@ -23,8 +23,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":komelia-jni"))
-            api(project(":komelia-image-decoder:shared"))
+            api(projects.komeliaJni)
+            api(projects.komeliaImageDecoder.shared)
             implementation(libs.kotlinx.coroutines.core)
         }
 

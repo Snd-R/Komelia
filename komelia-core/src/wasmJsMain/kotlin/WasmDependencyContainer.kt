@@ -21,7 +21,7 @@ import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komelia.image.ImageDecoder
-import snd.komelia.image.OnnxRuntime
+import io.github.snd_r.komelia.image.KomeliaUpscaler
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -52,5 +52,5 @@ class WasmDependencyContainer(
 
     override val onnxRuntimeInstaller: OnnxRuntimeInstaller? = null
     override val mangaJaNaiDownloader: MangaJaNaiDownloader? = null
-    override val onnxRuntime: OnnxRuntime? = null
+    override val onnxRuntime: KomeliaUpscaler? = null
 }

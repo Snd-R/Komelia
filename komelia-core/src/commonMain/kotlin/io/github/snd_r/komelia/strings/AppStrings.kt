@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.strings
 
 import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.image.UpscaleMode
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
@@ -29,7 +30,6 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDispla
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType
-import snd.komelia.image.OnnxRuntimeUpscaleMode
 import snd.komelia.image.ReduceKernel
 import snd.komf.api.KomfCoreProviders
 import snd.komf.api.KomfProviders
@@ -207,8 +207,7 @@ data class BookEditStrings(
     val summary: String,
     val releaseDate: String,
     val isbn: String,
-) {
-}
+)
 
 data class LibraryEditStrings(
     val emptyTrashAfterScan: String,
@@ -663,11 +662,11 @@ data class ImageSettingsStrings(
         }
     }
 
-    fun forOnnxRuntimeUpscaleMode(mode: OnnxRuntimeUpscaleMode):String{
+    fun forOnnxRuntimeUpscaleMode(mode: UpscaleMode): String {
         return when (mode) {
-            OnnxRuntimeUpscaleMode.USER_SPECIFIED_MODEL -> onnxRuntimeUpscaleModeUserModel
-            OnnxRuntimeUpscaleMode.MANGAJANAI_PRESET -> onnxRuntimeUpscaleModeMangaJaNai
-            OnnxRuntimeUpscaleMode.NONE -> onnxRuntimeUpscaleModeNone
+            UpscaleMode.USER_SPECIFIED_MODEL -> onnxRuntimeUpscaleModeUserModel
+            UpscaleMode.MANGAJANAI_PRESET -> onnxRuntimeUpscaleModeMangaJaNai
+            UpscaleMode.NONE -> onnxRuntimeUpscaleModeNone
         }
     }
 }

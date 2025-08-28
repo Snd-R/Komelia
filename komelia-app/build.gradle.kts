@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
-group = "io.github.snd-r"
+group = "io.github.snd-r.komelia"
 version = libs.versions.app.version.get()
 
 kotlin {
@@ -42,32 +42,30 @@ kotlin {
         }
         browser()
         binaries.executable()
-//        compilerOptions{
-//            freeCompilerArgs.add("-Xwasm-use-new-exception-proposal")
-//        }
     }
 
     sourceSets {
         all { languageSettings.optIn("kotlin.ExperimentalUnsignedTypes") }
         commonMain.dependencies {
-            implementation(project(":komelia-core"))
-            implementation(project(":komelia-db:shared"))
-            implementation(project(":komelia-webview"))
+            implementation(projects.komeliaCore)
+            implementation(projects.komeliaDb.shared)
+            implementation(projects.komeliaWebview)
         }
 
         androidMain.dependencies {
-            implementation(project(":komelia-db:sqlite"))
+            implementation(projects.komeliaDb.sqlite)
             implementation(libs.filekit.core)
         }
         jvmMain.dependencies {
-            implementation(project(":komelia-db:sqlite"))
-            implementation(project(":komelia-image-decoder:vips"))
+            implementation(projects.komeliaDb.sqlite)
+            implementation(projects.komeliaImageDecoder.vips)
+            implementation(projects.komeliaOnnxruntime.jvm)
             implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
-            implementation(project(":komelia-image-decoder:wasm-image-worker"))
-            implementation(project(":komelia-db:wasm"))
+            implementation(projects.komeliaImageDecoder.wasmImageWorker)
+            implementation(projects.komeliaDb.wasm)
         }
     }
 }

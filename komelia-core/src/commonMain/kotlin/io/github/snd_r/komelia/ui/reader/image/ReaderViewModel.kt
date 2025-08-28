@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
-import snd.komelia.image.OnnxRuntime
+import io.github.snd_r.komelia.image.KomeliaUpscaler
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.readlist.KomgaReadListClient
@@ -52,7 +52,7 @@ class ReaderViewModel(
     readerImageFactory: ReaderImageFactory,
     markReadProgress: Boolean,
     currentBookId: MutableStateFlow<KomgaBookId?>,
-    onnxRuntime: OnnxRuntime?,
+    onnxRuntime: KomeliaUpscaler?,
     bookSiblingsContext: BookSiblingsContext,
     colorCorrectionRepository: BookColorCorrectionRepository,
     val colorCorrectionIsActive: Flow<Boolean>,
@@ -65,7 +65,7 @@ class ReaderViewModel(
 
     val onnxRuntimeSettingsState = onnxRuntime?.let {
         OnnxRuntimeSettingsState(
-            onnxRuntime = onnxRuntime,
+            upscaler = onnxRuntime,
             onnxRuntimeInstaller = null,
             mangaJaNaiDownloader = null,
             appNotifications = appNotifications,

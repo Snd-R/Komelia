@@ -21,7 +21,7 @@ import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.image.ImageDecoder
-import snd.komelia.image.OnnxRuntime
+import io.github.snd_r.komelia.image.KomeliaUpscaler
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -51,5 +51,5 @@ interface DependencyContainer {
 
     val onnxRuntimeInstaller: OnnxRuntimeInstaller?
     val mangaJaNaiDownloader: MangaJaNaiDownloader?
-    val onnxRuntime: OnnxRuntime?
+    val onnxRuntime: KomeliaUpscaler?
 }

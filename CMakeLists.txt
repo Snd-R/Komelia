@@ -72,13 +72,6 @@ if (KOMELIA_SUPERBUILD)
             SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-image-decoder/vips/native
             CMAKE_ARGS
             ${EP_CMAKE_ARGS}
-            -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
-            -DROCM_CUSTOM_PATH=${ROCM_CUSTOM_PATH}
-            -DSKIA_CUSTOM_PATH=${SKIA_CUSTOM_PATH}
-            -DONNXRUNTIME_PATH=${THIRD_PARTY_LIB_PATH}
-            -DCUDA_GPU_ENUMERATION=${CUDA_GPU_ENUMERATION}
-            -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
-            -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
             USES_TERMINAL_BUILD true
     )
 
@@ -93,6 +86,23 @@ if (KOMELIA_SUPERBUILD)
                 -DWEBVIEW_USE_COMPAT_MINGW=${WEBVIEW_USE_COMPAT_MINGW}
                 USES_TERMINAL_BUILD true
         )
+        ExternalProject_Add(ep_komelia_onnxruntime
+                DOWNLOAD_COMMAND ""
+                UPDATE_COMMAND ""
+                DEPENDS ep_komelia_vips
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-onnxruntime/native
+                CMAKE_ARGS
+                ${EP_CMAKE_ARGS}
+                -DKOMELIA_VIPS_EXTERNAL=${KOMELIA_VIPS_EXTERNAL}
+                -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
+                -DROCM_CUSTOM_PATH=${ROCM_CUSTOM_PATH}
+                -DSKIA_CUSTOM_PATH=${SKIA_CUSTOM_PATH}
+                -DONNXRUNTIME_PATH=${THIRD_PARTY_LIB_PATH}
+                -DCUDA_GPU_ENUMERATION=${CUDA_GPU_ENUMERATION}
+                -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
+                -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
+                USES_TERMINAL_BUILD true
+        )
     endif ()
 
 else ()
@@ -101,5 +111,6 @@ else ()
 
     if (NOT ANDROID)
         add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-webview/native)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-onnxruntime/native)
     endif ()
 endif ()

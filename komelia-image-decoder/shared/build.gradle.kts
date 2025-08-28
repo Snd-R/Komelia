@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
 
-group = "io.github.snd_r"
+group = "io.github.snd_r.komelia.image_decoder"
 version = "unspecified"
 
 kotlin {
@@ -35,7 +35,7 @@ kotlin {
     }
 }
 android {
-    namespace = "io.github.snd_r.image_decoder.shared"
+    namespace = "io.github.snd_r.komelia.image_decoder.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

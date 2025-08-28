@@ -13,7 +13,7 @@ import snd.komelia.db.ExposedRepository
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.defaultBookId
 import snd.komelia.db.tables.ImageReaderSettingsTable
-import snd.komelia.image.OnnxRuntimeUpscaleMode
+import io.github.snd_r.komelia.image.UpscaleMode
 import snd.komelia.image.ReduceKernel
 
 class ExposedImageReaderSettingsRepository(database: Database) : ExposedRepository(database) {
@@ -43,10 +43,10 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         upsamplingMode = UpsamplingMode.valueOf(it[ImageReaderSettingsTable.upsamplingMode]),
                         loadThumbnailPreviews = it[ImageReaderSettingsTable.loadThumbnailPreviews],
                         volumeKeysNavigation = it[ImageReaderSettingsTable.volumeKeysNavigation],
-                        onnxRuntimeMode = OnnxRuntimeUpscaleMode.valueOf(it[ImageReaderSettingsTable.onnxRuntimeMode]),
-                        onnxRuntimeModelPath = it[ImageReaderSettingsTable.onnxRuntimeModelPath],
-                        onnxRuntimeDeviceId = it[ImageReaderSettingsTable.onnxRuntimeDeviceId],
-                        onnxRuntimeTileSize = it[ImageReaderSettingsTable.onnxRuntimeTileSize],
+                        ortUpscalerMode = UpscaleMode.valueOf(it[ImageReaderSettingsTable.ortUpscalerMode]),
+                        ortUpscalerUserModelPath = it[ImageReaderSettingsTable.ortUpscalerUserModelPath],
+                        ortUpscalerDeviceId = it[ImageReaderSettingsTable.ortDeviceId],
+                        ortUpscalerTileSize = it[ImageReaderSettingsTable.ortUpscalerTileSize],
                     )
                 }
         }
@@ -74,10 +74,10 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[loadThumbnailPreviews] = settings.loadThumbnailPreviews
                 it[volumeKeysNavigation] = settings.volumeKeysNavigation
                 it[upsamplingMode] = settings.upsamplingMode.name
-                it[onnxRuntimeMode] = settings.onnxRuntimeMode.name
-                it[onnxRuntimeModelPath] = settings.onnxRuntimeModelPath
-                it[onnxRuntimeDeviceId] = settings.onnxRuntimeDeviceId
-                it[onnxRuntimeTileSize] = settings.onnxRuntimeTileSize
+                it[ortUpscalerMode] = settings.ortUpscalerMode.name
+                it[ortUpscalerUserModelPath] = settings.ortUpscalerUserModelPath
+                it[ortDeviceId] = settings.ortUpscalerDeviceId
+                it[ortUpscalerTileSize] = settings.ortUpscalerTileSize
             }
         }
     }

@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.settings.imagereader
 
-import snd.komelia.image.OnnxRuntimeExecutionProvider
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
+
 
 actual fun isOnnxRuntimeSupported() = false
 actual fun supportedOnnxRuntimeExecutionProviders(): List<OnnxRuntimeExecutionProvider> {

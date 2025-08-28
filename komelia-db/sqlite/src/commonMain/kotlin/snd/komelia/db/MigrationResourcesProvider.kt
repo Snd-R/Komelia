@@ -1,6 +1,6 @@
 package snd.komelia.db
 
-import io.github.snd_r.sqlite.generated.resources.Res
+import io.github.snd_r.komelia.db.sqlite.sqlite.generated.resources.Res
 import kotlinx.coroutines.runBlocking
 import org.flywaydb.core.api.ClassProvider
 import org.flywaydb.core.api.ResourceProvider

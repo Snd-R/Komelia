@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
-group = "io.github.snd-r"
+group = "io.github.snd-r.komelia.webview"
 version = "unspecified"
 
 kotlin {
@@ -42,12 +42,12 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(compose.desktop.common)
-            api(project(":komelia-jni"))
+            api(projects.komeliaJni)
         }
     }
 }
 android {
-    namespace = "io.github.snd_r.webview"
+    namespace = "io.github.snd_r.komelia.webview"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

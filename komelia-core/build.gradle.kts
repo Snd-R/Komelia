@@ -17,7 +17,7 @@ plugins {
     alias(libs.plugins.protobuf)
 }
 
-group = "io.github.snd-r"
+group = "io.github.snd-r.komelia.core"
 version = "0.9.0"
 
 kotlin {
@@ -80,10 +80,11 @@ kotlin {
             api(libs.voyager.navigator)
             api(libs.voyager.transition)
 
-            api(project(":third_party:ChipTextField:chiptextfield-m3"))
-            api(project(":third_party:compose-sonner:sonner"))
-            implementation(project(":komelia-webview"))
-            implementation(project(":komelia-image-decoder:shared"))
+            api(projects.thirdParty.chipTextField.chiptextfieldM3)
+            api(projects.thirdParty.composeSonner.sonner)
+            implementation(projects.komeliaWebview)
+            implementation(projects.komeliaImageDecoder.shared)
+            api(projects.komeliaOnnxruntime.api)
         }
 
         androidMain.dependencies {
@@ -99,7 +100,7 @@ kotlin {
             api(libs.protobuf.javalite)
             api(libs.protobuf.kotlin.lite)
             api(libs.slf4j.api)
-            api(project(":komelia-image-decoder:vips"))
+            api(projects.komeliaImageDecoder.vips)
         }
 
         jvmMain.dependencies {
@@ -107,7 +108,6 @@ kotlin {
             api(compose.desktop.currentOs)
 
             api(libs.kotlinx.coroutines.swing)
-
             api(libs.commons.compress)
             api(libs.directories)
             api(libs.java.keyring)
@@ -118,13 +118,14 @@ kotlin {
             api(libs.okhttp.logging.interceptor)
             api(libs.secret.service)
             api(libs.slf4j.api)
-            api(project(":komelia-image-decoder:vips"))
+            api(projects.komeliaImageDecoder.vips)
+            api(projects.komeliaOnnxruntime.jvm)
             api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
         }
 
         wasmJsMain.dependencies {
             api(libs.ktor.client.js)
-            implementation(project(":komelia-image-decoder:wasm-image-worker"))
+            implementation(projects.komeliaImageDecoder.wasmImageWorker)
         }
     }
 
@@ -138,7 +139,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.snd_r.core"
+    namespace = "io.github.snd_r.komelia.core"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     sourceSets["main"].proto {
