@@ -1,15 +1,18 @@
 package io.github.snd_r.komelia.updates
 
-import io.github.snd_r.komelia.AppDirectories.mangaJaNaiInstallPath
 import io.github.snd_r.komelia.AppNotifications
-import io.ktor.client.statement.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.channels.BufferOverflow
+import io.github.snd_r.komelia.updates.OnnxModelDownloader.CompletionEvent
+import io.github.snd_r.komelia.updates.OnnxModelDownloader.CompletionEvent.PanelModelDownloaded
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.utils.io.counted
+import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.io.readByteArray
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
@@ -20,44 +23,43 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.inputStream
-import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 
-private const val downloadLink = "https://github.com/Snd-R/mangajanai/releases/download/1.0.0/MangaJaNaiOnnxModels.zip"
+private const val panelDetectionModelLink =
+    "https://github.com/Snd-R/komelia-onnxruntime/releases/download/model/rf-detr-nano.onnx.zip"
 
-class DesktopMangaJaNaiDownloader(
+class AndroidOnnxModelDownloader(
     private val updateClient: UpdateClient,
-    private val appNotifications: AppNotifications
-) : MangaJaNaiDownloader {
-    override val downloadCompletionEventFlow = MutableSharedFlow<Unit>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    ).also { it.tryEmit(Unit) }
+    private val appNotifications: AppNotifications,
+    private val dataDir: Path,
+) : OnnxModelDownloader {
+    override val downloadCompletionEvents = MutableSharedFlow<CompletionEvent>()
 
-    override fun download(): Flow<UpdateProgress> {
+    override fun mangaJaNaiDownload(): Flow<UpdateProgress> {
+        return emptyFlow()
+    }
+
+    override fun panelDownload(): Flow<UpdateProgress> {
         return flow {
-            if (mangaJaNaiInstallPath.notExists()) {
-                mangaJaNaiInstallPath.createDirectories()
-            }
 
-            emit(UpdateProgress(0, 0, "MangaJaNaiOnnxModels.zip"))
-            val archiveFile = createTempFile("MangaJaNaiOnnxModels.zip")
+            emit(UpdateProgress(0, 0, panelDetectionModelLink))
+            val archiveFile = createTempFile("rf-detr-nano.onnx.zip")
             archiveFile.toFile().deleteOnExit()
 
             appNotifications.runCatchingToNotifications {
-                downloadFile(archiveFile)
+                downloadFile(panelDetectionModelLink, archiveFile)
                 emit(UpdateProgress(0, 0))
-                extractZipArchive(archiveFile)
+                extractZipArchive(archiveFile, dataDir)
                 archiveFile.deleteIfExists()
-                downloadCompletionEventFlow.emit(Unit)
+                downloadCompletionEvents.emit(PanelModelDownloaded)
             }.onFailure { archiveFile.deleteIfExists() }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
-    private suspend fun FlowCollector<UpdateProgress>.downloadFile(file: Path) {
-        updateClient.streamFile(downloadLink) { response ->
+    private suspend fun FlowCollector<UpdateProgress>.downloadFile(url: String, file: Path) {
+        updateClient.streamFile(url) { response ->
             val length = response.headers["Content-Length"]?.toLong() ?: 0L
-            emit(UpdateProgress(length, 0, "MangaJaNaiOnnxModels.zip"))
+            emit(UpdateProgress(length, 0, url))
             val channel = response.bodyAsChannel().counted()
 
             file.outputStream().buffered().use { outputStream ->
@@ -68,18 +70,18 @@ class DesktopMangaJaNaiDownloader(
                         outputStream.write(bytes)
                     }
                     outputStream.flush()
-                    emit(UpdateProgress(length, channel.totalBytesRead, "MangaJaNaiOnnxModels.zip"))
+                    emit(UpdateProgress(length, channel.totalBytesRead, url))
                 }
             }
         }
     }
 
-    private fun extractZipArchive(path: Path) {
-        ZipArchiveInputStream(path.inputStream().buffered()).use { archiveStream ->
+    private fun extractZipArchive(from: Path, to: Path) {
+        ZipArchiveInputStream(from.inputStream().buffered()).use { archiveStream ->
             var entry: ZipArchiveEntry? = archiveStream.nextEntry
             while (entry != null) {
                 val filename = Path(entry.name).fileName.toString()
-                mangaJaNaiInstallPath.resolve(filename).outputStream()
+                to.resolve(filename).outputStream()
                     .use { output -> IOUtils.copy(archiveStream, output) }
                 entry = archiveStream.nextEntry
             }

@@ -1,6 +1,7 @@
 package snd.komelia
 
 import android.app.Activity
+import android.companion.DeviceId
 import android.content.Context
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
@@ -11,11 +12,14 @@ import coil3.disk.DiskCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AndroidDependencyContainer
+import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.fonts.fontsDirectory
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
+import io.github.snd_r.komelia.image.AndroidPanelDetector
 import io.github.snd_r.komelia.image.AndroidReaderImageFactory
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.KomeliaPanelDetector
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.coil.CoilDecoder
@@ -38,20 +42,22 @@ import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.updates.AndroidAppUpdater
+import io.github.snd_r.komelia.updates.AndroidOnnxModelDownloader
 import io.github.snd_r.komelia.updates.UpdateClient
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.cookies.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.io.files.Path
-import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -74,12 +80,18 @@ import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
-import snd.komelia.image.AndroidSharedLibrariesLoader
+import snd.komelia.image.VipsSharedLibrariesLoader
 import snd.komelia.image.ImageDecoder
 import snd.komelia.image.VipsImageDecoder
+import snd.komelia.onnxruntime.JvmOnnxRuntime
+import snd.komelia.onnxruntime.JvmOnnxRuntimeRfDetr
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
+import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteIfExists
 import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
@@ -91,11 +103,17 @@ suspend fun initDependencies(
 ): AndroidDependencyContainer {
     measureTime {
         try {
-            AndroidSharedLibrariesLoader.load()
+            VipsSharedLibrariesLoader.load()
         } catch (e: UnsatisfiedLinkError) {
             logger.error(e) { "Couldn't load vips shared libraries. reader image loading will not work" }
         }
     }.also { logger.info { "completed vips libraries load in $it" } }
+
+    try {
+        OnnxRuntimeSharedLibraries.load()
+    } catch (e: UnsatisfiedLinkError) {
+        logger.error(e) { "Failed to load onnxruntime " }
+    }
 
     fontsDirectory = Path(context.filesDir.resolve("fonts").absolutePath)
 
@@ -173,7 +191,17 @@ suspend fun initDependencies(
         .ktor(ktorWithCache)
         .build()
 
-    val appUpdater = createAppUpdater(ktorWithCache, ktorWithoutCache, context)
+    val updateClient = UpdateClient(
+        ktor = ktorWithCache,
+        ktorWithoutCache = ktorWithoutCache
+    )
+    val appNotifications = AppNotifications()
+    val onnxRuntimeDependencies = createOnnxRuntime(
+        context = context,
+        updateClient = updateClient,
+        appNotifications = appNotifications
+    )
+    val appUpdater = AndroidAppUpdater(updateClient, context)
     return AndroidDependencyContainer(
         settingsRepository = settingsRepository,
         epubReaderSettingsRepository = epubReaderSettingsRepository,
@@ -185,6 +213,7 @@ suspend fun initDependencies(
         secretsRepository = secretsRepository,
         komfSettingsRepository = komfSettingsRepository,
 
+        appNotifications = appNotifications,
         appUpdater = appUpdater,
         komgaClientFactory = komgaClientFactory,
         coilImageLoader = coil,
@@ -195,6 +224,9 @@ suspend fun initDependencies(
         imageDecoder = vipsDecoder,
         colorCorrectionStep = colorCorrectionStep,
         readerImageFactory = readerImageFactory,
+        onnxRuntime = onnxRuntimeDependencies?.onnxRuntime,
+        panelDetector = onnxRuntimeDependencies?.panelDetector,
+        onnxModelDownloader = onnxRuntimeDependencies?.onnxModelDownloader
     )
 }
 
@@ -289,22 +321,6 @@ private fun createCoil(
         .build()
 }
 
-private fun createAppUpdater(
-    ktor: HttpClient,
-    ktorWithoutCache: HttpClient,
-    context: Context
-): AndroidAppUpdater {
-    val githubClient = UpdateClient(
-        ktor = ktor.config {
-            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-        },
-        ktorWithoutCache = ktorWithoutCache.config {
-            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-        },
-    )
-    return AndroidAppUpdater(githubClient, context)
-}
-
 private fun createImagePipeline(
     cropBorders: StateFlow<Boolean>,
     colorCorrectionStep: ColorCorrectionStep,
@@ -365,5 +381,45 @@ private suspend fun createReaderImageFactory(
         linearLightDownSampling = settings.getLinearLightDownsampling().stateIn(stateFlowScope),
         processingPipeline = imagePreprocessingPipeline,
         stretchImages = settings.getStretchToFit().stateIn(stateFlowScope),
+    )
+}
+
+private data class OnnxruntimeDependencies(
+    val onnxRuntime: JvmOnnxRuntime,
+    val panelDetector: KomeliaPanelDetector,
+    val onnxModelDownloader: AndroidOnnxModelDownloader,
+)
+
+private fun createOnnxRuntime(
+    context: Context,
+    updateClient: UpdateClient,
+    appNotifications: AppNotifications
+): OnnxruntimeDependencies? {
+    if (!OnnxRuntimeSharedLibraries.isAvailable) return null
+
+    val dataDir = context.dataDir.resolve("onnxruntime").toPath().createDirectories()
+    val onnxRuntime = JvmOnnxRuntime.create(dataDir.toString())
+    val onnxDir = context.filesDir.resolve("onnx").toPath().createDirectories()
+    val rfDetr = JvmOnnxRuntimeRfDetr.create(onnxRuntime)
+
+    val onnxModelDownloader = AndroidOnnxModelDownloader(
+        updateClient = updateClient,
+        appNotifications = appNotifications,
+        dataDir = onnxDir
+    )
+
+    onnxDir.resolve("rf-detr-nano.onnx").deleteIfExists()
+    val panelDetector = AndroidPanelDetector(
+        rfDetr = rfDetr,
+        executionProvider = OnnxRuntimeExecutionProvider.CPU,
+        deviceId = MutableStateFlow(0),
+        updateFlow = onnxModelDownloader.downloadCompletionEvents.filterIsInstance(),
+        dataDir = onnxDir,
+    ).also { it.initialize() }
+
+    return OnnxruntimeDependencies(
+        onnxRuntime = onnxRuntime,
+        panelDetector = panelDetector,
+        onnxModelDownloader = onnxModelDownloader
     )
 }

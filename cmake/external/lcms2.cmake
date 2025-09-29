@@ -2,7 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_lcms2
         GIT_REPOSITORY https://github.com/mm2/Little-CMS
-        GIT_TAG lcms2.16
+        GIT_TAG lcms2.17
         GIT_SHALLOW 1
         GIT_PROGRESS 1
         DEPENDS ep_zlib

@@ -2,7 +2,7 @@
 #include <hip/hip_runtime.h>
 
 JNIEXPORT jobject JNICALL
-Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDevices(JNIEnv *env, jobject this) {
+Java_snd_komelia_onnxruntime_JvmOnnxRuntime_enumerateDevices(JNIEnv *env, jobject this) {
   int nDevices;
   hipError_t status = hipGetDeviceCount(&nDevices);
   if (status != hipSuccess) {

@@ -9,6 +9,7 @@ import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.ROCm
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.WEBGPU
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -22,12 +23,11 @@ import kotlin.io.path.notExists
 
 object OnnxRuntimeSharedLibraries {
     private val logger = KotlinLogging.logger { }
-    private val ortSearchPath = System.getProperty("ort.search.path")
-        ?: Path(ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia").dataDir)
-            .resolve("onnxruntime").createDirectories()
-            .toString()
+
+    private val dataDir = Path(ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia").dataDir)
+        .resolve("onnxruntime").createDirectories()
+    private val ortSearchPath = System.getProperty("ort.search.path") ?: dataDir.toString()
     private val initialized = AtomicBoolean(false)
-    private const val windowsLibGomp = "libgomp-1"
 
     var loadErrorMessage: String? = null
         private set
@@ -36,29 +36,25 @@ object OnnxRuntimeSharedLibraries {
         private set
     var executionProvider = CPU
         private set
-    var availableDevices: List<DeviceInfo> = emptyList()
-        private set
 
     @Synchronized
     @Suppress("UnsafeDynamicallyLoadedCode")
     fun load() {
         if (!initialized.compareAndSet(false, true)) return
-
         try {
             if (DesktopPlatform.Current == DesktopPlatform.Windows) {
-                SharedLibrariesLoader.loadLibrary(windowsLibGomp)
+                SharedLibrariesLoader.loadLibrary("libgomp-1")
             }
             logger.info { "searching for ONNX Runtime libraries in $ortSearchPath" }
-
-            val executionProvider = loadOrtLibraries()
-            this.executionProvider = executionProvider
+            this.executionProvider = loadOrtLibraries()
             loadKomeliaJniLibs()
 
             isAvailable = true
+
         } catch (e: UnsatisfiedLinkError) {
             loadErrorMessage = e.message
             throw e
-        } catch (e: OnnxRuntimeException) {
+        } catch (e: RuntimeException) {
             loadErrorMessage = e.message
             throw e
         }
@@ -71,11 +67,12 @@ object OnnxRuntimeSharedLibraries {
         val cudaEp: Path?,
         val trtEp: Path?,
         val rocmEp: Path?,
+        val rocmHipBlas: Path?,
     )
 
     private fun loadOrtLibraries(): OnnxRuntimeExecutionProvider {
         val ortLibraries = getAvailableOrtLibraries()
-        ortLibraries.onnxruntime.let { loadOrtLibrary(it) }
+        loadOrtLibrary(ortLibraries.onnxruntime)
         ortLibraries.directMl?.let { loadOrtLibrary(it) }
 
         // copy to temp dir on windows to allow overriding original dlls during runtime
@@ -86,13 +83,20 @@ object OnnxRuntimeSharedLibraries {
             ortLibraries.rocmEp?.let { copyToTempDir(it) }
         }
 
-        return when {
+        val provider = when {
             ortLibraries.trtEp != null && ortLibraries.cudaEp != null -> TENSOR_RT
             ortLibraries.cudaEp != null -> CUDA
             ortLibraries.rocmEp != null -> ROCm
             ortLibraries.directMl != null -> DirectML
-            else -> CPU
+            else -> WEBGPU
         }
+
+        if (DesktopPlatform.Current == DesktopPlatform.Linux && provider == ROCm) {
+            val rocmHipBlas = ortLibraries.rocmHipBlas
+            check(rocmHipBlas != null) { "rocm libhipblas not found" }
+            loadOrtLibrary(rocmHipBlas)
+        }
+        return provider
     }
 
     private fun getAvailableOrtLibraries(): OrtLibraries {
@@ -102,6 +106,7 @@ object OnnxRuntimeSharedLibraries {
         var cudaEp: Path? = null
         var trtEp: Path? = null
         var rocmEp: Path? = null
+        var rocmHipBlas: Path? = null
         Path.of(ortSearchPath).createDirectories().listDirectoryEntries().forEach { entry ->
             when (entry.fileName.toString()) {
                 "libonnxruntime.so",
@@ -120,10 +125,11 @@ object OnnxRuntimeSharedLibraries {
                     trtEp = entry
 
                 "DirectML.dll" -> directML = entry
+                "libhipblas-7909492e.so.3.0.70000" -> rocmHipBlas = entry
             }
         }
-        check(onnxruntime != null)
-        check(sharedEp != null)
+        check(onnxruntime != null) { "onnxruntime library not found" }
+        check(sharedEp != null) { "onnxruntime shared ep library not found" }
 
         return OrtLibraries(
             onnxruntime = onnxruntime,
@@ -132,6 +138,7 @@ object OnnxRuntimeSharedLibraries {
             cudaEp = cudaEp,
             trtEp = trtEp,
             rocmEp = rocmEp,
+            rocmHipBlas = rocmHipBlas
         )
     }
 
@@ -143,6 +150,7 @@ object OnnxRuntimeSharedLibraries {
                     CUDA, TENSOR_RT ->
                         SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_cuda")
 
+                    WEBGPU -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_vulkan")
                     ROCm -> SharedLibrariesLoader.loadLibrary("komelia_enumerate_devices_rocm")
                     else -> {}
                 }
@@ -179,7 +187,7 @@ object OnnxRuntimeSharedLibraries {
                 path
             }
         System.load(loadFile.toString())
-        logger.info("loaded $loadFile")
+        logger.info { "loaded $loadFile" }
     }
 
     private fun copyToTempDir(path: Path): Path {

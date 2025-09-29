@@ -5,10 +5,14 @@
 
 JNIEXPORT jobject JNICALL Java_snd_komelia_onnxruntime_JvmOnnxRuntime_create(
     JNIEnv *env,
-    jobject this
+    jobject this,
+    jstring data_dir
 ) {
     GError *error = nullptr;
-    KomeliaOrt *ort = komelia_ort_create(&error);
+    const char *data_dir_chars = (*env)->GetStringUTFChars(env, data_dir, nullptr);
+    KomeliaOrt *ort = komelia_ort_create(data_dir_chars, &error);
+    (*env)->ReleaseStringUTFChars(env, data_dir, data_dir_chars);
+
     if (error != nullptr) {
         throw_jvm_ort_exception(env, error->message);
         g_error_free(error);

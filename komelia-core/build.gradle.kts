@@ -93,6 +93,7 @@ kotlin {
             api(libs.androidx.core.ktx)
             api(libs.androidx.window)
             api(libs.androidx.datastore)
+            api(libs.commons.compress)
             api(libs.ktor.client.okhttp)
             api(libs.logback.android)
             api(libs.okhttp)
@@ -101,6 +102,7 @@ kotlin {
             api(libs.protobuf.kotlin.lite)
             api(libs.slf4j.api)
             api(projects.komeliaImageDecoder.vips)
+            api(projects.komeliaOnnxruntime.jvm)
         }
 
         jvmMain.dependencies {
@@ -120,7 +122,7 @@ kotlin {
             api(libs.slf4j.api)
             api(projects.komeliaImageDecoder.vips)
             api(projects.komeliaOnnxruntime.jvm)
-            api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
+            api(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.7.0.jar"))
         }
 
         wasmJsMain.dependencies {

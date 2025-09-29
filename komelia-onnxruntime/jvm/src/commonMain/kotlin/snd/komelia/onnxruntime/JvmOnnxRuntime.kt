@@ -11,7 +11,7 @@ class JvmOnnxRuntime private constructor(
 
     companion object {
         @JvmStatic
-        external fun create(): JvmOnnxRuntime
+        external fun create(dataDir: String): JvmOnnxRuntime
 
         @JvmStatic
         private external fun destroy(ptr: NativePointer)

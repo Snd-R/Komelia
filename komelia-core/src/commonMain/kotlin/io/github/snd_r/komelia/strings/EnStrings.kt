@@ -148,6 +148,7 @@ val EnStrings = AppStrings(
         zoom = "Zoom",
         readerType = "Reader type",
         readerPaged = "Paged",
+        readerPanels = "Panels",
         readerContinuous = "Continuous",
         stretchToFit = "Stretch small images",
         decoder = "Image Decoder/Sampler",

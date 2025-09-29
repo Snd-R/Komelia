@@ -4,7 +4,14 @@
 #include <onnxruntime_c_api.h>
 #include <vips/vips.h>
 
-typedef enum { TENSOR_RT = 0, CUDA = 1, ROCm = 2, DML = 3, CPU = 4 } KomeliaOrtExecutionProvider;
+typedef enum {
+    TENSOR_RT = 0,
+    CUDA = 1,
+    ROCm = 2,
+    DML = 3,
+    CPU = 4,
+    WEBGPU = 5
+} KomeliaOrtExecutionProvider;
 
 typedef struct {
     int x;
@@ -46,6 +53,7 @@ typedef struct {
     const OrtApi *ort_api;
     OrtEnv *ort_env;
     OrtAllocator *ort_allocator;
+    char *data_dir;
 } KomeliaOrt;
 
 static void wrap_ort_error(
@@ -54,7 +62,12 @@ static void wrap_ort_error(
     const KomeliaOrtError komelia_error,
     GError **error
 ) {
-    g_set_error(error, KOMELIA_ORT_ERROR, komelia_error, ort_api->GetErrorMessage(ort_status));
+    g_set_error_literal(
+        error,
+        KOMELIA_ORT_ERROR,
+        komelia_error,
+        ort_api->GetErrorMessage(ort_status)
+    );
     ort_api->ReleaseStatus(ort_status);
 }
 
@@ -64,7 +77,11 @@ min(const int a,
     return a < b ? a : b;
 }
 
-KomeliaOrt *komelia_ort_create(GError **error);
+KomeliaOrt *komelia_ort_create(
+    const char *data_dir,
+    GError **error
+);
+
 void komelia_ort_destroy(KomeliaOrt *komelia_ort);
 
 SessionData *komelia_ort_create_session(

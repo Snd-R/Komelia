@@ -384,6 +384,7 @@ data class BookState(
 
 enum class ReaderType {
     PAGED,
+    PANELS,
     CONTINUOUS
 }
 

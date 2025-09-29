@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.settings.imagereader
+package io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime
 
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 
@@ -10,3 +10,4 @@ actual fun supportedOnnxRuntimeExecutionProviders(): List<OnnxRuntimeExecutionPr
 
 actual fun isOnnxRuntimeInstalled() = false
 actual fun onnxRuntimeLoadError(): String? = null
+actual val ortExecutionProvider: OnnxRuntimeExecutionProvider? = OnnxRuntimeExecutionProvider.CPU

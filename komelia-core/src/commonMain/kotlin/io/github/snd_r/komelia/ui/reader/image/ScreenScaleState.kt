@@ -4,6 +4,8 @@ import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateDecay
+import androidx.compose.animation.core.animateTo
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.Orientation.Horizontal
 import androidx.compose.foundation.gestures.Orientation.Vertical
@@ -15,13 +17,16 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.toSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.concurrent.Volatile
 import kotlin.math.max
 import kotlin.math.min
 
@@ -47,19 +52,28 @@ class ScreenScaleState {
 
     val transformation = MutableStateFlow(Transformation(offset = Offset.Zero, scale = 1f))
 
+    @Volatile
+    var composeScope: CoroutineScope? = null
+
+    @Volatile
+    private var scrollJob: Job? = null
+
+    @Volatile
+    private var enableOverscrollArea = false
+
     fun scaleFor100PercentZoom() =
         max(
             areaSize.value.width.toFloat() / targetSize.value.width,
             areaSize.value.height.toFloat() / targetSize.value.height
         )
 
-    private fun scaleForFullVisibility() =
+    fun scaleForFullVisibility() =
         min(
             areaSize.value.width.toFloat() / targetSize.value.width,
             areaSize.value.height.toFloat() / targetSize.value.height
         )
 
-    private fun zoomToScale(zoom: Float) = zoom * scaleFor100PercentZoom()
+    fun zoomToScale(zoom: Float) = zoom * scaleFor100PercentZoom()
 
     private fun limitTargetInsideArea(areaSize: IntSize, targetSize: Size, zoom: Float?) {
         this.areaSize.value = areaSize
@@ -75,6 +89,9 @@ class ScreenScaleState {
 
     fun setAreaSize(areaSize: IntSize) {
         this.areaSize.value = areaSize
+        if (targetSize.value == Size(1f, 1f)) {
+            setTargetSize(areaSize.toSize())
+        }
     }
 
     fun setTargetSize(targetSize: Size, zoom: Float? = null) {
@@ -93,7 +110,6 @@ class ScreenScaleState {
             currentOffset.y.coerceIn(offsetYLimits.value),
         )
 
-
         val newTransform = Transformation(offset = currentOffset, scale = zoomToScale(zoom.value))
         transformation.value = newTransform
     }
@@ -102,7 +118,28 @@ class ScreenScaleState {
         val areaCenter = areaSize / 2
         val targetCenter = targetSize / 2
         val extra = (targetCenter - areaCenter).coerceAtLeast(0f)
-        return -extra..extra
+        val overscroll = if (enableOverscrollArea) areaCenter else 0f
+        return -extra - overscroll..extra + overscroll
+    }
+
+    fun scrollTo(offset: Offset) {
+        val coroutineScope = composeScope
+        check(coroutineScope != null)
+        scrollJob?.cancel()
+        scrollJob = coroutineScope.launch {
+            logger.info { "current offset $currentOffset" }
+            AnimationState(
+                typeConverter = Offset.VectorConverter,
+                initialValue = currentOffset,
+            ).animateTo(
+                targetValue = offset,
+                animationSpec = tween(durationMillis = 1000)
+            ) {
+                currentOffset = value
+                applyLimits()
+            }
+            logger.info { "scrolled to offset $currentOffset" }
+        }
     }
 
     suspend fun performFling(spec: DecayAnimationSpec<Offset>) {
@@ -212,7 +249,18 @@ class ScreenScaleState {
         applyLimits()
     }
 
+    fun setOffset(offset: Offset) {
+        currentOffset = offset
+        applyLimits()
+    }
+
+    fun enableOverscrollArea(enable: Boolean) {
+        this.enableOverscrollArea = enable
+        applyLimits()
+    }
+
     fun apply(other: ScreenScaleState) {
+        scrollJob?.cancel()
         currentOffset = other.currentOffset
 
         if (other.targetSize.value != this.targetSize.value || other.zoom.value != this.zoom.value) {

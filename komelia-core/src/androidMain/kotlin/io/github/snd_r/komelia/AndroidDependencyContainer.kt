@@ -7,6 +7,8 @@ import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
 import io.github.snd_r.komelia.color.repository.ColorLevelsPresetRepository
 import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.KomeliaPanelDetector
+import io.github.snd_r.komelia.image.KomeliaUpscaler
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.platform.AppWindowState
@@ -17,11 +19,11 @@ import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.EnStrings
 import io.github.snd_r.komelia.updates.AppUpdater
-import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
+import io.github.snd_r.komelia.updates.OnnxModelDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komelia.image.ImageDecoder
-import snd.komelia.image.OnnxRuntime
+import snd.komelia.onnxruntime.OnnxRuntime
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -38,6 +40,7 @@ class AndroidDependencyContainer(
 
     override val komgaClientFactory: KomgaClientFactory,
     override val komfClientFactory: KomfClientFactory,
+    override val appNotifications: AppNotifications,
     override val appUpdater: AppUpdater?,
     override val imageDecoder: ImageDecoder,
     override val coilImageLoader: ImageLoader,
@@ -46,11 +49,12 @@ class AndroidDependencyContainer(
     override val platformContext: PlatformContext,
     override val windowState: AppWindowState,
     override val colorCorrectionStep: ColorCorrectionStep,
+    override val onnxRuntime: OnnxRuntime?,
+    override val panelDetector: KomeliaPanelDetector?,
+    override val onnxModelDownloader: OnnxModelDownloader?,
 ) : DependencyContainer {
-    override val appNotifications = AppNotifications()
     override val appStrings = MutableStateFlow(EnStrings)
 
     override val onnxRuntimeInstaller: OnnxRuntimeInstaller? = null
-    override val mangaJaNaiDownloader: MangaJaNaiDownloader? = null
-    override val onnxRuntime: OnnxRuntime? = null
+    override val upscaler: KomeliaUpscaler? = null
 }

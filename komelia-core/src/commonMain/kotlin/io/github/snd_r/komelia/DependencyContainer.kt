@@ -7,6 +7,8 @@ import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
 import io.github.snd_r.komelia.color.repository.ColorLevelsPresetRepository
 import io.github.snd_r.komelia.fonts.UserFontsRepository
 import io.github.snd_r.komelia.image.BookImageLoader
+import io.github.snd_r.komelia.image.KomeliaPanelDetector
+import io.github.snd_r.komelia.image.KomeliaUpscaler
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.processing.ColorCorrectionStep
 import io.github.snd_r.komelia.platform.AppWindowState
@@ -17,11 +19,11 @@ import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.updates.AppUpdater
-import io.github.snd_r.komelia.updates.MangaJaNaiDownloader
+import io.github.snd_r.komelia.updates.OnnxModelDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.image.ImageDecoder
-import io.github.snd_r.komelia.image.KomeliaUpscaler
+import snd.komelia.onnxruntime.OnnxRuntime
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 
@@ -50,6 +52,8 @@ interface DependencyContainer {
     val colorCorrectionStep: ColorCorrectionStep
 
     val onnxRuntimeInstaller: OnnxRuntimeInstaller?
-    val mangaJaNaiDownloader: MangaJaNaiDownloader?
-    val onnxRuntime: KomeliaUpscaler?
+    val onnxModelDownloader: OnnxModelDownloader?
+    val onnxRuntime: OnnxRuntime?
+    val upscaler: KomeliaUpscaler?
+    val panelDetector: KomeliaPanelDetector?
 }

@@ -66,7 +66,12 @@ static KomeliaOrtInputTensor *create_tensor(
         // g_object_unref(transformed);
 
         if (vips_error) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -80,7 +85,12 @@ static KomeliaOrtInputTensor *create_tensor(
         g_object_unref(transformed);
 
         if (vips_error) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -89,6 +99,9 @@ static KomeliaOrtInputTensor *create_tensor(
 
     if (input_width != resize_width || input_height != resize_height) {
         VipsImage *resized = nullptr;
+        // double hshrink = (double)input_width / resize_width;
+        // double vshrink = (double)input_height / resize_height;
+        // int resize_error = vips_shrink(transformed, &resized, hshrink, vshrink, nullptr);
         int resize_error = vips_thumbnail_image(
             transformed,
             &resized,
@@ -101,7 +114,12 @@ static KomeliaOrtInputTensor *create_tensor(
         );
         g_object_unref(transformed);
         if (resize_error) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -219,7 +237,12 @@ static void get_output_data(
     GError **error
 ) {
     if (inference_result->output_len != 2) {
-        g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_INFERENCE, "invalid output count");
+        g_set_error_literal(
+            error,
+            KOMELIA_ORT_ERROR,
+            KOMELIA_ORT_ERROR_INFERENCE,
+            "invalid output count"
+        );
     }
 
     float *boxes_data = nullptr;
@@ -238,7 +261,7 @@ static void get_output_data(
         goto on_error;
 
     if (pred_boxes_dim_len != 3 || pred_logits_dim_len != 3) {
-        g_set_error(
+        g_set_error_literal(
             error,
             KOMELIA_ORT_ERROR,
             KOMELIA_ORT_ERROR_INFERENCE,
@@ -539,10 +562,19 @@ KomeliaRfDetrResults *komelia_ort_rfdetr(
 void komelia_ort_rfdetr_close_session(KomeliaRfDetr *rf_detr) {
     pthread_mutex_lock(&rf_detr->mutex);
     komelia_ort_close_session(rf_detr->komelia_ort, rf_detr->session);
+    rf_detr->session = nullptr;
     pthread_mutex_unlock(&rf_detr->mutex);
 }
 
 void komelia_ort_rfdetr_release_result(
     KomeliaRfDetr *rf_detr,
     KomeliaRfDetrResults *result
-) {}
+) {
+    for (int i = 0; i < result->results_size; ++i) {
+        KomeliaRfDetrResult *data = result->data[i];
+        free(data->box);
+        free(data);
+    }
+    free(result->data);
+    free(result);
+}

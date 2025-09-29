@@ -2,37 +2,25 @@ package io.github.snd_r.komelia.ui.settings.imagereader
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.platform.PlatformType
 import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.LocalStrings
-import io.github.snd_r.komelia.ui.common.DropdownChoiceMenu
-import io.github.snd_r.komelia.ui.common.LabeledEntry
 import io.github.snd_r.komelia.ui.common.SwitchWithLabel
-import snd.komelia.image.ReduceKernel
+import io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsContent
+import io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
+import io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime.isOnnxRuntimeSupported
 
 @Composable
 fun ImageReaderSettingsContent(
-    availableUpsamplingModes: List<UpsamplingMode>,
-    upsamplingMode: UpsamplingMode,
-    onUpsamplingModeChange: (UpsamplingMode) -> Unit,
-
-    availableDownsamplingKernels: List<ReduceKernel>,
-    downsamplingKernel: ReduceKernel,
-    onDownsamplingKernelChange: (ReduceKernel) -> Unit,
-    downsampleInLinearLight: Boolean,
-    onDownsampleInLinearLightChange: (Boolean) -> Unit,
-
     loadThumbnailPreviews: Boolean,
     onLoadThumbnailPreviewsChange: (Boolean) -> Unit,
 
@@ -47,47 +35,6 @@ fun ImageReaderSettingsContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         val platform = LocalPlatform.current
-
-        if (availableUpsamplingModes.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = remember(upsamplingMode) {
-                    LabeledEntry(upsamplingMode, strings.forUpsamplingMode(upsamplingMode))
-                },
-                options = remember(availableUpsamplingModes) {
-                    availableUpsamplingModes.map { LabeledEntry(it, strings.forUpsamplingMode(it)) }
-                },
-                onOptionChange = { onUpsamplingModeChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text(strings.upsamplingMode) }
-            )
-        } else {
-            Text("${strings.upsamplingMode}: ${strings.forUpsamplingMode(upsamplingMode)}")
-        }
-
-        if (availableDownsamplingKernels.size > 1) {
-            DropdownChoiceMenu(
-                selectedOption = remember(downsamplingKernel) {
-                    LabeledEntry(downsamplingKernel, strings.forDownsamplingKernel(downsamplingKernel))
-                },
-                options = remember(availableDownsamplingKernels) {
-                    availableDownsamplingKernels.map { LabeledEntry(it, strings.forDownsamplingKernel(it)) }
-                },
-                onOptionChange = { onDownsamplingKernelChange(it.value) },
-                inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text(strings.downsamplingKernel) }
-            )
-        }
-        HorizontalDivider()
-
-        if (platform != PlatformType.WEB_KOMF) {
-            SwitchWithLabel(
-                checked = downsampleInLinearLight,
-                onCheckedChange = onDownsampleInLinearLightChange,
-                label = { Text("Downscale images in linear light") },
-                supportingText = { Text("slower but potentially more accurate") },
-            )
-        }
-
         SwitchWithLabel(
             checked = loadThumbnailPreviews,
             onCheckedChange = onLoadThumbnailPreviewsChange,
@@ -103,17 +50,32 @@ fun ImageReaderSettingsContent(
             )
         }
 
-        if (isOnnxRuntimeSupported()) {
-            HorizontalDivider(Modifier.padding(vertical = 10.dp))
-            OnnxRuntimeSettings(state = onnxRuntimeSettingsState)
-        }
-
-        HorizontalDivider()
-
         FilledTonalButton(
             onClick = onCacheClear,
             shape = RoundedCornerShape(5.dp)
         ) { Text("Clear image cache") }
+
+        if (isOnnxRuntimeSupported()) {
+            HorizontalDivider(Modifier.padding(vertical = 10.dp))
+            OnnxRuntimeSettingsContent(
+                executionProvider = onnxRuntimeSettingsState.currentExecutionProvider,
+                availableDevices = onnxRuntimeSettingsState.availableDevices,
+                deviceId = onnxRuntimeSettingsState.deviceId.collectAsState().value,
+                onDeviceIdChange = onnxRuntimeSettingsState::onDeviceIdChange,
+                upscaleMode = onnxRuntimeSettingsState.upscaleMode.collectAsState().value,
+                onUpscaleModeChange = onnxRuntimeSettingsState::onUpscaleModeChange,
+                upscalerTileSize = onnxRuntimeSettingsState.upscalerTileSize.collectAsState().value,
+                onUpscalerTileSizeChange = onnxRuntimeSettingsState::onTileSizeChange,
+                upscaleModelPath = onnxRuntimeSettingsState.upscaleModelPath.collectAsState().value,
+                onUpscaleModelPathChange = onnxRuntimeSettingsState::onUpscaleModelPathChange,
+                onOrtInstall = onnxRuntimeSettingsState::onInstallRequest,
+                mangaJaNaiIsInstalled = onnxRuntimeSettingsState.mangaJaNaiIsInstalled.collectAsState().value,
+                onMangaJaNaiDownload = onnxRuntimeSettingsState::onMangaJaNaiDownloadRequest,
+                panelModelIsDownloaded = onnxRuntimeSettingsState.panelModelIsDownloaded.collectAsState().value,
+                onPanelDetectionModelDownloadRequest = onnxRuntimeSettingsState::onPanelDetectionModelDownloadRequest
+
+            )
+        }
     }
 }
 

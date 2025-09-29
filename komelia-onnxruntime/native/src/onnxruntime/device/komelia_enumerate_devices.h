@@ -3,7 +3,7 @@
 
 #include <jni.h>
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_onnxruntime_OnnxRuntime_enumerateDevices(
+JNIEXPORT jobject JNICALL Java_snd_komelia_onnxruntime_JvmOnnxRuntime_enumerateDevices(
     JNIEnv *env,
     jobject this
 );

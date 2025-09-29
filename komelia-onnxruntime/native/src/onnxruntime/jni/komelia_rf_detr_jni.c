@@ -20,7 +20,7 @@ JNIEXPORT jlong JNICALL Java_snd_komelia_onnxruntime_JvmOnnxRuntimeRfDetr_create
 ) {
     KomeliaOrt *ort = (KomeliaOrt *)komelia_ort;
     KomeliaRfDetr *rf_detr = komelia_ort_rfdetr_create(ort);
-    return (int64_t) rf_detr ;
+    return (int64_t)rf_detr;
 }
 
 JNIEXPORT void JNICALL Java_snd_komelia_onnxruntime_JvmOnnxRuntimeRfDetr_destroy(
@@ -107,8 +107,8 @@ JNIEXPORT jobject JNICALL Java_snd_komelia_onnxruntime_JvmOnnxRuntimeRfDetr_dete
                 env,
                 result->box->x,
                 result->box->y,
-                result->box->width,
-                result->box->height
+                result->box->x + result->box->width,
+                result->box->y + result->box->height
             )
         );
         add_to_jvm_list(env, jvm_list, jvm_result);

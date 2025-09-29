@@ -104,7 +104,7 @@ abstract class TilingReaderImage(
                     this.error.value = e
                 }
 
-                delay(100)
+                delay(50)
             }.launchIn(processingScope)
 
         processingPipeline.changeFlow.onEach {
@@ -179,9 +179,15 @@ abstract class TilingReaderImage(
         return withContext(imageAwaitScope.coroutineContext) { originalSize.filterNotNull().first() }
     }
 
+    override suspend fun getOriginalImage(): KomeliaImage {
+        val image = withContext(imageAwaitScope.coroutineContext) { image.filterNotNull().first() }
+        return image
+    }
+
     private suspend fun loadImage() {
         try {
             val originalImage = decodeImage(imageSource)
+            this.originalImage = originalImage
             val processed = processingPipeline.process(pageId, originalImage)
             image.value = processed
             originalSize.value = IntSize(processed.width, processed.pageHeight)

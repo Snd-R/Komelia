@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 project(komelia_onnxruntime C CXX)
 set(CMAKE_C_STANDARD 23)
-include(CTest)
+#include(CTest)
 include(CMakePrintHelpers)
 
 OPTION(CUDA_GPU_ENUMERATION "build gpu enumeration shared lib for cuda" OFF)
 OPTION(DXGI_GPU_ENUMERATION "build gpu enumeration shared lib for dxgi" OFF)
 OPTION(ROCM_GPU_ENUMERATION "build gpu enumeration shared lib for rocm" OFF)
+OPTION(VULKAN_GPU_ENUMERATION "build gpu enumeration shared lib for vulkan" OFF)
 
 
 if (ANDROID)
@@ -22,15 +23,16 @@ find_package(OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 pkg_search_module(GLIB2 REQUIRED glib-2.0 IMPORTED_TARGET)
+pkg_check_modules(ONNXRUNTIME REQUIRED IMPORTED_TARGET libonnxruntime)
 
-if (NOT DEFINED ONNXRUNTIME_PATH)
-    message(FATAL_ERROR "ONNXRUNTIME_PATH is not specified")
-endif ()
-find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib NO_DEFAULT_PATH)
-if (NOT DEFINED ONNXRUNTIME_LIB)
-    message(FATAL_ERROR "Failed to find onnxruntime library")
-endif ()
-cmake_print_variables(ONNXRUNTIME_LIB)
+#if (NOT DEFINED ONNXRUNTIME_PATH)
+#    message(FATAL_ERROR "ONNXRUNTIME_PATH is not specified")
+#endif ()
+#find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib NO_DEFAULT_PATH)
+#if (NOT DEFINED ONNXRUNTIME_LIB)
+#    message(FATAL_ERROR "Failed to find onnxruntime library")
+#endif ()
+#cmake_print_variables(ONNXRUNTIME_LIB)
 
 find_library(KOMELIA_VIPS_LIB NAMES komelia_vips PATH_SUFFIXES lib)
 include_directories(${CMAKE_SOURCE_DIR}/komelia-image-decoder/vips/native/src/vips/)
@@ -62,7 +64,8 @@ target_include_directories(komelia_onnxruntime PRIVATE
         ${VIPS_INCLUDE_DIRS}
         ${JNI_INCLUDE_DIRS}
         ${GLIB2_INCLUDE_DIRS}
-        ${ONNXRUNTIME_PATH}/include
+#        ${ONNXRUNTIME_PATH}/include/onnxruntime
+        ${ONNXRUNTIME_INCLUDE_DIRS}
         ${KOMELIA_VIPS_INCLUDE}
 )
 target_link_libraries(komelia_onnxruntime
@@ -71,8 +74,9 @@ target_link_libraries(komelia_onnxruntime
         Threads::Threads
         OpenMP::OpenMP_C
         PkgConfig::GLIB2
+        PkgConfig::ONNXRUNTIME
         ${KOMELIA_VIPS_LIBS}
-        ${ONNXRUNTIME_LIB}
+#        ${ONNXRUNTIME_LIB}
 )
 install(TARGETS komelia_onnxruntime LIBRARY)
 
@@ -124,6 +128,20 @@ if (ROCM_GPU_ENUMERATION)
 
 endif ()
 
+if (VULKAN_GPU_ENUMERATION)
+    find_package(Vulkan REQUIRED)
+    add_library(komelia_enumerate_devices_vulkan SHARED
+            src/onnxruntime/device/komelia_enumerate_devices.h
+            src/onnxruntime/device/komelia_enumerate_devices_vulkan.c
+    )
+    target_include_directories(komelia_enumerate_devices_vulkan PRIVATE
+            ${JNI_INCLUDE_DIRS}
+            ${Vulkan_INCLUDE_DIRS}
+    )
+    target_link_libraries(komelia_enumerate_devices_vulkan Vulkan::Vulkan)
+    install(TARGETS komelia_enumerate_devices_vulkan LIBRARY)
+endif ()
+
 if (DXGI_GPU_ENUMERATION AND WIN32)
     add_library(komelia_enumerate_devices_dxgi SHARED
             src/onnxruntime/device/komelia_enumerate_devices.h
@@ -166,11 +184,11 @@ endif ()
 #enable_testing()
 #
 #add_executable(upscaler1_test test/upscaler_test.c)
-#target_link_libraries(upscaler1_test komelia_onnxruntime)
+#target_link_libraries(upscaler1_test komelia_onnxruntime komelia_vips)
 #target_include_directories(upscaler1_test PRIVATE ${ONNXRUNTIME_PATH}/include)
 #add_test(upscaler_test upscaler1_test)
 #
 #add_executable(rfdetr_test1 test/rfdetr_test.c)
-#target_link_libraries(rfdetr_test1 komelia_onnxruntime)
+#target_link_libraries(rfdetr_test1 komelia_onnxruntime komelia_vips)
 #target_include_directories(rfdetr_test1 PRIVATE ${ONNXRUNTIME_PATH}/include)
 #add_test(rfdetr_test rfdetr_test1)

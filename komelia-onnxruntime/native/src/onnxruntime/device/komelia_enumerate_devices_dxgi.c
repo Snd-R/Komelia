@@ -13,7 +13,7 @@ bool IsSoftwareAdapter(DXGI_ADAPTER_DESC1 desc) {
     return isSoftwareAdapter || (isBasicRenderDriverVendorId && isBasicRenderDriverDeviceId);
 }
 
-JNIEXPORT jobject JNICALL Java_snd_komelia_image_OnnxRuntimeUpscaler_enumerateDevices(
+JNIEXPORT jobject JNICALL Java_snd_komelia_onnxruntime_JvmOnnxRuntime_enumerateDevices(
         JNIEnv *env,
         jobject this
 ) {

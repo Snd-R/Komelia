@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -37,6 +38,7 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.ReadingDir
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookEnd
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookStart
+import kotlinx.coroutines.launch
 
 @Composable
 fun BoxScope.PagedReaderContent(
@@ -62,6 +64,8 @@ fun BoxScope.PagedReaderContent(
     val layoutOffset = pagedReaderState.layoutOffset.collectAsState().value
 
     val currentContainerSize = screenScaleState.areaSize.collectAsState().value
+
+    val coroutineScope = rememberCoroutineScope()
     ReaderControlsOverlay(
         readingDirection = layoutDirection,
         onNexPageClick = pagedReaderState::nextPage,
@@ -80,8 +84,8 @@ fun BoxScope.PagedReaderContent(
                 onChangeLayoutOffset = pagedReaderState::onLayoutOffsetChange,
                 onPageChange = pagedReaderState::onPageChange,
                 onMoveToLastPage = pagedReaderState::moveToLastPage,
-                onMoveToNextPage = pagedReaderState::nextPage,
-                onMoveToPrevPage = pagedReaderState::previousPage,
+                onMoveToNextPage = { coroutineScope.launch { pagedReaderState.nextPage() } },
+                onMoveToPrevPage = { coroutineScope.launch { pagedReaderState.previousPage() } },
                 volumeKeysNavigation = volumeKeysNavigation
             )
         }

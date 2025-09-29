@@ -24,7 +24,13 @@ object AppDirectories {
 
     val projectDirectories = ProjectDirectories.from("io.github.snd-r.komelia", "", "Komelia")
     val onnxRuntimeInstallPath: Path = Path(projectDirectories.dataDir).resolve("onnxruntime")
-    val mangaJaNaiInstallPath: Path = Path(projectDirectories.dataDir).resolve("mangajanai")
+    val onnxRuntimeWorkingDir: Path = onnxRuntimeInstallPath.resolve("data")
+    private val onnxModelsPath = Path(projectDirectories.dataDir).resolve("onnx")
+
+    val mangaJaNaiOldInstallPath: Path = Path(projectDirectories.dataDir).resolve("mangajanai")
+    val mangaJaNaiInstallPath: Path = onnxModelsPath.resolve("mangajanai")
+    val panelDetectionInstallPath: Path = onnxModelsPath.resolve("panels")
+    val panelDetectionModelPath: Path = panelDetectionInstallPath.resolve("rf-detr-med.onnx")
     val fontDirectory: Path = Path(projectDirectories.dataDir).resolve("fonts")
 
     fun containsMangaJaNaiModels(): Boolean {

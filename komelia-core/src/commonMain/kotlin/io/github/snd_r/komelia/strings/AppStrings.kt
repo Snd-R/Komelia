@@ -280,6 +280,7 @@ data class UserEditStrings(
 data class ReaderStrings(
     val zoom: String,
     val readerPaged: String,
+    val readerPanels: String,
     val readerType: String,
     val readerContinuous: String,
     val stretchToFit: String,
@@ -293,6 +294,7 @@ data class ReaderStrings(
     fun forReaderType(type: ReaderType): String {
         return when (type) {
             ReaderType.PAGED -> readerPaged
+            ReaderType.PANELS -> readerPanels
             ReaderType.CONTINUOUS -> readerContinuous
         }
     }

@@ -1,6 +1,6 @@
 package snd.komelia.image
 
-object AndroidSharedLibrariesLoader {
+object VipsSharedLibrariesLoader {
     private val androidLibs = listOf(
         "z",
         "ffi",

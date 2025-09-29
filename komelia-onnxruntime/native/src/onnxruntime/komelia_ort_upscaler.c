@@ -108,12 +108,15 @@ static VipsImage *get_image_from_tensor(
     OrtStatus *ort_status = ort_api->GetDimensionsCount(result->out_tensors_info[0], &dim_length);
     if (ort_status != nullptr) {
         wrap_ort_error(
-            upscaler->komelia_ort->ort_api, ort_status, KOMELIA_ORT_ERROR_INFERENCE, error
+            upscaler->komelia_ort->ort_api,
+            ort_status,
+            KOMELIA_ORT_ERROR_INFERENCE,
+            error
         );
         return nullptr;
     }
     if (dim_length != 4) {
-        g_set_error(
+        g_set_error_literal(
             error,
             KOMELIA_ORT_ERROR,
             KOMELIA_ORT_ERROR_INFERENCE,
@@ -126,7 +129,10 @@ static VipsImage *get_image_from_tensor(
     ort_status = ort_api->GetDimensions(result->out_tensors_info[0], dim_values, dim_length);
     if (ort_status != nullptr) {
         wrap_ort_error(
-            upscaler->komelia_ort->ort_api, ort_status, KOMELIA_ORT_ERROR_INFERENCE, error
+            upscaler->komelia_ort->ort_api,
+            ort_status,
+            KOMELIA_ORT_ERROR_INFERENCE,
+            error
         );
         return nullptr;
     }
@@ -138,7 +144,10 @@ static VipsImage *get_image_from_tensor(
     ort_status = ort_api->GetTensorMutableData(result->output_tensors[0], &output_tensor_data);
     if (ort_status != nullptr) {
         wrap_ort_error(
-            upscaler->komelia_ort->ort_api, ort_status, KOMELIA_ORT_ERROR_INFERENCE, error
+            upscaler->komelia_ort->ort_api,
+            ort_status,
+            KOMELIA_ORT_ERROR_INFERENCE,
+            error
         );
         return nullptr;
     }
@@ -147,7 +156,10 @@ static VipsImage *get_image_from_tensor(
     ort_status = ort_api->GetTensorElementType(result->out_tensors_info[0], &output_element_type);
     if (ort_status != nullptr) {
         wrap_ort_error(
-            upscaler->komelia_ort->ort_api, ort_status, KOMELIA_ORT_ERROR_INFERENCE, error
+            upscaler->komelia_ort->ort_api,
+            ort_status,
+            KOMELIA_ORT_ERROR_INFERENCE,
+            error
         );
         return nullptr;
     }
@@ -157,17 +169,26 @@ static VipsImage *get_image_from_tensor(
         komelia_chw_to_hwc(output_tensor_data, output_height, output_width, 3, output_image_data);
     } else {
         komelia_chw_to_hwc_f16(
-            output_tensor_data, output_height, output_width, 3, output_image_data
+            output_tensor_data,
+            output_height,
+            output_width,
+            3,
+            output_image_data
         );
     }
 
     VipsImage *inferred_image = vips_image_new_from_memory_copy(
-        output_image_data, output_size, output_width, output_height, 3, VIPS_FORMAT_UCHAR
+        output_image_data,
+        output_size,
+        output_width,
+        output_height,
+        3,
+        VIPS_FORMAT_UCHAR
     );
     free(output_image_data);
 
     if (inferred_image == nullptr) {
-        g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+        g_set_error_literal(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
         vips_error_clear();
         return nullptr;
     }
@@ -187,7 +208,7 @@ static VipsImage *upscale_tile(
     int prepare_error = vips_region_prepare(region, region_rect);
     if (prepare_error) {
         g_object_unref(region);
-        g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+        g_set_error_literal(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
         vips_error_clear();
         return nullptr;
     }
@@ -212,7 +233,7 @@ static VipsImage *upscale_tile(
     if (!unformatted_image) {
         g_object_unref(region);
         g_free(region_data);
-        g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+        g_set_error_literal(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
         vips_error_clear();
         return nullptr;
     }
@@ -236,7 +257,7 @@ static VipsImage *upscale_tile(
         g_object_unref(region);
         g_object_unref(unformatted_image);
         g_free(region_data);
-        g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+        g_set_error_literal(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
         vips_error_clear();
         return nullptr;
     }
@@ -245,7 +266,10 @@ static VipsImage *upscale_tile(
         create_tensor(upscaler->session->input_data_type, formatted_region_image);
     GError *inference_error = nullptr;
     InferenceResult *inference_result = komelia_ort_run_inference(
-        upscaler->komelia_ort, upscaler->session, input_tensor, &inference_error
+        upscaler->komelia_ort,
+        upscaler->session,
+        input_tensor,
+        &inference_error
     );
     free(input_tensor->data);
     free(input_tensor->shape);
@@ -343,7 +367,7 @@ static VipsImage *do_tiled_inference(
         g_object_unref(upscaled_tiles[i]);
     }
     if (joined == nullptr) {
-        g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+        g_set_error_literal(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
         vips_error_clear();
         return nullptr;
     }
@@ -356,7 +380,12 @@ static VipsImage *do_tiled_inference(
         g_object_unref(joined);
 
         if (cropped == nullptr) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -378,7 +407,10 @@ static VipsImage *do_full_image_inference(
         create_tensor(upscaler->session->input_data_type, input_image);
     GError *inference_error = nullptr;
     InferenceResult *inference_result = komelia_ort_run_inference(
-        upscaler->komelia_ort, upscaler->session, input_tensor, &inference_error
+        upscaler->komelia_ort,
+        upscaler->session,
+        input_tensor,
+        &inference_error
     );
 
     free(input_tensor->data);
@@ -416,7 +448,12 @@ static VipsImage *preprocess_for_inference(
         const int vips_error =
             vips_colourspace(input_image, &transformed, VIPS_INTERPRETATION_sRGB, nullptr);
         if (vips_error) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -433,7 +470,12 @@ static VipsImage *preprocess_for_inference(
         }
 
         if (vips_error) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -477,7 +519,12 @@ static VipsImage *preprocess_for_inference(
             );
         }
         if (vips_error) {
-            g_set_error(error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_VIPS, vips_error_buffer());
+            g_set_error_literal(
+                error,
+                KOMELIA_ORT_ERROR,
+                KOMELIA_ORT_ERROR_VIPS,
+                vips_error_buffer()
+            );
             vips_error_clear();
             return nullptr;
         }
@@ -582,8 +629,11 @@ VipsImage *komelia_ort_upscale(
 ) {
     pthread_mutex_lock(&upscaler->mutex);
     if (upscaler->model_path == nullptr) {
-        g_set_error(
-            error, KOMELIA_ORT_ERROR, KOMELIA_ORT_ERROR_INFERENCE, "model path is not initialized"
+        g_set_error_literal(
+            error,
+            KOMELIA_ORT_ERROR,
+            KOMELIA_ORT_ERROR_INFERENCE,
+            "model path is not initialized"
         );
         return nullptr;
     }

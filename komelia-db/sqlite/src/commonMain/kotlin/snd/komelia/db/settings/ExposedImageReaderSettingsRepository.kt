@@ -1,6 +1,7 @@
 package snd.komelia.db.settings
 
 import io.github.snd_r.komelia.image.UpsamplingMode
+import io.github.snd_r.komelia.image.UpscaleMode
 import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
@@ -13,7 +14,6 @@ import snd.komelia.db.ExposedRepository
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.defaultBookId
 import snd.komelia.db.tables.ImageReaderSettingsTable
-import io.github.snd_r.komelia.image.UpscaleMode
 import snd.komelia.image.ReduceKernel
 
 class ExposedImageReaderSettingsRepository(database: Database) : ExposedRepository(database) {

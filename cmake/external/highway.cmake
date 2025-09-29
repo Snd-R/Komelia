@@ -2,7 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_highway
         GIT_REPOSITORY https://github.com/google/highway
-        GIT_TAG 1.2.0
+        GIT_TAG 1.3.0
         GIT_SHALLOW 1
         GIT_PROGRESS 1
         CMAKE_ARGS

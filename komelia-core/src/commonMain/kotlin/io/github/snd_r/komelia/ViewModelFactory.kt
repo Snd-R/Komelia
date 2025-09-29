@@ -247,9 +247,11 @@ class ViewModelFactory(
             appStrings = dependencies.appStrings,
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,
-            onnxRuntime = dependencies.onnxRuntime,
             colorCorrectionRepository = dependencies.bookColorCorrectionRepository,
             colorCorrectionIsActive = dependencies.colorCorrectionStep.isActive,
+            onnxRuntime = dependencies.onnxRuntime,
+            panelDetector = dependencies.panelDetector,
+            upscaler = dependencies.upscaler,
             bookSiblingsContext = bookSiblingsContext,
             markReadProgress = markReadProgress,
         )
@@ -641,9 +643,13 @@ class ViewModelFactory(
         return ImageReaderSettingsViewModel(
             settingsRepository = dependencies.imageReaderSettingsRepository,
             appNotifications = dependencies.appNotifications,
-            onnxRuntimeInstaller = dependencies.onnxRuntimeInstaller,
+
             onnxRuntime = dependencies.onnxRuntime,
-            mangaJaNaiDownloader = dependencies.mangaJaNaiDownloader,
+            upscaler = dependencies.upscaler,
+            panelDetector = dependencies.panelDetector,
+            onnxRuntimeInstaller = dependencies.onnxRuntimeInstaller,
+            onnxModelDownloader = dependencies.onnxModelDownloader,
+
             coilMemoryCache = dependencies.coilImageLoader.memoryCache,
             coilDiskCache = dependencies.coilImageLoader.diskCache,
             readerDiskCache = dependencies.bookImageLoader.diskCache,

@@ -46,7 +46,10 @@ data class ImageRect(
     val top: Int,
     val right: Int,
     val bottom: Int
-)
+) {
+    val width = right - left
+    val height = bottom - top
+}
 
 enum class ReduceKernel {
     NEAREST,

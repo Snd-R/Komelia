@@ -5,7 +5,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.reactivecircus.cache4k.Cache
 import io.github.reactivecircus.cache4k.CacheEvent.Evicted
 import io.github.reactivecircus.cache4k.CacheEvent.Expired
@@ -34,6 +33,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -51,8 +51,6 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.common.KomgaReadingDirection
 import kotlin.math.max
 import kotlin.math.roundToInt
-
-private val logger = KotlinLogging.logger { }
 
 class PagedReaderState(
     private val cleanupScope: CoroutineScope,
@@ -151,6 +149,7 @@ class PagedReaderState(
             if (result.imageResult is ReaderImageResult.Success) {
                 val image = result.imageResult.image
                 val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit)
+                screenScaleState.setTargetSize(imageDisplaySize.toSize())
 
                 val imageHorizontalVisibleWidth =
                     (imageDisplaySize.width * zoomFactor - areaSize.width) / 2
@@ -347,7 +346,7 @@ class PagedReaderState(
         }
 
         return pageLoadScope.async {
-            val completed = pages.map { it.await() }
+            val completed = pages.awaitAll()
             completeLoadJob(completed)
         }
     }

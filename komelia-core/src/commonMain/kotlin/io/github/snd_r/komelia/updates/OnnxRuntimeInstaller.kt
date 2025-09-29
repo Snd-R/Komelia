@@ -4,5 +4,5 @@ import kotlinx.coroutines.flow.Flow
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 
 interface OnnxRuntimeInstaller {
-    suspend fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress>
+     fun install(provider: OnnxRuntimeExecutionProvider): Flow<UpdateProgress>
 }

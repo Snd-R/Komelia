@@ -32,12 +32,14 @@ import io.github.snd_r.komelia.ui.reader.image.PageMetadata
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.PANELS
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.common.PageSpreadProgressSlider
 import io.github.snd_r.komelia.ui.reader.image.common.ProgressSlider
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
-import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
+import io.github.snd_r.komelia.ui.reader.image.panels.PanelsReaderState
+import io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,6 +48,7 @@ fun BoxScope.SettingsOverlay(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    panelsReaderState: PanelsReaderState?,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
     screenScaleState: ScreenScaleState,
     isColorCorrectionsActive: Boolean,
@@ -94,6 +97,7 @@ fun BoxScope.SettingsOverlay(
             zoom = zoom,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+            panelsReaderState = panelsReaderState,
 
             flashEnabled = flashEnabled,
             onFlashEnabledChange = commonReaderState::onFlashEnabledChange,
@@ -140,6 +144,7 @@ fun BoxScope.SettingsOverlay(
 
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+            panelsReaderState = panelsReaderState,
             onnxRuntimeSettingsState = onnxRuntimeSettingsState,
 
             onBackPress = onBackPress,
@@ -165,7 +170,28 @@ fun BoxScope.SettingsOverlay(
                 layoutDirection = layoutDirection,
                 modifier = Modifier.align(Alignment.BottomStart)
             )
+        }
 
+        PANELS -> {
+            check(panelsReaderState != null) { "panels reader is not initialized" }
+            val readingDirection = panelsReaderState.readingDirection.collectAsState().value
+            val layoutDirection = remember(readingDirection) {
+                when (readingDirection) {
+                    PagedReaderState.ReadingDirection.LEFT_TO_RIGHT -> Ltr
+                    PagedReaderState.ReadingDirection.RIGHT_TO_LEFT -> Rtl
+                }
+            }
+            val pages = panelsReaderState.pageMetadata.collectAsState().value
+            val currentIndex = panelsReaderState.currentPageIndex.collectAsState().value
+            PageSpreadProgressSlider(
+                pageSpreads = pages.map { listOf(it) },
+                imagePreviews = imagePreviews.value,
+                currentSpreadIndex = currentIndex.page,
+                onPageNumberChange = panelsReaderState::onPageChange,
+                show = show,
+                layoutDirection = layoutDirection,
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
 
         }
 
@@ -195,12 +221,12 @@ fun BoxScope.SettingsOverlay(
 
 @Composable
 fun PagedReaderPagesInfo(
-    spread: PagedReaderState.PageSpread,
+    pages: List<PagedReaderState.Page>,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
         val readerStrings = LocalStrings.current.reader
-        spread.pages.forEach { page ->
+        pages.forEach { page ->
             val pageImage = page.imageResult?.image
             val pageSize = pageImage?.originalSize?.collectAsState()?.value
             if (pageImage != null) {

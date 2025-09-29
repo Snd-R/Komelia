@@ -148,6 +148,7 @@ class ImageReaderScreen(
             commonReaderState = vm.readerState,
             pagedReaderState = vm.pagedReaderState,
             continuousReaderState = vm.continuousReaderState,
+            panelsReaderState = vm.panelsReaderState,
             screenScaleState = vm.screenScaleState,
             onnxRuntimeSettingsState = vm.onnxRuntimeSettingsState,
             isColorCorrectionActive = vm.colorCorrectionIsActive.collectAsState(false).value,

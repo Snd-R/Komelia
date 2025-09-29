@@ -64,6 +64,7 @@ if (KOMELIA_SUPERBUILD)
     include("cmake/external/tiff.cmake")
 
     include("cmake/external/vips.cmake")
+    include("cmake/external/onnxruntime.cmake")
 
     ExternalProject_Add(ep_komelia_vips
             DOWNLOAD_COMMAND ""
@@ -72,6 +73,28 @@ if (KOMELIA_SUPERBUILD)
             SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-image-decoder/vips/native
             CMAKE_ARGS
             ${EP_CMAKE_ARGS}
+            USES_TERMINAL_BUILD true
+    )
+    if (WIN32)
+        set(KOMELIA_ONNXRUNTIME_DEPENDENCIES "ep_komelia_vips")
+    else ()
+        set(KOMELIA_ONNXRUNTIME_DEPENDENCIES ep_komelia_vips ep_onnxruntime)
+    endif ()
+
+    ExternalProject_Add(ep_komelia_onnxruntime
+            DOWNLOAD_COMMAND ""
+            UPDATE_COMMAND ""
+            DEPENDS ${KOMELIA_ONNXRUNTIME_DEPENDENCIES}
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-onnxruntime/native
+            CMAKE_ARGS
+            ${EP_CMAKE_ARGS}
+            -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
+            -DROCM_CUSTOM_PATH=${ROCM_CUSTOM_PATH}
+            -DONNXRUNTIME_PATH=${THIRD_PARTY_LIB_PATH}
+            -DCUDA_GPU_ENUMERATION=${CUDA_GPU_ENUMERATION}
+            -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
+            -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
+            -DVULKAN_GPU_ENUMERATION=${VULKAN_GPU_ENUMERATION}
             USES_TERMINAL_BUILD true
     )
 
@@ -84,23 +107,6 @@ if (KOMELIA_SUPERBUILD)
                 CMAKE_ARGS
                 ${EP_CMAKE_ARGS}
                 -DWEBVIEW_USE_COMPAT_MINGW=${WEBVIEW_USE_COMPAT_MINGW}
-                USES_TERMINAL_BUILD true
-        )
-        ExternalProject_Add(ep_komelia_onnxruntime
-                DOWNLOAD_COMMAND ""
-                UPDATE_COMMAND ""
-                DEPENDS ep_komelia_vips
-                SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-onnxruntime/native
-                CMAKE_ARGS
-                ${EP_CMAKE_ARGS}
-                -DKOMELIA_VIPS_EXTERNAL=${KOMELIA_VIPS_EXTERNAL}
-                -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
-                -DROCM_CUSTOM_PATH=${ROCM_CUSTOM_PATH}
-                -DSKIA_CUSTOM_PATH=${SKIA_CUSTOM_PATH}
-                -DONNXRUNTIME_PATH=${THIRD_PARTY_LIB_PATH}
-                -DCUDA_GPU_ENUMERATION=${CUDA_GPU_ENUMERATION}
-                -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
-                -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
                 USES_TERMINAL_BUILD true
         )
     endif ()

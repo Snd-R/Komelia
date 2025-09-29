@@ -2,8 +2,8 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_vips
         GIT_REPOSITORY https://github.com/libvips/libvips.git
-        GIT_TAG ee7f8774c2b327e6097babfb7eade0177f98aa5e
-        #GIT_SHALLOW 1
+        GIT_TAG v8.17.2
+        GIT_SHALLOW 1
         GIT_PROGRESS 1
         DEPENDS ep_expat ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_mozjpeg ep_lcms2 ep_exif
         UPDATE_DISCONNECTED True

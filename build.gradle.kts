@@ -33,7 +33,7 @@ tasks.wrapper {
 
 val linuxBuildDir = "$projectDir/cmake/build"
 val windowsBuildDir = "$projectDir/cmake/build-w64"
-val androidArm64BuildDir = "$projectDir/cmake/build-android-arm64"
+val androidArm64BuildDir = "$projectDir/cmake/build-android-aarch64"
 val androidArmv7aBuildDir = "$projectDir/cmake/build-android-armv7a"
 val androidx8664BuildDir = "$projectDir/cmake/build-android-x86_64"
 val androidx86BuildDir = "$projectDir/cmake/build-android-x86"
@@ -75,12 +75,16 @@ val linuxCommonLibs = setOf(
     "libwebpmux.so",
     "libz.so",
     "libkomelia_vips.so",
+    "libonnxruntime.so",
+    "libonnxruntime_providers_shared.so",
+    "libkomelia_onnxruntime.so",
 )
 val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
 val desktopLinuxLibs = linuxCommonLibs + setOf(
     "libkomelia_onnxruntime.so",
     "libkomelia_enumerate_devices_cuda.so",
     "libkomelia_enumerate_devices_rocm.so",
+    "libkomelia_enumerate_devices_vulkan.so",
     "libkomelia_skia.so",
     "libkomelia_webview.so",
     "libkomelia_webkit_extension.so",
@@ -90,6 +94,7 @@ val desktopJniLibs = setOf(
     "libkomelia_onnxruntime.so",
     "libkomelia_enumerate_devices_cuda.so",
     "libkomelia_enumerate_devices_rocm.so",
+    "libkomelia_enumerate_devices_vulkan.so",
     "libkomelia_skia.so",
     "libkomelia_webview.so",
     "libkomelia_webkit_extension.so",

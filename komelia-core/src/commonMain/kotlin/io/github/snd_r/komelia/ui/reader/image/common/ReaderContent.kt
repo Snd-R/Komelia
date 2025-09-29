@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,19 +35,24 @@ import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
 import io.github.snd_r.komelia.ui.reader.image.ReaderState
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.PANELS
 import io.github.snd_r.komelia.ui.reader.image.ScreenScaleState
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderContent
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderContent
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.panels.PanelsReaderContent
+import io.github.snd_r.komelia.ui.reader.image.panels.PanelsReaderState
 import io.github.snd_r.komelia.ui.reader.image.settings.SettingsOverlay
-import io.github.snd_r.komelia.ui.settings.imagereader.OnnxRuntimeSettingsState
+import io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
+import kotlinx.coroutines.launch
 
 @Composable
 fun ReaderContent(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    panelsReaderState: PanelsReaderState?,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
     screenScaleState: ScreenScaleState,
 
@@ -69,6 +75,10 @@ fun ReaderContent(
             }
         }
     }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        screenScaleState.composeScope = coroutineScope
+    }
 
     val topLevelFocus = remember { FocusRequester() }
     val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
@@ -76,7 +86,9 @@ fun ReaderContent(
     Box(
         Modifier
             .fillMaxSize()
-            .onSizeChanged { screenScaleState.setAreaSize(it) }
+            .onSizeChanged {
+                screenScaleState.setAreaSize(it)
+            }
             .focusable()
             .focusRequester(topLevelFocus)
             .onFocusChanged { hasFocus = it.hasFocus }
@@ -127,6 +139,20 @@ fun ReaderContent(
                     volumeKeysNavigation = volumeKeysNavigation
                 )
             }
+
+            PANELS -> {
+                check(panelsReaderState != null)
+                PanelsReaderContent(
+                    showHelpDialog = showHelpDialog,
+                    onShowHelpDialogChange = { showHelpDialog = it },
+                    showSettingsMenu = showSettingsMenu,
+                    onShowSettingsMenuChange = { showSettingsMenu = it },
+                    screenScaleState = screenScaleState,
+                    panelsReaderState = panelsReaderState,
+                    volumeKeysNavigation = volumeKeysNavigation
+                )
+            }
+
         }
 
         SettingsOverlay(
@@ -134,6 +160,7 @@ fun ReaderContent(
             commonReaderState = commonReaderState,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
+            panelsReaderState = panelsReaderState,
             onnxRuntimeSettingsState = onnxRuntimeSettingsState,
             screenScaleState = screenScaleState,
             isColorCorrectionsActive = isColorCorrectionActive,
@@ -158,24 +185,25 @@ fun ReaderContent(
 @Composable
 fun ReaderControlsOverlay(
     readingDirection: LayoutDirection,
-    onNexPageClick: () -> Unit,
-    onPrevPageClick: () -> Unit,
+    onNexPageClick: suspend () -> Unit,
+    onPrevPageClick: suspend () -> Unit,
     isSettingsMenuOpen: Boolean,
     onSettingsMenuToggle: () -> Unit,
     contentAreaSize: IntSize,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val leftAction = {
         if (isSettingsMenuOpen) onSettingsMenuToggle()
-        else if (readingDirection == LayoutDirection.Ltr) onPrevPageClick()
-        else onNexPageClick()
+        else if (readingDirection == LayoutDirection.Ltr) coroutineScope.launch { onPrevPageClick() }
+        else coroutineScope.launch { onNexPageClick() }
     }
     val centerAction = { onSettingsMenuToggle() }
     val rightAction = {
         if (isSettingsMenuOpen) onSettingsMenuToggle()
-        else if (readingDirection == LayoutDirection.Ltr) onNexPageClick()
-        else onPrevPageClick()
+        else if (readingDirection == LayoutDirection.Ltr) coroutineScope.launch { onNexPageClick() }
+        else coroutineScope.launch { onPrevPageClick() }
     }
 
     Box(

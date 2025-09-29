@@ -162,11 +162,11 @@ class ActorReaderSettingsRepository(
         actor.transform { it.copy(volumeKeysNavigation = enable) }
     }
 
-    override fun getOnnxRuntimeMode(): Flow<UpscaleMode> {
+    override fun getUpscalerMode(): Flow<UpscaleMode> {
         return actor.mapState { it.ortUpscalerMode }
     }
 
-    override suspend fun putOnnxRuntimeMode(mode: UpscaleMode) {
+    override suspend fun putUpscalerMode(mode: UpscaleMode) {
         actor.transform { it.copy(ortUpscalerMode = mode) }
     }
 
@@ -186,11 +186,11 @@ class ActorReaderSettingsRepository(
         actor.transform { it.copy(ortUpscalerTileSize = tileSize) }
     }
 
-    override fun getSelectedOnnxModel(): Flow<String?> {
+    override fun getUpscalerOnnxModel(): Flow<String?> {
         return actor.mapState { it.ortUpscalerUserModelPath }
     }
 
-    override suspend fun putSelectedOnnxModel(name: String?) {
+    override suspend fun putUpscalerOnnxModel(name: String?) {
         actor.transform { it.copy(ortUpscalerUserModelPath = name) }
     }
 }

@@ -2,8 +2,8 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_exif
         GIT_REPOSITORY https://github.com/libexif/libexif
-        GIT_TAG 180c1201dc494a06335b3b42bce5d4e07e6ae38c
-        #GIT_SHALLOW 1
+        GIT_TAG v0.6.25
+        GIT_SHALLOW 1
         GIT_PROGRESS 1
         DEPENDS ep_zlib
         CONFIGURE_COMMAND

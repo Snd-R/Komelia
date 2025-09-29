@@ -2,7 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_heif
         GIT_REPOSITORY https://github.com/strukturag/libheif.git
-        GIT_TAG v1.19.3
+        GIT_TAG v1.20.2
         GIT_SHALLOW 1
         GIT_PROGRESS 1
         DEPENDS ep_dav1d ep_de265 ep_zlib ep_brotli

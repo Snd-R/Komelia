@@ -64,8 +64,8 @@ interface ImageReaderSettingsRepository {
     fun getVolumeKeysNavigation(): Flow<Boolean>
     suspend fun putVolumeKeysNavigation(enable: Boolean)
 
-    fun getOnnxRuntimeMode(): Flow<UpscaleMode>
-    suspend fun putOnnxRuntimeMode(mode: UpscaleMode)
+    fun getUpscalerMode(): Flow<UpscaleMode>
+    suspend fun putUpscalerMode(mode: UpscaleMode)
 
     fun getOnnxRuntimeDeviceId(): Flow<Int>
     suspend fun putOnnxRuntimeDeviceId(deviceId: Int)
@@ -73,6 +73,6 @@ interface ImageReaderSettingsRepository {
     fun getOnnxRuntimeTileSize(): Flow<Int>
     suspend fun putOnnxRuntimeTileSize(tileSize: Int)
 
-    fun getSelectedOnnxModel(): Flow<String?>
-    suspend fun putSelectedOnnxModel(name: String?)
+    fun getUpscalerOnnxModel(): Flow<String?>
+    suspend fun putUpscalerOnnxModel(name: String?)
 }

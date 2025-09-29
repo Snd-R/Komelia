@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.flow.StateFlow
+import snd.komelia.image.KomeliaImage
 import kotlin.math.roundToInt
 
 interface ReaderImage : AutoCloseable {
@@ -38,6 +39,8 @@ interface ReaderImage : AutoCloseable {
      * @throws kotlin.coroutines.cancellation.CancellationException if there's an error during decoding
      */
     suspend fun getOriginalImageSize(): IntSize
+
+    suspend fun getOriginalImage(): KomeliaImage
 
     /**
      * calculate image dimensions that can be displayed on maxDisplaySize area

@@ -2,9 +2,9 @@
 #include "komelia_error.h"
 #include "komelia_matrix_ops.h"
 
-#include <glib/gutils.h>
 #include <onnxruntime_c_api.h>
 #include <vips/vips.h>
+#define APPNAME "Komelia"
 
 #ifdef _WIN32
 #include "win32_strings.h"
@@ -12,6 +12,7 @@
 #ifdef USE_DML
 #include "dml_provider_factory.h"
 #endif
+#define KOMELIA_ORT_API_VERSION 21
 
 typedef struct {
     char *input_name;
@@ -68,7 +69,7 @@ void enable_cuda(
         ort_api->SessionOptionsAppendExecutionProvider_CUDA(options, &cuda_options);
 
     if (ort_status != nullptr) {
-        g_set_error(
+        g_set_error_literal(
             error,
             KOMELIA_ORT_ERROR,
             KOMELIA_ORT_ERROR_EXECUTION_PROVIDER_INIT,
@@ -81,6 +82,7 @@ void enable_cuda(
 void enable_tensorrt(
     const OrtApi *ort_api,
     const int device_id,
+    const char *data_dir,
     OrtSessionOptions *options,
     GError **error
 ) {
@@ -88,7 +90,7 @@ void enable_tensorrt(
     tensorrt_options.device_id = device_id;
     tensorrt_options.trt_fp16_enable = 1;
     tensorrt_options.trt_engine_cache_enable = 1;
-    tensorrt_options.trt_engine_cache_path = g_get_tmp_dir();
+    tensorrt_options.trt_engine_cache_path = data_dir;
     OrtStatus *ort_status =
         ort_api->SessionOptionsAppendExecutionProvider_TensorRT(options, &tensorrt_options);
 
@@ -125,6 +127,33 @@ void enable_rocm(
 
     OrtStatus *ort_status =
         ort_api->SessionOptionsAppendExecutionProvider_ROCM(options, &rocm_opts);
+    if (ort_status != nullptr) {
+        wrap_ort_error(ort_api, ort_status, KOMELIA_ORT_ERROR_EXECUTION_PROVIDER_INIT, error);
+    }
+}
+
+void enable_webGpu(
+    const OrtApi *ort_api,
+    const int device_id,
+    OrtSessionOptions *options,
+    GError **error
+) {
+
+    // const char *option_keys[1] = {"ep.webgpuexecutionprovider.enableGraphCapture\0"};
+    // const char *option_values[1] = {"1\0"};
+    // const char *option_keys[1] = {"ep.webgpuexecutionprovider.enableGraphCapture"};
+    // const char *option_values[1] = {"1"};
+    // OrtStatus *ort_status = ort_api->AddSessionConfigEntry(
+    //     options,
+    //     "ep.webgpuexecutionprovider.preferredLayout",
+    //     "NCHW"
+    // );
+    // if (ort_status != nullptr) {
+    //     wrap_ort_error(ort_api, ort_status, KOMELIA_ORT_ERROR_EXECUTION_PROVIDER_INIT, error);
+    //     return;
+    // }
+    OrtStatus *ort_status =
+        ort_api->SessionOptionsAppendExecutionProvider(options, "WebGPU", nullptr, nullptr, 0);
     if (ort_status != nullptr) {
         wrap_ort_error(ort_api, ort_status, KOMELIA_ORT_ERROR_EXECUTION_PROVIDER_INIT, error);
     }
@@ -167,6 +196,12 @@ SessionData *komelia_ort_create_session(
     const OrtEnv *ort_env = komelia_ort->ort_env;
 
     SessionData *session = malloc(sizeof(SessionData));
+    session->session_options = nullptr;
+    session->session = nullptr;
+    session->memory_info = nullptr;
+    session->run_options = nullptr;
+    session->input_info = nullptr;
+    session->input_tensor_info = nullptr;
     session->execution_provider = execution_provider;
     session->device_id = device_id;
     session->model_path = strdup(model_path);
@@ -186,7 +221,13 @@ SessionData *komelia_ort_create_session(
     GError *provider_init_error = nullptr;
     switch (execution_provider) {
     case TENSOR_RT:
-        enable_tensorrt(ort_api, device_id, session->session_options, &provider_init_error);
+        enable_tensorrt(
+            ort_api,
+            device_id,
+            komelia_ort->data_dir,
+            session->session_options,
+            &provider_init_error
+        );
         break;
     case CUDA:
         enable_cuda(ort_api, device_id, session->session_options, &provider_init_error);
@@ -199,9 +240,65 @@ SessionData *komelia_ort_create_session(
         enable_dml(ort_api, device_id, session->session_options, &provider_init_error);
         break;
 #endif
+    case WEBGPU:
+        enable_webGpu(ort_api, device_id, session->session_options, &provider_init_error);
+        break;
     default:
         break;
     }
+
+    // const OrtEpDevice *const *devices = nullptr;
+    // size_t devices_num = 0;
+    // ort_status = ort_api->GetEpDevices(ort_env, &devices, &devices_num);
+    // fprintf(stderr, "ep device count %lu\n", devices_num);
+    // for (int i = 0; i < devices_num; ++i) {
+    //     const OrtEpDevice *device = devices[i];
+    //     const char *device_name = ort_api->EpDevice_EpName(device);
+    //     fprintf(stderr, "%s\n", device_name);
+    //     const OrtHardwareDevice *h_device = ort_api->EpDevice_Device(device);
+    //     const char *vendor = ort_api->HardwareDevice_Vendor(h_device);
+    //     uint32_t h_device_id = ort_api->HardwareDevice_DeviceId(h_device);
+    //     fprintf(stderr, "device id: %i\n", h_device_id);
+    //     fprintf(stderr, "vendor: %s\n", vendor);
+    //     OrtHardwareDeviceType device_type = ort_api->HardwareDevice_Type(h_device);
+    //     switch (device_type) {
+    //     case OrtHardwareDeviceType_CPU:
+    //         fprintf(stderr, "device type: CPU\n");
+    //         break;
+    //     case OrtHardwareDeviceType_GPU:
+    //         fprintf(stderr, "device type: GPU\n");
+    //         break;
+    //     case OrtHardwareDeviceType_NPU:
+    //         fprintf(stderr, "device type: NPU\n");
+    //         break;
+    //     }
+    //     const OrtKeyValuePairs *device_meta = ort_api->HardwareDevice_Metadata(h_device);
+    //     const char *const *keys = nullptr;
+    //     const char *const *values = nullptr;
+    //     size_t num_entries = 0;
+    //     ort_api->GetKeyValuePairs(device_meta, &keys, &values, &num_entries);
+    //
+    //     fprintf(stderr, "metadata count %lu\n", num_entries);
+    //     for (int m = 0; m < num_entries; ++m) {
+    //         const char *key = keys[m];
+    //         const char *value = values[m];
+    //         fprintf(stderr, "%s: %s \n", key, value);
+    //     }
+    //
+    //     // const OrtKeyValuePairs *device_meta = ort_api->EpDevice_EpMetadata(device);
+    //     // const char *const *keys = nullptr;
+    //     // const char *const *values = nullptr;
+    //     // size_t num_entries = 0;
+    //     // ort_api->GetKeyValuePairs(device_meta, &keys, &values, &num_entries);
+    //     //
+    //     // printf("metadata count %lu\n", num_entries);
+    //     // for (int m = 0; m < num_entries; ++m) {
+    //     //     const char *key = keys[m];
+    //     //     const char *value = values[m];
+    //     //     printf("%s: %s \n", key, value);
+    //     // }
+    // }
+
     if (provider_init_error != nullptr) {
         g_propagate_error(error, provider_init_error);
         return nullptr;
@@ -211,12 +308,18 @@ SessionData *komelia_ort_create_session(
     size_t *wide_length = nullptr;
     wchar_t *wide_model_path = fromUTF8(current_model_path, 0, wide_length);
     onnx_status = g_ort->CreateSession(
-        ort_env, wide_model_path, current_session.session_options, &current_session.session
+        ort_env,
+        wide_model_path,
+        current_session.session_options,
+        &current_session.session
     );
     free(wide_model_path);
 #else
     ort_status = ort_api->CreateSession(
-        ort_env, session->model_path, session->session_options, &session->session
+        ort_env,
+        session->model_path,
+        session->session_options,
+        &session->session
     );
 #endif
     if (ort_status != nullptr) {
@@ -274,15 +377,18 @@ on_error:
     return nullptr;
 }
 
-KomeliaOrt *komelia_ort_create(GError **error) {
-    const OrtApi *ort_api = OrtGetApiBase()->GetApi(ORT_API_VERSION);
+KomeliaOrt *komelia_ort_create(
+    const char *data_dir,
+    GError **error
+) {
+    const OrtApi *ort_api = OrtGetApiBase()->GetApi(KOMELIA_ORT_API_VERSION);
     if (ort_api == nullptr) {
         g_set_error(
             error,
             KOMELIA_ORT_ERROR,
             KOMELIA_ORT_ERROR_UNSUPPORTED_API_VERSION,
             "The requested API version [%u] is not available. Update to newer version",
-            ORT_API_VERSION
+            KOMELIA_ORT_API_VERSION
         );
         return nullptr;
     }
@@ -308,6 +414,7 @@ KomeliaOrt *komelia_ort_create(GError **error) {
     komelia_ort->ort_api = ort_api;
     komelia_ort->ort_env = ort_env;
     komelia_ort->ort_allocator = ort_default_allocator;
+    komelia_ort->data_dir = strdup(data_dir);
 
     return komelia_ort;
 }
@@ -369,6 +476,8 @@ static InferenceData *prepare_inference_data(
     InferenceData *inference_data = malloc(sizeof(InferenceData));
     inference_data->output_names = malloc(sizeof(char *) * session->output_count);
     inference_data->output_len = session->output_count;
+    inference_data->input_info = nullptr;
+    inference_data->input_tensor = nullptr;
 
     const OrtApi *ort_api = komelia_ort->ort_api;
     OrtAllocator *ort_allocator = komelia_ort->ort_allocator;
@@ -397,7 +506,10 @@ static InferenceData *prepare_inference_data(
     }
     inference_data->input_tensor = input_tensor;
     ort_status = ort_api->SessionGetInputName(
-        session->session, 0, komelia_ort->ort_allocator, &inference_data->input_name
+        session->session,
+        0,
+        komelia_ort->ort_allocator,
+        &inference_data->input_name
     );
 
     if (ort_status != nullptr)
@@ -405,9 +517,9 @@ static InferenceData *prepare_inference_data(
 
     for (int i = 0; i < session->output_count; ++i) {
         char *out_name = nullptr;
-        ort_status = ort_api->SessionGetOutputName(
-            session->session, i, komelia_ort->ort_allocator, &out_name
-        );
+        ort_status =
+            ort_api
+                ->SessionGetOutputName(session->session, i, komelia_ort->ort_allocator, &out_name);
         inference_data->output_names[i] = out_name;
         if (ort_status != nullptr)
             goto inference_error;
@@ -497,7 +609,7 @@ InferenceResult *komelia_ort_run_inference(
     InferenceResult *result = run_inference(komelia_ort, session, inference_data, &inference_error);
     if (inference_error != nullptr) {
         g_propagate_error(error, inference_error);
-        release_inference_data(komelia_ort->ort_api, komelia_ort->ort_allocator, inference_data);
+        // release_inference_data(komelia_ort->ort_api, komelia_ort->ort_allocator, inference_data);
         return nullptr;
     }
     return result;
@@ -505,8 +617,8 @@ InferenceResult *komelia_ort_run_inference(
 
 void komelia_ort_destroy(KomeliaOrt *komelia_ort) {
     komelia_ort->ort_api->ReleaseEnv(komelia_ort->ort_env);
+    free(komelia_ort->data_dir);
     free(komelia_ort);
-
 }
 
 void komelia_ort_close_session(

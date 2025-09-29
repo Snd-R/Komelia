@@ -18,15 +18,6 @@ class ImageReaderSettingsScreen : Screen {
 
         SettingsScreenContainer("Image Reader") {
             ImageReaderSettingsContent(
-                availableUpsamplingModes = vm.availableUpsamplingModes,
-                upsamplingMode = vm.upsamplingMode.collectAsState().value,
-                onUpsamplingModeChange = vm::onUpsamplingModeChange,
-
-                availableDownsamplingKernels = vm.availableDownsamplingKernels,
-                downsamplingKernel = vm.downsamplingKernel.collectAsState().value,
-                onDownsamplingKernelChange = vm::onDownsamplingKernelChange,
-                downsampleInLinearLight = vm.linearLightDownsampling.collectAsState().value,
-                onDownsampleInLinearLightChange = vm::onLinearLightDownsamplingChange,
                 loadThumbnailPreviews = vm.loadThumbnailsPreview.collectAsState().value,
                 onLoadThumbnailPreviewsChange = vm::onLoadThumbnailsPreviewChange,
                 volumeKeysNavigation = vm.volumeKeysNavigation.collectAsState().value,

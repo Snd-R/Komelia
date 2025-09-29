@@ -4,12 +4,16 @@ import coil3.disk.DiskCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories
 import io.github.snd_r.komelia.AppDirectories.mangaJaNaiInstallPath
+import io.github.snd_r.komelia.AppDirectories.mangaJaNaiOldInstallPath
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
+import io.github.snd_r.komelia.updates.OnnxModelDownloader.CompletionEvent.MangaJaNaiDownloaded
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -18,15 +22,17 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
+import org.apache.commons.io.FileUtils
 import snd.komelia.image.ImageFormat
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.VipsBackedImage
 import snd.komelia.image.VipsImage
 import snd.komelia.image.toVipsImage
-import snd.komelia.onnxruntime.DeviceInfo
-import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
+import snd.komelia.onnxruntime.OnnxRuntimeUpscaler
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.math.ceil
@@ -36,17 +42,17 @@ private val logger = KotlinLogging.logger {}
 
 class DesktopOnnxRuntimeUpscaler(
     private val settingsRepository: ImageReaderSettingsRepository,
-    private val ortUpscaler: snd.komelia.onnxruntime.OnnxRuntimeUpscaler
+    private val executionProvider: OnnxRuntimeExecutionProvider,
+    private val ortUpscaler: OnnxRuntimeUpscaler,
+    private val updateFlow: Flow<MangaJaNaiDownloaded>
+
 ) : KomeliaUpscaler {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    override val availableDevices = MutableStateFlow(emptyList<DeviceInfo>())
-    override val provider = OnnxRuntimeSharedLibraries.executionProvider
-    override val upscaleMode = settingsRepository.getOnnxRuntimeMode()
+    override val upscaleMode = settingsRepository.getUpscalerMode()
         .stateIn(scope, SharingStarted.Eagerly, UpscaleMode.NONE)
-    override val mangaJaNaiIsAvailable = MutableStateFlow(
-        OnnxRuntimeSharedLibraries.isAvailable && AppDirectories.containsMangaJaNaiModels()
-    )
-    override val userModelPath = settingsRepository.getSelectedOnnxModel()
+
+    override val mangaJaNaiIsAvailable = MutableStateFlow(false)
+    override val userModelPath = settingsRepository.getUpscalerOnnxModel()
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val mutex = Mutex()
@@ -56,28 +62,29 @@ class DesktopOnnxRuntimeUpscaler(
         .maxSizeBytes(500L * 1024 * 1024) // 500mb
         .build()
 
-    fun initialize() {
-        require(OnnxRuntimeSharedLibraries.isAvailable)
-        runCatching { availableDevices.value = ortUpscaler.getAvailableDevices() }
+    suspend fun initialize() {
+        //TODO remove after several releases
+        if (mangaJaNaiOldInstallPath.exists()) {
+            mangaJaNaiInstallPath.deleteIfExists()
+            FileUtils.moveDirectory(mangaJaNaiOldInstallPath.toFile(), mangaJaNaiInstallPath.toFile())
+        }
+
+        mangaJaNaiIsAvailable.value = AppDirectories.containsMangaJaNaiModels()
 
         settingsRepository.getOnnxRuntimeDeviceId()
-            .onEach { newDeviceId -> ortUpscaler.setExecutionProvider(provider, newDeviceId) }
+            .onEach { newDeviceId -> ortUpscaler.setExecutionProvider(executionProvider, newDeviceId) }
             .launchIn(scope)
 
         settingsRepository.getOnnxRuntimeTileSize()
             .onEach { newTileSize -> ortUpscaler.setTileSize(newTileSize) }
             .launchIn(scope)
+        val currentUpscaleMode = settingsRepository.getUpscalerMode().first()
+        if (currentUpscaleMode == UpscaleMode.MANGAJANAI_PRESET && !mangaJaNaiIsAvailable.value) {
+            settingsRepository.putUpscalerMode(UpscaleMode.NONE)
+        }
 
-//        this.selectedModelPath.filterNotNull()
-//            .combine(upscaleMode) { modelPath, mode ->
-//                if (mode == USER_SPECIFIED_MODEL && Path(modelPath).exists()) {
-//                    OnnxRuntimeUpscaler.setModelPath(modelPath)
-//                }
-//            }.launchIn(scope)
-
-        upscaleMode
-            .onEach { mutex.withLock { clearCache() } }
-            .launchIn(scope)
+        upscaleMode.onEach { mutex.withLock { clearCache() } }.launchIn(scope)
+        updateFlow.onEach { mangaJaNaiIsAvailable.value = AppDirectories.containsMangaJaNaiModels() }.launchIn(scope)
     }
 
     override suspend fun upscale(image: KomeliaImage, cacheKey: String?): KomeliaImage? {
@@ -120,11 +127,11 @@ class DesktopOnnxRuntimeUpscaler(
 
     override fun setOnnxModelPath(path: String?) {
         if (path == null) {
-            scope.launch { settingsRepository.putSelectedOnnxModel(path) }
+            scope.launch { settingsRepository.putUpscalerOnnxModel(path) }
         } else {
             val filePath = Path(path)
             if (filePath.name.endsWith(".onnx")) {
-                scope.launch { settingsRepository.putSelectedOnnxModel(path) }
+                scope.launch { settingsRepository.putUpscalerOnnxModel(path) }
                 if (filePath.exists()) {
                     ortUpscaler.setModelPath(filePath.toString())
                 }
@@ -133,11 +140,15 @@ class DesktopOnnxRuntimeUpscaler(
     }
 
     override fun setUpscaleMode(mode: UpscaleMode) {
-        scope.launch { settingsRepository.putOnnxRuntimeMode(mode) }
+        scope.launch { settingsRepository.putUpscalerMode(mode) }
     }
 
     override fun clearCache() {
         imageCache.clear()
+    }
+
+    override fun closeCurrentSession() {
+        ortUpscaler.closeCurrentSession()
     }
 
     private fun writeToDiskCache(image: KomeliaImage, cacheKey: String) {
@@ -159,6 +170,9 @@ class DesktopOnnxRuntimeUpscaler(
     }
 
     private suspend fun mangaJaNaiUpscale(image: KomeliaImage, cacheKey: String?): KomeliaImage {
+        if (!mangaJaNaiIsAvailable.value) {
+            throw IllegalStateException("Upscale error: MangaJaNai models are not available")
+        }
         val isGrayscale = if (image.type == ImageFormat.GRAYSCALE_8) true else isRgbaIsGrayscale(image)
 
         val modelPath =

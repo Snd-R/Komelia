@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.ui.settings.imagereader
+package io.github.snd_r.komelia.ui.settings.imagereader.onnxruntime
 
 import io.github.snd_r.komelia.DesktopPlatform
 import io.github.snd_r.komelia.DesktopPlatform.Linux
@@ -8,6 +8,7 @@ import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CPU
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.WEBGPU
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 
 actual fun isOnnxRuntimeSupported() = true
@@ -18,7 +19,8 @@ actual fun supportedOnnxRuntimeExecutionProviders(): List<OnnxRuntimeExecutionPr
             TENSOR_RT,
             CUDA,
 //            ROCm,
-            CPU,
+//            CPU,
+            WEBGPU
         )
 
         Windows -> listOf(
@@ -34,3 +36,5 @@ actual fun supportedOnnxRuntimeExecutionProviders(): List<OnnxRuntimeExecutionPr
 
 actual fun isOnnxRuntimeInstalled() = OnnxRuntimeSharedLibraries.isAvailable
 actual fun onnxRuntimeLoadError() = OnnxRuntimeSharedLibraries.loadErrorMessage
+
+actual val ortExecutionProvider: OnnxRuntimeExecutionProvider? = OnnxRuntimeSharedLibraries.executionProvider

@@ -8,11 +8,13 @@ import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
+import io.github.snd_r.komelia.AppDirectories.onnxRuntimeWorkingDir
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.DesktopOnnxRuntimeUpscaler
+import io.github.snd_r.komelia.image.DesktopPanelDetector
 import io.github.snd_r.komelia.image.DesktopReaderImageFactory
 import io.github.snd_r.komelia.image.ReaderImageFactory
 import io.github.snd_r.komelia.image.UpsamplingMode
@@ -38,8 +40,10 @@ import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.ui.error.NonRestartableException
 import io.github.snd_r.komelia.updates.DesktopAppUpdater
-import io.github.snd_r.komelia.updates.DesktopMangaJaNaiDownloader
+import io.github.snd_r.komelia.updates.DesktopOnnxModelDownloader
 import io.github.snd_r.komelia.updates.DesktopOnnxRuntimeInstaller
+import io.github.snd_r.komelia.updates.OnnxModelDownloader.CompletionEvent.MangaJaNaiDownloaded
+import io.github.snd_r.komelia.updates.OnnxModelDownloader.CompletionEvent.PanelModelDownloaded
 import io.github.snd_r.komelia.updates.UpdateClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -53,6 +57,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
@@ -83,8 +88,8 @@ import snd.komelia.image.SkiaBitmap
 import snd.komelia.image.VipsImageDecoder
 import snd.komelia.image.VipsSharedLibraries
 import snd.komelia.onnxruntime.JvmOnnxRuntime
+import snd.komelia.onnxruntime.JvmOnnxRuntimeRfDetr
 import snd.komelia.onnxruntime.JvmOnnxRuntimeUpscaler
-import snd.komelia.onnxruntime.OnnxRuntimeException
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
@@ -119,13 +124,8 @@ fun loadVipsLibraries() {
 }
 
 fun loadOnnxRuntimeLibraries() {
-    try {
-        OnnxRuntimeSharedLibraries.load()
-    } catch (e: UnsatisfiedLinkError) {
-        logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-    } catch (e: OnnxRuntimeException) {
-        logger.error(e) { "Couldn't load ONNX Runtime. ONNX upscaling will not work" }
-    }
+    runCatching { OnnxRuntimeSharedLibraries.load() }
+        .onFailure { logger.error(it) { "Couldn't load ONNX Runtime" } }
 }
 
 suspend fun initDependencies(
@@ -183,7 +183,7 @@ suspend fun initDependencies(
     )
     val appUpdater = DesktopAppUpdater(updateClient)
     val onnxRuntimeInstaller = DesktopOnnxRuntimeInstaller(updateClient)
-    val mangaJaNaiDownloader = DesktopMangaJaNaiDownloader(updateClient, notifications)
+    val onnxModelDownloader = DesktopOnnxModelDownloader(updateClient, notifications)
 
     val vipsDecoder = VipsImageDecoder()
 
@@ -196,7 +196,20 @@ suspend fun initDependencies(
     )
 
     val onnxRuntime = createOnnxRuntime()
-    val onnxUpscaler = onnxRuntime?.let { ort -> createOnnxRuntimeUpscaler(ort, imageReaderRepository) }
+    val onnxUpscaler = onnxRuntime?.let { ort ->
+        createOnnxRuntimeUpscaler(
+            ort = ort,
+            settingsRepository = imageReaderRepository,
+            updateFlow = onnxModelDownloader.downloadCompletionEvents.filterIsInstance(),
+        )
+    }
+    val onnxRuntimeRfDetr = onnxRuntime?.let { ort ->
+        createPanelDetector(
+            ort = ort,
+            updateFlow = onnxModelDownloader.downloadCompletionEvents.filterIsInstance(),
+            deviceId = imageReaderRepository.getOnnxRuntimeDeviceId().stateIn(initScope),
+        )
+    }
     val colorCorrectionStep = ColorCorrectionStep(bookColorCorrectionRepository)
     val imagePipeline = createImagePipeline(
         cropBorders = imageReaderRepository.getCropBorders().stateIn(initScope),
@@ -244,9 +257,11 @@ suspend fun initDependencies(
         windowState = windowState,
         imageDecoder = vipsDecoder,
         colorCorrectionStep = colorCorrectionStep,
-        mangaJaNaiDownloader = mangaJaNaiDownloader,
+        onnxModelDownloader = onnxModelDownloader,
         onnxRuntimeInstaller = onnxRuntimeInstaller,
-        onnxRuntime = onnxUpscaler,
+        onnxRuntime = onnxRuntime,
+        upscaler = onnxUpscaler,
+        panelDetector = onnxRuntimeRfDetr,
     )
 }
 
@@ -264,18 +279,43 @@ private fun createOnnxRuntime(): JvmOnnxRuntime? {
         logger.warn { "OnnxRuntime is Not available" }
         return null
     }
-    return JvmOnnxRuntime.create()
+    onnxRuntimeWorkingDir.createDirectories()
+    return JvmOnnxRuntime.create(onnxRuntimeWorkingDir.toString())
 }
 
-private fun createOnnxRuntimeUpscaler(
+private suspend fun createOnnxRuntimeUpscaler(
     ort: JvmOnnxRuntime,
-    settingsRepository: ImageReaderSettingsRepository
+    settingsRepository: ImageReaderSettingsRepository,
+    updateFlow: Flow<MangaJaNaiDownloaded>,
 ): DesktopOnnxRuntimeUpscaler {
     val upscaler = JvmOnnxRuntimeUpscaler.create(ort)
-    return DesktopOnnxRuntimeUpscaler(settingsRepository, upscaler).also {
+    return DesktopOnnxRuntimeUpscaler(
+        settingsRepository = settingsRepository,
+        executionProvider = OnnxRuntimeSharedLibraries.executionProvider,
+        ortUpscaler = upscaler,
+        updateFlow = updateFlow
+    ).also {
         it.initialize()
         Runtime.getRuntime().addShutdownHook(thread(start = false) { it.clearCache() })
     }
+}
+
+private fun createPanelDetector(
+    ort: JvmOnnxRuntime,
+    updateFlow: Flow<PanelModelDownloaded>,
+    deviceId: StateFlow<Int>,
+): DesktopPanelDetector {
+    val rfDetr = JvmOnnxRuntimeRfDetr.create(ort)
+    val detector = DesktopPanelDetector(
+        rfDetr = rfDetr,
+        executionProvider = OnnxRuntimeSharedLibraries.executionProvider,
+        deviceId = deviceId,
+        updateFlow = updateFlow
+
+    )
+    detector.initialize()
+
+    return detector
 }
 
 private fun createOkHttpClient(): OkHttpClient {

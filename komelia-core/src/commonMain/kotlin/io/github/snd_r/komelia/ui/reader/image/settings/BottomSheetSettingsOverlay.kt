@@ -20,16 +20,17 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
@@ -64,8 +65,10 @@ import io.github.snd_r.komelia.ui.reader.image.ReaderFlashColor
 import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.CONTINUOUS
 import io.github.snd_r.komelia.ui.reader.image.ReaderType.PAGED
+import io.github.snd_r.komelia.ui.reader.image.ReaderType.PANELS
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
+import io.github.snd_r.komelia.ui.reader.image.panels.PanelsReaderState
 import kotlinx.coroutines.Dispatchers
 import snd.komelia.image.ReduceKernel
 import snd.komga.client.book.KomgaBook
@@ -104,6 +107,7 @@ fun BottomSheetSettingsOverlay(
 
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    panelsReaderState: PanelsReaderState?,
     onBackPress: () -> Unit,
 ) {
 
@@ -119,12 +123,18 @@ fun BottomSheetSettingsOverlay(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackPress) {
+        FilledIconButton(
+            onClick = onBackPress,
+            modifier = Modifier.size(46.dp)
+        ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
         }
 
         book?.let {
-            Column(Modifier.weight(1f)) {
+            Column(
+                Modifier.weight(1f)
+                    .padding(horizontal = 10.dp)
+            ) {
                 val titleStyle =
                     if (windowWidth == COMPACT) MaterialTheme.typography.titleMedium
                     else MaterialTheme.typography.titleLarge
@@ -143,7 +153,12 @@ fun BottomSheetSettingsOverlay(
                 )
             }
         }
-        IconButton(onClick = { showSettingsDialog = true }) {
+        FilledIconButton(
+            onClick = { showSettingsDialog = true },
+//            shape = RoundedCornerShape(13.dp),
+            modifier = Modifier.size(46.dp)
+
+        ) {
             Icon(Icons.Default.Settings, null)
         }
     }
@@ -202,7 +217,8 @@ fun BottomSheetSettingsOverlay(
                                 readerType = readerType,
                                 onReaderTypeChange = onReaderTypeChange,
                                 pagedReaderState = pagedReaderState,
-                                continuousReaderState = continuousReaderState
+                                continuousReaderState = continuousReaderState,
+                                panelsAvailable = panelsReaderState != null
                             )
                         }
 
@@ -210,6 +226,7 @@ fun BottomSheetSettingsOverlay(
                             readerType = readerType,
                             pagedReaderState = pagedReaderState,
                             continuousReaderState = continuousReaderState,
+                            panelsReaderState = panelsReaderState,
                             availableUpsamplingModes = availableUpsamplingModes,
                             upsamplingMode = upsamplingMode,
                             onUpsamplingModeChange = onUpsamplingModeChange,
@@ -247,6 +264,7 @@ private fun BottomSheetReadingModeSettings(
     onReaderTypeChange: (ReaderType) -> Unit,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    panelsAvailable: Boolean,
 ) {
     Column {
         Text("Reading mode")
@@ -261,10 +279,16 @@ private fun BottomSheetReadingModeSettings(
                 onClick = { onReaderTypeChange(CONTINUOUS) },
                 label = { Text("Continuous") }
             )
+            if (panelsAvailable)
+                InputChip(
+                    selected = readerType == PANELS,
+                    onClick = { onReaderTypeChange(PANELS) },
+                    label = { Text("Panels") }
+                )
         }
 
         when (readerType) {
-            PAGED -> PagedModeSettings(pageState = pagedReaderState)
+            PAGED, PANELS -> PagedModeSettings(pageState = pagedReaderState)
             CONTINUOUS -> ContinuousModeSettings(state = continuousReaderState)
         }
     }
@@ -437,6 +461,7 @@ private fun BottomSheetImageSettings(
     readerType: ReaderType,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
+    panelsReaderState: PanelsReaderState?,
     availableUpsamplingModes: List<UpsamplingMode>,
     upsamplingMode: UpsamplingMode,
     onUpsamplingModeChange: (UpsamplingMode) -> Unit,
@@ -499,9 +524,19 @@ private fun BottomSheetImageSettings(
         when (readerType) {
             PAGED ->
                 PagedReaderPagesInfo(
-                    spread = pagedReaderState.currentSpread.collectAsState().value,
+                    pages = pagedReaderState.currentSpread.collectAsState().value.pages,
                     modifier = Modifier.animateContentSize()
                 )
+
+            PANELS -> {
+                if (panelsReaderState != null) {
+                    val panelsPage = panelsReaderState.currentPage.collectAsState().value
+                    val pages = remember(panelsPage) {
+                        panelsPage?.let { listOf(PagedReaderState.Page(it.metadata, it.imageResult)) } ?: emptyList()
+                    }
+                    PagedReaderPagesInfo(pages, modifier = Modifier.padding(start = 10.dp))
+                }
+            }
 
             CONTINUOUS -> ContinuousReaderPagesInfo(
                 lazyListState = continuousReaderState.lazyListState,
