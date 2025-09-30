@@ -138,20 +138,6 @@ void enable_webGpu(
     OrtSessionOptions *options,
     GError **error
 ) {
-
-    // const char *option_keys[1] = {"ep.webgpuexecutionprovider.enableGraphCapture\0"};
-    // const char *option_values[1] = {"1\0"};
-    // const char *option_keys[1] = {"ep.webgpuexecutionprovider.enableGraphCapture"};
-    // const char *option_values[1] = {"1"};
-    // OrtStatus *ort_status = ort_api->AddSessionConfigEntry(
-    //     options,
-    //     "ep.webgpuexecutionprovider.preferredLayout",
-    //     "NCHW"
-    // );
-    // if (ort_status != nullptr) {
-    //     wrap_ort_error(ort_api, ort_status, KOMELIA_ORT_ERROR_EXECUTION_PROVIDER_INIT, error);
-    //     return;
-    // }
     OrtStatus *ort_status =
         ort_api->SessionOptionsAppendExecutionProvider(options, "WebGPU", nullptr, nullptr, 0);
     if (ort_status != nullptr) {
@@ -247,71 +233,18 @@ SessionData *komelia_ort_create_session(
         break;
     }
 
-    // const OrtEpDevice *const *devices = nullptr;
-    // size_t devices_num = 0;
-    // ort_status = ort_api->GetEpDevices(ort_env, &devices, &devices_num);
-    // fprintf(stderr, "ep device count %lu\n", devices_num);
-    // for (int i = 0; i < devices_num; ++i) {
-    //     const OrtEpDevice *device = devices[i];
-    //     const char *device_name = ort_api->EpDevice_EpName(device);
-    //     fprintf(stderr, "%s\n", device_name);
-    //     const OrtHardwareDevice *h_device = ort_api->EpDevice_Device(device);
-    //     const char *vendor = ort_api->HardwareDevice_Vendor(h_device);
-    //     uint32_t h_device_id = ort_api->HardwareDevice_DeviceId(h_device);
-    //     fprintf(stderr, "device id: %i\n", h_device_id);
-    //     fprintf(stderr, "vendor: %s\n", vendor);
-    //     OrtHardwareDeviceType device_type = ort_api->HardwareDevice_Type(h_device);
-    //     switch (device_type) {
-    //     case OrtHardwareDeviceType_CPU:
-    //         fprintf(stderr, "device type: CPU\n");
-    //         break;
-    //     case OrtHardwareDeviceType_GPU:
-    //         fprintf(stderr, "device type: GPU\n");
-    //         break;
-    //     case OrtHardwareDeviceType_NPU:
-    //         fprintf(stderr, "device type: NPU\n");
-    //         break;
-    //     }
-    //     const OrtKeyValuePairs *device_meta = ort_api->HardwareDevice_Metadata(h_device);
-    //     const char *const *keys = nullptr;
-    //     const char *const *values = nullptr;
-    //     size_t num_entries = 0;
-    //     ort_api->GetKeyValuePairs(device_meta, &keys, &values, &num_entries);
-    //
-    //     fprintf(stderr, "metadata count %lu\n", num_entries);
-    //     for (int m = 0; m < num_entries; ++m) {
-    //         const char *key = keys[m];
-    //         const char *value = values[m];
-    //         fprintf(stderr, "%s: %s \n", key, value);
-    //     }
-    //
-    //     // const OrtKeyValuePairs *device_meta = ort_api->EpDevice_EpMetadata(device);
-    //     // const char *const *keys = nullptr;
-    //     // const char *const *values = nullptr;
-    //     // size_t num_entries = 0;
-    //     // ort_api->GetKeyValuePairs(device_meta, &keys, &values, &num_entries);
-    //     //
-    //     // printf("metadata count %lu\n", num_entries);
-    //     // for (int m = 0; m < num_entries; ++m) {
-    //     //     const char *key = keys[m];
-    //     //     const char *value = values[m];
-    //     //     printf("%s: %s \n", key, value);
-    //     // }
-    // }
-
     if (provider_init_error != nullptr) {
         g_propagate_error(error, provider_init_error);
         return nullptr;
     }
 
 #ifdef _WIN32
-    size_t *wide_length = nullptr;
-    wchar_t *wide_model_path = fromUTF8(current_model_path, 0, wide_length);
-    onnx_status = g_ort->CreateSession(
+    wchar_t *wide_model_path = fromUTF8(session->model_path, 0, nullptr);
+    ort_status = ort_api->CreateSession(
         ort_env,
         wide_model_path,
-        current_session.session_options,
-        &current_session.session
+        session->session_options,
+        &session->session
     );
     free(wide_model_path);
 #else

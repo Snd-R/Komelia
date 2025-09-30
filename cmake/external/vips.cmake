@@ -23,8 +23,6 @@ ExternalProject_Add(ep_vips
             -Ddeprecated=false
             -Dexamples=false
             -Dcplusplus=false
-            -Ddoxygen=false
-            -Dgtk_doc=false
             -Dmodules=disabled
             -Dintrospection=disabled
             -Dvapi=false

@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 project(komelia_onnxruntime C CXX)
 set(CMAKE_C_STANDARD 23)
-#include(CTest)
 include(CMakePrintHelpers)
 
 OPTION(CUDA_GPU_ENUMERATION "build gpu enumeration shared lib for cuda" OFF)
@@ -23,19 +22,25 @@ find_package(OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 pkg_search_module(GLIB2 REQUIRED glib-2.0 IMPORTED_TARGET)
-pkg_check_modules(ONNXRUNTIME REQUIRED IMPORTED_TARGET libonnxruntime)
-
-#if (NOT DEFINED ONNXRUNTIME_PATH)
-#    message(FATAL_ERROR "ONNXRUNTIME_PATH is not specified")
-#endif ()
-#find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_PATH} PATH_SUFFIXES lib NO_DEFAULT_PATH)
-#if (NOT DEFINED ONNXRUNTIME_LIB)
-#    message(FATAL_ERROR "Failed to find onnxruntime library")
-#endif ()
-#cmake_print_variables(ONNXRUNTIME_LIB)
-
 find_library(KOMELIA_VIPS_LIB NAMES komelia_vips PATH_SUFFIXES lib)
 include_directories(${CMAKE_SOURCE_DIR}/komelia-image-decoder/vips/native/src/vips/)
+
+if (${KOMELIA_VIPS_LIB} STREQUAL "KOMELIA_VIPS_LIB-NOTFOUND")
+    set(KOMELIA_VIPS_LIBS komelia_vips)
+else ()
+    set(KOMELIA_VIPS_LIBS ${KOMELIA_VIPS_LIB})
+endif ()
+
+if (DEFINED ONNXRUNTIME_CUSTOM_PATH)
+    find_library(ONNXRUNTIME_LIB NAMES onnxruntime PATHS ${ONNXRUNTIME_CUSTOM_PATH} PATH_SUFFIXES lib NO_DEFAULT_PATH)
+    SET(ONNXRUNTIME_LIBS ${ONNXRUNTIME_LIB})
+    SET(ONNXRUNTIME_INCLUDE ${ONNXRUNTIME_CUSTOM_PATH}/include/onnxruntime)
+else ()
+    pkg_check_modules(ONNXRUNTIME REQUIRED IMPORTED_TARGET libonnxruntime)
+    SET(ONNXRUNTIME_LIBS PkgConfig::ONNXRUNTIME)
+    SET(ONNXRUNTIME_INCLUDE ${ONNXRUNTIME_INCLUDE_DIRS})
+endif ()
+
 add_library(komelia_onnxruntime SHARED
         src/onnxruntime/jni/komelia_onnxruntime_common_jni.h
         src/onnxruntime/jni/komelia_onnxruntime_jni.c
@@ -46,8 +51,6 @@ add_library(komelia_onnxruntime SHARED
         src/onnxruntime/komelia_ort_upscaler.h
         src/onnxruntime/komelia_ort_upscaler.c
         src/onnxruntime/komelia_onnxruntime.h
-        src/onnxruntime/yolo/komelia_onnxruntime_yolo_detect.h
-        src/onnxruntime/yolo/komelia_onnxruntime_yolo_detect.c
         src/onnxruntime/komelia_onnxruntime.c
         src/onnxruntime/komelia_error.h
         src/onnxruntime/komelia_error.c
@@ -55,17 +58,11 @@ add_library(komelia_onnxruntime SHARED
         src/onnxruntime/komelia_ort_rf_detr.c
 )
 
-if (${KOMELIA_VIPS_LIB} STREQUAL "KOMELIA_VIPS_LIB-NOTFOUND")
-    set(KOMELIA_VIPS_LIBS komelia_vips)
-else ()
-    set(KOMELIA_VIPS_LIBS ${KOMELIA_VIPS_LIB})
-endif ()
 target_include_directories(komelia_onnxruntime PRIVATE
         ${VIPS_INCLUDE_DIRS}
         ${JNI_INCLUDE_DIRS}
         ${GLIB2_INCLUDE_DIRS}
-#        ${ONNXRUNTIME_PATH}/include/onnxruntime
-        ${ONNXRUNTIME_INCLUDE_DIRS}
+        ${ONNXRUNTIME_INCLUDE}
         ${KOMELIA_VIPS_INCLUDE}
 )
 target_link_libraries(komelia_onnxruntime
@@ -74,11 +71,48 @@ target_link_libraries(komelia_onnxruntime
         Threads::Threads
         OpenMP::OpenMP_C
         PkgConfig::GLIB2
-        PkgConfig::ONNXRUNTIME
         ${KOMELIA_VIPS_LIBS}
-#        ${ONNXRUNTIME_LIB}
+        ${ONNXRUNTIME_LIBS}
 )
 install(TARGETS komelia_onnxruntime LIBRARY)
+
+if (WIN32)
+    add_library(komelia_onnxruntime_dml SHARED
+            src/onnxruntime/jni/komelia_onnxruntime_common_jni.h
+            src/onnxruntime/jni/komelia_onnxruntime_jni.c
+            src/onnxruntime/jni/komelia_upscaler_jni.c
+            src/onnxruntime/jni/komelia_rf_detr_jni.c
+            src/onnxruntime/komelia_matrix_ops.h
+            src/onnxruntime/win32_strings.h
+            src/onnxruntime/komelia_ort_upscaler.h
+            src/onnxruntime/komelia_ort_upscaler.c
+            src/onnxruntime/komelia_onnxruntime.h
+            src/onnxruntime/komelia_onnxruntime.c
+            src/onnxruntime/komelia_error.h
+            src/onnxruntime/komelia_error.c
+            src/onnxruntime/komelia_ort_rf_detr.h
+            src/onnxruntime/komelia_ort_rf_detr.c
+    )
+    target_compile_definitions(komelia_onnxruntime_dml PUBLIC USE_DML)
+
+    target_include_directories(komelia_onnxruntime_dml PRIVATE
+            ${VIPS_INCLUDE_DIRS}
+            ${JNI_INCLUDE_DIRS}
+            ${GLIB2_INCLUDE_DIRS}
+            ${ONNXRUNTIME_INCLUDE}
+            ${KOMELIA_VIPS_INCLUDE}
+    )
+    target_link_libraries(komelia_onnxruntime_dml
+            m
+            PkgConfig::VIPS
+            Threads::Threads
+            OpenMP::OpenMP_C
+            PkgConfig::GLIB2
+            ${KOMELIA_VIPS_LIBS}
+            ${ONNXRUNTIME_LIBS}
+    )
+    install(TARGETS komelia_onnxruntime_dml LIBRARY)
+endif ()
 
 if (CUDA_GPU_ENUMERATION)
     find_package(CUDAToolkit)
@@ -154,41 +188,3 @@ if (DXGI_GPU_ENUMERATION AND WIN32)
     target_link_libraries(komelia_enumerate_devices_dxgi dxgi)
     install(TARGETS komelia_enumerate_devices_dxgi LIBRARY)
 endif ()
-
-if (WIN32)
-    add_library(komelia_onnxruntime_dml SHARED
-            src/vips/vips_common_jni.h
-            src/vips/vips_common_jni.c
-            src/onnxruntime/jni/komelia_onnxruntime_jni.c
-            src/onnxruntime/komelia_matrix_ops.h
-            src/onnxruntime/onnxruntime_conversions.c
-            src/onnxruntime/win32_strings.h
-    )
-    target_compile_definitions(komelia_onnxruntime_dml PUBLIC USE_DML)
-    target_include_directories(komelia_onnxruntime_dml PRIVATE
-            ${VIPS_INCLUDE_DIRS}
-            ${JNI_INCLUDE_DIRS}
-            ${ONNXRUNTIME_PATH}/include
-            ${ONNXRUNTIME_PATH}/include/onnxruntime
-    )
-    target_link_libraries(komelia_onnxruntime_dml
-            m
-            PkgConfig::VIPS
-            Threads::Threads
-            OpenMP::OpenMP_C
-            ${ONNXRUNTIME_LIB}
-    )
-    install(TARGETS komelia_onnxruntime_dml LIBRARY)
-endif ()
-
-#enable_testing()
-#
-#add_executable(upscaler1_test test/upscaler_test.c)
-#target_link_libraries(upscaler1_test komelia_onnxruntime komelia_vips)
-#target_include_directories(upscaler1_test PRIVATE ${ONNXRUNTIME_PATH}/include)
-#add_test(upscaler_test upscaler1_test)
-#
-#add_executable(rfdetr_test1 test/rfdetr_test.c)
-#target_link_libraries(rfdetr_test1 komelia_onnxruntime komelia_vips)
-#target_include_directories(rfdetr_test1 PRIVATE ${ONNXRUNTIME_PATH}/include)
-#add_test(rfdetr_test rfdetr_test1)

@@ -6,18 +6,17 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
 diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
---- a/libvips/resample/thumbnail.c	(revision ee7f8774c2b327e6097babfb7eade0177f98aa5e)
-+++ b/libvips/resample/thumbnail.c	(date 1739963516336)
-@@ -153,6 +153,8 @@
+--- a/libvips/resample/thumbnail.c	(revision 0b3a70c94e2530b79b8a14daa09079454c4d771d)
++++ b/libvips/resample/thumbnail.c	(date 1759172814248)
+@@ -152,6 +152,7 @@
+ 	/* Pyramids are stored in pages.
  	 */
  	gboolean page_pyramid;
- 
 +	VipsKernel kernel;
-+
+ 
  } VipsThumbnail;
  
- typedef struct _VipsThumbnailClass {
-@@ -811,7 +813,7 @@
+@@ -811,7 +812,7 @@
  		in = t[4];
  	}
  
@@ -26,10 +25,10 @@ diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
  		return -1;
  	in = t[5];
  
-@@ -1052,6 +1054,13 @@
+@@ -1070,6 +1071,13 @@
  		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
- 		G_STRUCT_OFFSET(VipsThumbnail, auto_rotate),
- 		TRUE);
+ 		G_STRUCT_OFFSET(VipsThumbnail, output_profile),
+ 		NULL);
 +
 +	VIPS_ARG_ENUM(class, "kernel", 999,
 +		_("Kernel"),
@@ -40,7 +39,7 @@ diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
  }
  
  static void
-@@ -1062,6 +1071,7 @@
+@@ -1080,6 +1088,7 @@
  	thumbnail->auto_rotate = TRUE;
  	thumbnail->intent = VIPS_INTENT_RELATIVE;
  	thumbnail->fail_on = VIPS_FAIL_ON_NONE;

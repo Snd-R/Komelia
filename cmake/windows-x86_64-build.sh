@@ -3,19 +3,19 @@ set -e
 
 rm -rf ./cmake/build-w64
 mkdir -p ./cmake/build-w64/sysroot
-mkdir -p ./cmake/build-w64/sysroot/include
+mkdir -p ./cmake/build-w64/sysroot/include/onnxruntime
 mkdir -p ./cmake/build-w64/sysroot/lib
 cd ./cmake/build-w64
 
 mkdir onnxruntime-win-x64
 wget --retry-connrefused --waitretry=1 \
 	--read-timeout=20 --timeout=15 -t 0 \
-        https://globalcdn.nuget.org/packages/microsoft.ml.onnxruntime.directml.1.22.1.nupkg \
-        && unzip microsoft.ml.onnxruntime.directml.1.20.1.nupkg -d onnxruntime-win-x64 \
-        && mv ./onnxruntime-win-x64/build/native/include/* ./sysroot/include \
+        https://globalcdn.nuget.org/packages/microsoft.ml.onnxruntime.directml.1.23.0.nupkg \
+        && unzip microsoft.ml.onnxruntime.directml.1.23.0.nupkg -d onnxruntime-win-x64 \
+        && mv ./onnxruntime-win-x64/build/native/include/* ./sysroot/include/onnxruntime \
         && mv ./onnxruntime-win-x64/runtimes/win-x64/native/* ./sysroot/lib
 
-patch ./sysroot/include/onnxruntime_c_api.h ../windows-x64-mingw_onnxruntime_c_api.h.patch
+ONNXRUNTIME_CUSTOM_PATH="$(readlink -f .)/sysroot"
 
 export PKG_CONFIG_PATH="$(readlink -f .)/sysroot/lib/pkgconfig"
 export PKG_CONFIG_PATH_CUSTOM="$(readlink -f .)/sysroot/lib/pkgconfig"
@@ -30,8 +30,10 @@ cmake ../.. -G Ninja \
         -DROCM_GPU_ENUMERATION=OFF \
         -DDXGI_GPU_ENUMERATION=ON \
         -DCUDA_GPU_ENUMERATION=ON \
-        -DWEBVIEW_USE_COMPAT_MINGW=ON \
-        -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH"
+        -DVULKAN_GPU_ENUMERATION=OFF \
+        -DCUDA_CUSTOM_PATH="$CUDA_CUSTOM_PATH" \
+        -DONNXRUNTIME_CUSTOM_PATH="$ONNXRUNTIME_CUSTOM_PATH" \
+        -DWEBVIEW_USE_COMPAT_MINGW=ON
 
 cmake --build . -j $(nproc)
 

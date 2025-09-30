@@ -1,6 +1,7 @@
 #ifndef KOMELIA_ORT_RF_DETR
 #define KOMELIA_ORT_RF_DETR
 
+#include <pthread.h>
 #include "komelia_onnxruntime.h"
 #include <vips/vips.h>
 

@@ -1,6 +1,7 @@
 #ifndef KOMELIA_ORT_UPSCALER
 #define KOMELIA_ORT_UPSCALER
 
+#include <pthread.h>
 #include "komelia_onnxruntime.h"
 
 typedef struct {
