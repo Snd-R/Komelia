@@ -240,12 +240,9 @@ SessionData *komelia_ort_create_session(
 
 #ifdef _WIN32
     wchar_t *wide_model_path = fromUTF8(session->model_path, 0, nullptr);
-    ort_status = ort_api->CreateSession(
-        ort_env,
-        wide_model_path,
-        session->session_options,
-        &session->session
-    );
+    ort_status =
+        ort_api
+            ->CreateSession(ort_env, wide_model_path, session->session_options, &session->session);
     free(wide_model_path);
 #else
     ort_status = ort_api->CreateSession(
@@ -348,6 +345,7 @@ KomeliaOrt *komelia_ort_create(
     komelia_ort->ort_env = ort_env;
     komelia_ort->ort_allocator = ort_default_allocator;
     komelia_ort->data_dir = strdup(data_dir);
+    pthread_mutex_init(&komelia_ort->mutex, nullptr);
 
     return komelia_ort;
 }
@@ -529,12 +527,14 @@ InferenceResult *komelia_ort_run_inference(
     const KomeliaOrtInputTensor *input,
     GError **error
 ) {
-
+    pthread_mutex_lock(&komelia_ort->mutex);
     GError *prepare_error = nullptr;
     InferenceData *inference_data =
         prepare_inference_data(komelia_ort, session, input, &prepare_error);
+
     if (prepare_error != nullptr) {
         g_propagate_error(error, prepare_error);
+        pthread_mutex_unlock(&komelia_ort->mutex);
         return nullptr;
     }
 
@@ -542,15 +542,17 @@ InferenceResult *komelia_ort_run_inference(
     InferenceResult *result = run_inference(komelia_ort, session, inference_data, &inference_error);
     if (inference_error != nullptr) {
         g_propagate_error(error, inference_error);
-        // release_inference_data(komelia_ort->ort_api, komelia_ort->ort_allocator, inference_data);
+        pthread_mutex_unlock(&komelia_ort->mutex);
         return nullptr;
     }
+    pthread_mutex_unlock(&komelia_ort->mutex);
     return result;
 }
 
 void komelia_ort_destroy(KomeliaOrt *komelia_ort) {
     komelia_ort->ort_api->ReleaseEnv(komelia_ort->ort_env);
     free(komelia_ort->data_dir);
+    pthread_mutex_destroy(&komelia_ort->mutex);
     free(komelia_ort);
 }
 

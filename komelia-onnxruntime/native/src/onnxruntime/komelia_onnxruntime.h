@@ -54,6 +54,7 @@ typedef struct {
     OrtEnv *ort_env;
     OrtAllocator *ort_allocator;
     char *data_dir;
+    pthread_mutex_t mutex;
 } KomeliaOrt;
 
 static void wrap_ort_error(
