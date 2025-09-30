@@ -408,7 +408,6 @@ private fun createOnnxRuntime(
         dataDir = onnxDir
     )
 
-    onnxDir.resolve("rf-detr-nano.onnx").deleteIfExists()
     val panelDetector = AndroidPanelDetector(
         rfDetr = rfDetr,
         executionProvider = OnnxRuntimeExecutionProvider.CPU,

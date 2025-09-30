@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.ui.reader.image.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -33,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -123,7 +125,7 @@ fun BottomSheetSettingsOverlay(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        FilledIconButton(
+        IconButton(
             onClick = onBackPress,
             modifier = Modifier.size(46.dp)
         ) {
@@ -218,7 +220,7 @@ fun BottomSheetSettingsOverlay(
                                 onReaderTypeChange = onReaderTypeChange,
                                 pagedReaderState = pagedReaderState,
                                 continuousReaderState = continuousReaderState,
-                                panelsAvailable = panelsReaderState != null
+                                panelsReaderState = panelsReaderState,
                             )
                         }
 
@@ -264,7 +266,7 @@ private fun BottomSheetReadingModeSettings(
     onReaderTypeChange: (ReaderType) -> Unit,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsAvailable: Boolean,
+    panelsReaderState: PanelsReaderState?,
 ) {
     Column {
         Text("Reading mode")
@@ -279,7 +281,7 @@ private fun BottomSheetReadingModeSettings(
                 onClick = { onReaderTypeChange(CONTINUOUS) },
                 label = { Text("Continuous") }
             )
-            if (panelsAvailable)
+            if (panelsReaderState != null)
                 InputChip(
                     selected = readerType == PANELS,
                     onClick = { onReaderTypeChange(PANELS) },
@@ -288,7 +290,8 @@ private fun BottomSheetReadingModeSettings(
         }
 
         when (readerType) {
-            PAGED, PANELS -> PagedModeSettings(pageState = pagedReaderState)
+            PAGED -> PagedModeSettings(pageState = pagedReaderState)
+            PANELS -> if (panelsReaderState != null) PanelsModeSettings(state = panelsReaderState)
             CONTINUOUS -> ContinuousModeSettings(state = continuousReaderState)
         }
     }
@@ -367,16 +370,45 @@ private fun PagedModeSettings(
                 label = { Text(strings.forLayout(PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER)) }
             )
         }
-        HorizontalDivider()
-        val layoutOffset = pageState.layoutOffset.collectAsState().value
-        SwitchWithLabel(
-            enabled = layout == PagedReaderState.PageDisplayLayout.DOUBLE_PAGES || layout == PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER,
-            checked = layoutOffset,
-            onCheckedChange = pageState::onLayoutOffsetChange,
-            label = { Text(strings.offsetPages) },
-            contentPadding = PaddingValues(horizontal = 10.dp),
-        )
+        AnimatedVisibility(layout == PagedReaderState.PageDisplayLayout.DOUBLE_PAGES || layout == PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER) {
+            HorizontalDivider()
+            val layoutOffset = pageState.layoutOffset.collectAsState().value
+            SwitchWithLabel(
+                checked = layoutOffset,
+                onCheckedChange = pageState::onLayoutOffsetChange,
+                label = { Text(strings.offsetPages) },
+                contentPadding = PaddingValues(horizontal = 10.dp),
+            )
+        }
 
+    }
+
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PanelsModeSettings(
+    state: PanelsReaderState,
+) {
+    val strings = LocalStrings.current.pagedReader
+    Column {
+
+        val readingDirection = state.readingDirection.collectAsState().value
+        Text(strings.readingDirection)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            InputChip(
+                selected = readingDirection == PagedReaderState.ReadingDirection.RIGHT_TO_LEFT,
+                onClick = { state.onReadingDirectionChange(PagedReaderState.ReadingDirection.RIGHT_TO_LEFT) },
+                label = { Text(strings.forReadingDirection(PagedReaderState.ReadingDirection.RIGHT_TO_LEFT)) }
+            )
+            InputChip(
+                selected = readingDirection == PagedReaderState.ReadingDirection.LEFT_TO_RIGHT,
+                onClick = { state.onReadingDirectionChange(PagedReaderState.ReadingDirection.LEFT_TO_RIGHT) },
+                label = { Text(strings.forReadingDirection(PagedReaderState.ReadingDirection.LEFT_TO_RIGHT)) }
+            )
+        }
     }
 
 }
@@ -534,7 +566,10 @@ private fun BottomSheetImageSettings(
                     val pages = remember(panelsPage) {
                         panelsPage?.let { listOf(PagedReaderState.Page(it.metadata, it.imageResult)) } ?: emptyList()
                     }
-                    PagedReaderPagesInfo(pages, modifier = Modifier.padding(start = 10.dp))
+                    PagedReaderPagesInfo(
+                        pages = pages,
+                        modifier = Modifier.animateContentSize()
+                    )
                 }
             }
 
