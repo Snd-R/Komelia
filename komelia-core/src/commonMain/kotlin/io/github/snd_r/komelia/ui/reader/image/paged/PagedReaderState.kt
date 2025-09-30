@@ -108,11 +108,16 @@ class PagedReaderState(
         ) { }.drop(1)
             .conflate()
             .onEach {
+                val spread = currentSpread.value
                 updateSpreadImageState(
-                    currentSpread.value,
-                    screenScaleState,
-                    readingDirection.value
+                    spread = spread,
+                    screenScaleState = screenScaleState,
+                    readingDirection = readingDirection.value,
                 )
+                val containerSize = screenScaleState.areaSize.value
+                val maxPageSize = getMaxPageSize(spread.pages.map { it.metadata }, containerSize)
+               val targetSize= fitToScreenZoom(spread.pages, maxPageSize, layout.value)
+                screenScaleState.setTargetSize(targetSize.toSize())
                 delay(100)
             }
             .launchIn(stateScope)
@@ -134,7 +139,7 @@ class PagedReaderState(
     private suspend fun updateSpreadImageState(
         spread: PageSpread,
         screenScaleState: ScreenScaleState,
-        readingDirection: ReadingDirection
+        readingDirection: ReadingDirection,
     ) {
         val maxPageSize = getMaxPageSize(spread.pages.map { it.metadata }, screenScaleState.areaSize.value)
         val zoomFactor = screenScaleState.transformation.value.scale
@@ -149,7 +154,6 @@ class PagedReaderState(
             if (result.imageResult is ReaderImageResult.Success) {
                 val image = result.imageResult.image
                 val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit)
-                screenScaleState.setTargetSize(imageDisplaySize.toSize())
 
                 val imageHorizontalVisibleWidth =
                     (imageDisplaySize.width * zoomFactor - areaSize.width) / 2
@@ -535,43 +539,7 @@ class PagedReaderState(
         val scaleState = ScreenScaleState()
         scaleState.setAreaSize(areaSize)
 
-        val fitToScreenSize = when (displayLayout) {
-            SINGLE_PAGE -> {
-                check(pages.size == 1)
-                val imageResult = pages.first().imageResult
-                when (imageResult) {
-                    is ReaderImageResult.Error, null -> maxPageSize
-                    is ReaderImageResult.Success -> imageResult.image.calculateSizeForArea(maxPageSize, true)
-                }
-            }
-
-            DOUBLE_PAGES, DOUBLE_PAGES_NO_COVER -> {
-                if (pages.size == 1 && !pages.first().metadata.isLandscape()) {
-                    val imageResult = pages.first().imageResult
-                    val singlePageSize = when (imageResult) {
-                        is ReaderImageResult.Error, null -> maxPageSize
-                        is ReaderImageResult.Success -> imageResult.image.calculateSizeForArea(maxPageSize, true)
-                    }
-                    IntSize(singlePageSize.width * 2, singlePageSize.height)
-                } else {
-                    pages
-                        .map {
-                            when (it.imageResult) {
-                                is ReaderImageResult.Error, null -> maxPageSize
-                                is ReaderImageResult.Success -> {
-                                    it.imageResult.image.calculateSizeForArea(maxPageSize, true)
-                                }
-                            }
-                        }
-                        .reduce { total, current ->
-                            IntSize(
-                                width = (total.width + current.width),
-                                height = max(total.height, current.height)
-                            )
-                        }
-                }
-            }
-        }
+        val fitToScreenSize = fitToScreenZoom(pages, maxPageSize, displayLayout)
         scaleState.setTargetSize(fitToScreenSize.toSize())
 
         val actualSpreadSize = pages.map {
@@ -627,6 +595,51 @@ class PagedReaderState(
         }
 
         return scaleState
+    }
+
+    private suspend fun fitToScreenZoom(
+        pages: List<Page>,
+        maxPageSize: IntSize,
+        displayLayout: PageDisplayLayout,
+    ): IntSize {
+        return when (displayLayout) {
+            SINGLE_PAGE -> {
+                check(pages.size == 1)
+                val imageResult = pages.first().imageResult
+                when (imageResult) {
+                    is ReaderImageResult.Error, null -> maxPageSize
+                    is ReaderImageResult.Success -> imageResult.image.calculateSizeForArea(maxPageSize, true)
+                }
+            }
+
+            DOUBLE_PAGES, DOUBLE_PAGES_NO_COVER -> {
+                if (pages.size == 1 && !pages.first().metadata.isLandscape()) {
+                    val imageResult = pages.first().imageResult
+                    val singlePageSize = when (imageResult) {
+                        is ReaderImageResult.Error, null -> maxPageSize
+                        is ReaderImageResult.Success -> imageResult.image.calculateSizeForArea(maxPageSize, true)
+                    }
+                    IntSize(singlePageSize.width * 2, singlePageSize.height)
+                } else {
+                    pages
+                        .map {
+                            when (it.imageResult) {
+                                is ReaderImageResult.Error, null -> maxPageSize
+                                is ReaderImageResult.Success -> {
+                                    it.imageResult.image.calculateSizeForArea(maxPageSize, true)
+                                }
+                            }
+                        }
+                        .reduce { total, current ->
+                            IntSize(
+                                width = (total.width + current.width),
+                                height = max(total.height, current.height)
+                            )
+                        }
+                }
+            }
+        }
+
     }
 
     private fun zoomForOriginalSize(originalSize: IntSize, targetSize: IntSize, scaleFor100Percent: Float): Float {
