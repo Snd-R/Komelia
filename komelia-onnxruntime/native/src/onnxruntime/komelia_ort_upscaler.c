@@ -619,6 +619,7 @@ void komelia_ort_upscaler_set_execution_provider(
 void komelia_ort_upscaler_close_session(KomeliaOrtUpscaler *upscaler) {
     pthread_mutex_lock(&upscaler->mutex);
     komelia_ort_close_session(upscaler->komelia_ort, upscaler->session);
+    upscaler->session = nullptr;
     pthread_mutex_unlock(&upscaler->mutex);
 }
 

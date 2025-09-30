@@ -10,7 +10,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
 import io.github.snd_r.komelia.AppDirectories.onnxRuntimeWorkingDir
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
-import io.github.snd_r.komelia.DesktopPlatform.Windows
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.BookImageLoader
@@ -92,7 +91,9 @@ import snd.komelia.onnxruntime.JvmOnnxRuntime
 import snd.komelia.onnxruntime.JvmOnnxRuntimeRfDetr
 import snd.komelia.onnxruntime.JvmOnnxRuntimeUpscaler
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CPU
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
+import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
@@ -309,13 +310,11 @@ private fun createPanelDetector(
     deviceId: StateFlow<Int>,
 ): DesktopPanelDetector {
     val rfDetr = JvmOnnxRuntimeRfDetr.create(ort)
-
-    // rf-detr detection with DirectML is currently broken
-    // fallback to CPU
-    val provider =
-        if (DesktopPlatform.Current == Windows && OnnxRuntimeSharedLibraries.executionProvider == DirectML) {
-            CPU
-        } else OnnxRuntimeSharedLibraries.executionProvider
+    val provider = when (OnnxRuntimeSharedLibraries.executionProvider) {
+        TENSOR_RT -> CUDA // TRT is broken. fallback to cuda
+        DirectML -> CPU // DirectML is broken. fallback to cpu
+        else -> OnnxRuntimeSharedLibraries.executionProvider
+    }
     val detector = DesktopPanelDetector(
         rfDetr = rfDetr,
         executionProvider = provider,
