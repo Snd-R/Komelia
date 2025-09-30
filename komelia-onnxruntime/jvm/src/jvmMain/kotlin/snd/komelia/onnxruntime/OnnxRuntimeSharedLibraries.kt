@@ -75,14 +75,6 @@ object OnnxRuntimeSharedLibraries {
         loadOrtLibrary(ortLibraries.onnxruntime)
         ortLibraries.directMl?.let { loadOrtLibrary(it) }
 
-        // copy to temp dir on windows to allow overriding original dlls during runtime
-        if (DesktopPlatform.Current == DesktopPlatform.Windows) {
-            copyToTempDir(ortLibraries.sharedEp)
-            ortLibraries.cudaEp?.let { copyToTempDir(it) }
-            ortLibraries.trtEp?.let { copyToTempDir(it) }
-            ortLibraries.rocmEp?.let { copyToTempDir(it) }
-        }
-
         val provider = when {
             ortLibraries.trtEp != null && ortLibraries.cudaEp != null -> TENSOR_RT
             ortLibraries.cudaEp != null -> CUDA
@@ -131,15 +123,27 @@ object OnnxRuntimeSharedLibraries {
         check(onnxruntime != null) { "onnxruntime library not found" }
         check(sharedEp != null) { "onnxruntime shared ep library not found" }
 
-        return OrtLibraries(
-            onnxruntime = onnxruntime,
-            sharedEp = sharedEp,
-            directMl = directML,
-            cudaEp = cudaEp,
-            trtEp = trtEp,
-            rocmEp = rocmEp,
-            rocmHipBlas = rocmHipBlas
-        )
+        // copy to temp dir on windows to allow overriding original dlls during runtime
+        return if (DesktopPlatform.Current == DesktopPlatform.Windows) {
+            OrtLibraries(
+                onnxruntime = copyToTempDir(onnxruntime),
+                sharedEp = copyToTempDir(sharedEp),
+                directMl = directML?.let { copyToTempDir(it) },
+                cudaEp = cudaEp?.let { copyToTempDir(it) },
+                trtEp = trtEp?.let { copyToTempDir(it) },
+                rocmEp = rocmEp?.let { copyToTempDir(it) },
+                rocmHipBlas = rocmHipBlas?.let { copyToTempDir(it) }
+            )
+        } else
+            OrtLibraries(
+                onnxruntime = onnxruntime,
+                sharedEp = sharedEp,
+                directMl = directML,
+                cudaEp = cudaEp,
+                trtEp = trtEp,
+                rocmEp = rocmEp,
+                rocmHipBlas = rocmHipBlas
+            )
     }
 
     private fun loadKomeliaJniLibs() {
@@ -186,8 +190,8 @@ object OnnxRuntimeSharedLibraries {
             } else {
                 path
             }
+        logger.info { "loading $loadFile" }
         System.load(loadFile.toString())
-        logger.info { "loaded $loadFile" }
     }
 
     private fun copyToTempDir(path: Path): Path {

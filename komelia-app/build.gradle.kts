@@ -61,7 +61,7 @@ kotlin {
             implementation(projects.komeliaDb.sqlite)
             implementation(projects.komeliaImageDecoder.vips)
             implementation(projects.komeliaOnnxruntime.jvm)
-            implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.0.2.jar"))
+            implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.7.0.jar"))
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)

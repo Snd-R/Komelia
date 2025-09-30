@@ -192,7 +192,10 @@ class DesktopOnnxRuntimeInstaller(private val updateClient: UpdateClient) : Onnx
     private fun getDirectMlDownloadInfo() = OnnxRuntimeDownloadInfo(
         "microsoft.ml.onnxruntime.directml.1.23.0.nupkg",
         "https://globalcdn.nuget.org/packages/microsoft.ml.onnxruntime.directml.1.23.0.nupkg",
-        listOf(Path("runtimes/win-x64/native/onnxruntime.dll"))
+        listOf(
+            Path("runtimes/win-x64/native/onnxruntime.dll"),
+            Path("runtimes/win-x64/native/onnxruntime_providers_shared.dll"),
+        )
     )
 
 

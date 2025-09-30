@@ -228,7 +228,7 @@ private fun OrtDownloadDialogContent(
                 ROCm -> CheckboxWithLabel(
                     checked = chosenProvider == ROCm,
                     onCheckedChange = { onProviderChoice(ROCm) },
-                    label = { Text("ROCm (AMD GPUs, requires ROCm6 system install)") },
+                    label = { Text("ROCm (AMD GPUs, requires ROCm7 system install)") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -237,11 +237,13 @@ private fun OrtDownloadDialogContent(
                     onCheckedChange = { onProviderChoice(DirectML) },
                     labelAlignment = Alignment.Top,
                     label = {
-                        Text("DirectML (any GPU)")
-                        Text(
-                            "High-performance, hardware-accelerated DirectX 12 library for machine learning",
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                        Column {
+                            Text("DirectML (any GPU)")
+                            Text(
+                                "High-performance, hardware-accelerated DirectX 12 library for machine learning",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
