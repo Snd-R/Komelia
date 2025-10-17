@@ -1,7 +1,6 @@
 package snd.komelia
 
 import android.app.Activity
-import android.companion.DeviceId
 import android.content.Context
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
@@ -41,6 +40,8 @@ import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KomfSettingsRepository
+import io.github.snd_r.komelia.ui.home.HomeScreenFilterRepository
+import io.github.snd_r.komelia.ui.home.homeScreenDefaultFilters
 import io.github.snd_r.komelia.updates.AndroidAppUpdater
 import io.github.snd_r.komelia.updates.AndroidOnnxModelDownloader
 import io.github.snd_r.komelia.updates.UpdateClient
@@ -54,7 +55,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.io.files.Path
@@ -72,7 +72,9 @@ import snd.komelia.db.color.ExposedBookColorCorrectionRepository
 import snd.komelia.db.color.ExposedColorCurvesPresetRepository
 import snd.komelia.db.color.ExposedColorLevelsPresetRepository
 import snd.komelia.db.fonts.ExposedUserFontsRepository
+import snd.komelia.db.homescreen.ExposedHomeScreenFilterRepository
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
+import snd.komelia.db.repository.ActorHomeScreenFilterRepository
 import snd.komelia.db.repository.ActorKomfSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
 import snd.komelia.db.repository.ActorSettingsRepository
@@ -80,9 +82,9 @@ import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
-import snd.komelia.image.VipsSharedLibrariesLoader
 import snd.komelia.image.ImageDecoder
 import snd.komelia.image.VipsImageDecoder
+import snd.komelia.image.VipsSharedLibrariesLoader
 import snd.komelia.onnxruntime.JvmOnnxRuntime
 import snd.komelia.onnxruntime.JvmOnnxRuntimeRfDetr
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
@@ -91,7 +93,6 @@ import snd.komf.client.KomfClientFactory
 import snd.komga.client.KomgaClientFactory
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.createDirectories
-import kotlin.io.path.deleteIfExists
 import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
@@ -133,6 +134,7 @@ suspend fun initDependencies(
     val colorLevelsPresetsRepository = ExposedColorLevelsPresetRepository(database.database)
     val bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(database.database)
     val komfSettingsRepository = createKomfSettingsRepository(database)
+    val homeScreenFilterRepository = createHomeScreenFilterRepository(database)
 
     val baseUrl = settingsRepository.getServerUrl().stateIn(initScope)
     val komfUrl = komfSettingsRepository.getKomfUrl().stateIn(initScope)
@@ -212,6 +214,7 @@ suspend fun initDependencies(
         bookColorCorrectionRepository = bookColorCorrectionRepository,
         secretsRepository = secretsRepository,
         komfSettingsRepository = komfSettingsRepository,
+        homeScreenFilterRepository = homeScreenFilterRepository,
 
         appNotifications = appNotifications,
         appUpdater = appUpdater,
@@ -366,6 +369,15 @@ private suspend fun createKomfSettingsRepository(database: KomeliaDatabase): Kom
         saveSettings = repository::save
     )
     return ActorKomfSettingsRepository(stateActor)
+}
+
+private suspend fun createHomeScreenFilterRepository(database: KomeliaDatabase): HomeScreenFilterRepository {
+    val repository = ExposedHomeScreenFilterRepository(database.database)
+    val stateActor = SettingsStateActor(
+        settings = repository.getFilters() ?: homeScreenDefaultFilters,
+        saveSettings = repository::putFilters
+    )
+    return ActorHomeScreenFilterRepository(stateActor)
 }
 
 private suspend fun createReaderImageFactory(

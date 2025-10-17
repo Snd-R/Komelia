@@ -45,7 +45,6 @@ fun ChipFieldWithSuggestions(
     suggestions: List<LabeledEntry<String>>,
 ) {
     val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
     val chipState = rememberChipTextFieldState(values.map { Chip(it) })
     LaunchedEffect(Unit) {
         snapshotFlow { chipState.chips.map { it.text } }
@@ -57,7 +56,7 @@ fun ChipFieldWithSuggestions(
     val suggestedOptions = derivedStateOf {
         suggestions.filter { (value, label) ->
             !values.contains(value) && label.lowercase().contains(textValue.text.lowercase())
-        }
+        }.take(50)
     }
     var isExpanded by remember { mutableStateOf(false) }
     LaunchedEffect(textValue) {

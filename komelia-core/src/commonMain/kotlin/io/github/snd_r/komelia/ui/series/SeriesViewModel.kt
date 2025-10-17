@@ -66,7 +66,6 @@ class SeriesViewModel(
         series = this.series,
         settingsRepository = settingsRepository,
         notifications = notifications,
-        seriesClient = seriesClient,
         bookClient = bookClient,
         events = events,
         screenModelScope = screenModelScope,

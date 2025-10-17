@@ -1,8 +1,8 @@
 package snd.komelia.db.tables
 
 import io.github.snd_r.komelia.color.CurvePoint
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.json.json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.json.json
 import snd.komelia.db.JsonDbDefault
 
 object ColorCurvePresetsTable : Table("ColorCurvePresets") {

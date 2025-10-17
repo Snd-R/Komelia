@@ -6,65 +6,185 @@ import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.library.LibrarySeriesTabState.SeriesSort
 import io.github.snd_r.komelia.ui.library.SeriesScreenFilter
+import io.github.snd_r.komelia.ui.series.SeriesFilter.Companion.DEFAULT
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.Completion
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.Format
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.TagExclusionMode
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.TagInclusionMode
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.plus
+import kotlinx.datetime.until
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.search.KomgaSearchCondition
+import snd.komga.client.search.SeriesConditionBuilder
 import snd.komga.client.series.KomgaSeriesStatus
 
+data class SeriesFilter(
+    val isChanged: Boolean = false,
+    val searchTerm: String = "",
+    val sortOrder: SeriesSort = SeriesSort.TITLE_ASC,
+    val readStatus: List<KomgaReadStatus> = emptyList(),
+    val publicationStatus: List<KomgaSeriesStatus> = emptyList(),
+
+    val includeGenres: List<String> = emptyList(),
+    val includeTags: List<String> = emptyList(),
+    val excludeGenres: List<String> = emptyList(),
+    val excludeTags: List<String> = emptyList(),
+    val inclusionMode: TagInclusionMode = TagInclusionMode.INCLUDE_IF_ALL_MATCH,
+    val exclusionMode: TagExclusionMode = TagExclusionMode.EXCLUDE_IF_ANY_MATCH,
+
+    val authors: List<KomgaAuthor> = emptyList(),
+    val releaseDates: List<String> = emptyList(),
+    val ageRatings: List<String> = emptyList(),
+    val publishers: List<String> = emptyList(),
+    val languages: List<String> = emptyList(),
+    val complete: Completion = Completion.ANY,
+    val oneshot: Format = Format.ANY,
+) {
+
+    companion object {
+        val DEFAULT = SeriesFilter()
+    }
+
+    fun addConditionTo(builder: SeriesConditionBuilder) {
+        if (publicationStatus.isNotEmpty()) {
+            builder.anyOf {
+                publicationStatus.forEach { seriesStatus { isEqualTo(it) } }
+            }
+        }
+
+        if (readStatus.isNotEmpty()) {
+            builder.anyOf {
+                readStatus.forEach { readStatus { isEqualTo(it) } }
+            }
+        }
+
+        if (publishers.isNotEmpty()) {
+            builder.anyOf {
+                publishers.forEach { publisher { isEqualTo(it) } }
+            }
+        }
+
+        if (languages.isNotEmpty()) {
+            builder.anyOf {
+                languages.forEach { language { isEqualTo(it) } }
+            }
+        }
+
+        if(includeTags.isNotEmpty() || includeGenres.isNotEmpty()) {
+            when (inclusionMode) {
+                TagInclusionMode.INCLUDE_IF_ALL_MATCH -> builder.allOf {
+                    includeGenres.forEach { genre { isEqualTo(it) } }
+                    includeTags.forEach { tag { isEqualTo(it) } }
+                }
+
+                TagInclusionMode.INCLUDE_IF_ANY_MATCH -> builder.anyOf {
+                    includeGenres.forEach { genre { isEqualTo(it) } }
+                    includeTags.forEach { tag { isEqualTo(it) } }
+                }
+            }
+        }
+        if(excludeTags.isNotEmpty() || excludeGenres.isNotEmpty()) {
+            when (exclusionMode) {
+                TagExclusionMode.EXCLUDE_IF_ANY_MATCH -> builder.allOf {
+                    excludeGenres.forEach { genre { isNotEqualTo(it) } }
+                    excludeTags.forEach { tag { isNotEqualTo(it) } }
+                }
+
+                TagExclusionMode.EXCLUDE_IF_ALL_MATCH -> builder.anyOf {
+                    excludeGenres.forEach { genre { isNotEqualTo(it) } }
+                    excludeTags.forEach { tag { isNotEqualTo(it) } }
+                }
+            }
+        }
+
+        if (ageRatings.isNotEmpty()) {
+            builder.anyOf {
+                ageRatings.forEach {
+                    ageRating {
+                        if (it == "None") isNull()
+                        else isEqualTo(it.toInt())
+                    }
+                }
+            }
+        }
+
+        if (releaseDates.isNotEmpty()) {
+            builder.anyOf {
+                releaseDates.forEach {
+                    allOf {
+                        releaseDate {
+                            isAfter(dateAtLastDayInYear(it.toInt() - 1).atStartOfDayIn(TimeZone.UTC))
+                        }
+                        releaseDate {
+                            isBefore(LocalDate(it.toInt() + 1, 1, 1).atStartOfDayIn(TimeZone.UTC))
+                        }
+
+                    }
+                }
+
+            }
+        }
+
+        authors.forEach {
+            builder.author { isEqualTo(KomgaSearchCondition.AuthorMatch(it.name, null)) }
+        }
+        when (complete) {
+            Completion.ANY -> {}
+            Completion.COMPLETE -> builder.isCompleted()
+            Completion.INCOMPLETE -> builder.isNotCompleted()
+        }
+        when (oneshot) {
+            Format.ANY -> {}
+            Format.ONESHOT -> builder.isOneshot()
+            Format.NOT_ONESHOT -> builder.isNotOneshot()
+        }
+    }
+
+    private fun dateAtLastDayInYear(year: Int): LocalDate {
+        val start = LocalDate(year, 12, 1)
+        val end = start.plus(1, DateTimeUnit.MONTH)
+        val day = start.until(end, DateTimeUnit.DAY)
+        return LocalDate(year, 12, day.toInt())
+    }
+}
+
 class SeriesFilterState(
-    private val defaultSort: SeriesSort,
+    defaultSort: SeriesSort,
     private val library: StateFlow<KomgaLibrary?>,
     private val referentialClient: KomgaReferentialClient,
     private val appNotifications: AppNotifications,
-    private val onChange: () -> Unit,
 ) {
+
+    private val mutableFilterState = MutableStateFlow(SeriesFilter(sortOrder = defaultSort))
+    val state = mutableFilterState.asStateFlow()
+
     var isChanged by mutableStateOf(false)
-        private set
-    var searchTerm by mutableStateOf("")
-        private set
-    var sortOrder by mutableStateOf(defaultSort)
-        private set
-    var readStatus by mutableStateOf<List<KomgaReadStatus>>(emptyList())
-        private set
-    var publicationStatus by mutableStateOf<List<KomgaSeriesStatus>>(emptyList())
-        private set
-    var genres by mutableStateOf<List<String>>(emptyList())
         private set
     var genresOptions by mutableStateOf<List<String>>(emptyList())
         private set
-    var tags by mutableStateOf<List<String>>(emptyList())
-        private set
     var tagOptions by mutableStateOf<List<String>>(emptyList())
-        private set
-    var authors by mutableStateOf<List<KomgaAuthor>>(emptyList())
         private set
     var authorsOptions by mutableStateOf<List<KomgaAuthor>>(emptyList())
         private set
-    var releaseDates by mutableStateOf<List<String>>(emptyList())
-        private set
     var releaseDateOptions by mutableStateOf<List<String>>(emptyList())
-        private set
-    var ageRatings by mutableStateOf<List<String>>(emptyList())
         private set
     var ageRatingsOptions by mutableStateOf<List<String>>(emptyList())
         private set
-    var publishers by mutableStateOf<List<String>>(emptyList())
-        private set
     var publishersOptions by mutableStateOf<List<String>>(emptyList())
-        private set
-    var languages by mutableStateOf<List<String>>(emptyList())
         private set
     var languagesOptions by mutableStateOf<List<String>>(emptyList())
         private set
-
-    var complete by mutableStateOf(Completion.ANY)
-        private set
-
-    var oneshot by mutableStateOf(Format.ANY)
-        private set
-
 
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications {
@@ -78,66 +198,100 @@ class SeriesFilterState(
     }
 
     fun applyFilter(filter: SeriesScreenFilter) {
-        publicationStatus = filter.publicationStatus ?: publicationStatus
-        ageRatings = filter.ageRating?.map { it.toString() } ?: ageRatings
-        languages = filter.language ?: languages
-        publishers = filter.publisher ?: publishers
-        genres = filter.genres ?: genres
-        tags = filter.tags ?: tags
-        authors = filter.authors ?: authors
-        markChanges()
+        mutableFilterState.value = SeriesFilter(
+            publicationStatus = filter.publicationStatus ?: DEFAULT.publicationStatus,
+            ageRatings = filter.ageRating?.map { it.toString() } ?: DEFAULT.ageRatings,
+            languages = filter.language ?: DEFAULT.languages,
+            publishers = filter.publisher ?: DEFAULT.publishers,
+            includeGenres = filter.genres ?: DEFAULT.includeGenres,
+            includeTags = filter.tags ?: DEFAULT.includeTags,
+            authors = filter.authors ?: DEFAULT.authors
+        )
+        checkIfAllDefault()
     }
 
     fun onSortOrderChange(sortOrder: SeriesSort) {
-        this.sortOrder = sortOrder
-        markChanges()
-        onChange()
+        mutableFilterState.update { it.copy(sortOrder = sortOrder) }
+        checkIfAllDefault()
     }
 
     fun onSearchTermChange(searchTerm: String) {
-        if (this.searchTerm == searchTerm) return
-
-        this.searchTerm = searchTerm
-        markChanges()
-        onChange()
+        mutableFilterState.update { current -> current.copy(searchTerm = searchTerm) }
+        checkIfAllDefault()
     }
 
     fun onReadStatusSelect(readStatus: KomgaReadStatus) {
-        if (this.readStatus.contains(readStatus)) {
-            this.readStatus = this.readStatus.minus(readStatus)
-        } else {
-            this.readStatus = this.readStatus.plus(readStatus)
+        mutableFilterState.update { current ->
+            current.copy(
+                readStatus = if (current.readStatus.contains(readStatus)) {
+                    current.readStatus.minus(readStatus)
+                } else {
+                    current.readStatus.plus(readStatus)
+                }
+            )
         }
-        markChanges()
-        onChange()
+
+        checkIfAllDefault()
     }
 
     fun onPublicationStatusSelect(publicationStatus: KomgaSeriesStatus) {
-        if (this.publicationStatus.contains(publicationStatus)) {
-            this.publicationStatus = this.publicationStatus.minus(publicationStatus)
-        } else {
-            this.publicationStatus = this.publicationStatus.plus(publicationStatus)
+        mutableFilterState.update { current ->
+            current.copy(
+                publicationStatus = if (current.publicationStatus.contains(publicationStatus)) {
+                    current.publicationStatus.minus(publicationStatus)
+                } else {
+                    current.publicationStatus.plus(publicationStatus)
+                }
+            )
         }
-
-        markChanges()
-        onChange()
+        checkIfAllDefault()
     }
 
 
     fun onGenreSelect(genre: String) {
-        this.genres =
-            if (genres.contains(genre)) genres.minus(genre)
-            else genres.plus(genre)
-        markChanges()
-        onChange()
+        mutableFilterState.update { current ->
+            if (current.includeGenres.contains(genre)) {
+                current.copy(
+                    includeGenres = current.includeGenres.minus(genre),
+                    excludeGenres = current.excludeGenres.plus(genre)
+                )
+            } else if (current.excludeGenres.contains(genre)) {
+                current.copy(
+                    excludeGenres = current.excludeGenres.minus(genre)
+                )
+            } else current.copy(
+                includeGenres = current.includeGenres.plus(genre)
+            )
+        }
+        checkIfAllDefault()
     }
 
     fun onTagSelect(tag: String) {
-        tags =
-            if (tags.contains(tag)) tags.minus(tag)
-            else tags.plus(tag)
-        markChanges()
-        onChange()
+        mutableFilterState.update { current ->
+            if (current.includeTags.contains(tag)) {
+                current.copy(
+                    includeTags = current.includeTags.minus(tag),
+                    excludeTags = current.excludeTags.plus(tag)
+                )
+            } else if (current.excludeTags.contains(tag)) {
+                current.copy(
+                    excludeTags = current.excludeTags.minus(tag)
+                )
+            } else current.copy(
+                includeTags = current.includeTags.plus(tag)
+            )
+        }
+        checkIfAllDefault()
+    }
+
+    fun onInclusionModeChange(mode: TagInclusionMode) {
+        mutableFilterState.update { current -> current.copy(inclusionMode = mode) }
+        checkIfAllDefault()
+    }
+
+    fun onExclusionModeChange(mode: TagExclusionMode) {
+        mutableFilterState.update { current -> current.copy(exclusionMode = mode) }
+        checkIfAllDefault()
     }
 
     suspend fun onAuthorsSearch(search: String) {
@@ -147,106 +301,111 @@ class SeriesFilterState(
 
     fun onAuthorSelect(author: KomgaAuthor) {
         val authorsByName = authorsOptions.filter { it.name == author.name }
-        authors =
-            if (authors.contains(author)) authors.filter { it.name != author.name }
-            else authors.plus(authorsByName)
+        mutableFilterState.update { current ->
+            current.copy(
+                authors = if (current.authors.contains(author))
+                    current.authors.filter { it.name != author.name }
+                else current.authors.plus(authorsByName)
+            )
+        }
 
-        markChanges()
-        onChange()
+        checkIfAllDefault()
     }
 
     fun onAgeRatingSelect(ageRating: String) {
-        ageRatings = if (ageRatings.contains(ageRating)) ageRatings.minus(ageRating)
-        else ageRatings.plus(ageRating)
+        mutableFilterState.update { current ->
+            current.copy(
+                ageRatings = if (current.ageRatings.contains(ageRating))
+                    current.ageRatings.minus(ageRating)
+                else current.ageRatings.plus(ageRating)
 
-        markChanges()
-        onChange()
+            )
+        }
+
+        checkIfAllDefault()
     }
 
     fun onPublisherSelect(publisher: String) {
-        publishers = if (publishers.contains(publisher)) publishers.minus(publisher)
-        else publishers.plus(publisher)
+        mutableFilterState.update { current ->
+            current.copy(
+                publishers = if (current.publishers.contains(publisher))
+                    current.publishers.minus(publisher)
+                else current.publishers.plus(publisher)
+            )
+        }
 
-        markChanges()
-        onChange()
+        checkIfAllDefault()
     }
 
     fun onLanguageSelect(language: String) {
-        languages = if (languages.contains(language)) languages.minus(language)
-        else languages.plus(language)
+        mutableFilterState.update { current ->
+            current.copy(
+                languages = if (current.languages.contains(language)) current.languages.minus(language)
+                else current.languages.plus(language)
+            )
+        }
 
-        markChanges()
-        onChange()
+        checkIfAllDefault()
     }
 
     fun onReleaseDateSelect(releaseDate: String) {
-        releaseDates = if (releaseDates.contains(releaseDate)) releaseDates.minus(releaseDate)
-        else releaseDates.plus(releaseDate)
-
-        markChanges()
-        onChange()
+        mutableFilterState.update { current ->
+            current.copy(
+                releaseDates = if (current.releaseDates.contains(releaseDate))
+                    current.releaseDates.minus(releaseDate)
+                else current.releaseDates.plus(releaseDate)
+            )
+        }
+        checkIfAllDefault()
     }
 
     fun onCompletionToggle() {
-        complete = when (complete) {
-            Completion.ANY -> Completion.COMPLETE
-            Completion.COMPLETE -> Completion.INCOMPLETE
-            Completion.INCOMPLETE -> Completion.ANY
+        mutableFilterState.update {
+            it.copy(
+                complete = when (it.complete) {
+                    Completion.ANY -> Completion.COMPLETE
+                    Completion.COMPLETE -> Completion.INCOMPLETE
+                    Completion.INCOMPLETE -> Completion.ANY
+                }
+            )
         }
-        markChanges()
-        onChange()
+        checkIfAllDefault()
     }
 
     fun onFormatToggle() {
-        oneshot = when (oneshot) {
-            Format.ANY -> Format.ONESHOT
-            Format.ONESHOT -> Format.NOT_ONESHOT
-            Format.NOT_ONESHOT -> Format.ANY
+        mutableFilterState.update {
+            it.copy(
+                oneshot = when (it.oneshot) {
+                    Format.ANY -> Format.ONESHOT
+                    Format.ONESHOT -> Format.NOT_ONESHOT
+                    Format.NOT_ONESHOT -> Format.ANY
+                }
+            )
         }
-        markChanges()
-        onChange()
+        checkIfAllDefault()
     }
 
     fun reset() {
-        searchTerm = ""
-        sortOrder = defaultSort
-        readStatus = emptyList()
-        publicationStatus = emptyList()
-        authors = emptyList()
-        resetTagFilters()
-        releaseDates = emptyList()
-        ageRatings = emptyList()
-        ageRatings = emptyList()
-        publishers = emptyList()
-        languages = emptyList()
-        complete = Completion.ANY
-        oneshot = Format.ANY
-
         isChanged = false
-        onChange()
+        mutableFilterState.value = DEFAULT
     }
 
     fun resetTagFilters() {
-        genres = emptyList()
-        tags = emptyList()
+        mutableFilterState.update {
+            it.copy(
+                includeGenres = DEFAULT.includeGenres,
+                includeTags = DEFAULT.includeTags,
+                inclusionMode = DEFAULT.inclusionMode,
+                excludeGenres = DEFAULT.excludeGenres,
+                excludeTags = DEFAULT.excludeTags,
+                exclusionMode = DEFAULT.exclusionMode
+
+            )
+        }
     }
 
-    private fun markChanges() {
-        val hasDefaultValues = searchTerm.isBlank() &&
-                sortOrder == defaultSort &&
-                readStatus.isEmpty() &&
-                publicationStatus.isEmpty() &&
-                genres.isEmpty() &&
-                tags.isEmpty() &&
-                authors.isEmpty() &&
-                releaseDates.isEmpty() &&
-                ageRatings.isEmpty() &&
-                publishers.isEmpty() &&
-                languages.isEmpty() &&
-                complete == Completion.ANY &&
-                oneshot == Format.ANY
-
-        isChanged = !hasDefaultValues
+    private fun checkIfAllDefault() {
+        isChanged = state.value != DEFAULT
     }
 
     enum class Completion {
@@ -255,5 +414,13 @@ class SeriesFilterState(
 
     enum class Format {
         ANY, ONESHOT, NOT_ONESHOT
+    }
+
+    enum class TagInclusionMode {
+        INCLUDE_IF_ALL_MATCH, INCLUDE_IF_ANY_MATCH
+    }
+
+    enum class TagExclusionMode {
+        EXCLUDE_IF_ANY_MATCH, EXCLUDE_IF_ALL_MATCH
     }
 }

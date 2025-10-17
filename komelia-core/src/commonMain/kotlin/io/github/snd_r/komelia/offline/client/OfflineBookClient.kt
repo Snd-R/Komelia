@@ -8,6 +8,7 @@ import snd.komga.client.book.KomgaBookMetadataUpdateRequest
 import snd.komga.client.book.KomgaBookPage
 import snd.komga.client.book.KomgaBookQuery
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.komga.client.book.KomgaBookSearch
 import snd.komga.client.book.KomgaBookThumbnail
 import snd.komga.client.book.R2Positions
 import snd.komga.client.book.R2Progression
@@ -17,6 +18,7 @@ import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.readlist.KomgaReadList
+import snd.komga.client.search.BookConditionBuilder
 
 class OfflineBookClient: KomgaBookClient {
     override suspend fun analyze(bookId: KomgaBookId) {
@@ -31,7 +33,23 @@ class OfflineBookClient: KomgaBookClient {
     override suspend fun deleteReadProgress(bookId: KomgaBookId) {
     }
 
+    @Deprecated("use getBookList()")
     override suspend fun getAllBooks(query: KomgaBookQuery?, pageRequest: KomgaPageRequest?): Page<KomgaBook> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getBookList(
+        conditionBuilder: BookConditionBuilder,
+        fullTextSearch: String?,
+        pageRequest: KomgaPageRequest?
+    ): Page<KomgaBook> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getBookList(
+        search: KomgaBookSearch,
+        pageRequest: KomgaPageRequest?
+    ): Page<KomgaBook> {
         TODO("Not yet implemented")
     }
 

@@ -27,10 +27,12 @@ import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PlatformFile
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.encodeURLPath
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -42,8 +44,6 @@ import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import snd.komga.client.book.KomgaBook
@@ -62,6 +62,8 @@ import snd.webview.KomeliaWebview
 import snd.webview.ResourceLoadResult
 import snd.webview.runRequest
 import kotlin.math.roundToLong
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val logger = KotlinLogging.logger {}
 private val resourceBaseUriRegex = "^http(s)?://.*/resource/".toRegex()

@@ -11,7 +11,7 @@ object DefaultDateTimeFormats {
         char('-')
         monthNumber()
         char('-')
-        dayOfMonth()
+        day()
         char(' ')
         hour()
         char(':')
@@ -22,7 +22,7 @@ object DefaultDateTimeFormats {
         char('-')
         monthNumber()
         char('-')
-        dayOfMonth()
+        day()
         char(' ')
         hour()
         char(':')
@@ -33,6 +33,6 @@ object DefaultDateTimeFormats {
         char('-')
         monthNumber()
         char('-')
-        dayOfMonth()
+        day()
     }
 }

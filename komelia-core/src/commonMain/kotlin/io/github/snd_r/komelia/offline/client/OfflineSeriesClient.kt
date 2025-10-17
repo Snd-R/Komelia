@@ -9,11 +9,13 @@ import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibraryId
+import snd.komga.client.search.SeriesConditionBuilder
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 import snd.komga.client.series.KomgaSeriesQuery
+import snd.komga.client.series.KomgaSeriesSearch
 import snd.komga.client.series.KomgaSeriesThumbnail
 
 class OfflineSeriesClient : KomgaSeriesClient {
@@ -29,6 +31,7 @@ class OfflineSeriesClient : KomgaSeriesClient {
         TODO("Not yet implemented")
     }
 
+    @Deprecated("use getBookist() from book client")
     override suspend fun getAllBooksBySeries(
         seriesId: KomgaSeriesId,
         mediaStatus: List<KomgaMediaStatus>?,
@@ -45,7 +48,23 @@ class OfflineSeriesClient : KomgaSeriesClient {
         TODO("Not yet implemented")
     }
 
+    @Deprecated("use getSeriesList()")
     override suspend fun getAllSeries(query: KomgaSeriesQuery?, pageRequest: KomgaPageRequest?): Page<KomgaSeries> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getSeriesList(
+        conditionBuilder: SeriesConditionBuilder,
+        fulltextSearch: String?,
+        pageRequest: KomgaPageRequest?
+    ): Page<KomgaSeries> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getSeriesList(
+        search: KomgaSeriesSearch,
+        pageRequest: KomgaPageRequest?
+    ): Page<KomgaSeries> {
         TODO("Not yet implemented")
     }
 

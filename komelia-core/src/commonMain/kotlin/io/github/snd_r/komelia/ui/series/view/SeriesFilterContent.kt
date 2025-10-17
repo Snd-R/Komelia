@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,7 @@ fun SeriesFilterContent(
             else -> 250.dp
         }
     }
+    val currentFilter = filterState.state.collectAsState().value
 
     Column(
         modifier = Modifier.widthIn(max = 1400.dp),
@@ -89,7 +91,7 @@ fun SeriesFilterContent(
             verticalArrangement = Arrangement.Center,
         ) {
 
-            var searchTerm by remember { mutableStateOf(filterState.searchTerm) }
+            var searchTerm by remember { mutableStateOf(currentFilter.searchTerm) }
             LaunchedEffect(searchTerm) {
                 delay(200)
                 filterState.onSearchTermChange(searchTerm)
@@ -112,7 +114,7 @@ fun SeriesFilterContent(
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (filterState.isChanged) MaterialTheme.colorScheme.tertiaryContainer else Color.Unspecified,
                     ),
-                    border = if (filterState.isChanged) null else ButtonDefaults.outlinedButtonBorder,
+                    border = if (filterState.isChanged) null else ButtonDefaults.outlinedButtonBorder(true),
                     modifier = Modifier.height(40.dp).cursorForHand()
                 ) {
                     Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
@@ -133,20 +135,29 @@ fun SeriesFilterContent(
             verticalArrangement = Arrangement.spacedBy(spacing),
         ) {
             FilterDropdownChoice(
-                selectedOption = LabeledEntry(filterState.sortOrder, strings.forSeriesSort(filterState.sortOrder)),
+                selectedOption = LabeledEntry(currentFilter.sortOrder, strings.forSeriesSort(currentFilter.sortOrder)),
                 options = LibrarySeriesTabState.SeriesSort.entries.map { LabeledEntry(it, strings.forSeriesSort(it)) },
                 onOptionChange = { filterState.onSortOrderChange(it.value) },
                 label = strings.sort,
                 modifier = Modifier.width(width)
             )
             TagFiltersDropdownMenu(
-                selectedGenres = filterState.genres,
-                genreOptions = filterState.genresOptions,
-                onGenreSelect = filterState::onGenreSelect,
-                selectedTags = filterState.tags,
-                tagOptions = filterState.tagOptions,
+                allTags = filterState.tagOptions,
+                includeTags = currentFilter.includeTags,
+                excludeTags = currentFilter.excludeTags,
                 onTagSelect = filterState::onTagSelect,
+
+                allGenres = filterState.genresOptions,
+                includeGenres = currentFilter.includeGenres,
+                excludeGenres = currentFilter.excludeGenres,
+                onGenreSelect = filterState::onGenreSelect,
+
                 onReset = filterState::resetTagFilters,
+                inclusionMode = currentFilter.inclusionMode,
+                onInclusionModeChange = filterState::onInclusionModeChange,
+                exclusionMode = currentFilter.exclusionMode,
+                onExclusionModeChange = filterState::onExclusionModeChange,
+
                 contentPadding = PaddingValues(5.dp),
                 label = strings.filterTagsLabel,
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -156,7 +167,7 @@ fun SeriesFilterContent(
                 inputFieldModifier = Modifier.fillMaxWidth()
             )
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.readStatus
+                selectedOptions = currentFilter.readStatus
                     .map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
                 options = KomgaReadStatus.entries.map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
                 onOptionSelect = { changed -> filterState.onReadStatusSelect(changed.value) },
@@ -165,7 +176,7 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.publicationStatus
+                selectedOptions = currentFilter.publicationStatus
                     .map { LabeledEntry(it, strings.forPublicationStatus(it)) },
                 options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forPublicationStatus(it)) },
                 onOptionSelect = { changed -> filterState.onPublicationStatusSelect(changed.value) },
@@ -173,8 +184,8 @@ fun SeriesFilterContent(
                 modifier = Modifier.width(width),
             )
 
-            val authorsSelectedOptions = remember(filterState.authors) {
-                filterState.authors.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
+            val authorsSelectedOptions = remember(currentFilter.authors) {
+                currentFilter.authors.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
             }
             val authorOptions = remember(filterState.authorsOptions) {
                 filterState.authorsOptions.distinctBy { it.name }.map { LabeledEntry(it, it.name) }
@@ -189,7 +200,7 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.publishers.map { stringEntry(it) },
+                selectedOptions = currentFilter.publishers.map { stringEntry(it) },
                 options = filterState.publishersOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onPublisherSelect(changed.value) },
                 label = strings.publisher,
@@ -197,14 +208,14 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.languages.map { stringEntry(it) },
+                selectedOptions = currentFilter.languages.map { stringEntry(it) },
                 options = filterState.languagesOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onLanguageSelect(changed.value) },
                 label = strings.language,
                 modifier = Modifier.width(width),
             )
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.releaseDates.map { stringEntry(it) },
+                selectedOptions = currentFilter.releaseDates.map { stringEntry(it) },
                 options = filterState.releaseDateOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onReleaseDateSelect(changed.value) },
                 label = strings.releaseDate,
@@ -212,7 +223,7 @@ fun SeriesFilterContent(
             )
 
             FilterDropdownMultiChoice(
-                selectedOptions = filterState.ageRatings.map { stringEntry(it) },
+                selectedOptions = currentFilter.ageRatings.map { stringEntry(it) },
                 options = filterState.ageRatingsOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onAgeRatingSelect(changed.value) },
                 label = strings.ageRating,
@@ -235,7 +246,7 @@ fun SeriesFilterContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val checkboxState by derivedStateOf {
-                        when (filterState.complete) {
+                        when (currentFilter.complete) {
                             ANY -> ToggleableState.Off
                             COMPLETE -> ToggleableState.On
                             INCOMPLETE -> ToggleableState.Indeterminate
@@ -261,7 +272,7 @@ fun SeriesFilterContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val checkboxState by derivedStateOf {
-                        when (filterState.oneshot) {
+                        when (currentFilter.oneshot) {
                             Format.ANY -> ToggleableState.Off
                             Format.ONESHOT -> ToggleableState.On
                             Format.NOT_ONESHOT -> ToggleableState.Indeterminate

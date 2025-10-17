@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -171,6 +172,7 @@ class MainScreen(
                         top = paddingValues.calculateTopPadding(),
                         bottom = paddingValues.calculateBottomPadding(),
                     )
+                    .consumeWindowInsets(paddingValues)
             ) {
                 ModalNavigationDrawer(
                     drawerState = vm.navBarState,

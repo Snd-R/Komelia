@@ -2,6 +2,7 @@ package io.github.snd_r.komelia.strings
 
 import io.github.snd_r.komelia.image.UpsamplingMode
 import io.github.snd_r.komelia.image.UpscaleMode
+import io.github.snd_r.komelia.ui.book.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
@@ -28,7 +29,7 @@ import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDispla
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.DOUBLE_PAGES_NO_COVER
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.PageDisplayLayout.SINGLE_PAGE
-import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
+import io.github.snd_r.komelia.ui.series.SeriesFilterState
 import io.github.snd_r.komelia.ui.settings.epub.EpubReaderType
 import snd.komelia.image.ReduceKernel
 import snd.komf.api.KomfCoreProviders
@@ -432,7 +433,23 @@ data class FilterStrings(
     val filterTagsTagsLabel: String,
     val filterTagsShowMore: String,
     val filterTagsShowLess: String,
-)
+
+    val includeIfAllMatch: String,
+    val includeIfAnyMatch: String,
+    val excludeIfAllMatch: String,
+    val excludeIfAnyMatch: String,
+) {
+
+    fun forInclusionMode(mode: SeriesFilterState.TagInclusionMode) = when (mode) {
+        SeriesFilterState.TagInclusionMode.INCLUDE_IF_ALL_MATCH -> includeIfAllMatch
+        SeriesFilterState.TagInclusionMode.INCLUDE_IF_ANY_MATCH -> includeIfAnyMatch
+    }
+
+    fun forExclusionMode(mode: SeriesFilterState.TagExclusionMode) = when (mode) {
+        SeriesFilterState.TagExclusionMode.EXCLUDE_IF_ANY_MATCH -> excludeIfAnyMatch
+        SeriesFilterState.TagExclusionMode.EXCLUDE_IF_ALL_MATCH -> excludeIfAllMatch
+    }
+}
 
 data class SeriesFilterStrings(
     val resetFilters: String,
@@ -581,6 +598,12 @@ data class ErrorCodes(
     val err1031: String,
     val err1032: String,
     val err1033: String,
+    val err1034: String,
+    val err1035: String,
+    val err1036: String,
+    val err1037: String,
+    val err1038: String,
+    val err1039: String,
 ) {
     private val codeMap: Map<String, String> = mapOf(
         "ERR_1000" to err1000,
@@ -612,9 +635,15 @@ data class ErrorCodes(
         "ERR_1031" to err1031,
         "ERR_1032" to err1032,
         "ERR_1033" to err1033,
+        "ERR_1034" to err1034,
+        "ERR_1035" to err1036,
+        "ERR_1036" to err1036,
+        "ERR_1037" to err1037,
+        "ERR_1038" to err1038,
+        "ERR_1039" to err1039,
     )
 
-    fun getMessageForCode(code: String) = requireNotNull(codeMap[code])
+    fun getMessageForCode(code: String) = codeMap[code]?:"Unknown error: $code"
 }
 
 data class ImageSettingsStrings(

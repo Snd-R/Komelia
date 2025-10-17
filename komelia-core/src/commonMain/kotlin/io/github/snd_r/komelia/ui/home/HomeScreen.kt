@@ -14,6 +14,7 @@ import io.github.snd_r.komelia.ui.ReloadableScreen
 import io.github.snd_r.komelia.ui.book.bookScreen
 import io.github.snd_r.komelia.ui.common.ErrorContent
 import io.github.snd_r.komelia.ui.common.ScreenPullToRefreshBox
+import io.github.snd_r.komelia.ui.home.edit.FilterEditScreen
 import io.github.snd_r.komelia.ui.reader.image.readerScreen
 import io.github.snd_r.komelia.ui.series.seriesScreen
 import snd.komga.client.library.KomgaLibraryId
@@ -44,17 +45,12 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : ReloadableScre
                     onReload = vm::reload
                 )
 
-                else -> {
+                else ->
                     HomeContent(
-                        keepReadingBooks = vm.keepReadingBooks,
-                        onDeckBooks = vm.onDeckBooks,
-                        recentlyReleasedBooks = vm.recentlyReleasedBooks,
-                        recentlyAddedBooks = vm.recentlyAddedBooks,
-                        recentlyReadBooks = vm.recentlyReadBooks,
-                        recentlyAddedSeries = vm.recentlyAddedSeries,
-                        recentlyUpdatedSeries = vm.recentlyUpdatedSeries,
-                        currentFilter = vm.activeFilter,
+                        filters = vm.filters.collectAsState().value,
+                        activeFilterNumber = vm.activeFilterNumber.collectAsState().value,
                         onFilterChange = vm::onFilterChange,
+                        onEditStart = { navigator.replaceAll(FilterEditScreen(vm.filters.value)) },
 
                         cardWidth = vm.cardWidth.collectAsState().value,
                         onSeriesClick = { navigator push seriesScreen(it) },
@@ -65,8 +61,40 @@ class HomeScreen(private val libraryId: KomgaLibraryId? = null) : ReloadableScre
                             navigator.parent?.push(readerScreen(book, markProgress))
                         },
                     )
-                }
+
             }
         }
     }
+
+//    @Composable
+//    private fun HomeScreenContent(
+//        vm: HomeViewModel,
+//        navigator: Navigator
+//    ) {
+//        val isEditMode = vm.isEditMode.collectAsState().value
+//        if (isEditMode)
+//            FilterEditContent(
+//                filters = vm.filters.collectAsState().value,
+//                onFilterMove = vm::onFilterReorder,
+//                onEditModeChange = vm::onEditModeChange,
+//            )
+//        else {
+//            HomeContent(
+//                filters = vm.filters.collectAsState().value,
+//                activeFilterNumber = vm.activeFilterNumber.collectAsState().value,
+//                onFilterChange = vm::onFilterChange,
+//                onEditModeChange = vm::onEditModeChange,
+//
+//                cardWidth = vm.cardWidth.collectAsState().value,
+//                onSeriesClick = { navigator push seriesScreen(it) },
+//                seriesMenuActions = vm.seriesMenuActions(),
+//                bookMenuActions = vm.bookMenuActions(),
+//                onBookClick = { navigator push bookScreen(it) },
+//                onBookReadClick = { book, markProgress ->
+//                    navigator.parent?.push(readerScreen(book, markProgress))
+//                },
+//            )
+//
+//        }
+//    }
 }

@@ -12,7 +12,7 @@ plugins {
 
 kotlin {
     wasmJs {
-        outputModuleName = "content"
+        outputModuleName = "app"
         binaries.executable()
         browser()
     }

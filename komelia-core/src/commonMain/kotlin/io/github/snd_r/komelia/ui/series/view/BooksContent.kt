@@ -38,6 +38,7 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,8 @@ import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.LocalStrings
 import io.github.snd_r.komelia.ui.LocalWindowWidth
+import io.github.snd_r.komelia.ui.book.BooksFilterState
+import io.github.snd_r.komelia.ui.book.BooksFilterState.BooksSort
 import io.github.snd_r.komelia.ui.common.FilterDropdownChoice
 import io.github.snd_r.komelia.ui.common.FilterDropdownMultiChoice
 import io.github.snd_r.komelia.ui.common.LabeledEntry
@@ -72,12 +75,13 @@ import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.ui.series.BooksLayout.GRID
 import io.github.snd_r.komelia.ui.series.BooksLayout.LIST
 import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksData
-import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState
-import io.github.snd_r.komelia.ui.series.SeriesBooksState.BooksFilterState.BooksSort
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.TagExclusionMode
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.TagInclusionMode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.series.KomgaSeries
 
 fun LazyGridScope.SeriesBooksContent(
@@ -377,6 +381,7 @@ fun BooksBulkActionsToolbar(
 @Composable
 fun ExpandableBookFiltersRow(filterState: BooksFilterState) {
     var showFilters by remember { mutableStateOf(false) }
+    val currentFilter = filterState.state.collectAsState().value
     Row(verticalAlignment = Alignment.CenterVertically) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
@@ -384,15 +389,38 @@ fun ExpandableBookFiltersRow(filterState: BooksFilterState) {
         ) {
             val widthModifier = Modifier.width(200.dp)
 
-            SortOrder(filterState, widthModifier, false)
-            ReadStatusFilter(filterState, widthModifier, false)
+            SortOrder(
+                sortOrder = currentFilter.sortOrder,
+                filterState = filterState,
+                modifier = widthModifier,
+                withLabel = false
+            )
+            ReadStatusFilter(
+                readStatus = currentFilter.readStatus,
+                filterState = filterState,
+                modifier = widthModifier,
+                withLabel = false
+            )
 
             AnimatedVisibility(showFilters && filterState.authorsOptions.isNotEmpty()) {
-                AuthorsFilter(filterState, widthModifier, false)
+                AuthorsFilter(
+                    authors = currentFilter.authors,
+                    filterState = filterState,
+                    modifier = widthModifier,
+                    withLabel = false
+                )
             }
 
             AnimatedVisibility(showFilters && filterState.tagOptions.isNotEmpty()) {
-                TagsFilter(filterState, widthModifier, false)
+                TagsFilter(
+                    includeTags = currentFilter.includeTags,
+                    excludeTags = currentFilter.excludeTags,
+                    inclusionMode = currentFilter.inclusionMode,
+                    exclusionMode = currentFilter.exclusionMode,
+                    filterState = filterState,
+                    modifier = widthModifier,
+                    withLabel = false
+                )
             }
         }
 
@@ -412,6 +440,7 @@ fun BookFilterDialog(
     filterState: BooksFilterState,
     onDismiss: () -> Unit,
 ) {
+    val currentFilter = filterState.state.collectAsState().value
     AppDialog(
         modifier = Modifier.fillMaxWidth(.8f),
         content = {
@@ -419,14 +448,37 @@ fun BookFilterDialog(
                 modifier = Modifier.padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                SortOrder(filterState, Modifier.fillMaxWidth(), true)
-                ReadStatusFilter(filterState, Modifier.fillMaxWidth(), true)
+                SortOrder(
+                    sortOrder = currentFilter.sortOrder,
+                    filterState = filterState,
+                    modifier = Modifier.fillMaxWidth(),
+                    withLabel = true
+                )
+                ReadStatusFilter(
+                    readStatus = currentFilter.readStatus,
+                    filterState = filterState,
+                    modifier = Modifier.fillMaxWidth(),
+                    withLabel = true
+                )
 
                 if (filterState.authorsOptions.isNotEmpty())
-                    AuthorsFilter(filterState, Modifier.fillMaxWidth(), true)
+                    AuthorsFilter(
+                        authors = currentFilter.authors,
+                        filterState = filterState,
+                        modifier = Modifier.fillMaxWidth(),
+                        withLabel = true
+                    )
 
                 if (filterState.tagOptions.isNotEmpty())
-                    TagsFilter(filterState, Modifier.fillMaxWidth(), true)
+                    TagsFilter(
+                        includeTags = currentFilter.includeTags,
+                        excludeTags = currentFilter.excludeTags,
+                        inclusionMode = currentFilter.inclusionMode,
+                        exclusionMode = currentFilter.exclusionMode,
+                        filterState = filterState,
+                        modifier = Modifier.fillMaxWidth(),
+                        withLabel = true
+                    )
 
             }
         },
@@ -447,13 +499,14 @@ fun BookFilterDialog(
 
 @Composable
 private fun SortOrder(
+    sortOrder: BooksSort,
     filterState: BooksFilterState,
     modifier: Modifier,
     withLabel: Boolean,
 ) {
     val strings = LocalStrings.current.booksFilter
     FilterDropdownChoice(
-        selectedOption = LabeledEntry(filterState.sortOrder, strings.forBookSort(filterState.sortOrder)),
+        selectedOption = LabeledEntry(sortOrder, strings.forBookSort(sortOrder)),
         options = BooksSort.entries.map { LabeledEntry(it, strings.forBookSort(it)) },
         onOptionChange = { filterState.onSortOrderChange(it.value) },
         label = if (withLabel) strings.sort else null,
@@ -463,13 +516,14 @@ private fun SortOrder(
 
 @Composable
 private fun ReadStatusFilter(
+    readStatus: List<KomgaReadStatus>,
     filterState: BooksFilterState,
     modifier: Modifier,
     withLabel: Boolean,
 ) {
     val strings = LocalStrings.current.booksFilter
     FilterDropdownMultiChoice(
-        selectedOptions = filterState.readStatus.map { LabeledEntry(it, strings.forReadStatus(it)) },
+        selectedOptions = readStatus.map { LabeledEntry(it, strings.forReadStatus(it)) },
         options = KomgaReadStatus.entries.map { LabeledEntry(it, strings.forReadStatus(it)) },
         onOptionSelect = { changed -> filterState.onReadStatusSelect(changed.value) },
         label = if (withLabel) strings.readStatus else null,
@@ -480,13 +534,14 @@ private fun ReadStatusFilter(
 
 @Composable
 private fun AuthorsFilter(
+    authors: List<KomgaAuthor>,
     filterState: BooksFilterState,
     modifier: Modifier,
     withLabel: Boolean,
 ) {
     val strings = LocalStrings.current.booksFilter
     FilterDropdownMultiChoice(
-        selectedOptions = filterState.authors.map { LabeledEntry(it, it.name) },
+        selectedOptions = authors.map { LabeledEntry(it, it.name) },
         options = filterState.authorsOptions.map { LabeledEntry(it, it.name) },
         onOptionSelect = { changed -> filterState.onAuthorSelect(changed.value) },
         label = if (withLabel) strings.authors else null,
@@ -497,16 +552,26 @@ private fun AuthorsFilter(
 
 @Composable
 private fun TagsFilter(
+    includeTags: List<String>,
+    excludeTags: List<String>,
+    inclusionMode: TagInclusionMode,
+    exclusionMode: TagExclusionMode,
     filterState: BooksFilterState,
     modifier: Modifier,
     withLabel: Boolean,
 ) {
     val strings = LocalStrings.current.booksFilter
     TagFiltersDropdownMenu(
-        selectedTags = filterState.tags,
-        tagOptions = filterState.tagOptions,
+        allTags = filterState.tagOptions,
+        includeTags = includeTags,
+        excludeTags = excludeTags,
         onTagSelect = filterState::onTagSelect,
         onReset = filterState::resetTagFilters,
+
+        inclusionMode = inclusionMode,
+        onInclusionModeChange = filterState::onInclusionModeChange,
+        exclusionMode = exclusionMode,
+        onExclusionModeChange = filterState::onExclusionModeChange,
 
         label = if (withLabel) strings.tags else null,
         placeholder = if (withLabel) null else strings.tags,

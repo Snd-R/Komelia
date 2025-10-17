@@ -185,7 +185,7 @@ fun NoPaddingTextField(
                 bottom = 0.dp
             ),
             container = {
-                OutlinedTextFieldDefaults.ContainerBox(
+                OutlinedTextFieldDefaults.Container(
                     enabled = true,
                     isError = false,
                     interactionSource = interactionSource,

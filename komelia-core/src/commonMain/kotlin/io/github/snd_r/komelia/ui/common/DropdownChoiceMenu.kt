@@ -1,6 +1,9 @@
 package io.github.snd_r.komelia.ui.common
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BasicTooltipBox
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
@@ -18,26 +21,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberBasicTooltipState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -51,16 +58,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.scrollbar
 import io.github.snd_r.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.TagExclusionMode
+import io.github.snd_r.komelia.ui.series.SeriesFilterState.TagInclusionMode
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> DropdownChoiceMenu(
-    selectedOption: LabeledEntry<T>,
+    selectedOption: LabeledEntry<T>?,
     options: List<LabeledEntry<T>>,
     onOptionChange: (LabeledEntry<T>) -> Unit,
     inputFieldModifier: Modifier = Modifier,
@@ -76,7 +86,7 @@ fun <T> DropdownChoiceMenu(
         onExpandedChange = { isExpanded = it },
     ) {
         InputField(
-            value = selectedOption.label,
+            value = selectedOption?.label ?: "",
             modifier = Modifier
                 .menuAnchor(PrimaryNotEditable)
                 .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
@@ -139,9 +149,12 @@ fun <T> DropdownMultiChoiceMenu(
             contentPadding = contentPadding
         )
 
+        val scrollState = rememberScrollState()
         ExposedDropdownMenu(
             expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
+            onDismissRequest = { isExpanded = false },
+            scrollState = scrollState,
+            modifier = Modifier.scrollbar(scrollState, Orientation.Vertical)
         ) {
 
             options.forEach { option ->
@@ -232,9 +245,10 @@ fun <T> DropdownChoiceMenuWithSearch(
             contentPadding = contentPadding
         )
 
+        val scrollState = rememberScrollState()
         DropdownMenu(
-            modifier = modifier,
-            scrollState = rememberScrollState(),
+            modifier = modifier.scrollbar(scrollState, Orientation.Vertical),
+            scrollState = scrollState,
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
         ) {
@@ -348,18 +362,25 @@ fun <T> FilterDropdownMultiChoiceWithSearch(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TagFiltersDropdownMenu(
-    selectedTags: List<String>,
-    tagOptions: List<String>,
+    allTags: List<String>,
+    includeTags: List<String>,
+    excludeTags: List<String>,
     onTagSelect: (String) -> Unit,
 
-    selectedGenres: List<String> = emptyList(),
-    genreOptions: List<String> = emptyList(),
+    allGenres: List<String> = emptyList(),
+    includeGenres: List<String> = emptyList(),
+    excludeGenres: List<String> = emptyList(),
     onGenreSelect: (String) -> Unit = {},
 
     onReset: () -> Unit,
+
+    inclusionMode: TagInclusionMode,
+    onInclusionModeChange: (TagInclusionMode) -> Unit,
+    exclusionMode: TagExclusionMode,
+    onExclusionModeChange: (TagExclusionMode) -> Unit,
 
     label: String? = null,
     placeholder: String? = null,
@@ -371,71 +392,123 @@ fun TagFiltersDropdownMenu(
     val strings = LocalStrings.current.filters
     var isExpanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
-    ExposedDropdownMenuBox(
-        modifier = modifier,
-        expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
-    ) {
-        InputField(
-            value = selectedGenres.plus(selectedTags).joinToString()
-                .ifBlank { placeholder ?: strings.anyValue },
-            modifier = Modifier
-                .menuAnchor(PrimaryNotEditable)
-                .then(inputFieldModifier),
-            label = label?.let {
-                {
-                    FilterLabelAndCount(
-                        label,
-                        selectedGenres.size + selectedTags.size
-                    )
-                }
-            },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-            color = inputFieldColor,
-            contentPadding = contentPadding
-        )
 
-        DropdownMenu(
+    val inputValue = remember(includeGenres, includeTags, excludeGenres, excludeTags) {
+        val include = includeGenres + includeTags
+        val exclude = excludeGenres + excludeTags
+
+        val value = buildString {
+            if (include.isNotEmpty() && exclude.isNotEmpty()) {
+                append("Include ")
+                append(include.joinToString())
+                append(" and exclude ")
+                append(exclude.joinToString())
+            } else if (include.isNotEmpty()) {
+                append("Include ")
+                append(include.joinToString())
+            } else if (exclude.isNotEmpty()) {
+                append("Exclude ")
+                append(exclude.joinToString())
+            }
+        }
+        value.ifBlank { placeholder ?: strings.anyValue }
+    }
+
+    BasicTooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+        tooltip = {
+            Card(
+                border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surface)
+            ) {
+                Text(
+                    text = inputValue,
+                    modifier = Modifier.padding(10.dp),
+                )
+            }
+        },
+        state = rememberBasicTooltipState(),
+    ) {
+        ExposedDropdownMenuBox(
+            modifier = modifier,
             expanded = isExpanded,
-            onDismissRequest = { isExpanded = false },
-            scrollState = scrollState,
-            modifier = Modifier
-                .widthIn(min = 400.dp, max = 800.dp)
-                .fillMaxWidth()
+            onExpandedChange = { isExpanded = it },
         ) {
-            TagFilterDropdownContent(
-                selectedGenres = selectedGenres,
-                genreOptions = genreOptions,
-                onGenreSelect = onGenreSelect,
-                selectedTags = selectedTags,
-                tagOptions = tagOptions,
-                onTagSelect = onTagSelect,
-                onReset = onReset,
+            InputField(
+                value = inputValue,
+                modifier = Modifier
+                    .menuAnchor(PrimaryNotEditable)
+                    .then(inputFieldModifier),
+                label = label?.let {
+                    {
+                        FilterLabelAndCount(
+                            label,
+                            includeGenres.size + includeTags.size,
+                            excludeGenres.size + excludeTags.size
+                        )
+                    }
+                },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                color = inputFieldColor,
+                contentPadding = contentPadding
             )
 
+            DropdownMenu(
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false },
+                scrollState = scrollState,
+                modifier = Modifier
+                    .widthIn(min = 400.dp, max = 800.dp)
+                    .fillMaxWidth()
+                    .scrollbar(scrollState, Orientation.Vertical)
+            ) {
+                TagFilterDropdownContent(
+                    allTags = allTags,
+                    includeTags = includeTags,
+                    excludeTags = excludeTags,
+                    onTagSelect = onTagSelect,
+                    allGenres = allGenres,
+                    includeGenres = includeGenres,
+                    excludeGenres = excludeGenres,
+                    onGenreSelect = onGenreSelect,
+                    onReset = onReset,
+                    inclusionMode = inclusionMode,
+                    onInclusionModeChange = onInclusionModeChange,
+                    exclusionMode = exclusionMode,
+                    onExclusionModeChange = onExclusionModeChange
+                )
+
+            }
         }
     }
+
 }
 
 @Composable
 private fun TagFilterDropdownContent(
-    selectedGenres: List<String>,
-    genreOptions: List<String>,
-    onGenreSelect: (String) -> Unit,
-
-    selectedTags: List<String>,
-    tagOptions: List<String>,
+    allTags: List<String>,
+    includeTags: List<String>,
+    excludeTags: List<String>,
     onTagSelect: (String) -> Unit,
 
+    allGenres: List<String> = emptyList(),
+    includeGenres: List<String> = emptyList(),
+    excludeGenres: List<String> = emptyList(),
+    onGenreSelect: (String) -> Unit = {},
+
     onReset: () -> Unit,
+
+    inclusionMode: TagInclusionMode,
+    onInclusionModeChange: (TagInclusionMode) -> Unit,
+    exclusionMode: TagExclusionMode,
+    onExclusionModeChange: (TagExclusionMode) -> Unit,
 ) {
     val strings = LocalStrings.current.filters
     var tagsFilter by remember { mutableStateOf("") }
-    var filteredGenreOptions by remember { mutableStateOf(genreOptions) }
-    var filteredTagsOptions by remember { mutableStateOf(tagOptions) }
+    var filteredGenreOptions by remember { mutableStateOf(allGenres) }
+    var filteredTagsOptions by remember { mutableStateOf(allTags) }
     LaunchedEffect(tagsFilter) {
-        filteredGenreOptions = genreOptions.filter { genre -> genre.contains(tagsFilter) }
-        filteredTagsOptions = tagOptions.filter { tag -> tag.contains(tagsFilter) }
+        filteredGenreOptions = allGenres.filter { genre -> genre.contains(tagsFilter) }
+        filteredTagsOptions = allTags.filter { tag -> tag.contains(tagsFilter) }
     }
 
     Column(Modifier.padding(15.dp)) {
@@ -454,7 +527,7 @@ private fun TagFilterDropdownContent(
                     tagsFilter = ""
                     onReset()
                 },
-                enabled = selectedTags.isNotEmpty() || selectedGenres.isNotEmpty(),
+                enabled = includeTags.isNotEmpty() || excludeTags.isNotEmpty() || includeGenres.isNotEmpty() || excludeGenres.isNotEmpty(),
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
@@ -462,20 +535,56 @@ private fun TagFilterDropdownContent(
             }
         }
 
-        if (genreOptions.isNotEmpty()) {
+        if (allGenres.isNotEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(strings.filterTagsGenreLabel)
                 HorizontalDivider(Modifier.padding(start = 10.dp))
             }
-            TagsRow(filteredGenreOptions, selectedGenres, onGenreSelect)
+            TagsRow(filteredGenreOptions, includeGenres, excludeGenres, onGenreSelect)
         }
 
-        if (tagOptions.isNotEmpty()) {
+        if (allTags.isNotEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(strings.filterTagsTagsLabel)
                 HorizontalDivider(Modifier.padding(start = 10.dp))
             }
-            TagsRow(filteredTagsOptions, selectedTags, onTagSelect)
+            TagsRow(filteredTagsOptions, includeTags, excludeTags, onTagSelect)
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 10.dp)
+        ) {
+            Text("Other Options")
+            HorizontalDivider(Modifier.padding(start = 10.dp))
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            DropdownChoiceMenu(
+                selectedOption = remember(inclusionMode) {
+                    LabeledEntry(inclusionMode, strings.forInclusionMode(inclusionMode))
+                },
+                options = remember {
+                    TagInclusionMode.entries.map {
+                        LabeledEntry(it, strings.forInclusionMode(it))
+                    }
+                },
+                onOptionChange = { onInclusionModeChange(it.value) },
+                label = { Text("Inclusion mode") }
+            )
+
+            DropdownChoiceMenu(
+                selectedOption = remember(exclusionMode) {
+                    LabeledEntry(exclusionMode, strings.forExclusionMode(exclusionMode))
+                },
+                options = remember {
+                    TagExclusionMode.entries.map {
+                        LabeledEntry(it, strings.forExclusionMode(it))
+                    }
+                },
+                onOptionChange = { onExclusionModeChange(it.value) },
+                label = { Text("Exclusion mode") }
+            )
         }
     }
 }
@@ -484,7 +593,8 @@ private fun TagFilterDropdownContent(
 @Composable
 private fun TagsRow(
     tags: List<String>,
-    selectedTags: List<String>,
+    includeTags: List<String>,
+    excludeTags: List<String>,
     onTagSelect: (String) -> Unit
 ) {
     val strings = LocalStrings.current.filters
@@ -497,9 +607,14 @@ private fun TagsRow(
         modifier = Modifier.animateContentSize()
     ) {
         tagsToTake.forEach { tag ->
+            val includeType = when {
+                includeTags.contains(tag) -> IncludeType.INCLUDE
+                excludeTags.contains(tag) -> IncludeType.EXCLUDE
+                else -> IncludeType.NONE
+            }
             TagFilterChip(
                 tag = tag,
-                selected = selectedTags.contains(tag),
+                includeType = includeType,
                 onSelect = onTagSelect
             )
         }
@@ -519,25 +634,29 @@ private fun TagsRow(
     }
 }
 
+private enum class IncludeType {
+    INCLUDE, EXCLUDE, NONE
+}
+
 @Composable
 private fun TagFilterChip(
     tag: String,
-    selected: Boolean,
+    includeType: IncludeType,
     onSelect: (String) -> Unit,
 ) {
+
+    val (borderColor, textColor) = when (includeType) {
+        IncludeType.INCLUDE -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.secondary
+        IncludeType.EXCLUDE -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.error
+        IncludeType.NONE -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.primary
+    }
+
     NoPaddingChip(
         onClick = { onSelect(tag) },
         color = MaterialTheme.colorScheme.surface,
-        borderColor = if (selected) MaterialTheme.colorScheme.secondaryContainer
-        else MaterialTheme.colorScheme.surfaceVariant
+        borderColor = borderColor
     ) {
-        Text(
-            tag,
-            style = MaterialTheme.typography.labelLarge.copy(
-                color = if (selected) MaterialTheme.colorScheme.secondary
-                else MaterialTheme.colorScheme.primary
-            )
-        )
+        Text(tag, style = MaterialTheme.typography.labelLarge.copy(color = textColor))
     }
 }
 
@@ -560,17 +679,26 @@ private fun <T> DropdownMultiChoiceItem(
 }
 
 @Composable
-private fun FilterLabelAndCount(label: String, count: Int) {
+private fun FilterLabelAndCount(label: String, includeCount: Int, excludeCount: Int = 0) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge)
-        if (count > 0) {
+        if (includeCount > 0) {
             Text(
-                " + $count",
+                " + $includeCount",
                 style = MaterialTheme.typography.labelMedium.copy(
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = MaterialTheme.colorScheme.secondary
+                ),
+            )
+        }
+
+        if (excludeCount > 0) {
+            Text(
+                " - $excludeCount",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = MaterialTheme.colorScheme.error
                 ),
             )
         }
@@ -584,7 +712,7 @@ data class LabeledEntry<T>(
 
     companion object {
         fun intEntry(value: Int) = LabeledEntry(value, value.toString())
-        fun stringEntry(value: String) = LabeledEntry(value, value)
+        fun stringEntry(value: String): LabeledEntry<String> = LabeledEntry(value, value)
 
     }
 }

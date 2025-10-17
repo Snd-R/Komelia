@@ -34,7 +34,9 @@ import io.github.snd_r.komelia.ui.dialogs.series.editbulk.SeriesBulkEditDialogVi
 import io.github.snd_r.komelia.ui.dialogs.user.PasswordChangeDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserAddDialogViewModel
 import io.github.snd_r.komelia.ui.dialogs.user.UserEditDialogViewModel
+import io.github.snd_r.komelia.ui.home.HomeFilterData
 import io.github.snd_r.komelia.ui.home.HomeViewModel
+import io.github.snd_r.komelia.ui.home.edit.FilterEditViewModel
 import io.github.snd_r.komelia.ui.library.LibraryViewModel
 import io.github.snd_r.komelia.ui.login.LoginViewModel
 import io.github.snd_r.komelia.ui.navigation.SearchBarState
@@ -159,6 +161,22 @@ class ViewModelFactory(
             bookClient = komgaClientFactory.bookClient(),
             appNotifications = dependencies.appNotifications,
             komgaEvents = komgaEventSource.events,
+            filterRepository = dependencies.homeScreenFilterRepository,
+            cardWidthFlow = getGridCardWidth(),
+        )
+    }
+
+    fun getFilterEditViewModel(homeFilters: List<HomeFilterData>?): FilterEditViewModel {
+        return FilterEditViewModel(
+            homeFilters = homeFilters,
+            appNotifications = dependencies.appNotifications,
+            seriesClient = komgaClientFactory.seriesClient(),
+            bookClient = komgaClientFactory.bookClient(),
+            readListClient = komgaClientFactory.readListClient(),
+            collectionClient = komgaClientFactory.collectionClient(),
+            referentialClient = komgaClientFactory.referentialClient(),
+            filterRepository = dependencies.homeScreenFilterRepository,
+            libraries = getLibraries(),
             cardWidthFlow = getGridCardWidth(),
         )
     }

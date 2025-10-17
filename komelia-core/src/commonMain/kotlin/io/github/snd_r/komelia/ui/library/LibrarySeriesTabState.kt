@@ -10,6 +10,7 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
+import io.github.snd_r.komelia.ui.series.SeriesFilter
 import io.github.snd_r.komelia.ui.series.SeriesFilterState
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -19,18 +20,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.KomgaSort.KomgaSeriesSort
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.search.allOfSeries
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
-import snd.komga.client.series.KomgaSeriesQuery
-import snd.komga.client.series.KomgaSeriesSort
 import snd.komga.client.sse.KomgaEvent
 
 class LibrarySeriesTabState(
@@ -61,7 +63,6 @@ class LibrarySeriesTabState(
         library = library,
         referentialClient = referentialClient,
         appNotifications = notifications,
-        onChange = { screenModelScope.launch { loadSeriesPage(1) } },
     )
 
     private val reloadEventsEnabled = MutableStateFlow(true)
@@ -92,6 +93,9 @@ class LibrarySeriesTabState(
             loadSeriesPage(currentSeriesPage)
             delay(1000)
         }.launchIn(screenModelScope)
+
+        filterState.state.drop(1).onEach { loadSeriesPage(1) }
+            .launchIn(screenModelScope)
     }
 
     fun reload() {
@@ -135,7 +139,7 @@ class LibrarySeriesTabState(
         notifications.runCatchingToNotifications {
             val loadStateDelay = delayLoadState()
             currentSeriesPage = page
-            val seriesPage = getAllSeries(page)
+            val seriesPage = getAllSeries(page, filterState.state.value)
 
             loadStateDelay.cancel()
 
@@ -147,36 +151,24 @@ class LibrarySeriesTabState(
         }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
-    private suspend fun getAllSeries(page: Int): Page<KomgaSeries> {
-        val query = KomgaSeriesQuery(
-            searchTerm = filterState.searchTerm.ifBlank { null },
-            libraryIds = library.value?.let { listOf(it.id) },
-            status = filterState.publicationStatus,
-            readStatus = filterState.readStatus,
-            publishers = filterState.publishers,
-            languages = filterState.languages,
-            genres = filterState.genres,
-            tags = filterState.tags,
-            ageRatings = filterState.ageRatings,
-            releaseYears = filterState.releaseDates,
-            authors = filterState.authors,
-            complete = when (filterState.complete) {
-                SeriesFilterState.Completion.ANY -> null
-                SeriesFilterState.Completion.COMPLETE -> true
-                SeriesFilterState.Completion.INCOMPLETE -> false
-            },
-            oneshot = when (filterState.oneshot) {
-                SeriesFilterState.Format.ANY -> null
-                SeriesFilterState.Format.ONESHOT -> true
-                SeriesFilterState.Format.NOT_ONESHOT -> false
-            }
+    private suspend fun getAllSeries(
+        page: Int,
+        filter: SeriesFilter
+    ): Page<KomgaSeries> {
+        val condition = allOfSeries {
+            library.value?.let { library { isEqualTo(it.id) } }
+            filter.addConditionTo(this)
+        }
+
+        return seriesClient.getSeriesList(
+            conditionBuilder = condition,
+            fulltextSearch = filter.searchTerm.ifBlank { null },
+            pageRequest = KomgaPageRequest(
+                size = pageLoadSize.value,
+                pageIndex = page - 1,
+                sort = filter.sortOrder.komgaSort
+            )
         )
-        val pageRequest = KomgaPageRequest(
-            size = pageLoadSize.value,
-            pageIndex = page - 1,
-            sort = filterState.sortOrder.komgaSort
-        )
-        return seriesClient.getAllSeries(query, pageRequest)
     }
 
     private fun delayLoadState(): Deferred<Unit> {

@@ -6,6 +6,7 @@ import io.github.snd_r.komelia.color.repository.BookColorCorrectionRepository
 import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
 import io.github.snd_r.komelia.color.repository.ColorLevelsPresetRepository
 import io.github.snd_r.komelia.fonts.UserFontsRepository
+import io.github.snd_r.komelia.ui.home.HomeScreenFilterRepository
 import io.github.snd_r.komelia.image.BookImageLoader
 import io.github.snd_r.komelia.image.KomeliaPanelDetector
 import io.github.snd_r.komelia.image.KomeliaUpscaler
@@ -37,6 +38,7 @@ interface DependencyContainer {
     val bookColorCorrectionRepository: BookColorCorrectionRepository
     val secretsRepository: SecretsRepository
     val komfSettingsRepository: KomfSettingsRepository
+    val homeScreenFilterRepository: HomeScreenFilterRepository
 
     val komgaClientFactory: KomgaClientFactory
     val komfClientFactory: KomfClientFactory

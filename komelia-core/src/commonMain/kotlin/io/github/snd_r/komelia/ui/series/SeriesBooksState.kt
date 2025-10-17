@@ -1,12 +1,10 @@
 package io.github.snd_r.komelia.ui.series
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
 import io.github.snd_r.komelia.ui.LoadState
+import io.github.snd_r.komelia.ui.book.BooksFilterState
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.bulk.BookBulkActions
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -29,13 +28,10 @@ import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
-import snd.komga.client.book.KomgaBooksSort
-import snd.komga.client.book.KomgaReadStatus
-import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.search.allOfBooks
 import snd.komga.client.series.KomgaSeries
-import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 
@@ -43,7 +39,6 @@ class SeriesBooksState(
     private val series: StateFlow<KomgaSeries?>,
     private val settingsRepository: CommonSettingsRepository,
     private val notifications: AppNotifications,
-    private val seriesClient: KomgaSeriesClient,
     private val bookClient: KomgaBookClient,
     private val events: SharedFlow<KomgaEvent>,
     private val screenModelScope: CoroutineScope,
@@ -68,7 +63,6 @@ class SeriesBooksState(
         series = this.series,
         referentialClient = referentialClient,
         appNotifications = notifications,
-        onChange = { screenModelScope.launch { loadBookData(1) } },
     )
 
     private val reloadEventsEnabled = MutableStateFlow(true)
@@ -78,8 +72,8 @@ class SeriesBooksState(
     suspend fun initialize() {
         if (state.value != LoadState.Uninitialized) return
 
-        loadBookData(1)
         filterState.initialize()
+        loadBookData(1)
 
         screenModelScope.launch { startKomgaEventListener() }
         reloadJobsFlow.onEach {
@@ -88,6 +82,10 @@ class SeriesBooksState(
             if (state is LoadState.Success) loadBookData(state.value.currentPage)
             delay(1000)
         }.launchIn(screenModelScope)
+
+        filterState.state.drop(1)
+            .onEach { loadBookData(1) }
+            .launchIn(screenModelScope)
     }
 
     suspend fun reload() {
@@ -111,18 +109,20 @@ class SeriesBooksState(
                 }
             }
 
-
             val series = series.filterNotNull().first()
+            val filter = this.filterState.state.value
+            val condition = allOfBooks {
+                seriesId { isEqualTo(series.id) }
+                filter.addConditionTo(this)
+            }
 
-            val pageResponse = seriesClient.getAllBooksBySeries(
-                seriesId = series.id,
-                readStatus = filterState.readStatus,
-                tag = filterState.tags,
-                authors = filterState.authors,
+            val pageResponse = bookClient.getBookList(
+                conditionBuilder = condition,
+                fullTextSearch = null,
                 pageRequest = KomgaPageRequest(
                     pageIndex = page - 1,
                     size = pageLoadSize,
-                    sort = filterState.sortOrder.komgaSort
+                    sort = filter.sortOrder.komgaSort
                 )
             )
 
@@ -261,94 +261,5 @@ class SeriesBooksState(
         }
     }
 
-    class BooksFilterState(
-        private val series: StateFlow<KomgaSeries?>,
-        private val referentialClient: KomgaReferentialClient,
-        private val appNotifications: AppNotifications,
-        private val onChange: () -> Unit,
-    ) {
 
-        var isChanged by mutableStateOf(false)
-            private set
-        var sortOrder by mutableStateOf(BooksSort.NUMBER_ASC)
-            private set
-        var readStatus by mutableStateOf<List<KomgaReadStatus>>(emptyList())
-            private set
-        var tags by mutableStateOf<List<String>>(emptyList())
-            private set
-        var tagOptions by mutableStateOf<List<String>>(emptyList())
-            private set
-        var authors by mutableStateOf<List<KomgaAuthor>>(emptyList())
-            private set
-        var authorsOptions by mutableStateOf<List<KomgaAuthor>>(emptyList())
-            private set
-
-        suspend fun initialize() {
-
-            appNotifications.runCatchingToNotifications {
-                val series = series.filterNotNull().first()
-                tagOptions = referentialClient.getBookTags(seriesId = series.id)
-                authorsOptions = referentialClient
-                    .getAuthors(seriesId = series.id, pageRequest = KomgaPageRequest(unpaged = true)).content
-                    .distinctBy { it.name }
-            }
-        }
-
-        fun onSortOrderChange(sortOrder: BooksSort) {
-            this.sortOrder = sortOrder
-            markChanges()
-            onChange()
-        }
-
-        fun onReadStatusSelect(readStatus: KomgaReadStatus) {
-            if (this.readStatus.contains(readStatus)) {
-                this.readStatus = this.readStatus.minus(readStatus)
-            } else {
-                this.readStatus = this.readStatus.plus(readStatus)
-            }
-            markChanges()
-            onChange()
-        }
-
-        fun onAuthorSelect(author: KomgaAuthor) {
-            val authorsByName = authorsOptions.filter { it.name == author.name }
-            authors =
-                if (authors.contains(author)) authors.filter { it.name != author.name }
-                else authors.plus(authorsByName)
-
-            markChanges()
-            onChange()
-        }
-
-        fun onTagSelect(tag: String) {
-            tags =
-                if (tags.contains(tag)) tags.minus(tag)
-                else tags.plus(tag)
-
-            markChanges()
-            onChange()
-        }
-
-        fun resetTagFilters() {
-            tags = emptyList()
-        }
-
-        private fun markChanges() {
-            val hasDefaultValues = sortOrder == BooksSort.NUMBER_ASC &&
-                    readStatus.isEmpty() &&
-                    tags.isEmpty() &&
-                    authors.isEmpty()
-
-            isChanged = !hasDefaultValues
-        }
-
-        enum class BooksSort(val komgaSort: KomgaBooksSort) {
-            NUMBER_ASC(KomgaBooksSort.byNumberAsc()),
-            NUMBER_DESC(KomgaBooksSort.byNumberDesc()),
-//        FILENAME_ASC(KomgaBooksSort.byFileNameAsc()),
-//        FILENAME_DESC(KomgaBooksSort.byFileNameDesc()),
-//        RELEASE_DATE_ASC(KomgaBooksSort.byReleaseDateAsc()),
-//        RELEASE_DATE_DESC(KomgaBooksSort.byReleaseDateDesc()),
-        }
-    }
 }

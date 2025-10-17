@@ -1,6 +1,6 @@
 package snd.komelia.db.tables
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 object BookColorLevelsTable : Table("BookColorLevels") {
     val bookId = text("book_id").references(BookColorCorrectionTable.bookId)

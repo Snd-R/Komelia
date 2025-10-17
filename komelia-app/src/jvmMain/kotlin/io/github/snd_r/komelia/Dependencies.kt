@@ -10,6 +10,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppDirectories.coilCachePath
 import io.github.snd_r.komelia.AppDirectories.onnxRuntimeWorkingDir
 import io.github.snd_r.komelia.AppDirectories.readerCachePath
+import io.github.snd_r.komelia.ui.home.HomeScreenFilterRepository
+import io.github.snd_r.komelia.ui.home.homeScreenDefaultFilters
 import io.github.snd_r.komelia.http.RememberMePersistingCookieStore
 import io.github.snd_r.komelia.http.komeliaUserAgent
 import io.github.snd_r.komelia.image.BookImageLoader
@@ -75,7 +77,9 @@ import snd.komelia.db.color.ExposedBookColorCorrectionRepository
 import snd.komelia.db.color.ExposedColorCurvesPresetRepository
 import snd.komelia.db.color.ExposedColorLevelsPresetRepository
 import snd.komelia.db.fonts.ExposedUserFontsRepository
+import snd.komelia.db.homescreen.ExposedHomeScreenFilterRepository
 import snd.komelia.db.repository.ActorEpubReaderSettingsRepository
+import snd.komelia.db.repository.ActorHomeScreenFilterRepository
 import snd.komelia.db.repository.ActorKomfSettingsRepository
 import snd.komelia.db.repository.ActorReaderSettingsRepository
 import snd.komelia.db.repository.ActorSettingsRepository
@@ -149,6 +153,7 @@ suspend fun initDependencies(
     val epubReaderSettingsRepository = createEpubReaderSettings(database)
     val fontsRepository = ExposedUserFontsRepository(database.database)
     val komfSettingsRepository = createKomfSettingsRepository(database)
+    val homeScreenFilterRepository = createHomeScreenFilterRepository(database)
 
     val colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(database.database)
     val colorLevelsPresetsRepository = ExposedColorLevelsPresetRepository(database.database)
@@ -250,6 +255,7 @@ suspend fun initDependencies(
         bookColorCorrectionRepository = bookColorCorrectionRepository,
         secretsRepository = secretsRepository,
         komfSettingsRepository = komfSettingsRepository,
+        homeScreenFilterRepository = homeScreenFilterRepository,
 
         komgaClientFactory = komgaClientFactory,
         appUpdater = appUpdater,
@@ -509,6 +515,15 @@ private suspend fun createKomfSettingsRepository(database: KomeliaDatabase): Kom
         saveSettings = repository::save
     )
     return ActorKomfSettingsRepository(stateActor)
+}
+
+private suspend fun createHomeScreenFilterRepository(database: KomeliaDatabase): HomeScreenFilterRepository {
+    val repository = ExposedHomeScreenFilterRepository(database.database)
+    val stateActor = SettingsStateActor(
+        settings = repository.getFilters() ?: homeScreenDefaultFilters,
+        saveSettings = repository::putFilters
+    )
+    return ActorHomeScreenFilterRepository(stateActor)
 }
 
 private suspend fun createReaderImageFactory(

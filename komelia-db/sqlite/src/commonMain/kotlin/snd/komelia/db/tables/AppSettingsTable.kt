@@ -1,7 +1,6 @@
 package snd.komelia.db.tables
 
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.Table
 
 object AppSettingsTable : Table("AppSettings") {
     val version = integer("version")
@@ -15,7 +14,11 @@ object AppSettingsTable : Table("AppSettings") {
     val appTheme = text("app_theme")
 
     val checkForUpdatesOnStartup = bool("check_for_updates_on_startup")
-    val updateLastCheckedTimestamp = timestamp("update_last_checked_timestamp").nullable()
+
+    //FIXME Android doesn't support JDBC 4.1.
+    // timestamp field type uses java.sql.ResultSet.getObject(int columnIndex, Class<T> type)
+    // which does not exist on Android. why???
+    val updateLastCheckedTimestamp = text("update_last_checked_timestamp").nullable()
     val updateLastCheckedReleaseVersion = text("update_last_checked_release_version").nullable()
     val updateDismissedVersion = text("update_dismissed_version").nullable()
 

@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import snd.komf.client.toKomfErrorResponse
 import snd.komga.client.common.toErrorResponse
 import snd.komga.client.common.toViolationResponse
@@ -107,7 +106,7 @@ private fun errorMessageFromStatusCode(statusCode: HttpStatusCode): String {
     }
 }
 
-sealed class AppNotification(val id: Long = Clock.System.now().toEpochMilliseconds()) {
+sealed class AppNotification(val id: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()) {
     class Success(val message: String) : AppNotification()
     class Normal(val message: String) : AppNotification()
     class Error(val message: String) : AppNotification()

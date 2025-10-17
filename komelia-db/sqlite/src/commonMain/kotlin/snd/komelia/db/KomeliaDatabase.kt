@@ -1,8 +1,8 @@
 package snd.komelia.db
 
 import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import java.sql.Connection
 
 class KomeliaDatabase(filePath: String) {

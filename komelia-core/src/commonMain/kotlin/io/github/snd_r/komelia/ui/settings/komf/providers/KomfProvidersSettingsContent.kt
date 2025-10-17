@@ -21,13 +21,13 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -146,36 +146,38 @@ private fun ProvidersConfigContent(
         ) { _, item, isDragging ->
             key(item) {
 
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(5.dp))
-                        .height(70.dp)
-                        .fillMaxWidth()
-                        .background(
-                            if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .5f)
-                            else MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
+                ReorderableItem {
+                    Row(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(end = 5.dp)
-                            .widthIn(40.dp)
-                            .draggableHandle()
-                            .cursorForMove()
-                            .clickable { },
-                        contentAlignment = Alignment.Center
+                            .clip(RoundedCornerShape(5.dp))
+                            .height(70.dp)
+                            .fillMaxWidth()
+                            .background(
+                                if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .5f)
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Rounded.DragHandle,
-                            contentDescription = null,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(end = 5.dp)
+                                .widthIn(40.dp)
+                                .draggableHandle()
+                                .cursorForMove()
+                                .clickable { },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.DragHandle,
+                                contentDescription = null,
+                            )
+
+                        }
+
+                        ProviderCard(item, state::onProviderRemove)
 
                     }
-
-                    ProviderCard(item, state::onProviderRemove)
-
                 }
             }
         }

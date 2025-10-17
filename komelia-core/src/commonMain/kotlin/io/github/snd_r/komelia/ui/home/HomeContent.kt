@@ -1,12 +1,13 @@
 package io.github.snd_r.komelia.ui.home
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,12 +18,19 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,32 +40,17 @@ import io.github.snd_r.komelia.ui.common.cards.BookImageCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
 import io.github.snd_r.komelia.ui.common.menus.SeriesMenuActions
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.ALL
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.KEEP_READING_BOOKS
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.ON_DECK_BOOKS
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_ADDED_BOOKS
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_ADDED_SERIES
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_READ_BOOKS
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_RELEASED_BOOKS
-import io.github.snd_r.komelia.ui.home.HomeViewModel.HomeScreenFilter.RECENTLY_UPDATED_SERIES
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun HomeContent(
-    keepReadingBooks: List<KomgaBook>,
-    onDeckBooks: List<KomgaBook>,
-    recentlyReleasedBooks: List<KomgaBook>,
-    recentlyAddedBooks: List<KomgaBook>,
-    recentlyReadBooks: List<KomgaBook>,
+    filters: List<HomeFilterData>,
+    onEditStart: () -> Unit,
 
-    recentlyAddedSeries: List<KomgaSeries>,
-    recentlyUpdatedSeries: List<KomgaSeries>,
-
-    currentFilter: HomeScreenFilter,
-    onFilterChange: (HomeScreenFilter) -> Unit,
+    activeFilterNumber: Int,
+    onFilterChange: (Int) -> Unit,
 
     cardWidth: Dp,
     onSeriesClick: (KomgaSeries) -> Unit,
@@ -70,171 +63,118 @@ fun HomeContent(
     val coroutineScope = rememberCoroutineScope()
     Column {
         Toolbar(
-            currentFilter = currentFilter,
+            filters = filters,
+            currentFilterNumber = activeFilterNumber,
+            onEditStart = onEditStart,
             onFilterChange = {
                 onFilterChange(it)
                 coroutineScope.launch { gridState.animateScrollToItem(0) }
             },
-            keepReadingBooks = keepReadingBooks,
-            onDeckBooks = onDeckBooks,
-            recentlyReleasedBooks = recentlyReleasedBooks,
-            recentlyAddedBooks = recentlyAddedBooks,
-            recentlyReadBooks = recentlyReadBooks,
-            recentlyAddedSeries = recentlyAddedSeries,
-            recentlyUpdatedSeries = recentlyUpdatedSeries,
         )
-        MainContent(
-            currentFilter = currentFilter,
-            keepReadingBooks = keepReadingBooks,
-            onDeckBooks = onDeckBooks,
-            recentlyReleasedBooks = recentlyReleasedBooks,
-            recentlyAddedBooks = recentlyAddedBooks,
-            recentlyReadBooks = recentlyReadBooks,
-            recentlyAddedSeries = recentlyAddedSeries,
-            recentlyUpdatedSeries = recentlyUpdatedSeries,
-            gridState = gridState,
+        DisplayContent(
+            filters = filters,
+            activeFilterNumber = activeFilterNumber,
 
+            gridState = gridState,
             cardWidth = cardWidth,
             onSeriesClick = onSeriesClick,
             seriesMenuActions = seriesMenuActions,
             bookMenuActions = bookMenuActions,
             onBookClick = onBookClick,
-            onBookReadClick = onBookReadClick
+            onBookReadClick = onBookReadClick,
         )
     }
 }
 
 @Composable
 private fun Toolbar(
-    currentFilter: HomeScreenFilter,
-    onFilterChange: (HomeScreenFilter) -> Unit,
-    keepReadingBooks: List<KomgaBook>,
-    onDeckBooks: List<KomgaBook>,
-    recentlyReleasedBooks: List<KomgaBook>,
-    recentlyAddedBooks: List<KomgaBook>,
-    recentlyReadBooks: List<KomgaBook>,
-    recentlyAddedSeries: List<KomgaSeries>,
-    recentlyUpdatedSeries: List<KomgaSeries>,
+    filters: List<HomeFilterData>,
+    currentFilterNumber: Int,
+    onFilterChange: (Int) -> Unit,
+    onEditStart: () -> Unit
 ) {
     val chipColors = FilterChipDefaults.filterChipColors(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         selectedContainerColor = MaterialTheme.colorScheme.primary,
         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
     )
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        item {
-            Spacer(Modifier.width(20.dp))
-        }
-
-        item {
-            FilterChip(
-                onClick = { onFilterChange(ALL) },
-                selected = currentFilter == ALL,
-                label = { Text("All") },
-                colors = chipColors,
-                border = null,
-            )
-        }
-
-        if (keepReadingBooks.isNotEmpty())
-            item {
-                FilterChip(
-                    onClick = { onFilterChange(KEEP_READING_BOOKS) },
-                    selected = currentFilter == KEEP_READING_BOOKS,
-                    label = { Text("Keep Reading") },
-                    colors = chipColors,
-                    border = null,
-                )
+    val nonEmptyFilters = remember(filters) {
+        filters.filter {
+            when (it) {
+                is BookFilterData -> it.books.isNotEmpty()
+                is SeriesFilterData -> it.series.isNotEmpty()
             }
-        if (onDeckBooks.isNotEmpty())
+        }
+    }
+    Box() {
+        val lazyRowState = rememberLazyListState()
+        Row {
+
+//            FloatingActionButton()
+            Spacer(Modifier.weight(1f))
+        }
+        LazyRow(
+            state = lazyRowState,
+            modifier = Modifier.animateContentSize(),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            item {
+                Spacer(Modifier.width(20.dp))
+            }
+
             item {
                 FilterChip(
-                    onClick = { onFilterChange(ON_DECK_BOOKS) },
-                    selected = currentFilter == ON_DECK_BOOKS,
-                    label = { Text("On deck") },
+                    onClick = onEditStart,
+                    selected = false,
+                    label = {
+                        Icon(Icons.Default.Tune, null)
+                    },
                     colors = chipColors,
                     border = null,
                 )
             }
 
-        if (recentlyReleasedBooks.isNotEmpty())
-            item {
-                FilterChip(
-                    onClick = { onFilterChange(RECENTLY_RELEASED_BOOKS) },
-                    selected = currentFilter == RECENTLY_RELEASED_BOOKS,
-                    label = { Text("Recently released books") },
-                    colors = chipColors,
-                    border = null,
-
+            if (filters.size > 1) {
+                item {
+                    FilterChip(
+                        onClick = { onFilterChange(0) },
+                        selected = currentFilterNumber == 0,
+                        label = { Text("All") },
+                        colors = chipColors,
+                        border = null,
                     )
+                }
             }
-
-        if (recentlyAddedBooks.isNotEmpty())
+            items(nonEmptyFilters) { data ->
+                val display = remember(data.filter) {
+                    when (data) {
+                        is BookFilterData -> data.books.isNotEmpty()
+                        is SeriesFilterData -> data.series.isNotEmpty()
+                    }
+                }
+                if (display) {
+                    FilterChip(
+                        onClick = { onFilterChange(data.filter.order) },
+                        selected = currentFilterNumber == data.filter.order || filters.size == 1,
+                        label = { Text(data.filter.label) },
+                        colors = chipColors,
+                        border = null,
+                    )
+                }
+            }
             item {
-                FilterChip(
-                    onClick = { onFilterChange(RECENTLY_ADDED_BOOKS) },
-                    selected = currentFilter == RECENTLY_ADDED_BOOKS,
-                    label = { Text("Recently added books") },
-                    colors = chipColors,
-                    border = null,
-                )
+                Spacer(Modifier.width(40.dp))
             }
-
-        if (recentlyAddedSeries.isNotEmpty())
-            item {
-                FilterChip(
-                    onClick = { onFilterChange(RECENTLY_ADDED_SERIES) },
-                    selected = currentFilter == RECENTLY_ADDED_SERIES,
-                    label = { Text("Recently added series") },
-                    colors = chipColors,
-                    border = null,
-                )
-            }
-
-        if (recentlyUpdatedSeries.isNotEmpty())
-            item {
-                FilterChip(
-                    onClick = { onFilterChange(RECENTLY_UPDATED_SERIES) },
-                    selected = currentFilter == RECENTLY_UPDATED_SERIES,
-                    label = { Text("Recently updated series") },
-                    colors = chipColors,
-                    border = null,
-                )
-            }
-        if (recentlyReadBooks.isNotEmpty())
-            item {
-                FilterChip(
-                    onClick = { onFilterChange(RECENTLY_READ_BOOKS) },
-                    selected = currentFilter == RECENTLY_READ_BOOKS,
-                    label = { Text("Recently read books") },
-                    colors = chipColors,
-                    border = null,
-                )
-            }
-
-        item {
-            Spacer(Modifier.width(40.dp))
         }
-
     }
 }
 
 @Composable
-private fun MainContent(
-    currentFilter: HomeScreenFilter,
-    keepReadingBooks: List<KomgaBook>,
-    onDeckBooks: List<KomgaBook>,
-    recentlyReleasedBooks: List<KomgaBook>,
-    recentlyAddedBooks: List<KomgaBook>,
-    recentlyReadBooks: List<KomgaBook>,
-    recentlyAddedSeries: List<KomgaSeries>,
-    recentlyUpdatedSeries: List<KomgaSeries>,
+private fun DisplayContent(
+    filters: List<HomeFilterData>,
+    activeFilterNumber: Int,
     gridState: LazyGridState,
-
     cardWidth: Dp,
     onSeriesClick: (KomgaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions,
@@ -242,8 +182,6 @@ private fun MainContent(
     onBookClick: (KomgaBook) -> Unit,
     onBookReadClick: (KomgaBook, Boolean) -> Unit,
 ) {
-
-
     LazyVerticalGrid(
         modifier = Modifier.padding(horizontal = 20.dp),
         state = gridState,
@@ -252,66 +190,26 @@ private fun MainContent(
         verticalArrangement = Arrangement.spacedBy(15.dp),
         contentPadding = PaddingValues(bottom = 50.dp)
     ) {
-        if (keepReadingBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == KEEP_READING_BOOKS)) {
-            BookFilterEntry(
-                label = "Keep reading",
-                books = keepReadingBooks,
-                bookMenuActions = bookMenuActions,
-                onBookClick = onBookClick,
-                onBookReadClick = onBookReadClick
-            )
-        }
-        if (onDeckBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == ON_DECK_BOOKS)) {
-            BookFilterEntry(
-                label = "On deck",
-                books = onDeckBooks,
-                bookMenuActions = bookMenuActions,
-                onBookClick = onBookClick,
-                onBookReadClick = onBookReadClick
-            )
-        }
-        if (recentlyReleasedBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == RECENTLY_RELEASED_BOOKS)) {
-            BookFilterEntry(
-                label = "Recently released books",
-                books = recentlyReleasedBooks,
-                bookMenuActions = bookMenuActions,
-                onBookClick = onBookClick,
-                onBookReadClick = onBookReadClick
-            )
-        }
-        if (recentlyAddedBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == RECENTLY_ADDED_BOOKS)) {
-            BookFilterEntry(
-                label = "Recently added books",
-                books = recentlyAddedBooks,
-                bookMenuActions = bookMenuActions,
-                onBookClick = onBookClick,
-                onBookReadClick = onBookReadClick
-            )
-        }
-        if (recentlyAddedSeries.isNotEmpty() && (currentFilter == ALL || currentFilter == RECENTLY_ADDED_SERIES)) {
-            SeriesFilterEntries(
-                label = "Recently added series",
-                series = recentlyAddedSeries,
-                onSeriesClick = onSeriesClick,
-                seriesMenuActions = seriesMenuActions
-            )
-        }
-        if (recentlyUpdatedSeries.isNotEmpty() && (currentFilter == ALL || currentFilter == RECENTLY_UPDATED_SERIES)) {
-            SeriesFilterEntries(
-                label = "Recently updated series",
-                series = recentlyUpdatedSeries,
-                onSeriesClick = onSeriesClick,
-                seriesMenuActions = seriesMenuActions
-            )
-        }
-        if (recentlyReadBooks.isNotEmpty() && (currentFilter == ALL || currentFilter == RECENTLY_READ_BOOKS)) {
-            BookFilterEntry(
-                label = "Recently read books",
-                books = recentlyReadBooks,
-                bookMenuActions = bookMenuActions,
-                onBookClick = onBookClick,
-                onBookReadClick = onBookReadClick
-            )
+        for (data in filters) {
+            if (activeFilterNumber == 0 || data.filter.order == activeFilterNumber) {
+                when (data) {
+                    is BookFilterData -> BookFilterEntry(
+                        label = data.filter.label,
+                        books = data.books,
+                        bookMenuActions = bookMenuActions,
+                        onBookClick = onBookClick,
+                        onBookReadClick = onBookReadClick,
+                    )
+
+                    is SeriesFilterData -> SeriesFilterEntries(
+                        label = data.filter.label,
+                        series = data.series,
+                        onSeriesClick = onSeriesClick,
+                        seriesMenuActions = seriesMenuActions,
+                    )
+
+                }
+            }
         }
     }
 }
@@ -323,10 +221,11 @@ private fun LazyGridScope.BookFilterEntry(
     onBookClick: (KomgaBook) -> Unit,
     onBookReadClick: (KomgaBook, Boolean) -> Unit,
 ) {
+    if (books.isEmpty()) return
+
     item(span = { GridItemSpan(maxLineSpan) }) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(label, style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.width(10.dp))
             HorizontalDivider()
@@ -350,6 +249,7 @@ private fun LazyGridScope.SeriesFilterEntries(
     onSeriesClick: (KomgaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions,
 ) {
+    if (series.isEmpty()) return
     item(span = { GridItemSpan(maxLineSpan) }) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -368,23 +268,4 @@ private fun LazyGridScope.SeriesFilterEntries(
             modifier = Modifier.fillMaxSize()
         )
     }
-
 }
-
-interface FilterEntry {
-    val label: String
-    val show: Boolean
-    val entries: List<*>
-}
-
-class BookFilterEntry(
-    override val label: String,
-    override val show: Boolean,
-    override val entries: List<KomgaBook>
-) : FilterEntry
-
-data class SeriesFilterEntry(
-    override val label: String,
-    override val show: Boolean,
-    override val entries: List<KomgaSeries>,
-) : FilterEntry

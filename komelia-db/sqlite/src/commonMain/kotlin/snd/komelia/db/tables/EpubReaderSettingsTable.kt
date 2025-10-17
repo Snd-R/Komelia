@@ -2,8 +2,8 @@ package snd.komelia.db.tables
 
 import io.github.snd_r.komelia.ui.reader.epub.TtsuReaderSettings
 import kotlinx.serialization.json.JsonObject
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.json.json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.json.json
 import snd.komelia.db.JsonDbDefault
 
 object EpubReaderSettingsTable : Table("EpubReaderSettings") {

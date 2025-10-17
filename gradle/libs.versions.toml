@@ -14,14 +14,14 @@ androidx-window = "1.5.0"
 cache4k = "0.14.0"
 coil = "3.3.0"
 commons-compress = "1.28.0"
-compose-multiplatform = "1.8.2"
+compose-multiplatform = "1.9.1"
 directories = "26"
-exposed = "0.61.0"
+exposed = "1.0.0-rc-2"
 filekit = "0.8.7"
 flyway = "9.22.3"
 java-keyring = "1.0.4"
-komf-client = "1.5.0"
-komga-client = "0.8.1"
+komf-client = "1.6.1"
+komga-client = "0.9.0"
 kotlin = "2.2.20"
 kotlin-logging = "7.0.13"
 kotlinx-atomicfu = "0.29.0"
@@ -30,12 +30,12 @@ kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
 kotlinx-io = "0.8.0"
-ktor = "3.3.0"
+ktor = "3.3.1"
 ksoup = "0.2.5"
-logback = "1.5.18"
+logback = "1.5.19"
 logback-android = "3.0.0"
 markdown = "0.7.3"
-okhttp = "5.1.0"
+okhttp = "5.2.1"
 protobuf-plugin = "0.9.4"
 protobuf-lite = "3.21.11"
 reorderable = "3.0.0"
@@ -60,7 +60,6 @@ exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "e
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
-exposed-migration = { module = "org.jetbrains.exposed:exposed-migration", version.ref = "exposed" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }

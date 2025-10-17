@@ -10,7 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LockPerson
 import androidx.compose.material.icons.filled.RecentActors
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -150,7 +150,7 @@ class UserSharedLibrariesTab(private val vm: UserEditDialogViewModel) : DialogTa
                 label = { Text("All Libraries") }
             )
 
-            Divider()
+            HorizontalDivider()
 
             allLibraries.forEach { library ->
 

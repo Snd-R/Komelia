@@ -1,6 +1,8 @@
 #ifndef KOMELIA_ONNXRUNTIME_H
 #define KOMELIA_ONNXRUNTIME_H
+
 #include "komelia_error.h"
+#include <pthread.h>
 #include <onnxruntime_c_api.h>
 #include <vips/vips.h>
 

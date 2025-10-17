@@ -10,6 +10,10 @@ val EnStrings = AppStrings(
         filterTagsTagsLabel = "Tags",
         filterTagsShowMore = "Show more",
         filterTagsShowLess = "Show less",
+        includeIfAllMatch = "If all match",
+        includeIfAnyMatch = "If any match",
+        excludeIfAllMatch = "If all match",
+        excludeIfAnyMatch = "If any match",
     ),
     seriesFilter = SeriesFilterStrings(
         resetFilters = "Reset filters",
@@ -245,6 +249,12 @@ val EnStrings = AppStrings(
         err1031 = "ComicRack CBL Book is missing series or number",
         err1032 = "EPUB file has wrong media type",
         err1033 = "Some entries are missing",
+        err1034 = "An API key with that comment already exists",
+        err1035 = "Error while getting EPUB TOC",
+        err1036 = "Error while getting EPUB Landmarks",
+        err1037 = "Error while getting EPUB page list",
+        err1038 = "Error while getting EPUB divina pages",
+        err1039 = "Error while getting EPUB positions",
     ),
     komf = KomfStrings(
         providerSettings = KomfProviderSettingsStrings(
@@ -265,7 +275,7 @@ val EnStrings = AppStrings(
         )
     ),
     imageSettings = ImageSettingsStrings(
-        upsamplingMode = "Upsamling mode",
+        upsamplingMode = "Upsampling mode",
         upsamplingModeNearest = "Nearest neighbour",
         upsamplingModeBilinear = "Bilinear",
         upsamplingModeMitchell = "Bicubic Mitchell",

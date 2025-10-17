@@ -19,14 +19,12 @@ import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookQuery
-import snd.komga.client.book.KomgaBooksSort
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaSort
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesQuery
-import snd.komga.client.series.KomgaSeriesSort
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
@@ -106,7 +104,7 @@ class SearchViewModel(
                 KomgaPageRequest(
                     pageIndex = pageNumber - 1,
                     size = 10,
-                    sort = if (query.isBlank()) KomgaSeriesSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
+                    sort = if (query.isBlank()) KomgaSort.KomgaSeriesSort.byLastModifiedDateDesc() else KomgaSort.Unsorted
                 )
             )
 
@@ -131,7 +129,7 @@ class SearchViewModel(
                 KomgaPageRequest(
                     pageIndex = pageNumber - 1,
                     size = 10,
-                    sort = if (query.isBlank()) KomgaBooksSort.byLastModifiedDateDesc() else KomgaSort.UNSORTED
+                    sort = if (query.isBlank()) KomgaSort.KomgaBooksSort.byLastModifiedDateDesc() else KomgaSort.Unsorted
                 )
             )
 

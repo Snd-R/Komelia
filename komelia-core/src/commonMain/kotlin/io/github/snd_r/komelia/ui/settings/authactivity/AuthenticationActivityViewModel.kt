@@ -9,9 +9,9 @@ import io.github.snd_r.komelia.AppNotifications
 import io.github.snd_r.komelia.ui.LoadState
 import kotlinx.coroutines.launch
 import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.KomgaSort
 import snd.komga.client.user.KomgaAuthenticationActivity
 import snd.komga.client.user.KomgaUserClient
-import snd.komga.client.user.KomgaUserSort
 
 class AuthenticationActivityViewModel(
     private val forMe: Boolean,
@@ -40,7 +40,7 @@ class AuthenticationActivityViewModel(
                 val pageRequest = KomgaPageRequest(
                     pageIndex = pageNumber - 1,
                     size = pageSize,
-                    sort = KomgaUserSort.byDateTimeDesc()
+                    sort = KomgaSort.KomgaUserSort.byDateTimeDesc()
                 )
                 val page = if (forMe) userClient.getMeAuthenticationActivity(pageRequest)
                 else userClient.getAuthenticationActivity(pageRequest)

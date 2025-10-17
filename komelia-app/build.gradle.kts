@@ -45,7 +45,10 @@ kotlin {
     }
 
     sourceSets {
-        all { languageSettings.optIn("kotlin.ExperimentalUnsignedTypes") }
+        all {
+            languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         commonMain.dependencies {
             implementation(projects.komeliaCore)
             implementation(projects.komeliaDb.shared)

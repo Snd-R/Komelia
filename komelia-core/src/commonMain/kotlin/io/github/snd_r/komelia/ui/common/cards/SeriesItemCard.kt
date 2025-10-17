@@ -47,7 +47,7 @@ import snd.komga.client.series.KomgaSeries
 @Composable
 fun SeriesImageCard(
     series: KomgaSeries,
-    onSeriesClick: () -> Unit,
+    onSeriesClick: (() -> Unit)? = null,
     isSelected: Boolean = false,
     onSeriesSelect: (() -> Unit)? = null,
     seriesMenuActions: SeriesMenuActions? = null,

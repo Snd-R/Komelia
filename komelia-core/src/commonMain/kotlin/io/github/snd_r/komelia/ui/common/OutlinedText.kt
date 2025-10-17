@@ -8,7 +8,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -48,7 +48,7 @@ fun OutlinedText(
     ) {
         Text(
             text = text,
-            modifier = Modifier.semantics { invisibleToUser() },
+            modifier = Modifier.semantics { hideFromAccessibility() },
             color = outlineColor,
             fontSize = fontSize,
             fontStyle = fontStyle,

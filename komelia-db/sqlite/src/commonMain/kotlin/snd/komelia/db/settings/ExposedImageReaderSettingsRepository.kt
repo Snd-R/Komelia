@@ -7,9 +7,10 @@ import io.github.snd_r.komelia.ui.reader.image.ReaderType
 import io.github.snd_r.komelia.ui.reader.image.continuous.ContinuousReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState
 import io.github.snd_r.komelia.ui.reader.image.paged.PagedReaderState.LayoutScaleType
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.upsert
 import snd.komelia.db.ExposedRepository
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.defaultBookId

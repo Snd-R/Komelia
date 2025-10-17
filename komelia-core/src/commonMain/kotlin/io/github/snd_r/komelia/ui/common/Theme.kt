@@ -33,6 +33,7 @@ enum class AppTheme(
             onSurface = Color(red = 237, green = 235, blue = 235),
 
             surfaceVariant = Color(red = 43, green = 43, blue = 43),
+            surfaceContainerLow = Color(red = 43, green = 43, blue = 43),
             surfaceContainerHighest = Color(red = 43, green = 43, blue = 43),
             onSurfaceVariant = Color(red = 202, green = 196, blue = 208),
 

@@ -18,6 +18,7 @@ import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
 import io.github.snd_r.komelia.strings.EnStrings
+import io.github.snd_r.komelia.ui.home.HomeScreenFilterRepository
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.OnnxModelDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
@@ -37,6 +38,7 @@ class AndroidDependencyContainer(
     override val bookColorCorrectionRepository: BookColorCorrectionRepository,
     override val secretsRepository: SecretsRepository,
     override val komfSettingsRepository: KomfSettingsRepository,
+    override val homeScreenFilterRepository: HomeScreenFilterRepository,
 
     override val komgaClientFactory: KomgaClientFactory,
     override val komfClientFactory: KomfClientFactory,

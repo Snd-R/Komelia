@@ -1,6 +1,6 @@
 package snd.komelia.db.tables
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.v1.core.Table
 
 object KomfSettingsTable : Table("KomfSettings") {
     val version = integer("version")

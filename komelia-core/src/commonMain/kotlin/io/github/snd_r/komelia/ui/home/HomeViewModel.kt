@@ -1,8 +1,5 @@
 package io.github.snd_r.komelia.ui.home
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
@@ -20,24 +17,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit.Companion.MONTH
-import kotlinx.datetime.TimeZone.Companion.UTC
-import kotlinx.datetime.minus
-import kotlinx.datetime.todayIn
-import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
-import snd.komga.client.book.KomgaBookQuery
-import snd.komga.client.book.KomgaBooksSort
-import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.book.KomgaBookSearch
 import snd.komga.client.common.KomgaPageRequest
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
+import snd.komga.client.series.KomgaSeriesSearch
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.BookEvent
 import snd.komga.client.sse.KomgaEvent.ReadProgressEvent
@@ -49,37 +39,23 @@ class HomeViewModel(
     private val bookClient: KomgaBookClient,
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
+    private val filterRepository: HomeScreenFilterRepository,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
 
-    var keepReadingBooks by mutableStateOf<List<KomgaBook>>(emptyList())
-        private set
-    var onDeckBooks by mutableStateOf<List<KomgaBook>>(emptyList())
-        private set
-    var recentlyReleasedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
-        private set
-    var recentlyAddedBooks by mutableStateOf<List<KomgaBook>>(emptyList())
-        private set
-    var recentlyReadBooks by mutableStateOf<List<KomgaBook>>(emptyList())
-        private set
-
-    var recentlyAddedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
-        private set
-    var recentlyUpdatedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
-        private set
-
-    var activeFilter by mutableStateOf(HomeScreenFilter.ALL)
-        private set
-
-
     private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
 
-    fun initialize() {
+    val filters = MutableStateFlow(emptyList<HomeFilterData>())
+    val activeFilterNumber = MutableStateFlow(0)
+
+    suspend fun initialize() {
         if (state.value !is Uninitialized) return
-        screenModelScope.launch { load() }
+
+        load()
         startKomgaEventListener()
+
         reloadJobsFlow.onEach {
             reloadEventsEnabled.first { it }
             load()
@@ -93,98 +69,68 @@ class HomeViewModel(
 
     private suspend fun load() {
         appNotifications.runCatchingToNotifications {
-
             mutableState.value = LoadState.Loading
-            loadKeepReadingBooks()
-            loadOnDeckBooks()
-            loadRecentlyReleasedBooks()
-            loadRecentlyAddedBooks()
-            loadRecentlyAddedSeries()
-            loadRecentlyUpdatedSeries()
-            loadRecentlyReadBooks()
+
+            filters.value = filterRepository.getFilters().first()
+                .mapNotNull { fetchFilterData(it) }
+
             mutableState.value = LoadState.Success(Unit)
 
         }.onFailure { mutableState.value = LoadState.Error(it) }
     }
 
+    private suspend fun fetchFilterData(filter: HomeScreenFilter): HomeFilterData? {
+        return when (filter) {
+            is BooksHomeScreenFilter.CustomFilter -> {
+                val books = bookClient.getBookList(
+                    search = KomgaBookSearch(filter.filter, filter.textSearch),
+                    pageRequest = filter.pageRequest
+                ).content
+
+                BookFilterData(books = books, filter = filter)
+            }
+
+            is BooksHomeScreenFilter.OnDeck -> {
+                val books = bookClient.getBooksOnDeck(pageRequest = KomgaPageRequest(size = filter.pageSize)).content
+                BookFilterData(books, filter)
+            }
+
+            is SeriesHomeScreenFilter.CustomFilter -> {
+                val series = seriesClient.getSeriesList(
+                    search = KomgaSeriesSearch(filter.filter, filter.textSearch),
+                    pageRequest = filter.pageRequest
+                ).content
+
+                SeriesFilterData(series = series, filter = filter)
+            }
+
+            is SeriesHomeScreenFilter.RecentlyAdded -> {
+                val series = seriesClient.getNewSeries(
+                    oneshot = false,
+                    pageRequest = KomgaPageRequest(size = filter.pageSize)
+                ).content
+                SeriesFilterData(
+                    series = series,
+                    filter = filter
+                )
+            }
+
+            is SeriesHomeScreenFilter.RecentlyUpdated -> {
+                val series = seriesClient.getUpdatedSeries(
+                    oneshot = false,
+                    pageRequest = KomgaPageRequest(size = filter.pageSize)
+                ).content
+                SeriesFilterData(
+                    series = series,
+                    filter = filter
+                )
+            }
+        }
+
+    }
+
     fun seriesMenuActions() = SeriesMenuActions(seriesClient, appNotifications, screenModelScope)
     fun bookMenuActions() = BookMenuActions(bookClient, appNotifications, screenModelScope)
-
-    private suspend fun loadKeepReadingBooks() {
-        appNotifications.runCatchingToNotifications {
-            val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReadDateDesc())
-
-            val books = bookClient.getAllBooks(
-                query = KomgaBookQuery(
-                    readStatus = listOf(KomgaReadStatus.IN_PROGRESS),
-                ),
-                pageRequest = pageRequest
-            ).content
-
-            keepReadingBooks = books
-        }
-    }
-
-    private suspend fun loadOnDeckBooks() {
-        appNotifications.runCatchingToNotifications {
-            onDeckBooks = bookClient.getBooksOnDeck().content
-        }
-    }
-
-    private suspend fun loadRecentlyReadBooks() {
-        appNotifications.runCatchingToNotifications {
-            val books = bookClient.getAllBooks(
-                query = KomgaBookQuery(readStatus = listOf(KomgaReadStatus.READ)),
-                pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReadDateDesc())
-            ).content
-            recentlyReadBooks = books
-        }
-    }
-
-    private suspend fun loadRecentlyReleasedBooks() {
-        appNotifications.runCatchingToNotifications {
-            val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byReleaseDateDesc())
-
-            val books = bookClient.getAllBooks(
-                pageRequest = pageRequest,
-                query = KomgaBookQuery(
-                    releasedAfter = Clock.System.todayIn(UTC).minus(1, MONTH)
-                ),
-            ).content
-
-            recentlyReleasedBooks = books
-        }
-    }
-
-    private suspend fun loadRecentlyAddedBooks() {
-        appNotifications.runCatchingToNotifications {
-            val pageRequest = KomgaPageRequest(sort = KomgaBooksSort.byCreatedDateDesc())
-
-            val books = bookClient.getAllBooks(
-                pageRequest = pageRequest,
-            ).content
-
-            recentlyAddedBooks = books
-        }
-    }
-
-    private suspend fun loadRecentlyAddedSeries() {
-        appNotifications.runCatchingToNotifications {
-            val series = seriesClient.getNewSeries(
-                oneshot = false
-            ).content
-            recentlyAddedSeries = series
-        }
-    }
-
-    private suspend fun loadRecentlyUpdatedSeries() {
-        appNotifications.runCatchingToNotifications {
-            val series = seriesClient.getUpdatedSeries(
-                oneshot = false
-            ).content
-            recentlyUpdatedSeries = series
-        }
-    }
 
     fun stopKomgaEventsHandler() {
         reloadEventsEnabled.value = false
@@ -206,18 +152,13 @@ class HomeViewModel(
                 }
 
                 is ReadProgressEvent -> {
-                    val matches = keepReadingBooks.any { event.bookId == it.id }
-                            || recentlyAddedBooks.any { event.bookId == it.id }
-                            || recentlyAddedBooks.any { event.bookId == it.id }
-
+                    val matches = false
                     if (matches) reloadJobsFlow.tryEmit(Unit)
 
                 }
 
                 is ReadProgressSeriesEvent -> {
-                    val matches = recentlyAddedSeries.any { event.seriesId == it.id }
-                            || recentlyUpdatedSeries.any { event.seriesId == it.id }
-
+                    val matches = false
                     if (matches) reloadJobsFlow.tryEmit(Unit)
                 }
 
@@ -226,20 +167,8 @@ class HomeViewModel(
         }.launchIn(screenModelScope)
     }
 
-    fun onFilterChange(filter: HomeScreenFilter) {
-        this.activeFilter = filter
+    fun onFilterChange(number: Int) {
+        this.activeFilterNumber.value = number
     }
 
-    enum class HomeScreenFilter {
-        ALL,
-        KEEP_READING_BOOKS,
-        ON_DECK_BOOKS,
-        RECENTLY_RELEASED_BOOKS,
-        RECENTLY_ADDED_BOOKS,
-        RECENTLY_READ_BOOKS,
-        RECENTLY_ADDED_SERIES,
-        RECENTLY_UPDATED_SERIES
-
-    }
 }
-
