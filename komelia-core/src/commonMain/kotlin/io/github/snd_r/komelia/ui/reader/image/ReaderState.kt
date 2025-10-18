@@ -279,16 +279,16 @@ class ReaderState(
 
     fun onProgressChange(page: Int) {
         if (markReadProgress) {
-            val currentBook = requireNotNull(booksState.value?.currentBook)
-            stateScope.launch {
+            appNotifications.runCatchingToNotifications(stateScope) {
+                val currentBook = requireNotNull(booksState.value?.currentBook)
                 bookClient.markReadProgress(
                     currentBook.id,
                     KomgaBookReadProgressUpdateRequest(page)
                 )
             }
-        }
 
-        readProgressPage.value = page
+            readProgressPage.value = page
+        }
     }
 
     fun onReaderTypeChange(type: ReaderType) {
