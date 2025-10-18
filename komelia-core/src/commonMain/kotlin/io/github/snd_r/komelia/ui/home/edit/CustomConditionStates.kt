@@ -307,8 +307,9 @@ class OneShotConditionState() : BooleanOpState(), BookConditionState, SeriesCond
 class TitleConditionState(
     val initial: KomgaSearchCondition.Title?
 ) : StringOpState(), SeriesConditionState, BookConditionState {
-    override val bookChangeFlow = combine(this.operator, this.value) { this.toBookCondition() }
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val bookChangeFlow = combine(this.operator, this.value) { _, _ -> this.toBookCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
+
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.Title(operator)
@@ -323,7 +324,7 @@ class TitleConditionState(
 class TitleSortConditionState(
     val initial: KomgaSearchCondition.TitleSort?
 ) : StringOpState(initial?.operator), SeriesConditionState {
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.TitleSort(operator)
@@ -350,7 +351,7 @@ class ReleaseDateConditionState(
 class NumberSortConditionState(
     val initial: KomgaSearchCondition.NumberSort?
 ) : NumericOpState<Float>(initial?.operator), BookConditionState {
-    override val bookChangeFlow = combine(this.operator, this.value) { this.toBookCondition() }
+    override val bookChangeFlow = combine(this.operator, this.value) { _, _ -> this.toBookCondition() }
     override fun toBookCondition(): BookCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.NumberSort(operator)
@@ -361,8 +362,8 @@ class TagConditionState(
     val tags: Flow<List<String>>,
     val initial: KomgaSearchCondition.Tag?
 ) : EqualityNullableOpState<String>(initial?.operator), SeriesConditionState, BookConditionState {
-    override val bookChangeFlow = combine(this.operator, this.value) { this.toBookCondition() }
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val bookChangeFlow = combine(this.operator, this.value) { _, _ -> this.toBookCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
 
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
@@ -379,7 +380,7 @@ class SharingLabelConditionState(
     initial: KomgaSearchCondition.SharingLabel?,
     val sharingLabels: Flow<List<String>>,
 ) : EqualityNullableOpState<String>(initial?.operator), SeriesConditionState {
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.SharingLabel(operator)
@@ -390,7 +391,7 @@ class PublisherConditionState(
     initial: KomgaSearchCondition.Publisher?,
     val publishers: Flow<List<String>>,
 ) : EqualityOpState<String>(initial?.operator), SeriesConditionState {
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.Publisher(operator)
@@ -401,7 +402,7 @@ class LanguageConditionState(
     initial: KomgaSearchCondition.Language?,
     val languages: Flow<List<String>>,
 ) : EqualityOpState<String>(initial?.operator), SeriesConditionState {
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.Language(operator)
@@ -412,7 +413,7 @@ class GenreConditionState(
     initial: KomgaSearchCondition.Genre?,
     val genres: Flow<List<String>>
 ) : EqualityNullableOpState<String>(initial?.operator), SeriesConditionState {
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.Genre(operator)
@@ -422,7 +423,7 @@ class GenreConditionState(
 class AgeRatingConditionState(
     initial: KomgaSearchCondition.AgeRating?
 ) : NumericNullableOpState<Int>(initial?.operator), SeriesConditionState {
-    override val seriesChangeFlow = combine(this.operator, this.value) { this.toSeriesCondition() }
+    override val seriesChangeFlow = combine(this.operator, this.value) { _, _ -> this.toSeriesCondition() }
     override fun toSeriesCondition(): SeriesCondition? {
         val operator = this.toSearchOperator() ?: return null
         return KomgaSearchCondition.AgeRating(operator)

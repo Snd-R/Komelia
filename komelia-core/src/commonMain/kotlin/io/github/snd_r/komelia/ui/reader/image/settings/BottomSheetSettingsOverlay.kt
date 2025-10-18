@@ -38,9 +38,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -178,7 +178,7 @@ fun BottomSheetSettingsOverlay(
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 var selectedTab by remember { mutableStateOf(0) }
-                TabRow(
+                SecondaryTabRow(
                     selectedTabIndex = selectedTab,
                 ) {
                     Tab(

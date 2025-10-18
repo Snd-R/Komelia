@@ -33,6 +33,7 @@ import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.collection.KomgaCollectionClient
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.readlist.KomgaReadListClient
+import snd.komga.client.search.allOfBooks
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
@@ -119,7 +120,9 @@ class OneshotViewModel(
             }
 
             val currentBook = this.book.value
-                ?: seriesClient.getAllBooksBySeries(seriesId).content.first()
+                ?: bookClient.getBookList(allOfBooks {
+                    seriesId { isEqualTo(seriesId) }
+                }).content.first()
                     .also { this.book.value = it }
             this.library.value = getLibraryOrThrow(currentBook)
         }
@@ -132,7 +135,9 @@ class OneshotViewModel(
             notifications.runCatchingToNotifications {
                 mutableState.value = Loading
                 val currentBook = book.value
-                    ?: seriesClient.getAllBooksBySeries(seriesId).content.first().also { book.value = it }
+                    ?: bookClient.getBookList(allOfBooks {
+                        seriesId { isEqualTo(seriesId) }
+                    }).content.first().also { book.value = it }
                 book.value = bookClient.getBook(currentBook.id)
                 series.value = seriesClient.getOneSeries(seriesId)
                 library.value = getLibraryOrThrow(currentBook)

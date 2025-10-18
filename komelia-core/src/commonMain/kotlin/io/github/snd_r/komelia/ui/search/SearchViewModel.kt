@@ -18,13 +18,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
-import snd.komga.client.book.KomgaBookQuery
+import snd.komga.client.book.KomgaBookSearch
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaSort
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
-import snd.komga.client.series.KomgaSeriesQuery
+import snd.komga.client.series.KomgaSeriesSearch
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
@@ -99,8 +99,8 @@ class SearchViewModel(
 
     private suspend fun loadSeriesPage(pageNumber: Int) {
         appNotifications.runCatchingToNotifications {
-            val page = seriesClient.getAllSeries(
-                KomgaSeriesQuery(searchTerm = query),
+            val page = seriesClient.getSeriesList(
+                KomgaSeriesSearch(fullTextSearch = query),
                 KomgaPageRequest(
                     pageIndex = pageNumber - 1,
                     size = 10,
@@ -124,8 +124,8 @@ class SearchViewModel(
 
     private suspend fun loadBooksPage(pageNumber: Int) {
         appNotifications.runCatchingToNotifications {
-            val page = bookClient.getAllBooks(
-                KomgaBookQuery(searchTerm = query),
+            val page = bookClient.getBookList(
+                KomgaBookSearch(fullTextSearch = query),
                 KomgaPageRequest(
                     pageIndex = pageNumber - 1,
                     size = 10,

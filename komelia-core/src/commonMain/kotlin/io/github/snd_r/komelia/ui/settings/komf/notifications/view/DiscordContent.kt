@@ -30,9 +30,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -63,7 +63,7 @@ import io.github.snd_r.komelia.ui.common.SwitchWithLabel
 import io.github.snd_r.komelia.ui.dialogs.AppDialog
 import io.github.snd_r.komelia.ui.settings.komf.notifications.DiscordState.EmbedFieldState
 import io.github.snd_r.komelia.ui.settings.komf.notifications.NotificationContextState
-import io.ktor.http.*
+import io.ktor.http.parseUrl
 import snd.komf.api.notifications.EmbedField
 import kotlin.math.max
 
@@ -283,7 +283,7 @@ private fun TemplatesContent(
         }
 
         var selectedTab by remember { mutableStateOf(0) }
-        TabRow(selectedTabIndex = selectedTab) {
+        SecondaryTabRow(selectedTabIndex = selectedTab) {
             Tab(
                 selected = selectedTab == 0,
                 onClick = { selectedTab = 0 },

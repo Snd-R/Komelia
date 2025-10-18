@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.referential.KomgaReferentialClient
+import snd.komga.client.search.allOfBooks
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.series.KomgaSeriesId
@@ -70,7 +71,7 @@ class OneshotEditDialogViewModel(
         notifications.runCatchingToNotifications {
             val currentSeries = series ?: seriesClient.getOneSeries(seriesId)
             val currentBook = book
-                ?: seriesClient.getAllBooksBySeries(seriesId).content.first()
+                ?: bookClient.getBookList(allOfBooks { seriesId { isEqualTo(seriesId) } }).content.first()
 
             val posterState = PosterEditState(cardWidth)
             val allTags = referentialClient.getTags()

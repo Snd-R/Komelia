@@ -22,9 +22,8 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -141,12 +140,12 @@ private fun CompactTabDialog(
         }
 
         val currentIndex = tabs.indexOf(currentTab)
-        ScrollableTabRow(
+        SecondaryScrollableTabRow(
             selectedTabIndex = currentIndex,
-            indicator = { tabPositions ->
-                if (currentIndex < tabPositions.size) {
+            indicator = {
+                if (currentIndex < tabs.size) {
                     TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[currentIndex]),
+                        modifier = Modifier.tabIndicatorOffset(currentIndex),
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }

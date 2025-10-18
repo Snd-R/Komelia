@@ -21,9 +21,9 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import snd.komga.client.book.KomgaBookClient
-import snd.komga.client.book.KomgaBookQuery
 import snd.komga.client.book.KomgaMediaStatus
 import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.search.allOfBooks
 import snd.komga.client.user.KomgaUserClient
 
 class SettingsNavigationViewModel(
@@ -47,9 +47,12 @@ class SettingsNavigationViewModel(
 
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications {
-            val pageResponse = bookClient.getAllBooks(
-                KomgaBookQuery(mediaStatus = listOf(KomgaMediaStatus.ERROR, KomgaMediaStatus.UNSUPPORTED)),
-                KomgaPageRequest(size = 0)
+            val pageResponse = bookClient.getBookList(
+                conditionBuilder = allOfBooks {
+                    mediaStatus { isEqualTo(KomgaMediaStatus.ERROR) }
+                    mediaStatus { isEqualTo(KomgaMediaStatus.UNSUPPORTED) }
+                },
+                pageRequest = KomgaPageRequest(size = 0)
             )
             if (pageResponse.numberOfElements > 0) {
                 hasMediaErrors = true

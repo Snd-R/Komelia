@@ -200,14 +200,10 @@ private fun Slider(
         val labelPlaceable = measurables[1].measure(constraints)
         val sliderPlaceable = measurables[2].measure(constraints)
 
-        // FIXME coercedValueAsFraction will be public in material3 1.4.0
-        @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
         val previewOffsetX = (constraints.maxWidth * sliderState.coercedValueAsFraction - previewPlaceable.width / 2)
             .roundToInt()
             .coerceIn(0, constraints.maxWidth - previewPlaceable.width)
 
-        // FIXME coercedValueAsFraction will be public in material3 1.4.0
-        @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
         val labelOffsetX = (constraints.maxWidth * sliderState.coercedValueAsFraction - labelPlaceable.width / 2)
             .roundToInt()
             .coerceIn(0, constraints.maxWidth - labelPlaceable.width)
@@ -277,9 +273,6 @@ private fun rememberSliderState(
     }
 
     state.onValueChangeFinished = onValueChangeFinished
-
-    // FIXME onValueChange will be public in material3 1.4.0
-    @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
     state.onValueChange = onValueChange
     state.value = value
     return state

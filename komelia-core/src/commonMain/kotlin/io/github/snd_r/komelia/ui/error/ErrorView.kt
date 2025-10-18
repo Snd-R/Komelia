@@ -20,8 +20,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.TooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -89,7 +90,7 @@ fun ErrorView(
                     horizontalArrangement = Arrangement.spacedBy(40.dp),
                 ) {
                     TooltipBox(
-                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
                         tooltip = { Text("Copied to clipboard") },
                         state = tooltipState,
                         enableUserInput = false

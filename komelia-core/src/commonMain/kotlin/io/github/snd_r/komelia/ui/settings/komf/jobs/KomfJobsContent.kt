@@ -33,8 +33,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -169,7 +170,7 @@ private fun JobCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
             state = rememberTooltipState(isPersistent = true),
             tooltip = { if (series != null) SeriesTooltip(series, loading) },
             modifier = Modifier
@@ -217,7 +218,7 @@ private fun JobCard(
             RUNNING -> {}
             FAILED ->
                 TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
                     state = rememberTooltipState(isPersistent = true),
                     tooltip = {
                         Surface(

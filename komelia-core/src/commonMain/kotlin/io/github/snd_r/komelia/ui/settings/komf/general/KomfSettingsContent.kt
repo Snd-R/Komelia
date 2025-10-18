@@ -17,8 +17,8 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -120,7 +120,7 @@ private fun KomgaAndKavitaConnectionSettings(
     kavitaState: KavitaConnectionState,
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-    TabRow(selectedTabIndex = selectedTab) {
+    SecondaryTabRow(selectedTabIndex = selectedTab) {
         Tab(
             selected = selectedTab == 0,
             onClick = { selectedTab = 0 },

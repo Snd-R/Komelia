@@ -3,6 +3,7 @@ package io.github.snd_r.komelia.ui.color.view
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -21,7 +22,7 @@ import io.github.snd_r.komelia.color.HistogramPaths
 @Composable
 fun Tooltip(text: String, content: @Composable () -> Unit) {
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(5.dp),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above, 5.dp),
         tooltip = { PlainTooltip { Text(text) } },
         state = rememberTooltipState(),
         content = content

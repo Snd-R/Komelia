@@ -22,11 +22,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType.Companion.PrimaryEditable
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,7 +100,7 @@ fun SearchBar(
                 onDone = onSearchAllClick,
                 onDismiss = { onQueryChange("") },
                 interactionSource = interactionSource,
-                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable)
+                modifier = Modifier.menuAnchor(PrimaryEditable)
             )
             DropdownMenu(
                 expanded = isExpanded.value,

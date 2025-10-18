@@ -15,13 +15,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
-import snd.komga.client.book.KomgaBookQuery
+import snd.komga.client.book.KomgaBookSearch
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
-import snd.komga.client.series.KomgaSeriesQuery
+import snd.komga.client.series.KomgaSeriesSearch
 
 @OptIn(FlowPreview::class)
 class SearchBarState(
@@ -57,13 +57,13 @@ class SearchBarState(
                 series = emptyList()
                 books = emptyList()
             } else {
-                series = seriesClient.getAllSeries(
-                    KomgaSeriesQuery(searchTerm = query),
-                    KomgaPageRequest(size = 10)
+                series = seriesClient.getSeriesList(
+                    KomgaSeriesSearch(fullTextSearch = query),
+                    pageRequest = KomgaPageRequest(size = 10)
                 ).content
 
-                books = bookClient.getAllBooks(
-                    KomgaBookQuery(searchTerm = query),
+                books = bookClient.getBookList(
+                    KomgaBookSearch(fullTextSearch = query),
                     KomgaPageRequest(size = 10)
                 ).content
             }

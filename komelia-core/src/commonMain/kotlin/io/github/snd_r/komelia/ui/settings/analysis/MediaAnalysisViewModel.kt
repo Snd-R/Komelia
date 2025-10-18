@@ -10,9 +10,9 @@ import io.github.snd_r.komelia.ui.LoadState
 import kotlinx.coroutines.launch
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
-import snd.komga.client.book.KomgaBookQuery
 import snd.komga.client.book.KomgaMediaStatus
 import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.search.allOfBooks
 
 class MediaAnalysisViewModel(
     private val bookClient: KomgaBookClient,
@@ -35,9 +35,13 @@ class MediaAnalysisViewModel(
         screenModelScope.launch {
             appNotifications.runCatchingToNotifications {
                 mutableState.value = LoadState.Loading
-                val pageResponse = bookClient.getAllBooks(
-                    KomgaBookQuery(mediaStatus = listOf(KomgaMediaStatus.ERROR, KomgaMediaStatus.UNSUPPORTED)),
-                    KomgaPageRequest(pageIndex = page - 1, size = pageLoadSize)
+                val pageResponse = bookClient.getBookList(
+                    conditionBuilder = allOfBooks {
+                        mediaStatus { isEqualTo(KomgaMediaStatus.ERROR) }
+                        mediaStatus { isEqualTo(KomgaMediaStatus.UNSUPPORTED) }
+                    },
+//                    KomgaBookQuery(mediaStatus = listOf(KomgaMediaStatus.ERROR, KomgaMediaStatus.UNSUPPORTED)),
+                    pageRequest = KomgaPageRequest(pageIndex = page - 1, size = pageLoadSize)
                 )
 
                 books = pageResponse.content

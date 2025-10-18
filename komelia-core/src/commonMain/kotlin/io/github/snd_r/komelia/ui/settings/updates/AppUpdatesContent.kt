@@ -27,10 +27,10 @@ import io.github.snd_r.komelia.ui.dialogs.update.UpdateProgressDialog
 import io.github.snd_r.komelia.updates.AppRelease
 import io.github.snd_r.komelia.updates.AppVersion
 import io.github.snd_r.komelia.updates.UpdateProgress
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 @Composable
 fun AppUpdatesContent(
