@@ -7,9 +7,9 @@ import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Instant
 import snd.komelia.db.AppSettings
 import snd.komelia.db.SettingsStateActor
+import kotlin.time.Instant
 
 class ActorSettingsRepository(
     private val actor: SettingsStateActor<AppSettings>,

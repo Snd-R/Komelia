@@ -75,17 +75,20 @@ val linuxCommonLibs = setOf(
     "libwebpmux.so",
     "libz.so",
     "libkomelia_vips.so",
-    "libonnxruntime.so",
-    "libonnxruntime_providers_shared.so",
     "libkomelia_onnxruntime.so",
 )
-val androidLibs = linuxCommonLibs + setOf("libkomelia_android_bitmap.so", "libiconv.so", "libomp.so")
+val androidLibs = linuxCommonLibs + setOf(
+    "libkomelia_android_bitmap.so",
+    "libiconv.so",
+    "libomp.so",
+    "libonnxruntime.so",
+    "libonnxruntime_providers_shared.so",
+)
 val desktopLinuxLibs = linuxCommonLibs + setOf(
     "libkomelia_onnxruntime.so",
     "libkomelia_enumerate_devices_cuda.so",
     "libkomelia_enumerate_devices_rocm.so",
     "libkomelia_enumerate_devices_vulkan.so",
-    "libkomelia_skia.so",
     "libkomelia_webview.so",
     "libkomelia_webkit_extension.so",
 )
