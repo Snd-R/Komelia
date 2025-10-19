@@ -1,6 +1,5 @@
 #include "komelia_ort_rf_detr.h"
 #include "komelia_matrix_ops.h"
-#include "nms.h"
 #include <math.h>
 
 static float MEANS[3] = {0.485f, 0.456f, 0.406f};
