@@ -1,10 +1,10 @@
 # Komelia - Komga media client
 
 ### Downloads:
+
 - Latest prebuilt release is available at https://github.com/Snd-R/Komelia/releases
 - F-Droid https://f-droid.org/packages/io.github.snd_r.komelia/
 - AUR package https://aur.archlinux.org/packages/komelia
-
 
 ## Screenshots
 
@@ -40,12 +40,13 @@
 [//]: # (![screenshots]&#40;./screenshots/screenshot.jpg&#41;)
 
 # Build instructions
+
 The recommended way to build native libraries is by using docker images that contain all required build dependencies\
 If you want to build with system toolchain and dependencies try running:\
-`./gradlew komeliaBuildNonJvmDependencies`
+`./gradlew komeliaBuildNonJvmDependencies` (Linux Only)
 
 To build with docker container, replace <*platform*> placeholder with your target platform\
-Available platforms include: `linux-x86_64`, `windows-x86_64`, `android-arm64`, `android-x86_64`
+Available platforms include: `linux-x86_64`, `windows-x86_64`, `android`
 
 - `docker build -t komelia-build-<platfrom> . -f ./cmake/<paltform>.Dockerfile `
 - `docker run -v .:/build komelia-build-<paltform>`
@@ -68,5 +69,6 @@ Requires jdk 17 or higher
 - unsigned release apk build:`./gradlew :komelia-app:assembleRelease` (output in `komelia-app/build/outputs/apk/release`)
 
 ## Komf Extension Build
+
 run`./gradlew :komelia-komf-extension:app:packageExtension` \
 output archive will be in `./komelia-komf-extension/app/build/distributions`
