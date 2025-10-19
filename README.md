@@ -39,14 +39,20 @@
 
 [//]: # (![screenshots]&#40;./screenshots/screenshot.jpg&#41;)
 
-# Build instructions
+## Native libraries build instructions
+
+Android and JVM targets require C and C++ compiler for native libraries as well nodeJs for epub reader build
 
 The recommended way to build native libraries is by using docker images that contain all required build dependencies\
 If you want to build with system toolchain and dependencies try running:\
 `./gradlew komeliaBuildNonJvmDependencies` (Linux Only)
 
+## Desktop App Build
+
+Requires jdk 17 or higher
+
 To build with docker container, replace <*platform*> placeholder with your target platform\
-Available platforms include: `linux-x86_64`, `windows-x86_64`, `android`
+Available platforms include: `linux-x86_64`, `windows-x86_64`
 
 - `docker build -t komelia-build-<platfrom> . -f ./cmake/<paltform>.Dockerfile `
 - `docker run -v .:/build komelia-build-<paltform>`
@@ -54,9 +60,6 @@ Available platforms include: `linux-x86_64`, `windows-x86_64`, `android`
   bundled with the app
 - `./gradlew buildWebui` - build and copy epub reader webui (npm is required for build)
 
-## Desktop App Build
-
-Requires jdk 17 or higher
 
 - `./gradlew :komelia-app:run` to launch desktop app
 - `./gradlew :komelia-app:repackageUberJar` package jar for current OS (output in `komelia-app/build/compose/jars`)
@@ -65,8 +68,19 @@ Requires jdk 17 or higher
 
 ## Android App Build
 
-- debug apk build:`./gradlew :komelia-app:assemble` (output in `komelia-app/build/outputs/apk/debug`)
-- unsigned release apk build:`./gradlew :komelia-app:assembleRelease` (output in `komelia-app/build/outputs/apk/release`)
+To build with docker container, replace <*arch*> placeholder with your target architecture\
+Available architectures include:  `aarch64`, `armv7a`, `x86_64`, `x86`
+
+- `docker build -t komelia-build-android . -f ./cmake/android.Dockerfile `
+- `docker run -v .:/build komelia-build-android <arch>`
+- `./gradlew <arch>_copyJniLibs` - copy built shared libraries to resource directory that will be
+  bundled with the app
+- `./gradlew buildWebui` - build and copy epub reader webui (npm is required for build)
+
+
+- `./gradlew :komelia-app:assemble` debug apk build (output in `komelia-app/build/outputs/apk/debug`)
+- `./gradlew :komelia-app:assembleRelease` unsigned release apk build (output in
+  `komelia-app/build/outputs/apk/release`)
 
 ## Komf Extension Build
 
