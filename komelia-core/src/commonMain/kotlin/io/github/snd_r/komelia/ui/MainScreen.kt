@@ -163,23 +163,25 @@ class MainScreen(
         ) { paddingValues ->
             val layoutDirection = LocalLayoutDirection.current
 
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(
-                        start = paddingValues.calculateStartPadding(layoutDirection),
-                        end = paddingValues.calculateEndPadding(layoutDirection),
-                        top = paddingValues.calculateTopPadding(),
-                        bottom = paddingValues.calculateBottomPadding(),
-                    )
-                    .consumeWindowInsets(paddingValues)
-            ) {
-                ModalNavigationDrawer(
-                    drawerState = vm.navBarState,
-                    drawerContent = { LibrariesNavBar(vm, navigator) },
-                    content = { CurrentScreen() }
-                )
-            }
+            ModalNavigationDrawer(
+                drawerState = vm.navBarState,
+                drawerContent = { LibrariesNavBar(vm, navigator) },
+                content = {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(
+                                start = paddingValues.calculateStartPadding(layoutDirection),
+                                end = paddingValues.calculateEndPadding(layoutDirection),
+                                top = paddingValues.calculateTopPadding(),
+                                bottom = paddingValues.calculateBottomPadding(),
+                            )
+                            .consumeWindowInsets(paddingValues)
+                    ) {
+                        CurrentScreen()
+                    }
+                }
+            )
         }
     }
 
