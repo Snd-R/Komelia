@@ -1,6 +1,7 @@
 package io.github.snd_r.komelia.ui.home
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,12 +22,15 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.platform.PlatformType
+import io.github.snd_r.komelia.ui.LocalPlatform
 import io.github.snd_r.komelia.ui.common.cards.BookImageCard
 import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.common.menus.BookMenuActions
@@ -106,13 +112,10 @@ private fun Toolbar(
             }
         }
     }
-    Box() {
+    Box {
         val lazyRowState = rememberLazyListState()
-        Row {
+        val coroutineScope = rememberCoroutineScope()
 
-//            FloatingActionButton()
-            Spacer(Modifier.weight(1f))
-        }
         LazyRow(
             state = lazyRowState,
             modifier = Modifier.animateContentSize(),
@@ -165,6 +168,28 @@ private fun Toolbar(
             }
             item {
                 Spacer(Modifier.width(40.dp))
+            }
+        }
+
+        if (LocalPlatform.current != PlatformType.MOBILE) {
+            Row {
+                if (lazyRowState.canScrollBackward) {
+                    IconButton(
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface),
+                        onClick = { coroutineScope.launch { lazyRowState.animateScrollBy(-200.0f) } },
+                    ) {
+                        Icon(Icons.Default.ChevronLeft, null)
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                if (lazyRowState.canScrollForward) {
+                    IconButton(
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface),
+                        onClick = { coroutineScope.launch { lazyRowState.animateScrollBy(200.0f) } },
+                    ) {
+                        Icon(Icons.Default.ChevronRight, null)
+                    }
+                }
             }
         }
     }

@@ -165,8 +165,8 @@ private fun EditContent(
         contentPadding = PaddingValues(bottom = 50.dp),
         modifier = Modifier.imePadding()
     ) {
-        items(filters, key = { it }) { data ->
-            ReorderableItem(reorderableLazyListState, key = data) { isDragging ->
+        items(filters, key = { it.hashCode() }) { data ->
+            ReorderableItem(reorderableLazyListState, key = data.hashCode()) { isDragging ->
                 FilterContent(
                     filterState = data,
                     isDragging = isDragging,
@@ -175,7 +175,7 @@ private fun EditContent(
             }
         }
         item {
-            AddConditionButton(onFilterAdd, modifier = Modifier.animateItem())
+            AddConditionButton(onFilterAdd, modifier = Modifier.padding(start = 15.dp).animateItem())
         }
     }
 }
