@@ -26,6 +26,7 @@ MESON_CROSS_CPU=""
 CLANG_C_PATH=""
 CLANG_CPP_PATH=""
 CLANG_LIBOMP_PATH=""
+AUTOCONF_HOST=""
 case "$1" in
     armv7a)
             echo "Build script target arch: armv7a"
@@ -35,6 +36,7 @@ case "$1" in
             CLANG_C_PATH="${TOOLCHAIN_PATH}/bin/armv7a-linux-androideabi26-clang"
             CLANG_CPP_PATH="${TOOLCHAIN_PATH}/bin/armv7a-linux-androideabi26-clang++"
             CLANG_LIBOMP_PATH="${TOOLCHAIN_PATH}/lib/clang/19/lib/linux/arm/libomp.so"
+            AUTOCONF_HOST="armv7a-linux-android"
             ;;
     aarch64)
             echo "Build script target arch: aarch64"
@@ -44,6 +46,7 @@ case "$1" in
             CLANG_C_PATH="${TOOLCHAIN_PATH}/bin/aarch64-linux-android26-clang"
             CLANG_CPP_PATH="${TOOLCHAIN_PATH}/bin/aarch64-linux-android26-clang++"
             CLANG_LIBOMP_PATH="${TOOLCHAIN_PATH}/lib/clang/19/lib/linux/aarch64/libomp.so"
+            AUTOCONF_HOST="aarch64-linux-android"
             ;;
     x86)
             echo "Build script target arch: x86"
@@ -53,6 +56,7 @@ case "$1" in
             CLANG_C_PATH="${TOOLCHAIN_PATH}/bin/i686-linux-android26-clang"
             CLANG_CPP_PATH="${TOOLCHAIN_PATH}/bin/i686-linux-android26-clang++"
             CLANG_LIBOMP_PATH="${TOOLCHAIN_PATH}/lib/clang/19/lib/linux/i386/libomp.so"
+            AUTOCONF_HOST="i686-linux-android"
             ;;
     x86_64)
             echo "Build script target arch: x86_64"
@@ -62,6 +66,7 @@ case "$1" in
             CLANG_C_PATH="${TOOLCHAIN_PATH}/bin/x86_64-linux-android26-clang"
             CLANG_CPP_PATH="${TOOLCHAIN_PATH}/bin/x86_64-linux-android26-clang++"
             CLANG_LIBOMP_PATH="${TOOLCHAIN_PATH}/lib/clang/19/lib/linux/x86_64/libomp.so"
+            AUTOCONF_HOST="x86_64-linux-android"
             ;;
     *)
             echo "Build script unsupported architecture $1"
@@ -129,7 +134,7 @@ cmake ../.. -G Ninja \
     -DANDROID_PLATFORM=26 \
     -DANDROID_SDK_PATH="${ANDROID_SDK_PATH}" \
     -DANDROID_NDK_PATH="${ANDROID_NDK_PATH}" \
-    -DHOST_FLAG=--host="$ARCH"-linux-android
+    -DHOST_FLAG=--host="$AUTOCONF_HOST"
 
 cmake --build . -j $(nproc)
 
