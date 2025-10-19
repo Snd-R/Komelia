@@ -56,11 +56,11 @@ Available platforms include: `linux-x86_64`, `windows-x86_64`
 
 - `docker build -t komelia-build-<platfrom> . -f ./cmake/<paltform>.Dockerfile `
 - `docker run -v .:/build komelia-build-<paltform>`
-- `./gradlew <platform>_copyJniLibs` - copy built shared libraries to resource directory that will be
-  bundled with the app
+- `./gradlew <platform>_copyJniLibs` - copy built shared libraries to resource directory that will be bundled with the
+  app
 - `./gradlew buildWebui` - build and copy epub reader webui (npm is required for build)
 
-
+Then choose your packaging option:
 - `./gradlew :komelia-app:run` to launch desktop app
 - `./gradlew :komelia-app:repackageUberJar` package jar for current OS (output in `komelia-app/build/compose/jars`)
 - `./gradlew :komelia-app:packageReleaseDeb` package Linux deb file (output in `komelia-app/build/compose/binaries`)
@@ -73,10 +73,10 @@ Available architectures include:  `aarch64`, `armv7a`, `x86_64`, `x86`
 
 - `docker build -t komelia-build-android . -f ./cmake/android.Dockerfile `
 - `docker run -v .:/build komelia-build-android <arch>`
-- `./gradlew <arch>_copyJniLibs` - copy built shared libraries to resource directory that will be
-  bundled with the app
+- `./gradlew <arch>_copyJniLibs` - copy built shared libraries to resource directory that will be bundled with the app
 - `./gradlew buildWebui` - build and copy epub reader webui (npm is required for build)
 
+Then choose app build option:
 
 - `./gradlew :komelia-app:assemble` debug apk build (output in `komelia-app/build/outputs/apk/debug`)
 - `./gradlew :komelia-app:assembleRelease` unsigned release apk build (output in
