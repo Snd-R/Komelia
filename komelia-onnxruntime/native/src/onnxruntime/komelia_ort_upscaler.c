@@ -71,7 +71,6 @@ static KomeliaOrtInputTensor *create_tensor(
     tensor_shape[2] = input_height;
     tensor_shape[3] = input_width;
     const size_t tensor_shape_len = 4;
-    // const size_t tensor_shape_len = sizeof(tensor_shape) / sizeof(tensor_shape[0]);
     const size_t tensor_input_ele_count = input_height * input_width * 3;
     unsigned char *image_input_data = (unsigned char *)vips_image_get_data(input_image);
 
@@ -91,10 +90,6 @@ static KomeliaOrtInputTensor *create_tensor(
     tensor->shape = tensor_shape;
     tensor->shape_len = tensor_shape_len;
     return tensor;
-
-    // return ort_api->CreateTensorWithDataAsOrtValue(memory_info, *tensor_data, tensor_data_len,
-    //                                                tensor_shape, tensor_shape_len,
-    //                                                ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, tensor);
 }
 
 static VipsImage *get_image_from_tensor(
@@ -120,7 +115,7 @@ static VipsImage *get_image_from_tensor(
             error,
             KOMELIA_ORT_ERROR,
             KOMELIA_ORT_ERROR_INFERENCE,
-            "Unexpect number of output dimensions"
+            "Unexpected number of output dimensions"
         );
         return nullptr;
     }

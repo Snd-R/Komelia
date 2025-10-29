@@ -62,7 +62,7 @@ static KomeliaOrtInputTensor *create_tensor(
         VipsImage *srgb_image = nullptr;
         int vips_error =
             vips_colourspace(input_image, &srgb_image, VIPS_INTERPRETATION_sRGB, nullptr);
-        // g_object_unref(transformed);
+        g_object_unref(transformed);
 
         if (vips_error) {
             g_set_error_literal(
@@ -156,7 +156,6 @@ static KomeliaOrtInputTensor *create_tensor(
 }
 
 KomeliaRfDetr *komelia_ort_rfdetr_create(KomeliaOrt *ort) {
-
     KomeliaRfDetr *rf_detr = malloc(sizeof(KomeliaRfDetr));
     rf_detr->komelia_ort = ort;
     rf_detr->execution_provider = CPU;
@@ -166,6 +165,7 @@ KomeliaRfDetr *komelia_ort_rfdetr_create(KomeliaOrt *ort) {
     pthread_mutex_init(&rf_detr->mutex, nullptr);
     return rf_detr;
 }
+
 void komelia_ort_rfdetr_destroy(KomeliaRfDetr *rf_detr) {
     free(rf_detr->model_path);
     pthread_mutex_destroy(&rf_detr->mutex);
