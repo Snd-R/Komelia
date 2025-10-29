@@ -18,12 +18,14 @@ import io.github.snd_r.komelia.ui.login.LoginScreen
 import io.github.snd_r.komelia.updates.AppVersion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaMediaStatus
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.search.allOfBooks
+import snd.komga.client.user.KomgaUser
 import snd.komga.client.user.KomgaUserClient
 
 class SettingsNavigationViewModel(
@@ -37,6 +39,7 @@ class SettingsNavigationViewModel(
     private val latestVersion: Flow<AppVersion?>,
     private val platformType: PlatformType,
     val updatesEnabled: Boolean,
+    val user: StateFlow<KomgaUser?>,
     komfEnabled: Flow<Boolean>,
 ) : ScreenModel {
     var hasMediaErrors by mutableStateOf(false)

@@ -73,7 +73,8 @@ class SettingsScreen : Screen {
                                 newVersionIsAvailable = vm.newVersionIsAvailable,
                                 onLogout = vm::logout,
                                 contentColor = MaterialTheme.colorScheme.surfaceVariant,
-                                modifier = Modifier.width(settingsDesktopNavMenuWidth)
+                                modifier = Modifier.width(settingsDesktopNavMenuWidth),
+                                user = vm.user.collectAsState().value
                             )
                         }
                     },

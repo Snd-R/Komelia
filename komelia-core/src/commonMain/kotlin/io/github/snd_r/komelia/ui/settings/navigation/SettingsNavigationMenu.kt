@@ -53,6 +53,7 @@ import io.github.snd_r.komelia.ui.settings.server.ServerSettingsScreen
 import io.github.snd_r.komelia.ui.settings.updates.AppUpdatesScreen
 import io.github.snd_r.komelia.ui.settings.users.UsersScreen
 import snd.komf.api.MediaServer.KOMGA
+import snd.komga.client.user.KomgaUser
 import snd.webview.webviewIsAvailable
 
 @Composable
@@ -64,6 +65,7 @@ fun SettingsNavigationMenu(
     currentScreen: Screen,
     onNavigation: (Screen) -> Unit = {},
     onLogout: () -> Unit,
+    user: KomgaUser?,
     contentColor: Color,
     modifier: Modifier = Modifier
 ) {
@@ -157,43 +159,44 @@ fun SettingsNavigationMenu(
         }
 
         HorizontalDivider(Modifier.padding(vertical = 10.dp))
-        Text("Komf Settings", style = MaterialTheme.typography.titleSmall)
-        NavigationButton(
-            label = "Connection",
-            onClick = { onNavigation(KomfSettingsScreen()) },
-            isSelected = currentScreen is KomfSettingsScreen,
-            color = contentColor,
-        )
-        AnimatedVisibility(komfEnabled) {
-            Column {
-                NavigationButton(
-                    label = "Processing",
-                    onClick = { onNavigation(KomfProcessingSettingsScreen(KOMGA)) },
-                    isSelected = currentScreen is KomfProcessingSettingsScreen,
-                    color = contentColor,
-                )
-                NavigationButton(
-                    label = "Providers",
-                    onClick = { onNavigation(KomfProvidersSettingsScreen()) },
-                    isSelected = currentScreen is KomfProvidersSettingsScreen,
-                    color = contentColor,
-                )
-                NavigationButton(
-                    label = "Notifications",
-                    onClick = { onNavigation(KomfNotificationSettingsScreen()) },
-                    isSelected = currentScreen is KomfNotificationSettingsScreen,
-                    color = contentColor,
-                )
-                NavigationButton(
-                    label = "Job History",
-                    onClick = { onNavigation(KomfJobsScreen()) },
-                    isSelected = currentScreen is KomfJobsScreen,
-                    color = contentColor,
-                )
+        if (user != null && user.roleAdmin()) {
+            Text("Komf Settings", style = MaterialTheme.typography.titleSmall)
+            NavigationButton(
+                label = "Connection",
+                onClick = { onNavigation(KomfSettingsScreen()) },
+                isSelected = currentScreen is KomfSettingsScreen,
+                color = contentColor,
+            )
+            AnimatedVisibility(komfEnabled) {
+                Column {
+                    NavigationButton(
+                        label = "Processing",
+                        onClick = { onNavigation(KomfProcessingSettingsScreen(KOMGA)) },
+                        isSelected = currentScreen is KomfProcessingSettingsScreen,
+                        color = contentColor,
+                    )
+                    NavigationButton(
+                        label = "Providers",
+                        onClick = { onNavigation(KomfProvidersSettingsScreen()) },
+                        isSelected = currentScreen is KomfProvidersSettingsScreen,
+                        color = contentColor,
+                    )
+                    NavigationButton(
+                        label = "Notifications",
+                        onClick = { onNavigation(KomfNotificationSettingsScreen()) },
+                        isSelected = currentScreen is KomfNotificationSettingsScreen,
+                        color = contentColor,
+                    )
+                    NavigationButton(
+                        label = "Job History",
+                        onClick = { onNavigation(KomfJobsScreen()) },
+                        isSelected = currentScreen is KomfJobsScreen,
+                        color = contentColor,
+                    )
+                }
             }
+            HorizontalDivider(Modifier.padding(vertical = 10.dp))
         }
-
-        HorizontalDivider(Modifier.padding(vertical = 10.dp))
 
         var showLogoutConfirmation by remember { mutableStateOf(false) }
         NavigationButton(

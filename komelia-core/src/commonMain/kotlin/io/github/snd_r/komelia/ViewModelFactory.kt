@@ -467,7 +467,8 @@ class ViewModelFactory(
             latestVersion = settingsRepository.getLastCheckedReleaseVersion(),
             komfEnabled = dependencies.komfSettingsRepository.getKomfEnabled(),
             platformType = platformType,
-            updatesEnabled = dependencies.appUpdater != null
+            updatesEnabled = dependencies.appUpdater != null,
+            user = komgaSharedState.authenticatedUser
         )
     }
 

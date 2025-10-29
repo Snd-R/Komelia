@@ -1,6 +1,6 @@
 [versions]
 app-version = "0.17.0"
-agp = "8.11.2"
+agp = "8.12.3"
 android-compileSdk = "36"
 android-minSdk = "26"
 android-targetSdk = "36"
@@ -41,7 +41,7 @@ protobuf-lite = "3.21.11"
 reorderable = "3.0.0"
 richEditor = "1.0.0-rc13"
 slf4j = "2.0.17"
-sqlite-jdbc = "3.50.2.0"
+sqlite-jdbc = "3.50.3.0"
 voyager = "1.1.0-beta03"
 
 [libraries]

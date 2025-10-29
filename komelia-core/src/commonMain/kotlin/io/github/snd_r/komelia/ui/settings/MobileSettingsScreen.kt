@@ -67,6 +67,7 @@ class MobileSettingsScreen : Screen {
                     updatesEnabled = vm.updatesEnabled,
                     newVersionIsAvailable = vm.newVersionIsAvailable,
                     onLogout = vm::logout,
+                    user = vm.user.collectAsState().value,
                     contentColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.weight(1f, false)
                 )
