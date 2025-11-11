@@ -40,7 +40,44 @@ class KomgaComponent(
         }
     }
 
-    fun launch() {
+    override fun tryMount(parentElement: HTMLElement): Boolean {
+        var mounted = false
+        val drawerContent = parentElement.getElementsByClassName("v-navigation-drawer__content").asList()
+        val menus = drawerContent
+            .find { drawerNode -> drawerNode.parentElement?.tagName == "NAV" }
+            ?.children?.item(2)
+
+        if (menus != null) {
+            logger.info { "detected settings button mount point" }
+            menus.insertBefore(settingsButton, menus.children.asList().last())
+            mounted = true
+            libraryActions.onMount()
+            seriesActions.onMount()
+            setupTheme()
+        }
+
+        val toolbar = parentElement.querySelector(".v-main__wrap .v-toolbar__content")
+        val toolbarParent = toolbar?.parentElement
+        if (toolbar != null && toolbarParent != null && !toolbarParent.classList.contains("hidden-sm-and-up")) {
+            val path = window.location.pathname.split("/").reversed()
+            logger.info { "detecting current screen from url; current path: $path" }
+            if (path.any { it == "libraries" }) {
+                logger.info { "detected library screen; mounting library actions" }
+                toolbar.children[4]?.insertAdjacentElement("afterend", libraryActions.element)
+            } else if (path.any { it == "series" }) {
+                logger.info { "detected series screen; mounting series actions" }
+                toolbar.children[4]?.insertAdjacentElement("afterend", seriesActions.element)
+            } else if (path.any { it == "oneshot" }) {
+                logger.info { "detected oneshot screen; mounting series actions" }
+                toolbar.children.asList()
+                    .find { it.tagName == "BUTTON" }
+                    ?.insertAdjacentElement("afterend", seriesActions.element)
+            }
+        }
+        return mounted
+    }
+
+    fun setupTheme() {
         localStorage.getItem("vuex")?.let {
             val json = Json.decodeFromString<JsonObject>(it)
             val persistedState = json["persistedState"] as? JsonObject
@@ -65,42 +102,5 @@ class KomgaComponent(
                 elem.classList.replace("theme--dark", "theme--light")
             }
         }
-    }
-
-
-    override fun tryMount(parentElement: HTMLElement): Boolean {
-        var mounted = false
-        val drawerContent = parentElement.getElementsByClassName("v-navigation-drawer__content").asList()
-        val menus = drawerContent
-            .find { drawerNode -> drawerNode.parentElement?.tagName == "NAV" }
-            ?.children?.item(2)
-
-        if (menus != null) {
-            logger.info { "detected settings button mount point" }
-            menus.insertBefore(settingsButton, menus.children.asList().last())
-            mounted = true
-            libraryActions.onMount()
-            seriesActions.onMount()
-        }
-
-        val toolbar = parentElement.querySelector(".v-main__wrap .v-toolbar__content")
-        val toolbarParent = toolbar?.parentElement
-        if (toolbar != null && toolbarParent != null && !toolbarParent.classList.contains("hidden-sm-and-up")) {
-            val path = window.location.pathname.split("/").reversed()
-            logger.info { "detecting current screen from url; current path: $path" }
-            if (path.any { it == "libraries" }) {
-                logger.info { "detected library screen; mounting library actions" }
-                toolbar.children[4]?.insertAdjacentElement("afterend", libraryActions.element)
-            } else if (path.any { it == "series" }) {
-                logger.info { "detected series screen; mounting series actions" }
-                toolbar.children[4]?.insertAdjacentElement("afterend", seriesActions.element)
-            } else if (path.any { it == "oneshot" }) {
-                logger.info { "detected oneshot screen; mounting series actions" }
-                toolbar.children.asList()
-                    .find { it.tagName == "BUTTON" }
-                    ?.insertAdjacentElement("afterend", seriesActions.element)
-            }
-        }
-        return mounted
     }
 }
