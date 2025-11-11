@@ -108,7 +108,9 @@ fun OriginSettings(
 
                 }
             }
-            Text("Firefox does not support port matching in url\nIf you're using Firefox, enter hostname without port")
+
+            Text("Firefox does not support port matching in url, enter hostname without port")
+            Text("Due to unresolved issue with Firefox, a browser restart might be required for host permissions to apply")
         }
 
         VerticalScrollbar(ScrollbarAdapter(scrollState), Modifier.align(Alignment.TopEnd))
