@@ -122,11 +122,13 @@ class KomgaSeriesActions(
 
     fun getLibraryId(): KomfServerLibraryId? {
         val toolbar = document.querySelector(".v-main__wrap .v-toolbar__content") ?: return null
-        val libraryId = toolbar.children.asList().find {
+        val libraryHref = toolbar.children.asList().find {
             val href = it.getAttribute("href") ?: return@find false
             href.contains("libraries")
-        }?.getAttribute("href")?.split("/")?.getOrNull(2)
+        }?.getAttribute("href") ?: return null
 
-        return libraryId?.let { KomfServerLibraryId(it) }
+        return libraryHref.split("/")
+            .getOrNull(libraryHref.indexOf("libraries") + 1)
+            ?.let { KomfServerLibraryId(it) }
     }
 }

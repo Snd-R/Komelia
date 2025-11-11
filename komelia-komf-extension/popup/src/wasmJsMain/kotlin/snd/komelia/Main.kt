@@ -10,14 +10,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.window.CanvasBasedWindow
+import androidx.compose.ui.window.ComposeViewport
 
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    CanvasBasedWindow(
-        canvasElementId = "ComposeTarget",
-        applyDefaultStyles = false,
+
+    ComposeViewport(
+        viewportContainerId = "ComposeTarget",
     ) {
         MaterialTheme {
             val focusManager = LocalFocusManager.current

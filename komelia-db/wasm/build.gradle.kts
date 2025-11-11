@@ -13,11 +13,14 @@ kotlin {
     jvmToolchain(17)
 
     wasmJs {
-        outputModuleName = "komeliaImageWorker"
+        outputModuleName = "komelia-db"
         browser()
     }
 
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.browser)
