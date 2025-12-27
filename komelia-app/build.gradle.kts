@@ -35,7 +35,7 @@ kotlin {
                         // Serve sources to debug inside browser
                         add(project.projectDir.path)
                         add(project.rootDir.path)
-                        add(project.parent!!.projectDir.path + "/komelia-image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
+                        add(project.parent!!.projectDir.path + "/komelia-infra/image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
                     }
                 }
             }
@@ -50,26 +50,38 @@ kotlin {
             languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
         commonMain.dependencies {
-            implementation(projects.komeliaCore)
-            implementation(projects.komeliaDb.shared)
-            implementation(projects.komeliaWebview)
+            implementation(projects.komeliaUi)
+            implementation(projects.komeliaDomain.core)
+            implementation(projects.komeliaDomain.offline)
+            implementation(projects.komeliaInfra.database.shared)
+            implementation(projects.komeliaInfra.database.transaction)
+            implementation(projects.komeliaInfra.webview)
+            implementation(libs.kotlin.logging)
         }
 
         androidMain.dependencies {
-            implementation(projects.komeliaDb.sqlite)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.window)
+            implementation(libs.androidx.workManager)
+            implementation(libs.androidx.workManager.ktx)
+            implementation(projects.komeliaInfra.database.sqlite)
             implementation(libs.filekit.core)
-            implementation(projects.komeliaOnnxruntime.jvm)
+            implementation(libs.filekit.dialogs)
+            implementation(projects.komeliaInfra.onnxruntime.jvm)
         }
         jvmMain.dependencies {
-            implementation(projects.komeliaDb.sqlite)
-            implementation(projects.komeliaImageDecoder.vips)
-            implementation(projects.komeliaOnnxruntime.jvm)
-            implementation(files("${projectDir.parent}/third_party/jbr-api/jbr-api-1.7.0.jar"))
+            implementation(libs.jbr.api)
+            implementation(projects.komeliaInfra.database.sqlite)
+            implementation(projects.komeliaInfra.imageDecoder.vips)
+            implementation(projects.komeliaInfra.onnxruntime.jvm)
+            implementation(libs.filekit.core)
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
-            implementation(projects.komeliaImageDecoder.wasmImageWorker)
-            implementation(projects.komeliaDb.wasm)
+            implementation(projects.komeliaInfra.imageDecoder.wasmImageWorker)
+            implementation(projects.komeliaInfra.database.wasm)
         }
     }
 }
@@ -86,7 +98,7 @@ android {
         applicationId = "io.github.snd_r.komelia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 13
+        versionCode = 14
         versionName = libs.versions.app.version.get()
     }
     packaging {
@@ -118,11 +130,9 @@ android {
 
 compose.desktop {
     application {
-        mainClass = "io.github.snd_r.komelia.MainKt"
+        mainClass = "snd.komelia.MainKt"
 
         jvmArgs += listOf(
-            "-Dkotlinx.coroutines.scheduler.max.pool.size=4",
-            "-Dkotlinx.coroutines.scheduler.core.pool.size=4",
             "-XX:+UnlockExperimentalVMOptions",
             "-XX:+UseShenandoahGC",
             "-XX:ShenandoahGCHeuristics=compact",
@@ -157,33 +167,5 @@ compose.desktop {
             optimize.set(false)
             configurationFiles.from(project.file("desktop.pro"))
         }
-    }
-}
-
-tasks.register<Zip>("repackageUberJar") {
-    group = "compose desktop"
-    val packageUberJarForCurrentOS = tasks.getByName("packageReleaseUberJarForCurrentOS")
-    dependsOn(packageUberJarForCurrentOS)
-    val file = packageUberJarForCurrentOS.outputs.files.first()
-    val output = File(file.parentFile, "${file.nameWithoutExtension}-repacked.jar")
-    archiveFileName.set(output.absolutePath)
-    destinationDirectory.set(file.parentFile.absoluteFile)
-
-    from(project.zipTree(file)) {
-        exclude("META-INF/*.SF")
-        exclude("META-INF/*.RSA")
-        exclude("META-INF/*.DSA")
-        exclude("META-INF/services/javax.imageio.spi.ImageReaderSpi")
-    }
-
-    // ImageIO plugins include workaround https://github.com/JetBrains/compose-multiplatform/issues/4505
-    from("$projectDir/javax.imageio.spi.ImageReaderSpi") {
-        into("META-INF/services")
-    }
-
-    doLast {
-        delete(file)
-        output.renameTo(file)
-        logger.lifecycle("The repackaged jar is written to ${archiveFile.get().asFile.canonicalPath}")
     }
 }

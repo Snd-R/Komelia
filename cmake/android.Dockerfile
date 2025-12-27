@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:25.10
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     openjdk-17-jdk-headless \

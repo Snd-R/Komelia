@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import io.github.snd_r.komelia.ui.error.ErrorView
+import snd.komelia.ui.error.ErrorView
 
 class CrashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

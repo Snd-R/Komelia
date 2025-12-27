@@ -1,5 +1,5 @@
 [versions]
-app-version = "0.17.0"
+app-version = "0.18.0"
 agp = "8.12.3"
 android-compileSdk = "36"
 android-minSdk = "26"
@@ -9,48 +9,65 @@ androidx-activityCompose = "1.11.0"
 androidx-appcompat = "1.7.1"
 androidx-core-ktx = "1.17.0"
 androidx-datastore = "1.1.7"
+androix-documentfile = "1.1.0"
 androidx-window = "1.5.0"
+androidx-workManager = "2.11.0"
 
 cache4k = "0.14.0"
 coil = "3.3.0"
 commons-compress = "1.28.0"
-compose-multiplatform = "1.9.3"
+compose-multiplatform = "1.11.0-alpha01"
+compose-material3 = "1.11.0-alpha01"
+compose-materialIconsExtended = "1.7.3"
 directories = "26"
-exposed = "1.0.0-rc-2"
-filekit = "0.8.7"
+exposed = "1.0.0-rc-4"
+hikari = "2.4.13"
+filekit = "0.12.0"
 flyway = "9.22.3"
 java-keyring = "1.0.4"
 komf-client = "1.6.1"
-komga-client = "0.9.0"
-kotlin = "2.2.21"
+komga-client = "0.10.0-SNAPSHOT"
+kotlin = "2.3.0"
 kotlin-logging = "7.0.13"
 kotlinx-atomicfu = "0.29.0"
 kotlinx-browser = "0.5.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
-kotlinx-io = "0.8.0"
-ktor = "3.3.1"
+kotlinx-io = "0.8.2"
+ktor = "3.3.3"
 ksoup = "0.2.5"
-logback = "1.5.20"
+jbr-api = "1.9.0"
+logback = "1.5.22"
 logback-android = "3.0.0"
 markdown = "0.7.3"
-okhttp = "5.3.0"
+okhttp = "5.3.2"
 protobuf-plugin = "0.9.4"
 protobuf-lite = "3.21.11"
 reorderable = "3.0.0"
 richEditor = "1.0.0-rc13"
 slf4j = "2.0.17"
-sqlite-jdbc = "3.50.3.0"
+sqlite-jdbc = "3.51.1.0"
 voyager = "1.1.0-beta03"
 
 [libraries]
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
-androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidx-datastore" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidx-datastore" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "androix-documentfile" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
-cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref ="cache4k" }
+androidx-workManager = { module = "androidx.work:work-runtime", version.ref = "androidx-workManager" }
+androidx-workManager-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-workManager" }
+
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
+compose-desktop = { module = "org.jetbrains.compose.desktop:desktop", version.ref = "compose-multiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
+compose-materialIconsExtended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "compose-materialIconsExtended" }
+compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
+
+cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
@@ -60,8 +77,10 @@ exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "e
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+hikariCP = { module = "com.zaxxer:HikariCP-java7", version.ref = "hikari" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
-filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
+filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
+filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "java-keyring" }
 komf-client = { module = "io.github.snd-r.komf:client", version.ref = "komf-client" }
@@ -84,6 +103,7 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 ksoup-kotlinx = { module = "com.fleeksoft.ksoup:ksoup-kotlinx", version.ref = "ksoup" }
+jbr-api = { module = "org.jetbrains.runtime:jbr-api", version.ref = "jbr-api" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback-android" }

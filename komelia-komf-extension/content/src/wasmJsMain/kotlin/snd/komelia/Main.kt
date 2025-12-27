@@ -4,30 +4,22 @@ package snd.komelia
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.AppNotifications
-import io.ktor.client.HttpClient
-import io.ktor.client.call.HttpClientCall
-import io.ktor.client.engine.js.Js
-import io.ktor.client.plugins.sse.DefaultClientSSESession
-import io.ktor.client.plugins.sse.SSEClientContent
-import io.ktor.client.statement.HttpReceivePipeline
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.request
-import io.ktor.http.Headers
-import io.ktor.http.HeadersBuilder
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpProtocolVersion
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.js.*
+import io.ktor.client.plugins.sse.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.util.AttributeKey
-import io.ktor.util.date.GMTDate
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.InternalAPI
+import io.ktor.util.date.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import snd.komelia.db.SettingsStateActor
-import snd.komelia.db.repository.ActorKomfSettingsRepository
+import snd.komelia.db.SettingsStateWrapper
+import snd.komelia.db.repository.KomfSettingsRepositoryWrapper
 import snd.komelia.db.settings.LocalStorageSettingsRepository
 import snd.komf.client.KomfClientFactory
 import kotlin.coroutines.CoroutineContext
@@ -45,8 +37,8 @@ fun main() {
 
 private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
     val localStorageRepository = LocalStorageSettingsRepository()
-    val komfSettingsRepository = ActorKomfSettingsRepository(
-        SettingsStateActor(
+    val komfSettingsRepository = KomfSettingsRepositoryWrapper(
+        SettingsStateWrapper(
             localStorageRepository.getKomfSettings(),
             localStorageRepository::saveKomfSettings
         )

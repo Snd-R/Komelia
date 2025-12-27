@@ -73,7 +73,7 @@ class KomfViewModelFactory(
     fun getKomfJobsViewModel(): KomfJobsViewModel {
         return KomfJobsViewModel(
             jobClient = komfClientFactory.jobClient(),
-            seriesClient = null,
+            seriesApi = null,
             appNotifications = appNotifications
         )
     }

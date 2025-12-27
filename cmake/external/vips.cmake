@@ -2,10 +2,10 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_vips
         GIT_REPOSITORY https://github.com/libvips/libvips.git
-        GIT_TAG v8.17.2
+        GIT_TAG v8.18.0
         GIT_SHALLOW 1
         GIT_PROGRESS 1
-        DEPENDS ep_expat ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_mozjpeg ep_lcms2 ep_exif
+        DEPENDS ep_expat ep_glib ep_heif ep_highway ep_jxl ep_spng ep_webp ep_tiff ep_jpeg-turbo ep_lcms2 ep_exif
         UPDATE_DISCONNECTED True
         PATCH_COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/patches/vips_thumbnail_resampling_kernel.patch
         CONFIGURE_COMMAND
@@ -17,7 +17,7 @@ ExternalProject_Add(ep_vips
             -Dcgif=enabled
             -Dheif=enabled
             -Dlcms=enabled
-            -Dspng=enabled
+            -Dpng=enabled
             -Dtiff=enabled
             -Dwebp=enabled
             -Ddeprecated=false
@@ -42,9 +42,9 @@ ExternalProject_Add(ep_vips
             -Dorc=disabled
             -Dpangocairo=disabled
             -Dpdfium=disabled
-            -Dpng=disabled
             -Dpoppler=disabled
             -Dquantizr=disabled
+            -Dspng=disabled
             -Drsvg=disabled
             <BINARY_DIR> <SOURCE_DIR>
         BUILD_COMMAND ${Ninja_EXECUTABLE} -C <BINARY_DIR>

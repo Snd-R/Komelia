@@ -26,11 +26,6 @@ allprojects {
     }
 }
 
-tasks.wrapper {
-    gradleVersion = "8.11.1"
-    distributionType = Wrapper.DistributionType.ALL
-}
-
 val linuxBuildDir = "$projectDir/cmake/build"
 val windowsBuildDir = "$projectDir/cmake/build-w64"
 val androidArm64BuildDir = "$projectDir/cmake/build-android-aarch64"
@@ -38,10 +33,14 @@ val androidArmv7aBuildDir = "$projectDir/cmake/build-android-armv7a"
 val androidx8664BuildDir = "$projectDir/cmake/build-android-x86_64"
 val androidx86BuildDir = "$projectDir/cmake/build-android-x86"
 
-val resourcesDir = "$projectDir/komelia-jni/src/jvmMain/resources/"
-val androidJniLibsDir = "$projectDir/komelia-jni/src/androidMain/jniLibs"
+val resourcesDir = "$projectDir/komelia-infra/jni/src/jvmMain/resources/"
+val androidJniLibsDir = "$projectDir/komelia-infra/jni/src/androidMain/jniLibs"
 val composeDistroResourcesDir = "$projectDir/komelia-app/desktopUnpackedResources"
-val composeCommonResources = "$projectDir/komelia-core/src/commonMain/composeResources/files"
+val composeCommonResources = "$projectDir/komelia-ui/src/commonMain/composeResources/files"
+
+val epubReader = "$rootDir/komelia-epub-reader"
+val epubReaderKomga = "$epubReader/komga-webui"
+val epubReaderTtsu = "$epubReader/ttu-ebook-reader"
 
 val linuxCommonLibs = setOf(
     "libintl.so",
@@ -65,7 +64,7 @@ val linuxCommonLibs = setOf(
     "libjxl_cms.so",
     "libjxl_threads.so",
     "libsharpyuv.so",
-    "libspng.so",
+    "libpng.so",
     "libtiff.so",
     "libturbojpeg.so",
     "libvips.so",
@@ -125,7 +124,7 @@ val windowsLibs = setOf(
     "libjxl_cms.dll",
     "libjxl_threads.dll",
     "libsharpyuv.dll",
-    "libspng.dll",
+    "libpng16.dll",
     "libtiff.dll",
     "libvips-42.dll",
     "libwebp.dll",
@@ -149,51 +148,57 @@ tasks.register<Sync>("linux-x86_64_copyJniLibs") {
     group = "jni"
     from("$linuxBuildDir/sysroot/lib/")
     into(resourcesDir)
-    include { it.name in desktopLinuxLibs }
+    val dependencies = desktopLinuxLibs
+    include { it.name in dependencies }
 }
 
 
 tasks.register<Sync>("android-aarch64_copyJniLibs") {
     group = "jni"
-    dependsOn(":komelia-db:sqlite:android-arm64-ExtractSqliteLib")
+    dependsOn(":komelia-infra:database:sqlite:android-arm64-ExtractSqliteLib")
 
     from("$androidArm64BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/arm64-v8a/")
-    include { it.name in androidLibs }
+    val dependencies = androidLibs
+    include { it.name in dependencies }
 }
 
 tasks.register<Sync>("android-arm64_copyJniLibs") {
     group = "jni"
-    dependsOn(":komelia-db:sqlite:android-arm64-ExtractSqliteLib")
+    dependsOn(":komelia-infra:database:sqlite:android-arm64-ExtractSqliteLib")
 
     from("$androidArm64BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/arm64-v8a/")
-    include { it.name in androidLibs }
+    val dependencies = androidLibs
+    include { it.name in dependencies }
 }
 
 tasks.register<Sync>("android-armv7a_copyJniLibs") {
     group = "jni"
-    dependsOn(":komelia-db:sqlite:android-armv7a-ExtractSqliteLib")
+    dependsOn(":komelia-infra:database:sqlite:android-armv7a-ExtractSqliteLib")
 
     from("$androidArmv7aBuildDir/sysroot/lib/")
     into("$androidJniLibsDir/armeabi-v7a/")
-    include { it.name in androidLibs }
+    val dependencies = androidLibs
+    include { it.name in dependencies }
 }
 
 tasks.register<Sync>("android-x86_64_copyJniLibs") {
     group = "jni"
-    dependsOn(":komelia-db:sqlite:android-x86_64-ExtractSqliteLib")
+    dependsOn(":komelia-infra:database:sqlite:android-x86_64-ExtractSqliteLib")
     from("$androidx8664BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/x86_64/")
-    include { it.name in androidLibs }
+    val dependencies = androidLibs
+    include { it.name in dependencies }
 }
 
 tasks.register<Sync>("android-x86_copyJniLibs") {
     group = "jni"
-    dependsOn(":komelia-db:sqlite:android-x86-ExtractSqliteLib")
+    dependsOn(":komelia-infra:database:sqlite:android-x86-ExtractSqliteLib")
     from("$androidx86BuildDir/sysroot/lib/")
     into("$androidJniLibsDir/x86/")
-    include { it.name in androidLibs }
+    val dependencies = androidLibs
+    include { it.name in dependencies }
 }
 
 tasks.register<Delete>("cleanJni") {
@@ -209,6 +214,7 @@ tasks.register<Sync>("windows-x86_64_copyJniLibs") {
     duplicatesStrategy = EXCLUDE
     from("$windowsBuildDir/sysroot/bin/")
     into(resourcesDir)
+    val dependencies = windowsLibs
     include { it.name in windowsLibs }
 
     // include mingw dlls if compiled using system toolchain
@@ -226,7 +232,8 @@ tasks.register<Sync>("windows-x86_64_copyJniLibsComposeResources") {
     duplicatesStrategy = EXCLUDE
     from("$windowsBuildDir/sysroot/bin/")
     into("$composeDistroResourcesDir/windows")
-    include { it.name in windowsLibs }
+    val dependencies = windowsLibs
+    include { it.name in dependencies }
 
     // include mingw dlls if compiled using system toolchain
     from("/usr/x86_64-w64-mingw32/bin/")
@@ -238,14 +245,11 @@ tasks.register<Sync>("windows-x86_64_copyJniLibsComposeResources") {
 }
 
 
-val webui = "$rootDir/epub-reader-webui"
-val webuiKomga = "$webui/komga-webui"
-val webuiTtsu = "$webui/ttu-ebook-reader"
 tasks.register<Exec>("komgaNpmInstall") {
     group = "web"
-    workingDir(webuiKomga)
-    inputs.file("$webuiKomga/package.json")
-    outputs.dir("$webuiKomga/node_modules")
+    workingDir(epubReaderKomga)
+    inputs.file("$epubReaderKomga/package.json")
+    outputs.dir("$epubReaderKomga/node_modules")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
@@ -259,9 +263,9 @@ tasks.register<Exec>("komgaNpmInstall") {
 tasks.register<Exec>("komgaNpmBuild") {
     group = "web"
     dependsOn("komgaNpmInstall")
-    workingDir(webuiKomga)
-    inputs.dir(webuiKomga)
-    outputs.dir("$webuiKomga/dist")
+    workingDir(epubReaderKomga)
+    inputs.dir(epubReaderKomga)
+    outputs.dir("$epubReaderKomga/dist")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
@@ -275,9 +279,9 @@ tasks.register<Exec>("komgaNpmBuild") {
 
 tasks.register<Exec>("ttsuNpmInstall") {
     group = "web"
-    workingDir(webuiTtsu)
-    inputs.file("$webuiTtsu/package.json")
-    outputs.dir("$webuiTtsu/node_modules")
+    workingDir(epubReaderTtsu)
+    inputs.file("$epubReaderTtsu/package.json")
+    outputs.dir("$epubReaderTtsu/node_modules")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
@@ -291,9 +295,9 @@ tasks.register<Exec>("ttsuNpmInstall") {
 tasks.register<Exec>("ttsuNpmBuild") {
     group = "web"
     dependsOn("ttsuNpmInstall")
-    workingDir(webuiTtsu)
-    inputs.dir(webuiTtsu)
-    outputs.dir("$webuiTtsu/dist")
+    workingDir(epubReaderTtsu)
+    inputs.dir(epubReaderTtsu)
+    outputs.dir("$epubReaderTtsu/dist")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
@@ -310,16 +314,16 @@ tasks.register<Sync>("buildWebui") {
     dependsOn("komgaNpmBuild")
     dependsOn("ttsuNpmBuild")
 
-    from("$webuiKomga/dist/")
-    from("$webuiTtsu/dist/")
+    from("$epubReaderKomga/dist/")
+    from("$epubReaderTtsu/dist/")
     into(composeCommonResources)
 }
 
 tasks.register<Exec>("cmakeSystemDepsConfigure") {
     group = "jni"
     delete("$projectDir/cmake-build")
-    inputs.file("$projectDir/komelia-image-decoder/vips/native/CMakeLists.txt")
-    inputs.file("$projectDir/komelia-webview/native/CMakeLists.txt")
+    inputs.file("$projectDir/komelia-infra/image-decoder/vips/native/CMakeLists.txt")
+    inputs.file("$projectDir/komelia-infra/webview/native/CMakeLists.txt")
     commandLine(
         "cmake",
         "-B", "cmake-build",
@@ -333,8 +337,8 @@ tasks.register<Exec>("cmakeSystemDepsBuild") {
     group = "jni"
     dependsOn("cmakeSystemDepsConfigure")
     inputs.dir("$projectDir/cmake-build")
-    outputs.dir("$projectDir/cmake-build/komelia-image-decoder/native")
-    outputs.dir("$projectDir/cmake-build/komelia-webview/native")
+    outputs.dir("$projectDir/cmake-build/komelia-infra/image-decoder/native")
+    outputs.dir("$projectDir/cmake-build/komelia-infra/webview/native")
     commandLine(
         "cmake",
         "--build",
@@ -346,16 +350,17 @@ tasks.register<Exec>("cmakeSystemDepsBuild") {
 tasks.register<Sync>("cmakeSystemDepsCopyJniLibs") {
     group = "jni"
     dependsOn("cmakeSystemDepsBuild")
-    inputs.dir("$projectDir/cmake-build/komelia-webview/native")
-    inputs.dir("$projectDir/cmake-build/komelia-image-decoder/vips/native")
+    inputs.dir("$projectDir/cmake-build/komelia-infra/webview/native")
+    inputs.dir("$projectDir/cmake-build/komelia-infra/image-decoder/vips/native")
     outputs.dir(resourcesDir)
 
     from(
-        "$projectDir/cmake-build/komelia-image-decoder/vips/native",
-        "$projectDir/cmake-build/komelia-webview/native"
+        "$projectDir/cmake-build/komelia-infra/image-decoder/vips/native",
+        "$projectDir/cmake-build/komelia-infra/webview/native"
     )
     into(resourcesDir)
-    include { it.name in desktopJniLibs }
+    val dependencies = desktopJniLibs
+    include { it.name in dependencies }
 }
 
 tasks.register("komeliaBuildNonJvmDependencies") {

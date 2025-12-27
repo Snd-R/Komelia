@@ -1,23 +1,13 @@
-This file is part of MXE. See LICENSE.md for licensing information.
-
-Contains ad hoc patches for cross building.
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Kleis Auke Wolthuizen <github@kleisauke.nl>
-Date: Tue, 30 Jul 2019 16:30:00 +0200
-Subject: [PATCH 1/1] Fix DLL naming (libzlib.dll -> libz.dll)
-
-
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 1111111..2222222 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1079,7 +1079,12 @@ endforeach()
+@@ -1505,7 +1505,12 @@ endforeach()
  if(WIN32)
      # Shared library
      if(NOT DEFINED BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
--        set_target_properties(zlib PROPERTIES OUTPUT_NAME zlib${SUFFIX})
-+        if(MINGW)
+-        set_target_properties(zlib-ng PROPERTIES OUTPUT_NAME zlib${SUFFIX})
++	if(MINGW)
 +            # When cross-compiling with MinGW-w64, we want to make libz, not libzlib
 +            set_target_properties(${ZLIB_INSTALL_LIBRARIES} PROPERTIES OUTPUT_NAME z${SUFFIX})
 +        else()

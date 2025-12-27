@@ -1,4 +1,4 @@
-FROM ubuntu:25.04
+FROM ubuntu:25.10
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential \
@@ -20,6 +20,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     unzip \
     p7zip \
     wget \
+    curl \
     git
 
 RUN update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix

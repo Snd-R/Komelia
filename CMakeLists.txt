@@ -54,9 +54,9 @@ if (KOMELIA_SUPERBUILD)
     include("cmake/external/lcms2.cmake")
     include("cmake/external/exif.cmake")
 
-    include("cmake/external/mozjpeg.cmake")
+    include("cmake/external/jpeg_turbo.cmake")
     include("cmake/external/jxl.cmake")
-    include("cmake/external/spng.cmake")
+    include("cmake/external/png.cmake")
     include("cmake/external/webp.cmake")
     include("cmake/external/dav1d.cmake")
     include("cmake/external/de265.cmake")
@@ -70,7 +70,7 @@ if (KOMELIA_SUPERBUILD)
             DOWNLOAD_COMMAND ""
             UPDATE_COMMAND ""
             DEPENDS ep_vips
-            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-image-decoder/vips/native
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-infra/image-decoder/vips/native
             CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             USES_TERMINAL_BUILD true
@@ -85,7 +85,7 @@ if (KOMELIA_SUPERBUILD)
             DOWNLOAD_COMMAND ""
             UPDATE_COMMAND ""
             DEPENDS ${KOMELIA_ONNXRUNTIME_DEPENDENCIES}
-            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-onnxruntime/native
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-infra/onnxruntime/native
             CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
@@ -103,7 +103,7 @@ if (KOMELIA_SUPERBUILD)
                 DOWNLOAD_COMMAND ""
                 UPDATE_COMMAND ""
                 DEPENDS ep_glib
-                SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-webview/native
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-infra/webview/native
                 CMAKE_ARGS
                 ${EP_CMAKE_ARGS}
                 -DWEBVIEW_USE_COMPAT_MINGW=${WEBVIEW_USE_COMPAT_MINGW}
@@ -113,10 +113,10 @@ if (KOMELIA_SUPERBUILD)
 
 else ()
     project(komelia C CXX)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-image-decoder/vips/native)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-infra/image-decoder/vips/native)
 
     if (NOT ANDROID)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-webview/native)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-onnxruntime/native)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-infra/webview/native)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-infra/onnxruntime/native)
     endif ()
 endif ()
