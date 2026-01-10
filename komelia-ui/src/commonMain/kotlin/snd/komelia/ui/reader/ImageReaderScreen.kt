@@ -24,7 +24,6 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import snd.komelia.ui.reader.image.ReaderViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
@@ -41,6 +40,7 @@ import snd.komelia.ui.color.view.ColorCorrectionScreen
 import snd.komelia.ui.common.components.ErrorContent
 import snd.komelia.ui.platform.PlatformTitleBar
 import snd.komelia.ui.platform.canIntegrateWithSystemBar
+import snd.komelia.ui.reader.image.ReaderViewModel
 import snd.komelia.ui.reader.image.common.ReaderContent
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile.DIVINA
@@ -53,21 +53,23 @@ fun readerScreen(
     bookSiblingsContext: BookSiblingsContext? = null,
 ): Screen {
     val context = bookSiblingsContext ?: BookSiblingsContext.Series
-    return when (book.media.mediaProfile) {
-        DIVINA, PDF -> ImageReaderScreen(
-            bookId = book.id,
-            markReadProgress = markReadProgress,
-            bookSiblingsContext = context
-        )
-
-        EPUB -> EpubScreen(
+    val mediaProfile = book.media.mediaProfile
+    return when {
+        mediaProfile == DIVINA || mediaProfile == PDF || book.media.epubDivinaCompatible -> {
+            ImageReaderScreen(
+                bookId = book.id,
+                markReadProgress = markReadProgress,
+                bookSiblingsContext = context
+            )
+        }
+        mediaProfile == EPUB -> EpubScreen(
             bookId = book.id,
             bookSiblingsContext = context,
             markReadProgress = markReadProgress,
             book = book
         )
 
-        null -> error("Unsupported book format")
+        else -> error("Unsupported book format")
     }
 }
 
