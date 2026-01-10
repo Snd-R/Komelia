@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import coil3.memory.MemoryCache
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.snd_r.komelia.BuildConfig
 import io.github.vinceglb.filekit.PlatformFile
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -84,6 +85,7 @@ import snd.komelia.settings.AppSettingsSerializer
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.updates.AndroidAppUpdater
 import snd.komelia.updates.AndroidOnnxModelDownloader
+import snd.komelia.updates.AppUpdater
 import snd.komelia.updates.OnnxModelDownloader
 import snd.komelia.updates.UpdateClient
 import snd.komga.client.KomgaClientFactory
@@ -250,7 +252,10 @@ class AndroidAppModule(
 
     }
 
-    override fun createAppUpdater(updateClient: UpdateClient) = AndroidAppUpdater(updateClient, context)
+    override fun createAppUpdater(updateClient: UpdateClient): AppUpdater? {
+        @Suppress("KotlinConstantConditions")
+        return if (BuildConfig.ENABLE_SELF_UPDATES) AndroidAppUpdater(updateClient, context) else null
+    }
 
     override fun createImageDecoder() = VipsImageDecoder()
 

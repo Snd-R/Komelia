@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
@@ -30,14 +31,7 @@ kotlin {
         browser {
             commonWebpackConfig {
                 outputFileName = "komelia-app.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(project.projectDir.path)
-                        add(project.rootDir.path)
-                        add(project.parent!!.projectDir.path + "/komelia-infra/image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/")
-                    }
-                }
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer())
             }
         }
         browser()
@@ -86,20 +80,47 @@ kotlin {
     }
 }
 
+enum class AndroidVariant {
+    STANDALONE,
+    FDROID,
+    PLAY
+}
+
+val androidVariant = runCatching {
+    AndroidVariant.valueOf(
+        (project.extraProperties["snd.android.variant"] as String).uppercase()
+    )
+}.getOrDefault(AndroidVariant.STANDALONE)
+
 android {
     namespace = "io.github.snd_r.komelia"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    val manifestFile = when (androidVariant) {
+        AndroidVariant.STANDALONE -> "AndroidManifest.xml"
+        AndroidVariant.FDROID -> "AndroidManifestFdroid.xml"
+        AndroidVariant.PLAY -> "AndroidManifestPlay.xml"
+    }
+    sourceSets["main"].manifest.srcFile("src/androidMain/$manifestFile")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId = "io.github.snd_r.komelia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 14
         versionName = libs.versions.app.version.get()
+
+        val enableSelfUpdates = when (androidVariant) {
+            AndroidVariant.STANDALONE -> "true"
+            AndroidVariant.FDROID -> "false"
+            AndroidVariant.PLAY -> "false"
+        }
+        buildConfigField("boolean", "ENABLE_SELF_UPDATES", enableSelfUpdates)
     }
     packaging {
         resources {
@@ -108,8 +129,10 @@ android {
         }
     }
     dependenciesInfo {
-        includeInApk = false
-        includeInBundle = false
+        if (androidVariant != AndroidVariant.PLAY) {
+            includeInApk = false
+            includeInBundle = false
+        }
     }
     buildTypes {
         release {
