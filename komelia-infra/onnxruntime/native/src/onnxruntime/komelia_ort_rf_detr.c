@@ -296,10 +296,10 @@ static void get_output_data(
     logits_data = malloc(sizeof(float) * pred_logits_data_size);
 
     if (rf_detr->session->input_data_type == ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
-        boxes_data = pred_boxes_tensor;
-        logits_data = pred_logits_tensor;
+        memcpy(boxes_data, pred_boxes_tensor, sizeof(float) * pred_boxes_data_size);
+        memcpy(logits_data, pred_logits_tensor, sizeof(float) * pred_logits_data_size);
     } else if (rf_detr->session->input_data_type == ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16) {
-        // copy f16 tensor data to f32
+        // convert f16 tensor data to f32
         const _Float16 *box_data_f16 = pred_boxes_tensor;
         for (size_t i = 0; i < pred_boxes_data_size; ++i) {
             boxes_data[i] = (float)box_data_f16[i];
@@ -438,10 +438,16 @@ static KomeliaRfDetrResults *get_results_from_tensor(
         results_size += 1;
     }
 
-    free(value_index_pairs);
     KomeliaRfDetrResults *results = malloc(sizeof(KomeliaRfDetrResults));
     results->data = predictions;
     results->results_size = results_size;
+
+    for (int i = 0; i < logits_data_len; ++i) {
+        free(value_index_pairs[i]);
+    }
+    free(value_index_pairs);
+    free(boxes_data);
+    free(logits_data);
 
     return results;
 on_error:
