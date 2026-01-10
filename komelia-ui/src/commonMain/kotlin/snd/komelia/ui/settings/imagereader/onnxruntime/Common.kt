@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberBasicTooltipState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
@@ -82,7 +81,6 @@ fun UpscaleModeSelector(
             ElevatedButton(
                 onClick = { launcher.launch() },
                 modifier = Modifier.padding(horizontal = 10.dp),
-                shape = RoundedCornerShape(5.dp)
             ) {
                 Text("Browse")
             }

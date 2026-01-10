@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilledTonalButton
@@ -54,7 +53,6 @@ fun PanelDetectionSettings(
         ) {
             FilledTonalButton(
                 onClick = { showDownloadDialog = true },
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text(if (isDownloaded) "Re-download Model" else "Download Model")

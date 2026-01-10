@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
@@ -602,7 +601,6 @@ fun <T> ConditionAddButton(
     ) {
         FilledTonalButton(
             onClick = { dropDownExpanded = true },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .cursorForHand()
                 .menuAnchor(PrimaryNotEditable)

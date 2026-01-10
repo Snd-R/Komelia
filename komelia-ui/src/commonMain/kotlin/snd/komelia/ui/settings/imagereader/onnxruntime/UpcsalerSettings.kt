@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -92,7 +91,6 @@ fun MangaJaNaiSettings(
         ) {
             FilledTonalButton(
                 onClick = { showMangaJaNaiDownloadDialog = true },
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text(if (isInstalled) "Re-download MangaJaNai preset" else "Download MangaJaNai preset")
@@ -100,7 +98,6 @@ fun MangaJaNaiSettings(
 
             ElevatedButton(
                 onClick = { uriHandler.openUri("https://github.com/the-database/mangajanai") },
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Project on Github")

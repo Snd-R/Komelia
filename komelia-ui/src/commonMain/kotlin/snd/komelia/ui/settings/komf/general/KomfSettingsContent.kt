@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ElevatedButton
@@ -79,7 +78,6 @@ fun KomfSettingsContent(
                     Spacer(Modifier.weight(1f))
                     ElevatedButton(
                         onClick = { uriHandler.openUri("https://github.com/Snd-R/komf") },
-                        shape = RoundedCornerShape(5.dp),
                     ) {
                         Text("Project Link")
                     }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
@@ -67,7 +66,6 @@ private fun PasswordDetails(user: KomgaUser) {
     var showPasswordDialog by remember { mutableStateOf(false) }
     FilledTonalButton(
         onClick = { showPasswordDialog = true },
-        shape = RoundedCornerShape(5.dp),
         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
     ) {
         Text("Change Password")

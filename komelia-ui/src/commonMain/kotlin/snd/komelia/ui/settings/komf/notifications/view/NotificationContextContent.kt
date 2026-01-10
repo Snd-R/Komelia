@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
@@ -58,7 +57,6 @@ fun NotificationContextDialog(
         controlButtons = {
             FilledTonalButton(
                 onClick = onDismissRequest,
-                shape = RoundedCornerShape(5.dp),
             ) {
                 Text("Close")
             }
@@ -231,7 +229,7 @@ fun NotificationContextDialogContent(
 
         }
 
-        FilledTonalButton(onClick = state::onBookAdd, shape = RoundedCornerShape(5.dp)) { Text("Add Book") }
+        FilledTonalButton(onClick = state::onBookAdd) { Text("Add Book") }
     }
 }
 
@@ -372,7 +370,6 @@ private fun <T> ValueList(
         }
         FilledTonalButton(
             onClick = onAdd,
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) { Text("Add $valueName") }
     }

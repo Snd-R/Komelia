@@ -110,7 +110,6 @@ fun SeriesFilterContent(
                 OutlinedButton(
                     onClick = filterState::reset,
                     enabled = filterState.isChanged,
-                    shape = RoundedCornerShape(5.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (filterState.isChanged) MaterialTheme.colorScheme.tertiaryContainer else Color.Unspecified,
                     ),
@@ -122,7 +121,6 @@ fun SeriesFilterContent(
 
                 OutlinedButton(
                     onClick = onDismiss,
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.height(40.dp).cursorForHand()
                 ) {
                     Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)

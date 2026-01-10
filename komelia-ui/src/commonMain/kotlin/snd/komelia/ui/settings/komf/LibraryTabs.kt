@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -75,7 +74,6 @@ fun <T> LibraryTabs(
             FlowRow {
                 TextButton(
                     modifier = Modifier.cursorForHand(),
-                    shape = RoundedCornerShape(5.dp),
                     colors = if (selectedTabIndex == 0) ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     ) else ButtonDefaults.textButtonColors(),
@@ -94,7 +92,6 @@ fun <T> LibraryTabs(
                 libraryProcessingState.entries.forEachIndexed { index, (libraryId, state) ->
                     TextButton(
                         modifier = Modifier.cursorForHand(),
-                        shape = RoundedCornerShape(5.dp),
                         colors =
                             if (selectedTabIndex == index + 1) ButtonDefaults.textButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant

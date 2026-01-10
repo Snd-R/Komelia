@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ElevatedButton
@@ -87,7 +86,6 @@ fun AppriseContent(
         var showAddUrlDialog by remember { mutableStateOf(false) }
         FilledTonalButton(
             onClick = { showAddUrlDialog = true },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) {
             Text("Add Url")
@@ -177,7 +175,6 @@ fun AddUrlDialog(
 
                 TextButton(
                     onClick = onDismissRequest,
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.cursorForHand(),
                     content = { Text("Cancel") }
                 )
@@ -187,7 +184,6 @@ fun AddUrlDialog(
                         onUrlAdd(newWebhook)
                         onDismissRequest()
                     },
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.cursorForHand(),
                     enabled = !isError || confirmInvalidUrl
                 ) {
@@ -256,7 +252,6 @@ private fun TemplatesEditor(
             }
             ElevatedButton(
                 onClick = { showNotificationContextDialog = true },
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Notification Context")
@@ -265,7 +260,6 @@ private fun TemplatesEditor(
 
             ElevatedButton(
                 onClick = onTemplateSend,
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Test Send")
@@ -274,7 +268,6 @@ private fun TemplatesEditor(
             FilledTonalButton(
                 onClick = onTemplateSave,
                 enabled = true,
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Save")

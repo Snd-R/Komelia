@@ -227,7 +227,6 @@ fun ChangesConfirmationButton(
 
         ElevatedButton(
             onClick = onDiscard,
-            shape = RoundedCornerShape(5.dp),
             enabled = isChanged,
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
@@ -240,7 +239,6 @@ fun ChangesConfirmationButton(
                 if (thumbnailSizeChanged) showThumbnailRegenerateDialog = true
                 onSave()
             },
-            shape = RoundedCornerShape(5.dp),
             enabled = isChanged,
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
@@ -297,7 +295,6 @@ fun ChangesConfirmationPopup(
                             if (thumbnailSizeChanged) showThumbnailRegenerateDialog = true
                             onSave()
                         },
-                        shape = RoundedCornerShape(5.dp),
                     ) {
                         Text("Save Changes")
 

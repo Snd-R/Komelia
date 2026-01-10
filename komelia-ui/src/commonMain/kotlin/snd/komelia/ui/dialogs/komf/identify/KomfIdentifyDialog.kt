@@ -128,7 +128,6 @@ fun IdentifyConfigContent(state: ConfigState) {
                         searchInProgress = false
                     }
                 },
-                shape = RoundedCornerShape(5.dp),
                 enabled = !isLoading.value,
             ) {
                 if (isLoading.value && searchInProgress) CircularProgressIndicator(Modifier.size(25.dp))
@@ -271,7 +270,6 @@ fun IdentifyConfigButtons(state: ConfigState) {
     ) {
         ElevatedButton(
             onClick = state.onDismiss,
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) {
             Text("Cancel")
@@ -285,7 +283,6 @@ fun IdentifyConfigButtons(state: ConfigState) {
                     autoIdentifyProgress = false
                 }
             },
-            shape = RoundedCornerShape(5.dp),
             enabled = !isLoading.value,
             modifier = Modifier.cursorForHand()
         ) {
@@ -311,7 +308,6 @@ fun IdentificationProgressButtons(
 ) {
     FilledTonalButton(
         onClick = state.onDismiss,
-        shape = RoundedCornerShape(5.dp),
         modifier = Modifier.cursorForHand()
     ) {
         if (isLoading) Text("Run in background")
@@ -333,7 +329,6 @@ private fun ControlButtons(
     ) {
         ElevatedButton(
             onClick = onDismissRequest,
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) {
             Text("Cancel")
@@ -347,7 +342,6 @@ private fun ControlButtons(
                     isLoading = false
                 }
             },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) {
             if (isLoading) CircularProgressIndicator(Modifier.size(25.dp))

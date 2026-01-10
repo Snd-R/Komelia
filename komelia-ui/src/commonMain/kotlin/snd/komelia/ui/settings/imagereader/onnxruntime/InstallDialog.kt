@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -102,7 +101,6 @@ fun OrtInstallDialog(
 
                     TextButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(5.dp),
                         modifier = Modifier.cursorForHand(),
                         content = { Text("Cancel") }
                     )
@@ -110,7 +108,6 @@ fun OrtInstallDialog(
                     FilledTonalButton(
                         enabled = provider != null && updateProgress == null,
                         onClick = { provider?.let { onInstall(it) } },
-                        shape = RoundedCornerShape(5.dp),
                         modifier = Modifier.cursorForHand(),
                     ) {
                         Text("Install")
@@ -294,7 +291,6 @@ fun RestartDialog(
             Box(modifier = Modifier.padding(bottom = 10.dp, end = 10.dp)) {
                 FilledTonalButton(
                     onClick = onConfirm,
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.cursorForHand(),
                 ) {
                     Text("Confirm")

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -75,7 +74,6 @@ fun UsersContent(
 
         FilledTonalButton(
             onClick = { showUserAddDialog = true },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
 
         ) {
@@ -204,7 +202,6 @@ private fun UserActions(
         if (!isSelf)
             FilledTonalButton(
                 onClick = { showEditDialog = true },
-                shape = RoundedCornerShape(5.dp),
                 contentPadding = contentPadding,
                 modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
             ) {
@@ -215,7 +212,6 @@ private fun UserActions(
 
         FilledTonalButton(
             onClick = { showChangePasswordDialog = true },
-            shape = RoundedCornerShape(5.dp),
             contentPadding = contentPadding,
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
@@ -233,7 +229,6 @@ private fun UserActions(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ),
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
             ) {
                 Icon(Icons.Default.Delete, null)

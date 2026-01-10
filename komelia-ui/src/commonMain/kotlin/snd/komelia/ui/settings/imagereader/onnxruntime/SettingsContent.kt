@@ -80,7 +80,6 @@ fun OnnxRuntimeSettingsContent(
             Text("ONNX Runtime", style = MaterialTheme.typography.titleLarge)
             FilledTonalButton(
                 onClick = { showOrtInstallDialog = true },
-                shape = RoundedCornerShape(5.dp)
             ) { Text("Download ONNX Runtime") }
 
             if (loadError != null)

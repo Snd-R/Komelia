@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -90,7 +89,6 @@ fun SavableTextField(
                         editable = true
                         textFieldValue = ""
                     },
-                    shape = RoundedCornerShape(5.dp),
                 ) {
                     Text("Edit")
                 }
@@ -105,7 +103,6 @@ fun SavableTextField(
                             isChanged = false
                             textFieldValue = currentValue
                         },
-                        shape = RoundedCornerShape(5.dp),
                     ) {
                         Text("Discard")
                     }
@@ -116,7 +113,6 @@ fun SavableTextField(
                             isChanged = false
                         },
                         enabled = isChanged,
-                        shape = RoundedCornerShape(5.dp),
                     ) {
                         Text("Save")
                     }
@@ -161,7 +157,6 @@ fun SavableHttpTextField(
                     isChanged = false
                     textFieldValue = currentValue
                 },
-                shape = RoundedCornerShape(5.dp),
             ) {
                 Text("Discard")
             }
@@ -171,7 +166,6 @@ fun SavableHttpTextField(
                     isChanged = false
                 },
                 enabled = isChanged || isError,
-                shape = RoundedCornerShape(5.dp),
             ) {
                 Text(confirmationText)
             }
@@ -251,7 +245,6 @@ fun LanguageSelectionField(
                 isChanged = false
             },
             enabled = isChanged,
-            shape = RoundedCornerShape(5.dp),
         ) {
             Text("Save")
         }

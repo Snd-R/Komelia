@@ -194,7 +194,6 @@ fun AddConditionButton(
     ) {
         FilledTonalButton(
             onClick = { dropDownExpanded = true },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .cursorForHand()
                 .menuAnchor(PrimaryNotEditable)

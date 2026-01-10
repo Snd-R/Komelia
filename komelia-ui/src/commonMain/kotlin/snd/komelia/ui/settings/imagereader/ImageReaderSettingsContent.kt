@@ -3,7 +3,6 @@ package snd.komelia.ui.settings.imagereader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -50,7 +49,6 @@ fun ImageReaderSettingsContent(
 
         FilledTonalButton(
             onClick = onCacheClear,
-            shape = RoundedCornerShape(5.dp)
         ) { Text("Clear image cache") }
 
         if (isOnnxRuntimeSupported()) {

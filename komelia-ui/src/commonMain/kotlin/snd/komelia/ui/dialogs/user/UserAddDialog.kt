@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -152,7 +151,6 @@ fun UserAddDialog(
             ) {
                 ElevatedButton(
                     onClick = onDismissRequest,
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
                     Text("Cancel")
@@ -166,7 +164,6 @@ fun UserAddDialog(
                         }
                     },
                     enabled = isValid,
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
                     Text("Add")

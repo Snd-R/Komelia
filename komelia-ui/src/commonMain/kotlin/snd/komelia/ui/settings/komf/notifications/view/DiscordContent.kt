@@ -117,7 +117,6 @@ fun DiscordNotificationsContent(
 
         FilledTonalButton(
             onClick = { showAddWebhookDialog = true },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) {
             Text("Add Webhook")
@@ -215,7 +214,6 @@ private fun AddDiscordWebhookDialog(
 
                 TextButton(
                     onClick = onDismissRequest,
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.cursorForHand(),
                     content = { Text("Cancel") }
                 )
@@ -225,7 +223,6 @@ private fun AddDiscordWebhookDialog(
                         onWebhookAdd(newWebhook)
                         onDismissRequest()
                     },
-                    shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.cursorForHand(),
                     enabled = isValidUrl.value
                 ) {
@@ -346,7 +343,6 @@ private fun TemplatesContent(
             }
             ElevatedButton(
                 onClick = { showNotificationContextDialog = true },
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Notification Context")
@@ -355,7 +351,6 @@ private fun TemplatesContent(
 
             ElevatedButton(
                 onClick = onTemplateSend,
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Test Send")
@@ -364,7 +359,6 @@ private fun TemplatesContent(
             FilledTonalButton(
                 onClick = onTemplateSave,
                 enabled = true,
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text("Save")
@@ -466,7 +460,6 @@ private fun TemplateFieldsEditor(
 
         FilledTonalButton(
             onClick = onFieldAdd,
-            shape = RoundedCornerShape(5.dp),
             enabled = fieldTemplates.size < 25,
             modifier = Modifier.cursorForHand()
         ) {

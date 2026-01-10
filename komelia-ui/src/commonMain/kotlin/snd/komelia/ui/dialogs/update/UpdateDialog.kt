@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -85,14 +84,12 @@ private fun ControlButtons(
     ) {
         TextButton(
             onClick = onDismiss,
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand(),
             content = { Text("Dismiss") }
         )
 
         FilledTonalButton(
             onClick = onConfirm,
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand(),
         ) {
             Text("Update")

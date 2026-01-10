@@ -199,7 +199,6 @@ fun DialogConfirmCancelButtons(
         if (showCancelButton)
             ElevatedButton(
                 onClick = onCancel,
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text(cancelText)
@@ -208,7 +207,6 @@ fun DialogConfirmCancelButtons(
         FilledTonalButton(
             onClick = onConfirm,
             enabled = confirmEnabled,
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier.cursorForHand()
         ) {
             if (isLoading) CircularProgressIndicator(Modifier.size(25.dp))

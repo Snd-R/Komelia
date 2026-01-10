@@ -3,7 +3,6 @@ package snd.komelia.ui.settings.server
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -137,7 +136,6 @@ private fun Button(
 
         FilledTonalButton(
             onClick = onClick,
-            shape = RoundedCornerShape(5.dp),
             colors = colors,
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {

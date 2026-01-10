@@ -204,7 +204,6 @@ private fun AddNewProviderButton(
     ) {
         FilledTonalButton(
             onClick = { addProviderExpanded = true },
-            shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .cursorForHand()
                 .menuAnchor(PrimaryNotEditable)
@@ -292,7 +291,6 @@ private fun CommonSettingsContent(
             }
             FilledTonalButton(
                 onClick = { showMangaBakaDownloadProgress = true },
-                shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.cursorForHand()
             ) {
                 Text(if (mangaBakaDbMetadata != null) "Update MangaBaka database" else "Download MangaBaka database")
@@ -359,7 +357,6 @@ private fun MangaBakaDbDownloadContent(
                 if (completed) {
                     FilledTonalButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(5.dp),
                         modifier = Modifier.cursorForHand(),
                         content = {
                             Text("Close")
@@ -369,7 +366,6 @@ private fun MangaBakaDbDownloadContent(
                 } else {
                     TextButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(5.dp),
                         modifier = Modifier.cursorForHand(),
                         content = {
                             Text("Close")

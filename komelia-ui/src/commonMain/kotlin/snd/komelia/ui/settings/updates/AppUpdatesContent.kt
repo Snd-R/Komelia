@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -67,7 +66,6 @@ fun AppUpdatesContent(
 
             FilledTonalButton(
                 onClick = { onCheckForUpdates() },
-                shape = RoundedCornerShape(5.dp),
             ) { Text("Check for updates") }
 
             if (LocalPlatform.current != PlatformType.WEB_KOMF &&
@@ -75,7 +73,6 @@ fun AppUpdatesContent(
             ) {
                 FilledTonalButton(
                     onClick = { onUpdate() },
-                    shape = RoundedCornerShape(5.dp),
                 ) { Text("Update") }
             }
         }

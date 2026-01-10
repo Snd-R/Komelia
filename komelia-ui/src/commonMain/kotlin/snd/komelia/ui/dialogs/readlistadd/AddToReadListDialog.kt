@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.FilledTonalButton
@@ -106,7 +105,6 @@ private fun DialogContent(
             )
             FilledTonalButton(
                 onClick = { coroutineScope.launch { onCreateNewReadList(query) } },
-                shape = RoundedCornerShape(5.dp),
                 enabled = query.isNotBlank() && !readListExistsForQuery.value,
                 content = { Text("Create") },
             )
