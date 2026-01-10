@@ -5,10 +5,12 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "build_watch": "vue-tsc --noEmit && vite build --watch",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@d-i-t-a/reader": "github:gotson/R2D2BC#fork",
+    "patch-package": "^8.0.1",
     "vue": "^3.4.31",
     "vue-i18n": "^10.0.4",
     "vuetify": "^3.6.11"
