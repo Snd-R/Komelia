@@ -379,15 +379,15 @@ const tab: Ref<string> = ref("hasToc")
 const readingDirs = ref(
     [
       {
-        text: t('enums.epubreader.reading_direction.auto').toString(),
+        title: t('enums.epubreader.reading_direction.auto').toString(),
         value: 'auto',
       },
       {
-        text: t('enums.epubreader.reading_direction.ltr').toString(),
+        title: t('enums.epubreader.reading_direction.ltr').toString(),
         value: 'ltr',
       },
       {
-        text: t('enums.epubreader.reading_direction.rtl').toString(),
+        title: t('enums.epubreader.reading_direction.rtl').toString(),
         value: 'rtl',
       },
     ]
