@@ -15,14 +15,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -32,7 +37,6 @@ import kotlinx.coroutines.launch
 import snd.komelia.ui.LocalKeyEvents
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.platform.PlatformType.WEB_KOMF
-import snd.komelia.ui.platform.onPointerEvent
 import snd.komelia.ui.reader.image.ScreenScaleState
 import kotlin.math.abs
 
@@ -123,5 +127,24 @@ fun ScalableContainer(
             }
     ) {
         content()
+    }
+}
+
+private fun Modifier.onPointerEvent(
+    eventType: PointerEventType,
+    pass: PointerEventPass = PointerEventPass.Main,
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
+): Modifier = composed {
+    val currentEventType by rememberUpdatedState(eventType)
+    val currentOnEvent by rememberUpdatedState(onEvent)
+    pointerInput(pass) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(pass)
+                if (event.type == currentEventType) {
+                    currentOnEvent(event)
+                }
+            }
+        }
     }
 }
