@@ -185,7 +185,7 @@ private fun ApplicationScope.MainAppContent(
         }
     ) {
         LaunchedEffect(Unit) {
-            window.minimumSize = Dimension(500, 540)
+            window.minimumSize = Dimension(800, 540)
             appWindow.value = window
             keyEvents.collect {
                 if (it.key == Key.F11 && it.type == KeyUp) {
