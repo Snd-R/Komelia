@@ -46,7 +46,6 @@ kotlin {
             implementation(libs.hikariCP)
             implementation(libs.flyway.core)
             implementation(libs.sqlite.xerial.jdbc)
-//            implementation(files("sqlite-jdbc-3.51.1.0-android.jar"))
         }
     }
 }

@@ -1,0 +1,40 @@
+diff --git a/core/include/webview/detail/engine_base.hh b/core/include/webview/detail/engine_base.hh
+index 01c8d29..287b83d 100644
+--- a/core/include/webview/detail/engine_base.hh
++++ b/core/include/webview/detail/engine_base.hh
+@@ -122,11 +122,11 @@ window.__webview__.onUnbind(" +
+     return dispatch(std::bind(
+         [id, status, this](std::string escaped_result) {
+           std::string js = "window.__webview__.onReply(" + json_escape(id) +
+-                           ", " + std::to_string(status) + ", " +
+-                           escaped_result + ")";
++                           ", " + std::to_string(status) + ", \"" +
++                           escaped_result + "\")";
+           eval(js);
+         },
+-        result.empty() ? "undefined" : json_escape(result)));
++        result.empty() ? "undefined" : result));
+   }
+ 
+   result<void *> window() { return window_impl(); }
+@@ -219,6 +219,10 @@ protected:
+       return ((s.length % 2) == 1 ? '0' : '') + s;\n\
+     }).join('');\n\
+   }\n\
++  function base64ToBytes(base64) {\n\
++    const binString = atob(base64);\n\
++    return Uint8Array.from(binString, (m) => m.codePointAt(0));\n\
++  }\n\
+   var Webview = (function() {\n\
+     var _promises = {};\n\
+     function Webview_() {}\n\
+@@ -243,7 +247,8 @@ protected:
+       var promise = _promises[id];\n\
+       if (result !== undefined) {\n\
+         try {\n\
+-          result = JSON.parse(result);\n\
++          const jsonString = new TextDecoder().decode(base64ToBytes(result)); \n\
++          result = JSON.parse(jsonString);\n\
+         } catch (e) {\n\
+           promise.reject(new Error(\"Failed to parse binding result as JSON\"));\n\
+           return;\n\

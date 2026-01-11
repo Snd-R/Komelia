@@ -9,6 +9,7 @@ FetchContent_Declare(
         webview
         GIT_REPOSITORY https://github.com/webview/webview
         GIT_TAG 5c5db3f31bf644f673d9dc817e935815b590c30e
+        PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/patches/use_base64_resolve.patch
 )
 FetchContent_MakeAvailable(webview)
 

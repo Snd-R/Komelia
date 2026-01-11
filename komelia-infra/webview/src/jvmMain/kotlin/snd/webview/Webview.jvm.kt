@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import kotlin.io.encoding.Base64
 import kotlin.reflect.KClass
 import kotlin.reflect.typeOf
 
@@ -32,6 +33,7 @@ actual class KomeliaWebview private constructor(
         encodeDefaults = true
         ignoreUnknownKeys = true
     }
+    val base64 = Base64.Default
 
     @Volatile
     var isRunning = false
@@ -60,7 +62,6 @@ actual class KomeliaWebview private constructor(
         bind(name) { id, jsRequest ->
             coroutineScope.launch {
                 runCatching {
-                    // TODO avoid reflection?
                     val argsClass = typeOf<JsArgs>().classifier as KClass<*>
                     val resultClass = typeOf<Result>().classifier as KClass<*>
 
@@ -75,10 +76,13 @@ actual class KomeliaWebview private constructor(
                     if (isClosed) return@launch
 
                     if (resultClass == Unit::class) {
-                        bindReturn(id, json.encodeToString(CallbackResponse("")))
+                        val jsonString = json.encodeToString(CallbackResponse(""))
+                        val base64 = base64.encode(jsonString.encodeToByteArray())
+                        bindReturn(id, base64)
                     } else {
-                        val json = json.encodeToString<CallbackResponse<Result>>(CallbackResponse(result))
-                        bindReturn(id, json)
+                        val jsonString = json.encodeToString<CallbackResponse<Result>>(CallbackResponse(result))
+                        val base64 = base64.encode(jsonString.encodeToByteArray())
+                        bindReturn(id, base64)
                     }
                 }.onFailure { error ->
                     logger.error(error) { "Encountered error during execution of bind function \"$name\"; js params: $jsRequest" }
