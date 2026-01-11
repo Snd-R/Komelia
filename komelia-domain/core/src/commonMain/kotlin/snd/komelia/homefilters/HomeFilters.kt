@@ -91,7 +91,7 @@ sealed interface SeriesHomeScreenFilter : HomeScreenFilter {
     }
 
     @Serializable
-    @SerialName("io.github.snd_r.komelia.ui.home.SeriesHomeScreenFilter..CustomFilter")
+    @SerialName("io.github.snd_r.komelia.ui.home.SeriesHomeScreenFilter.CustomFilter")
     data class CustomFilter(
         override val order: Int,
         override val label: String,

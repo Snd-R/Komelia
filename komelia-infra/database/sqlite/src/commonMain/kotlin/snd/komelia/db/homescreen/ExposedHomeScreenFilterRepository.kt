@@ -1,5 +1,6 @@
 package snd.komelia.db.homescreen
 
+import kotlinx.serialization.SerializationException
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
@@ -12,10 +13,14 @@ class ExposedHomeScreenFilterRepository(
 ) : ExposedRepository(database) {
 
     suspend fun getFilters(): List<HomeScreenFilter>? {
-        return transaction {
-            HomeScreenFiltersTable.selectAll()
-                .firstOrNull()?.get(HomeScreenFiltersTable.filters)
-                ?.sortedBy { it.order }
+        return try {
+            transaction {
+                HomeScreenFiltersTable.selectAll()
+                    .firstOrNull()?.get(HomeScreenFiltersTable.filters)
+                    ?.sortedBy { it.order }
+            }
+        } catch (_: SerializationException) {
+            null
         }
     }
 
