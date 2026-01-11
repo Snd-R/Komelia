@@ -112,7 +112,7 @@ android {
         applicationId = "io.github.snd_r.komelia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 14
+        versionCode = 15
         versionName = libs.versions.app.version.get()
 
         val enableSelfUpdates = when (androidVariant) {
