@@ -7,6 +7,8 @@ import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.context
 import io.github.vinceglb.filekit.delete
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.io.Sink
 import kotlinx.io.asSink
 import kotlinx.io.buffered
@@ -37,14 +39,20 @@ private fun prepareFileSink(libraryPath: Path, book: KomgaBook): Pair<PlatformFi
     return PlatformFile(bookFile) to SystemFileSystem.sink(bookFile).buffered()
 }
 
-private fun prepareSAFSink(uri: Uri, book: KomgaBook): Pair<PlatformFile, Sink> {
+private val fileCreateMutex = Mutex()
+private suspend fun prepareSAFSink(uri: Uri, book: KomgaBook): Pair<PlatformFile, Sink> {
     val context = FileKit.context
     val tree = DocumentFile.fromTreeUri(context, uri)
         ?: error("Can't get document tree $uri")
-    val seriesDirectory = tree.createDirectory(book.seriesId.value)
-        ?: error("Can't create subdirectory in $uri")
-    val bookFile = seriesDirectory.createFile("application/octet-stream", book.name)
-        ?: error("Can't create file in directory $seriesDirectory")
+
+    val bookFile = fileCreateMutex.withLock {
+        val seriesDirectory = tree.listFiles().firstOrNull { it.isDirectory && it.name == book.seriesId.value }
+            ?: tree.createDirectory(book.seriesId.value)
+            ?: error("Can't create subdirectory in $uri")
+
+        seriesDirectory.createFile("application/octet-stream", book.name)
+            ?: error("Can't create file in directory $seriesDirectory")
+    }
 
     val uri = bookFile.uri
     val outputStream = context.contentResolver.openOutputStream(uri)
