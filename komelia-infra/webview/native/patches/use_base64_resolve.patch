@@ -1,19 +1,13 @@
 diff --git a/core/include/webview/detail/engine_base.hh b/core/include/webview/detail/engine_base.hh
-index 01c8d29..287b83d 100644
+index 01c8d29..b1e0e65 100644
 --- a/core/include/webview/detail/engine_base.hh
 +++ b/core/include/webview/detail/engine_base.hh
-@@ -122,11 +122,11 @@ window.__webview__.onUnbind(" +
-     return dispatch(std::bind(
-         [id, status, this](std::string escaped_result) {
-           std::string js = "window.__webview__.onReply(" + json_escape(id) +
--                           ", " + std::to_string(status) + ", " +
--                           escaped_result + ")";
-+                           ", " + std::to_string(status) + ", \"" +
-+                           escaped_result + "\")";
+@@ -126,7 +126,7 @@ window.__webview__.onUnbind(" +
+                            escaped_result + ")";
            eval(js);
          },
 -        result.empty() ? "undefined" : json_escape(result)));
-+        result.empty() ? "undefined" : result));
++        result.empty() ? "undefined" : '"' + result + '"'));
    }
  
    result<void *> window() { return window_impl(); }
