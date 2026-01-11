@@ -95,7 +95,7 @@
         temporary
         :width="smAndUp ? 500 : width - 50"
     >
-      <v-tabs grow v-model="tab">
+      <v-tabs color="primary" grow v-model="tab">
         <v-tab value="hasToc" v-if="hasToc">
           <v-icon :icon="mdiTableOfContents"/>
         </v-tab>
@@ -108,14 +108,14 @@
       </v-tabs>
 
       <v-tabs-window v-model="tab">
-        <v-tabs-window-item value="hasToc" v-if="hasToc" class="scrolltab">
-          <toc-list :toc="tableOfContents" @goto="goToEntry" class="scrolltab-content"/>
+        <v-tabs-window-item value="hasToc" v-if="hasToc">
+          <toc-list :toc="tableOfContents" @goto="goToEntry"/>
         </v-tabs-window-item>
-        <v-tabs-window-item value="hasLandmarks" v-if="hasLandmarks" class="scrolltab">
-          <toc-list :toc="landmarks" @goto="goToEntry" class="scrolltab-content"/>
+        <v-tabs-window-item value="hasLandmarks" v-if="hasLandmarks">
+          <toc-list :toc="landmarks" @goto="goToEntry"/>
         </v-tabs-window-item>
-        <v-tabs-window-item value="hasPageList" v-if="hasPageList" class="scrolltab">
-          <toc-list :toc="pageList" @goto="goToEntry" class="scrolltab-content"/>
+        <v-tabs-window-item value="hasPageList" v-if="hasPageList">
+          <toc-list :toc="pageList" @goto="goToEntry"/>
         </v-tabs-window-item>
       </v-tabs-window>
     </v-navigation-drawer>
@@ -1103,14 +1103,6 @@ function markProgress(location: Locator) {
 
 .night {
   color: #DADADA;
-}
-
-.scrolltab {
-  overflow-y: scroll;
-}
-
-.scrolltab-content {
-  max-height: calc(100vh - 48px);
 }
 
 .hidden {

@@ -1,15 +1,21 @@
 <template>
   <v-list v-if="toc"
           v-model:selected="currentToc"
-          expand
+          v-model:opened="openGroups"
   >
     <template v-for="(t, i) in toc">
       <v-list-group v-if="t.children"
+                    :value="t.href"
                     :key="i"
-                    no-action
       >
-        <template v-slot:activator>
-          <toc-list-item :item="t" @goto="goto" class="ps-0"/>
+        <template v-slot:activator="{ props }">
+          <toc-list-item
+              :item="t"
+              :expanded="openGroup==t.href"
+              @goto="goto"
+              @expand="expandGroup"
+              v-bind="props"
+          />
         </template>
 
         <toc-list-item v-for="(child, i) in t.children"
@@ -29,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import {PropType, ref, Ref} from 'vue'
+import {computed, PropType, ref, Ref} from 'vue'
 import {TocEntry} from '@/types/epub'
 import TocListItem from '@/components/TocListItem.vue'
 
@@ -39,14 +45,22 @@ const props = defineProps({
     type: Array as PropType<Array<TocEntry>>,
     required: false,
   },
-
 })
-
+const openGroup = ref('')
+const openGroups = computed(() => {
+  return [openGroup.value]
+})
 const currentToc: Ref<any> = ref(props.toc?.find((el) => el.current == true)?.href)
 
 function goto(element: TocEntry) {
   emit('goto', element)
 }
+
+function expandGroup(value: string) {
+  if (openGroup.value == value) openGroup.value = ''
+  else openGroup.value = value
+}
+
 </script>
 
 <style>
