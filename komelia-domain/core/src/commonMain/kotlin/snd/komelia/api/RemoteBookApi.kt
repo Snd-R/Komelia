@@ -56,7 +56,7 @@ class RemoteBookApi(
         libraryIds: List<KomgaLibraryId>?,
         pageRequest: KomgaPageRequest?
     ): Page<KomeliaBook> {
-        val booksPage = bookClient.getLatestBooks(pageRequest)
+        val booksPage = bookClient.getBooksOnDeck(libraryIds, pageRequest)
         return getKomeliaBookPage(booksPage)
     }
 
