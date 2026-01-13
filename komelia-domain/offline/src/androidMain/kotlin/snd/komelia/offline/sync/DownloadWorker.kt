@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import snd.komelia.offline.sync.model.DownloadEvent
 import snd.komelia.offline.sync.model.DownloadEvent.BookDownloadCompleted
 import snd.komelia.offline.sync.model.DownloadEvent.BookDownloadError
@@ -63,10 +64,12 @@ class DownloadWorker(
     }
 
     override suspend fun doWork(): Result {
-        val bookId = inputData.getString(bookIdDataKey)
-        val result = when {
-            bookId != null -> downloadBook(KomgaBookId(bookId))
-            else -> Result.failure()
+        val result = jobLimit.withPermit {
+            val bookId = inputData.getString(bookIdDataKey)
+            when {
+                bookId != null -> downloadBook(KomgaBookId(bookId))
+                else -> Result.failure()
+            }
         }
 
         return result

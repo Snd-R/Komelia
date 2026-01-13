@@ -50,11 +50,13 @@ private suspend fun prepareSAFSink(uri: Uri, book: KomgaBook): Pair<PlatformFile
             ?: tree.createDirectory(book.seriesId.value)
             ?: error("Can't create subdirectory in $uri")
 
+        val existingBookFile = seriesDirectory.listFiles().firstOrNull { it.isFile && it.name == book.name }
+        existingBookFile?.delete()
+
         seriesDirectory.createFile("application/octet-stream", book.name)
             ?: error("Can't create file in directory $seriesDirectory")
     }
 
-    val uri = bookFile.uri
     val outputStream = context.contentResolver.openOutputStream(uri)
         ?: error("Can't write to file $bookFile")
 
