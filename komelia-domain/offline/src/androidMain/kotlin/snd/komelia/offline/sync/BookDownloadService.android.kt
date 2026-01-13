@@ -57,7 +57,7 @@ private suspend fun prepareSAFSink(uri: Uri, book: KomgaBook): Pair<PlatformFile
             ?: error("Can't create file in directory $seriesDirectory")
     }
 
-    val outputStream = context.contentResolver.openOutputStream(uri)
+    val outputStream = context.contentResolver.openOutputStream(bookFile.uri)
         ?: error("Can't write to file $bookFile")
 
     return PlatformFile(uri) to outputStream.asSink().buffered()
