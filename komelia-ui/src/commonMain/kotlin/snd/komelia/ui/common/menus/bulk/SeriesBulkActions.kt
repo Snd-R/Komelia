@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.BookmarkRemove
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +73,19 @@ fun SeriesBulkActionDialogs(
         )
     }
 
+    if (state.showDeleteDownloadedDialog) {
+        ConfirmationDialog(
+            title = "Delete downloaded Series",
+            body = "${state.series.size} series will be removed from this device",
+            onDialogConfirm = {
+                coroutineScope.launch { state.actions.deleteDownloaded(state.series) }
+                state.showDeleteDownloadedDialog = false
+            },
+            onDialogDismiss = { state.showDeleteDownloadedDialog = false },
+            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
+        )
+    }
+
     if (state.showDownloadDialog) {
         var permissionRequested by remember { mutableStateOf(false) }
         DownloadNotificationRequestDialog { permissionRequested = true }
@@ -126,6 +140,7 @@ data class SeriesBulkActionsState(
     var showAddToCollectionDialog by mutableStateOf(false)
     var showEditDialog by mutableStateOf(false)
     var showDeleteDialog by mutableStateOf(false)
+    var showDeleteDownloadedDialog by mutableStateOf(false)
     var showDownloadDialog by mutableStateOf(false)
 
     val buttons = buildList {
@@ -160,13 +175,25 @@ data class SeriesBulkActionsState(
             )
         }
 
-        add(
-            BulkActionButtonData(
-                description = "Download",
-                icon = Icons.Default.Download,
-                onClick = { showDownloadDialog = true }
+        if (!isOffline) {
+            add(
+                BulkActionButtonData(
+                    description = "Download",
+                    icon = Icons.Default.Download,
+                    onClick = { showDownloadDialog = true }
+                )
             )
-        )
+        }
+
+        if (isOffline) {
+            add(
+                BulkActionButtonData(
+                    description = "Delete downloaded",
+                    icon = Icons.Default.Delete,
+                    onClick = { showDeleteDownloadedDialog = true }
+                )
+            )
+        }
 
 //        if (!isOffline && isAdmin) {
 //            add(
@@ -185,6 +212,7 @@ data class SeriesBulkActions(
     val markAsUnread: suspend (List<KomgaSeries>) -> Unit,
     val delete: suspend (List<KomgaSeries>) -> Unit,
     val download: suspend (List<KomgaSeries>) -> Unit,
+    val deleteDownloaded: suspend (List<KomgaSeries>) -> Unit,
 ) {
 
     constructor(
@@ -210,6 +238,9 @@ data class SeriesBulkActions(
         },
         download = { series ->
             series.forEach { taskEmitter.downloadSeries(it.id) }
+        },
+        deleteDownloaded = { series ->
+            series.forEach { taskEmitter.deleteSeries(it.id) }
         }
     )
 }
