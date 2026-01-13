@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.utils.io.*
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -35,8 +36,8 @@ class LoginViewModel(
     private val isOffline: StateFlow<Boolean>,
     private val settingsRepository: CommonSettingsRepository,
     private val secretsRepository: SecretsRepository,
-    private val komgaUserApi: KomgaUserApi,
-    private val komgaLibraryApi: KomgaLibraryApi,
+    private val komgaUserApi: Flow<KomgaUserApi>,
+    private val komgaLibraryApi: Flow<KomgaLibraryApi>,
     private val komgaAuthState: KomgaAuthenticationState,
     private val notifications: AppNotifications,
     private val platform: PlatformType,
@@ -60,7 +61,7 @@ class LoginViewModel(
 
             when (platform) {
                 MOBILE, DESKTOP -> {
-                    if (isOffline.value || secretsRepository.getCookie(url) != null  ) {
+                    if (isOffline.value || secretsRepository.getCookie(url) != null) {
                         tryAutologin()
                     } else {
                         mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
@@ -147,11 +148,13 @@ class LoginViewModel(
         username: String? = null,
         password: String? = null
     ) {
+        val userApi = this.komgaUserApi.first()
+        val libraryApi = this.komgaLibraryApi.first()
         val user =
-            if (username != null && password != null) komgaUserApi.getMe(username, password, true)
-            else komgaUserApi.getMe()
+            if (username != null && password != null) userApi.getMe(username, password, true)
+            else userApi.getMe()
 
-        val libraries = komgaLibraryApi.getLibraries()
+        val libraries = libraryApi.getLibraries()
         komgaAuthState.setStateValues(user, libraries)
         mutableState.value = LoadState.Success(Unit)
     }
