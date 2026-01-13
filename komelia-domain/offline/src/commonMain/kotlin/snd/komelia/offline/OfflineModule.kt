@@ -429,10 +429,12 @@ abstract class OfflineModule(
                     seriesRepository = repositories.seriesRepository,
                     seriesMetadataRepository = repositories.seriesMetadataRepository,
                     seriesThumbnailSeriesRepository = repositories.thumbnailSeriesRepository,
+                    bookMetadataAggregationRepository = repositories.bookMetadataAggregationRepository,
                     bookRepository = repositories.bookRepository,
                     bookDeleteManyAction = bookDeleteManyAction,
                     transactionTemplate = repositories.transactionTemplate,
                     komgaEvents = komgaEvents,
+                    isOffline = isOffline,
                 ),
                 SeriesDeleteThumbnailAction(),
                 SeriesKomgaImportAction(

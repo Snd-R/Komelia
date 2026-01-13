@@ -39,7 +39,7 @@ class App : Application() {
         val config = Configuration.Builder()
             .setMinimumLoggingLevel(android.util.Log.DEBUG)
             .setWorkerFactory(MyWorkerFactory(dependencies.filterNotNull().map { it.offlineDependencies }))
-            .setWorkerCoroutineContext(Dispatchers.IO.limitedParallelism(4))
+            .setWorkerCoroutineContext(Dispatchers.IO)
             .build()
         WorkManager.initialize(this, config)
     }
