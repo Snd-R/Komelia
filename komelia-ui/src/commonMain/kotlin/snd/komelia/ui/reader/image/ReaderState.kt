@@ -2,34 +2,16 @@ package snd.komelia.ui.reader.image
 
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
-import coil3.ImageLoader
-import coil3.PlatformContext
-import coil3.request.ImageRequest
-import coil3.request.ImageResult
-import coil3.request.crossfade
-import coil3.size.Precision
-import coil3.size.Size
-import coil3.size.SizeResolver
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
@@ -39,7 +21,6 @@ import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.availableReduceKernels
 import snd.komelia.image.availableUpsamplingModes
-import snd.komelia.image.coil.BookPageThumbnailRequest
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaReadListApi
 import snd.komelia.komga.api.KomgaSeriesApi
@@ -59,8 +40,6 @@ import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.common.KomgaReadingDirection
 import snd.komga.client.series.KomgaSeries
-import kotlin.collections.plus
-import kotlin.math.roundToInt
 
 typealias SpreadIndex = Int
 
@@ -210,7 +189,7 @@ class ReaderState(
             val nextBook = getNextBook(booksState.nextBook.id)
             val nextBookPages = if (nextBook != null) loadBookPages(nextBook.id) else emptyList()
 
-            readProgressPage.value = 1
+            onProgressChange(1)
             this.booksState.value = BookState(
                 currentBook = booksState.nextBook,
                 currentBookPages = booksState.nextBookPages,
@@ -259,9 +238,8 @@ class ReaderState(
                     KomgaBookReadProgressUpdateRequest(page)
                 )
             }
-
-            readProgressPage.value = page
         }
+        readProgressPage.value = page
     }
 
     fun onReaderTypeChange(type: ReaderType) {
