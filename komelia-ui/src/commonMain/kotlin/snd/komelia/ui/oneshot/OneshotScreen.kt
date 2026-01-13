@@ -115,9 +115,8 @@ class OneshotScreen(
                         navigator.dispose(navigator.lastItem)
                         navigator.replaceAll(LibraryScreen(book.libraryId, filter))
                     },
-                    downloaded = false,
-                    onDownload = {},
-
+                    onBookDownload = vm::onBookDownload,
+                    onBookDownloadDelete = vm::onBookDownloadDelete,
                     cardWidth = vm.cardWidth.collectAsState().value,
                 )
             }

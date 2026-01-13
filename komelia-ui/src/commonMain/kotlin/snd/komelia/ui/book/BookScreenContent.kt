@@ -267,7 +267,7 @@ private fun FlowRowScope.BookMainInfo(
 
 
 @Composable
-private fun DownloadButton(
+fun DownloadButton(
     book: KomeliaBook,
     onDownload: () -> Unit,
 ) {

@@ -39,9 +39,11 @@ import snd.komga.client.search.allOfBooks
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.BookAdded
 import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
+import snd.komga.client.sse.KomgaEvent.SeriesAdded
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
 
 class OneshotViewModel(
@@ -60,8 +62,7 @@ class OneshotViewModel(
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     private val reloadEventsEnabled = MutableStateFlow(true)
-    private val seriesReloadFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
-    private val bookReloadFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
+    private val reloadFlow = MutableSharedFlow<Unit>(1, 0, DROP_OLDEST)
 
     val series = MutableStateFlow(series)
     val library = MutableStateFlow<KomgaLibrary?>(null)
@@ -103,13 +104,9 @@ class OneshotViewModel(
 
         startKomgaEventListener()
 
-        seriesReloadFlow.onEach {
+        reloadFlow.onEach {
             reloadEventsEnabled.first { it }
             loadSeries()
-        }.launchIn(screenModelScope)
-
-        bookReloadFlow.onEach {
-            reloadEventsEnabled.first { it }
             loadBook()
         }.launchIn(screenModelScope)
     }
@@ -150,6 +147,18 @@ class OneshotViewModel(
         }
     }
 
+    fun onBookDownload() {
+        screenModelScope.launch {
+            book.value?.let { taskEmitter.downloadBook(it.id) }
+        }
+    }
+
+    fun onBookDownloadDelete() {
+        screenModelScope.launch {
+            taskEmitter.deleteSeries(seriesId)
+        }
+    }
+
     private suspend fun loadBook() {
         notifications.runCatchingToNotifications {
             val currentBook = requireNotNull(book.value)
@@ -186,10 +195,15 @@ class OneshotViewModel(
     private fun startKomgaEventListener() {
         events.onEach { event ->
             when (event) {
-                is SeriesChanged -> if (event.seriesId == seriesId) seriesReloadFlow.tryEmit(Unit)
-                is BookChanged -> if (event.bookId == book.value?.id) bookReloadFlow.tryEmit(Unit)
-                is ReadProgressChanged -> if (event.bookId == book.value?.id) bookReloadFlow.tryEmit(Unit)
-                is ReadProgressDeleted -> if (event.bookId == book.value?.id) bookReloadFlow.tryEmit(Unit)
+                is SeriesChanged, is SeriesAdded ->
+                    if (event.seriesId == seriesId) reloadFlow.tryEmit(Unit)
+
+                is BookChanged, is BookAdded ->
+                    if (event.bookId == book.value?.id) reloadFlow.tryEmit(Unit)
+
+                is ReadProgressChanged, is ReadProgressDeleted ->
+                    if (event.bookId == book.value?.id) reloadFlow.tryEmit(Unit)
+
                 else -> {}
             }
         }.launchIn(screenModelScope)

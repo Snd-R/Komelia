@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +22,6 @@ import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaReadListApi
 import snd.komelia.komga.api.model.KomeliaBook
-import snd.komelia.offline.book.actions.BookDeleteAction
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.ui.LoadState
@@ -37,11 +35,10 @@ import snd.komelia.ui.readlist.BookReadListsState
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.sse.KomgaEvent
+import snd.komga.client.sse.KomgaEvent.BookAdded
 import snd.komga.client.sse.KomgaEvent.BookChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressDeleted
-
-private val logger = KotlinLogging.logger { }
 
 class BookViewModel(
     book: KomeliaBook?,
@@ -51,7 +48,6 @@ class BookViewModel(
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val libraries: StateFlow<List<KomgaLibrary>>,
     private val taskEmitter: OfflineTaskEmitter,
-    private val offlineBookDeleteAction: BookDeleteAction,
     settingsRepository: CommonSettingsRepository,
     readListApi: KomgaReadListApi,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
@@ -132,14 +128,14 @@ class BookViewModel(
 
     fun onBookDownloadDelete() {
         screenModelScope.launch {
-            book.value?.let { offlineBookDeleteAction.execute(it.id) }
+            book.value?.let { taskEmitter.deleteBook(it.id) }
         }
     }
 
     private fun startKomgaEventListener() {
         komgaEvents.onEach { event ->
             when (event) {
-                is BookChanged, is KomgaEvent.BookAdded ->
+                is BookChanged, is BookAdded ->
                     if (event.bookId == bookId) reloadJobsFlow.tryEmit(Unit)
 
                 is ReadProgressChanged, is ReadProgressDeleted ->

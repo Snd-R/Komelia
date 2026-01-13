@@ -3,7 +3,6 @@ package snd.komelia.ui
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
-import snd.komelia.ui.reader.image.ReaderViewModel
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,6 +44,7 @@ import snd.komelia.ui.login.offline.OfflineLoginViewModel
 import snd.komelia.ui.oneshot.OneshotViewModel
 import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.reader.epub.EpubReaderViewModel
+import snd.komelia.ui.reader.image.ReaderViewModel
 import snd.komelia.ui.readlist.ReadListViewModel
 import snd.komelia.ui.search.SearchViewModel
 import snd.komelia.ui.series.SeriesViewModel
@@ -212,7 +212,6 @@ class ViewModelFactory(
             settingsRepository = appRepositories.settingsRepository,
             readListApi = komgaApi.readListApi,
             taskEmitter = dependencies.offlineDependencies.taskEmitter,
-            offlineBookDeleteAction = dependencies.offlineDependencies.actions.get(),
         )
     }
 

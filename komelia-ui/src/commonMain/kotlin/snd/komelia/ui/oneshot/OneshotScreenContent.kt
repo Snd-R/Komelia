@@ -1,6 +1,7 @@
 package snd.komelia.ui.oneshot
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +42,7 @@ import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.book.BookInfoColumn
 import snd.komelia.ui.book.BookInfoRow
+import snd.komelia.ui.book.DownloadButton
 import snd.komelia.ui.collection.SeriesCollectionsContent
 import snd.komelia.ui.common.BookReadButton
 import snd.komelia.ui.common.components.ExpandableText
@@ -79,8 +82,8 @@ fun OneshotScreenContent(
     onReadListClick: (KomgaReadList) -> Unit,
     onReadlistBookClick: (KomeliaBook, KomgaReadList) -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
-    downloaded: Boolean,
-    onDownload: () -> Unit,
+    onBookDownload: () -> Unit,
+    onBookDownloadDelete: () -> Unit,
     cardWidth: Dp
 ) {
     val scrollState: ScrollState = rememberScrollState()
@@ -89,8 +92,6 @@ fun OneshotScreenContent(
             series = series,
             book = book,
             bookMenuActions = oneshotMenuActions,
-            downloaded = downloaded,
-            onDownload = onDownload,
         )
 
         val contentPadding = when (LocalWindowWidth.current) {
@@ -121,6 +122,8 @@ fun OneshotScreenContent(
                         library = library,
                         onLibraryClick = onLibraryClick,
                         onBookReadClick = onBookReadClick,
+                        onDownload = onBookDownload,
+                        onDownloadDelete = onBookDownloadDelete,
                     )
                 }
                 BookInfoColumn(
@@ -158,8 +161,6 @@ fun OneshotToolBar(
     series: KomgaSeries,
     book: KomeliaBook,
     bookMenuActions: BookMenuActions,
-    downloaded: Boolean,
-    onDownload: () -> Unit,
 ) {
     Row(
         modifier = Modifier.padding(start = 10.dp),
@@ -213,7 +214,6 @@ private fun ToolbarOneshotActions(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FlowRowScope.OneshotMainInfo(
     series: KomgaSeries,
@@ -221,6 +221,8 @@ private fun FlowRowScope.OneshotMainInfo(
     library: KomgaLibrary,
     onLibraryClick: (KomgaLibrary) -> Unit,
     onBookReadClick: (markReadProgress: Boolean) -> Unit,
+    onDownload: () -> Unit,
+    onDownloadDelete: () -> Unit
 ) {
     val isDeleted = remember(series, library) { series.deleted || library.unavailable }
     Column(
@@ -238,24 +240,37 @@ private fun FlowRowScope.OneshotMainInfo(
             deleted = isDeleted,
             alternateTitles = series.metadata.alternateTitles,
             onFilterClick = {},
-            modifier = Modifier.weight(1f, false).widthIn(min = 200.dp),
+            modifier = Modifier.widthIn(min = 200.dp),
         )
         BookInfoRow(
             book = book,
             onSeriesButtonClick = null,
-//            seriesTitle = null,
-//            readProgress = book.readProgress,
-//            bookPagesCount = book.media.pagesCount,
-//            bookNumber = book.metadata.number,
-//            releaseDate = book.metadata.releaseDate
         )
 
-        if (readIsSupported(book) && !isDeleted) {
-            BookReadButton(
-                onRead = { onBookReadClick(true) },
-                onIncognitoRead = { onBookReadClick(false) }
-            )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (readIsSupported(book) && !isDeleted) {
+                BookReadButton(
+                    onRead = { onBookReadClick(true) },
+                    onIncognitoRead = { onBookReadClick(false) }
+                )
+                if (!book.downloaded || book.isLocalFileOutdated) {
+                    DownloadButton(book, onDownload)
+                }
+            }
+
+            if (book.downloaded) {
+                ElevatedButton(
+                    onClick = onDownloadDelete,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.errorContainer)
+                ) {
+                    Text("Delete downloaded")
+                }
+            }
         }
+
         HorizontalDivider()
         ExpandableText(
             text = book.metadata.summary,
