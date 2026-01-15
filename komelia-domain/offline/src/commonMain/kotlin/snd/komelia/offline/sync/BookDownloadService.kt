@@ -29,7 +29,7 @@ import snd.komga.client.user.KomgaUserClient
 
 
 private val logger = KotlinLogging.logger { }
-private const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
+private const val DEFAULT_BUFFER_SIZE: Int = 64 * 1024
 
 class BookDownloadService(
     private val libraryDownloadPath: Flow<PlatformFile>,
