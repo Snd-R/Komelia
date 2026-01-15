@@ -87,7 +87,7 @@ class DownloadWorker(
                     when (it) {
                         is BookDownloadProgress -> {
                             updateProgress(it)
-                            delay(200)
+                            delay(1000)
                         }
 
                         is BookDownloadCompleted -> {
@@ -106,7 +106,6 @@ class DownloadWorker(
             logger.catching(e)
             sharedEvents.emit(BookDownloadError(bookId = bookId, error = e))
             currentCoroutineContext().ensureActive()
-            return Result.failure()
         } finally {
             if (isSuccess.get()) {
                 applicationContext.cancelNotification(notificationId)
