@@ -343,7 +343,6 @@ fun BookDetailedListCard(
     onBookReadClick: ((Boolean) -> Unit)? = null,
     isSelected: Boolean = false,
     onSelect: (() -> Unit)? = null,
-    downloaded: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -381,11 +380,8 @@ fun BookDetailedListCard(
             }
             BookDetailedListDetails(
                 book = book,
-                downloaded = downloaded,
                 bookMenuActions = bookMenuActions,
                 onBookReadClick = onBookReadClick,
-                isSelected = isSelected,
-                onSelect = onSelect,
             )
         }
     }
@@ -395,11 +391,8 @@ fun BookDetailedListCard(
 @Composable
 private fun BookDetailedListDetails(
     book: KomeliaBook,
-    downloaded: Boolean,
     bookMenuActions: BookMenuActions?,
     onBookReadClick: ((Boolean) -> Unit)? = null,
-    isSelected: Boolean,
-    onSelect: (() -> Unit)?,
 ) {
     val width = LocalWindowWidth.current
     Column(Modifier.padding(start = 10.dp)) {
@@ -425,16 +418,18 @@ private fun BookDetailedListDetails(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            item {
-                NoPaddingChip(
-                    borderColor = MaterialTheme.colorScheme.surface,
-                    color = MaterialTheme.colorScheme.surface
-                ) {
-                    Text(
-                        "downloaded",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+            if (book.downloaded) {
+                item {
+                    NoPaddingChip(
+                        borderColor = MaterialTheme.colorScheme.surface,
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Text(
+                            "downloaded",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
             items(book.metadata.tags) {
