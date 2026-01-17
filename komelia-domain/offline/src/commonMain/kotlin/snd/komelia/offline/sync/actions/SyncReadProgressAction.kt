@@ -15,7 +15,13 @@ import snd.komelia.offline.sync.model.OfflineLogEntry.Companion.infoLogEntry
 import snd.komelia.offline.sync.repository.LogJournalRepository
 import snd.komelia.offline.user.repository.OfflineUserRepository
 import snd.komga.client.book.KomgaBookClient
+import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.komga.client.book.MediaProfile.DIVINA
+import snd.komga.client.book.MediaProfile.EPUB
+import snd.komga.client.book.MediaProfile.PDF
+import snd.komga.client.book.R2Device
+import snd.komga.client.book.R2Progression
 import snd.komga.client.user.KomgaUser
 import kotlin.time.Clock
 
@@ -60,7 +66,14 @@ class SyncReadProgressAction(
             val remoteProgress = remoteBook.readProgress
 
             if (remoteProgress == null || localProgress.lastModifiedDate > remoteProgress.lastModified) {
-                bookClient.markReadProgress(remoteBook.id, localProgress.toRequest())
+                val mediaProfile = remoteBook.media.mediaProfile
+                when {
+                    mediaProfile == DIVINA || mediaProfile == PDF || remoteBook.media.epubDivinaCompatible ->
+                        updateDivinaProgress(remoteBook.id, localProgress)
+
+                    mediaProfile == EPUB -> updateEpubProgress(remoteBook.id, localProgress)
+                }
+
                 logJournalRepository.save(
                     infoLogEntry { "Read progress sync ${remoteBook.metadata.title}" }
                 )
@@ -76,8 +89,27 @@ class SyncReadProgressAction(
         }
     }
 
-    private fun OfflineReadProgress.toRequest() = when {
-        this.completed -> KomgaBookReadProgressUpdateRequest(completed = true)
-        else -> KomgaBookReadProgressUpdateRequest(page = this.page)
+    private suspend fun updateDivinaProgress(bookId: KomgaBookId, progress: OfflineReadProgress) {
+        val request = when {
+            progress.completed -> KomgaBookReadProgressUpdateRequest(completed = true)
+            else -> KomgaBookReadProgressUpdateRequest(page = progress.page)
+        }
+
+        bookClient.markReadProgress(bookId, request)
+    }
+
+    private suspend fun updateEpubProgress(bookId: KomgaBookId, progress: OfflineReadProgress) {
+        if (progress.completed || progress.locator == null) {
+            bookClient.markReadProgress(bookId, KomgaBookReadProgressUpdateRequest(completed = true))
+        } else {
+            bookClient.updateReadiumProgression(
+                bookId,
+                R2Progression(
+                    modified = progress.lastModifiedDate,
+                    device = R2Device(progress.deviceId, progress.deviceName),
+                    locator = progress.locator
+                )
+            )
+        }
     }
 }

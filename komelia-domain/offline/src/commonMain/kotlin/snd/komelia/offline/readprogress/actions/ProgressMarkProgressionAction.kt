@@ -1,6 +1,7 @@
 package snd.komelia.offline.readprogress.actions
 
 import io.ktor.http.*
+import kotlinx.coroutines.flow.MutableSharedFlow
 import snd.komelia.db.TransactionTemplate
 import snd.komelia.offline.action.OfflineAction
 import snd.komelia.offline.media.model.MediaExtensionEpub
@@ -10,13 +11,15 @@ import snd.komelia.offline.readprogress.OfflineReadProgressRepository
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile
 import snd.komga.client.book.R2Progression
+import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUserId
 import kotlin.math.roundToInt
 
 class ProgressMarkProgressionAction(
     private val mediaRepository: OfflineMediaRepository,
     private val readProgressRepository: OfflineReadProgressRepository,
-    private val transactionTemplate: TransactionTemplate
+    private val transactionTemplate: TransactionTemplate,
+    private val komgaEvents: MutableSharedFlow<KomgaEvent>,
 ) : OfflineAction {
 
     suspend fun run(
@@ -101,5 +104,7 @@ class ProgressMarkProgressionAction(
 
             readProgressRepository.save(progress)
         }
+
+        komgaEvents.emit(KomgaEvent.ReadProgressChanged(bookId, userId))
     }
 }
