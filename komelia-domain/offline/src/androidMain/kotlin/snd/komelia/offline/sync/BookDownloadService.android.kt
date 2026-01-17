@@ -14,16 +14,31 @@ import kotlinx.io.asSink
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import snd.komga.client.book.KomgaBook
 
 
 internal actual suspend fun prepareOutput(
-    book: KomgaBook,
-    downloadPath: PlatformFile
+    downloadRoot: PlatformFile,
+    serverName: String,
+    libraryName: String,
+    seriesName: String,
+    bookFileName: String,
 ): Pair<PlatformFile, Sink> {
-    return when (val androidFile = downloadPath.androidFile) {
-        is AndroidFile.FileWrapper -> prepareFileSink(Path(androidFile.file.path), book)
-        is AndroidFile.UriWrapper -> prepareSAFSink(androidFile.uri, book)
+    return when (val androidFile = downloadRoot.androidFile) {
+        is AndroidFile.FileWrapper -> prepareFileSink(
+            rootPath = Path(androidFile.file.path),
+            serverName = serverName,
+            libraryName = libraryName,
+            seriesName = seriesName,
+            bookFileName = bookFileName,
+        )
+
+        is AndroidFile.UriWrapper -> prepareSAFSink(
+            rootUri = androidFile.uri,
+            serverName = serverName,
+            libraryName = libraryName,
+            seriesName = seriesName,
+            bookFileName = bookFileName,
+        )
     }
 }
 
@@ -31,34 +46,54 @@ internal actual suspend fun deleteFile(file: PlatformFile) {
     file.delete(false)
 }
 
-private fun prepareFileSink(libraryPath: Path, book: KomgaBook): Pair<PlatformFile, Sink> {
-    val seriesDirectory = Path(libraryPath, book.seriesId.value)
+private fun prepareFileSink(
+    rootPath: Path,
+    serverName: String,
+    libraryName: String,
+    seriesName: String,
+    bookFileName: String,
+): Pair<PlatformFile, Sink> {
+    val seriesDirectory = Path(rootPath, serverName, libraryName, seriesName)
     SystemFileSystem.createDirectories(seriesDirectory, mustCreate = false)
-    val bookFile = Path(seriesDirectory, book.id.value)
 
+    val bookFile = Path(seriesDirectory, bookFileName)
     return PlatformFile(bookFile) to SystemFileSystem.sink(bookFile).buffered()
 }
 
 private val fileCreateMutex = Mutex()
-private suspend fun prepareSAFSink(uri: Uri, book: KomgaBook): Pair<PlatformFile, Sink> {
+private suspend fun prepareSAFSink(
+    rootUri: Uri,
+    serverName: String,
+    libraryName: String,
+    seriesName: String,
+    bookFileName: String,
+): Pair<PlatformFile, Sink> {
     val context = FileKit.context
-    val tree = DocumentFile.fromTreeUri(context, uri)
-        ?: error("Can't get document tree $uri")
+    val tree = DocumentFile.fromTreeUri(context, rootUri)
+        ?: error("Can't get document tree $rootUri")
 
     val bookFile = fileCreateMutex.withLock {
-        val seriesDirectory = tree.listFiles().firstOrNull { it.isDirectory && it.name == book.seriesId.value }
-            ?: tree.createDirectory(book.seriesId.value)
-            ?: error("Can't create subdirectory in $uri")
+        val seriesDirectory = tree
+            .createSafDirectoryOrThrow(serverName)
+            .createSafDirectoryOrThrow(libraryName)
+            .createSafDirectoryOrThrow(seriesName)
 
-        val existingBookFile = seriesDirectory.listFiles().firstOrNull { it.isFile && it.name == book.name }
+        val existingBookFile = seriesDirectory.listFiles().firstOrNull { it.isFile && it.name == bookFileName }
         existingBookFile?.delete()
 
-        seriesDirectory.createFile("application/octet-stream", book.name)
+        seriesDirectory.createFile("application/octet-stream", bookFileName)
             ?: error("Can't create file in directory $seriesDirectory")
     }
 
     val outputStream = context.contentResolver.openOutputStream(bookFile.uri)
         ?: error("Can't write to file $bookFile")
 
-    return PlatformFile(uri) to outputStream.asSink().buffered()
+    return PlatformFile(rootUri) to outputStream.asSink().buffered()
+
+}
+
+private fun DocumentFile.createSafDirectoryOrThrow(directoryName: String): DocumentFile {
+    return this.listFiles().firstOrNull { it.isDirectory && it.name == directoryName }
+        ?: this.createDirectory(directoryName)
+        ?: error("Can't create subdirectory in $directoryName")
 }

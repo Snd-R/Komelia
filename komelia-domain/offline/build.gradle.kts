@@ -55,6 +55,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.commons.compress)
             implementation(libs.ktor.client.okhttp)
+            implementation(projects.komeliaInfra.jni)
         }
     }
 }

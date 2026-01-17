@@ -2,11 +2,13 @@ package snd.komelia.offline.sync
 
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.io.Sink
-import snd.komga.client.book.KomgaBook
 
 internal actual suspend fun prepareOutput(
-    book: KomgaBook,
-    downloadPath: PlatformFile
+    downloadRoot: PlatformFile,
+    serverName: String,
+    libraryName: String,
+    seriesName: String,
+    bookFileName: String,
 ): Pair<PlatformFile, Sink> {
     TODO("Not yet implemented")
 }

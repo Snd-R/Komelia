@@ -3,6 +3,7 @@ package snd.komelia.offline.sync
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.PlatformFile
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.currentCoroutineContext
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.io.Sink
+import kotlinx.io.files.Path
 import snd.komelia.offline.book.actions.BookKomgaImportAction
 import snd.komelia.offline.library.actions.LibraryKomgaImportAction
 import snd.komelia.offline.series.actions.SeriesKomgaImportAction
@@ -23,7 +25,9 @@ import snd.komelia.offline.user.actions.UserKomgaImportAction
 import snd.komga.client.book.KomgaBook
 import snd.komga.client.book.KomgaBookClient
 import snd.komga.client.book.KomgaBookId
+import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryClient
+import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesClient
 import snd.komga.client.user.KomgaUserClient
 
@@ -50,6 +54,7 @@ class BookDownloadService(
 
     fun downloadBook(bookId: KomgaBookId): Flow<DownloadEvent> {
         return flow {
+            var file: PlatformFile? = null
             val book = bookClient.getOne(bookId)
             try {
                 val user = userClient.getMe()
@@ -57,7 +62,7 @@ class BookDownloadService(
                 val library = libraryClient.getLibrary(book.libraryId)
                 val series = seriesClient.getOneSeries(book.seriesId)
 
-                val bookFile = doDownload(book)
+                val bookFile = doDownload(library, series, book).also { file = it }
 
                 val offlineServer = saveServerAction.execute(serverUrl)
                 val offlineUser = saveUserAction.execute(user, offlineServer.id)
@@ -70,6 +75,7 @@ class BookDownloadService(
                     localFileModifiedDate = book.fileLastModified
                 )
             } catch (e: Exception) {
+                file?.let { deleteFile(it) }
                 currentCoroutineContext().ensureActive()
                 logger.catching(e)
                 emit(
@@ -83,8 +89,24 @@ class BookDownloadService(
         }
     }
 
-    private suspend fun FlowCollector<DownloadEvent>.doDownload(book: KomgaBook): PlatformFile {
-        val (file, output) = prepareOutput(book, libraryDownloadPath.first())
+    private suspend fun FlowCollector<DownloadEvent>.doDownload(
+        library: KomgaLibrary,
+        series: KomgaSeries,
+        book: KomgaBook,
+    ): PlatformFile {
+        val url = URLBuilder(onlineServerUrl.value).build()
+        val (file, output) = prepareOutput(
+            downloadRoot = libraryDownloadPath.first(),
+            serverName = buildString {
+                append(url.host)
+                if (url.specifiedPort != 0) append("_${url.specifiedPort}")
+                url.segments.forEach { append("_$it") }
+            },
+            libraryName = library.name,
+            seriesName = series.name,
+            bookFileName = Path(book.url).name,
+        )
+
         try {
             bookClient.getBookFile(book.id) { response ->
                 val length = response.headers["Content-Length"]?.toLong() ?: 0L
@@ -110,5 +132,12 @@ class BookDownloadService(
     }
 }
 
-internal expect suspend fun prepareOutput(book: KomgaBook, downloadPath: PlatformFile): Pair<PlatformFile, Sink>
+internal expect suspend fun prepareOutput(
+    downloadRoot: PlatformFile,
+    serverName: String,
+    libraryName: String,
+    seriesName: String,
+    bookFileName: String,
+): Pair<PlatformFile, Sink>
+
 internal expect suspend fun deleteFile(file: PlatformFile)
