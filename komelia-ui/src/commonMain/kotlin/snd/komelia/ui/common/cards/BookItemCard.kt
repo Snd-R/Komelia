@@ -418,20 +418,6 @@ private fun BookDetailedListDetails(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            if (book.downloaded) {
-                item {
-                    NoPaddingChip(
-                        borderColor = MaterialTheme.colorScheme.surface,
-                        color = MaterialTheme.colorScheme.surface
-                    ) {
-                        Text(
-                            "downloaded",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
             items(book.metadata.tags) {
                 NoPaddingChip(
                     borderColor = MaterialTheme.colorScheme.surface,
