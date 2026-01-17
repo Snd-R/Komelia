@@ -1,8 +1,12 @@
 package snd.komelia.api
 
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import snd.komelia.komga.api.KomgaApi
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.sse.KomgaEvent
@@ -25,18 +29,34 @@ data class RemoteApi(
     private val offlineEvents: SharedFlow<KomgaEvent>
 ) : KomgaApi {
     override suspend fun createSSESession(): KomgaSSESession {
-        return CombinedSSESession(komgaClientFactory.sseSession(), offlineEvents)
+        return CombinedSSESession(komgaClientFactory, offlineEvents)
     }
 
     private class CombinedSSESession(
-        private val onlineSession: KomgaSSESession,
+        private val komgaClientFactory: KomgaClientFactory,
         offlineEvents: SharedFlow<KomgaEvent>,
     ) : KomgaSSESession {
-        override val incoming: Flow<KomgaEvent> = merge(onlineSession.incoming, offlineEvents)
+        override val incoming: MutableSharedFlow<KomgaEvent> = MutableSharedFlow()
+        private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-        override fun cancel() {
-            onlineSession.cancel()
+
+        init {
+            // it might take a long time for the sse connection to be established
+            // and for the server to respond with at least single event so that ktor could transform response body to sse session
+            // launch the connection in separate coroutine to prevent blocking offline events
+            coroutineScope.launch {
+                komgaClientFactory.sseSession().incoming.collect { incoming.emit(it) }
+            }
+
+            coroutineScope.launch {
+                offlineEvents.collect { incoming.emit(it) }
+            }
         }
 
+
+        override fun cancel() {
+            // sse session should have this scope as its coroutine context
+            coroutineScope.cancel()
+        }
     }
 }

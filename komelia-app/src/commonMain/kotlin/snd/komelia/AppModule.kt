@@ -190,7 +190,7 @@ abstract class AppModule {
         )
 
         val komgaEvents = ManagedKomgaEvents(
-            eventSourceFactory = komgaApi.map { it::createSSESession },
+            komgaApi = komgaApi,
             memoryCache = coil.memoryCache,
             diskCache = coil.diskCache,
             libraryApi = komgaApi.map { it.libraryApi },

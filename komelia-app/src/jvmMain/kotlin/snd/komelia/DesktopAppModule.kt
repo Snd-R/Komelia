@@ -97,7 +97,6 @@ import snd.webview.WebviewSharedLibraries
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.io.path.createDirectories
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger { }
@@ -109,9 +108,9 @@ class DesktopAppModule(
 
     private val okHttpLogger = KotlinLogging.logger("http.logging")
     private val okHttpClientWithoutCache: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(0, TimeUnit.SECONDS)
+        .writeTimeout(0, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.SECONDS)
         .addInterceptor(HttpLoggingInterceptor { okHttpLogger.info { it } }
             .setLevel(HttpLoggingInterceptor.Level.BASIC))
         .build()
@@ -121,10 +120,6 @@ class DesktopAppModule(
             maxSize = 64 * 1024L * 1024L // 64 MiB
         )
     ).build()
-
-    private val okHttpClientSse = okHttpClientWithoutCache.newBuilder()
-        .readTimeout(0.seconds)
-        .build()
 
     override suspend fun beforeInit() {
         if (DesktopPlatform.Current != DesktopPlatform.Linux) {
@@ -236,6 +231,14 @@ class DesktopAppModule(
     }
 
     override fun createKtorClient(): HttpClient {
+        return configureKtor(okHttpClient)
+    }
+
+    override fun createKtorClientWithoutCache(): HttpClient {
+        return configureKtor(okHttpClientWithoutCache)
+    }
+
+    private fun configureKtor(okHttpClient: OkHttpClient): HttpClient {
         return HttpClient(OkHttp) {
             engine { preconfigured = okHttpClient }
             expectSuccess = true
@@ -243,18 +246,13 @@ class DesktopAppModule(
             install(UserAgent) {
                 agent = komeliaUserAgent
             }
-        }
-    }
-
-    override fun createKtorClientWithoutCache(): HttpClient {
-        return HttpClient(OkHttp) {
-            engine { preconfigured = okHttpClientWithoutCache }
-            expectSuccess = true
-
-            install(UserAgent) {
-                agent = komeliaUserAgent
+            install(HttpTimeout) {
+                requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                connectTimeoutMillis = 30_000
+                socketTimeoutMillis = 30_000
             }
         }
+
     }
 
     override fun createAppUpdater(updateClient: UpdateClient) = DesktopAppUpdater(updateClient)

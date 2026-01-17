@@ -7,6 +7,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import snd.komelia.komga.api.KomgaApi
 import snd.komelia.komga.api.KomgaLibraryApi
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.collection.KomgaCollectionId
@@ -35,7 +38,7 @@ import kotlin.concurrent.Volatile
 private val logger = KotlinLogging.logger {}
 
 class ManagedKomgaEvents(
-    eventSourceFactory: Flow<suspend () -> KomgaSSESession>,
+    komgaApi: Flow<KomgaApi>,
     private val libraryApi: Flow<KomgaLibraryApi>,
     private val komgaSharedState: KomgaAuthenticationState,
 
@@ -50,15 +53,20 @@ class ManagedKomgaEvents(
 
     init {
         komgaSharedState.authenticatedUser
-            .combine(eventSourceFactory) { user, eventSource -> user to eventSource }
-            .onEach { (newUser, eventSourceFactory) ->
+            .combine(komgaApi) { user, komgaApi -> user to komgaApi }
+            .onEach { (newUser, komgaApi) ->
                 broadcastScope.coroutineContext.cancelChildren()
                 session?.cancel()
 
-                if (newUser != null) {
-                    val newSession = eventSourceFactory()
-                    session = newSession
-                    startBroadcast(newSession.incoming)
+                try {
+                    if (newUser != null) {
+                        val newSession = komgaApi.createSSESession()
+                        session = newSession
+                        startBroadcast(newSession.incoming)
+                    }
+                } catch (e: Exception) {
+                    logger.catching(e)
+                    currentCoroutineContext().ensureActive()
                 }
             }.launchIn(manageScope)
     }
