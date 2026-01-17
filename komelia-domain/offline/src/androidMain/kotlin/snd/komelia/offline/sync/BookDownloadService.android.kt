@@ -88,12 +88,12 @@ private suspend fun prepareSAFSink(
     val outputStream = context.contentResolver.openOutputStream(bookFile.uri)
         ?: error("Can't write to file $bookFile")
 
-    return PlatformFile(rootUri) to outputStream.asSink().buffered()
+    return PlatformFile(bookFile.uri) to outputStream.asSink().buffered()
 
 }
 
 private fun DocumentFile.createSafDirectoryOrThrow(directoryName: String): DocumentFile {
     return this.listFiles().firstOrNull { it.isDirectory && it.name == directoryName }
         ?: this.createDirectory(directoryName)
-        ?: error("Can't create subdirectory in $directoryName")
+        ?: error("Can't create subdirectory in ${this.uri}")
 }

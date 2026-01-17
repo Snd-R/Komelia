@@ -1,12 +1,13 @@
 package snd.komelia.offline.book.actions
 
 import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import snd.komelia.offline.action.OfflineAction
 import java.io.File
 
-actual class BookDeleteFilesAction : OfflineAction {
+actual class BookDeleteFilesAction actual constructor(downloadsDirectory: Flow<PlatformFile>) : OfflineAction {
     private val mutex = Mutex()
 
     actual suspend fun execute(file: PlatformFile) {

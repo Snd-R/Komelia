@@ -1,9 +1,11 @@
 package snd.komelia.offline
 
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -151,6 +153,7 @@ abstract class OfflineModule(
         )
         val actions = createActions(
             isOffline = isOffline,
+            downloadsDirectory = repositories.offlineSettingsRepository.getDownloadDirectory(),
             komgaEvents = komgaEvents,
             taskEmitter = taskEmitter,
         )
@@ -279,6 +282,7 @@ abstract class OfflineModule(
 
     private fun createActions(
         isOffline: StateFlow<Boolean>,
+        downloadsDirectory: Flow<PlatformFile>,
         komgaEvents: MutableSharedFlow<KomgaEvent>,
         taskEmitter: OfflineTaskEmitter
     ): OfflineActions {
@@ -347,7 +351,7 @@ abstract class OfflineModule(
                     taskEmitter = taskEmitter,
                     isOffline = isOffline
                 ),
-                BookDeleteFilesAction(),
+                BookDeleteFilesAction(downloadsDirectory),
                 BookMarkRemoteDeletedAction(
                     bookRepository = repositories.bookRepository,
                     transactionTemplate = repositories.transactionTemplate
@@ -414,7 +418,8 @@ abstract class OfflineModule(
                 ProgressMarkProgressionAction(
                     mediaRepository = repositories.mediaRepository,
                     readProgressRepository = repositories.readProgressRepository,
-                    transactionTemplate = repositories.transactionTemplate
+                    transactionTemplate = repositories.transactionTemplate,
+                    komgaEvents = komgaEvents
                 ),
 
                 SeriesAddThumbnailAction(),
