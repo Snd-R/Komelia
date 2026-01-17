@@ -1,18 +1,33 @@
 package snd.komelia.offline.book.actions
 
 import io.github.vinceglb.filekit.PlatformFile
-import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import snd.komelia.offline.action.OfflineAction
+import java.io.File
 
 actual class BookDeleteFilesAction : OfflineAction {
-    actual suspend fun execute(file: PlatformFile) {
-        val filePath = Path(file.file.path)
-        SystemFileSystem.delete(filePath, mustExist = false)
+    private val mutex = Mutex()
 
-        val parent = filePath.parent
-        if (parent != null && SystemFileSystem.exists(parent) && SystemFileSystem.list(parent).isEmpty()) {
-            SystemFileSystem.delete(parent)
+    actual suspend fun execute(file: PlatformFile) {
+        mutex.withLock {
+            val bookFile = file.file
+            val seriesDir: File? = bookFile.parentFile
+            val libraryDir = seriesDir?.parentFile
+            val serverDir = libraryDir?.parentFile
+
+            if (bookFile.exists()) {
+                bookFile.delete()
+            }
+            seriesDir?.deleteDirectoryIfEmpty()
+            libraryDir?.deleteDirectoryIfEmpty()
+            serverDir?.deleteDirectoryIfEmpty()
+        }
+    }
+
+    private fun File.deleteDirectoryIfEmpty() {
+        if (this.exists() && this.listFiles()?.isEmpty() == true) {
+            this.delete()
         }
     }
 }
