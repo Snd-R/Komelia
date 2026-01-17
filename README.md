@@ -67,7 +67,7 @@ Available platforms include: `linux-x86_64`, `windows-x86_64`
 
 Then choose your packaging option:
 - `./gradlew :komelia-app:run` to launch desktop app
-- `./gradlew :komelia-app:repackageUberJar` package jar for current OS (output in `komelia-app/build/compose/jars`)
+- `./gradlew :komelia-app:packageReleaseUberJarForCurrentOS` package jar file (output in `komelia-app/build/compose/jars`)
 - `./gradlew :komelia-app:packageReleaseDeb` package Linux deb file (output in `komelia-app/build/compose/binaries`)
 - `./gradlew :komelia-app:packageReleaseMsi` package Windows msi installer (output in `komelia-app/build/compose/binaries`)
 
@@ -83,7 +83,7 @@ Available architectures include:  `aarch64`, `armv7a`, `x86_64`, `x86`
 
 Then choose app build option:
 
-- `./gradlew :komelia-app:assemble` debug apk build (output in `komelia-app/build/outputs/apk/debug`)
+- `./gradlew :komelia-app:assembleDebug` debug apk build (output in `komelia-app/build/outputs/apk/debug`)
 - `./gradlew :komelia-app:assembleRelease` unsigned release apk build (output in
   `komelia-app/build/outputs/apk/release`)
 
