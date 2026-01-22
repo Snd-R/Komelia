@@ -634,9 +634,10 @@ class ViewModelFactory(
     }
 
     fun getSeriesBulkActions() = SeriesBulkActions(
-        komgaApi.seriesApi,
-        dependencies.offlineDependencies.taskEmitter,
-        dependencies.appNotifications,
+        seriesApi = komgaApi.seriesApi,
+        komfClient = dependencies.komfClientFactory.metadataClient(KOMGA),
+        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        notifications = dependencies.appNotifications,
     )
 
     fun getCollectionBulkActions() = CollectionBulkActions(
