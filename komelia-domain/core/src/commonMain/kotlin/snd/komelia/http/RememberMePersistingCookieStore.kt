@@ -32,7 +32,7 @@ class RememberMePersistingCookieStore(
      * see [io.ktor.client.plugins.cookies.HttpCookies.captureHeaderCookies]
      */
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
-        if ((cookie.name == rememberMeCookie || cookie.name == sessionCookie) && cookie.path != "/") {
+        if ((cookie.name == rememberMeCookie || cookie.name == sessionCookie) && cookie.path != komgaUrl.value.encodedPath.ifBlank { "/" }) {
             return
         }
 
