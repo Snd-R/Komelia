@@ -26,7 +26,7 @@ add_library(komelia_vips SHARED
         src/vips/vips_common_jni.c
         src/vips/komelia_vips.c
 )
-target_include_directories(komelia_vips PRIVATE ${VIPS_INCLUDE_DIRS} ${JNI_INCLUDE_DIRS})
+target_include_directories(komelia_vips PUBLIC src/vips  PRIVATE ${VIPS_INCLUDE_DIRS} ${JNI_INCLUDE_DIRS})
 target_link_libraries(komelia_vips PkgConfig::VIPS)
 set_target_properties(komelia_vips
         PROPERTIES

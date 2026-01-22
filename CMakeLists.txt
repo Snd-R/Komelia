@@ -117,6 +117,6 @@ else ()
 
     if (NOT ANDROID)
         add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-infra/webview/native)
-        #add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-infra/onnxruntime/native)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/komelia-infra/onnxruntime/native)
     endif ()
 endif ()

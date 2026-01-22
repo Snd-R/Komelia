@@ -352,11 +352,13 @@ tasks.register<Sync>("cmakeSystemDepsCopyJniLibs") {
     dependsOn("cmakeSystemDepsBuild")
     inputs.dir("$projectDir/cmake-build/komelia-infra/webview/native")
     inputs.dir("$projectDir/cmake-build/komelia-infra/image-decoder/vips/native")
+    inputs.dir("$projectDir/cmake-build/komelia-infra/onnxruntime/native")
     outputs.dir(resourcesDir)
 
     from(
         "$projectDir/cmake-build/komelia-infra/image-decoder/vips/native",
-        "$projectDir/cmake-build/komelia-infra/webview/native"
+        "$projectDir/cmake-build/komelia-infra/webview/native",
+        "$projectDir/cmake-build/komelia-infra/onnxruntime/native"
     )
     into(resourcesDir)
     val dependencies = desktopJniLibs
