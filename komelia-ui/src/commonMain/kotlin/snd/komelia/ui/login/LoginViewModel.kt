@@ -12,14 +12,17 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.KomgaAuthenticationState
 import snd.komelia.komga.api.KomgaLibraryApi
 import snd.komelia.komga.api.KomgaUserApi
+import snd.komelia.offline.api.OfflineLibraryApi
+import snd.komelia.offline.server.repository.OfflineMediaServerRepository
+import snd.komelia.offline.settings.OfflineSettingsRepository
 import snd.komelia.offline.user.model.OfflineUser
 import snd.komelia.offline.user.repository.OfflineUserRepository
 import snd.komelia.settings.CommonSettingsRepository
@@ -33,7 +36,6 @@ import snd.komelia.ui.platform.PlatformType.MOBILE
 import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 
 class LoginViewModel(
-    private val isOffline: StateFlow<Boolean>,
     private val settingsRepository: CommonSettingsRepository,
     private val secretsRepository: SecretsRepository,
     private val komgaUserApi: Flow<KomgaUserApi>,
@@ -41,7 +43,11 @@ class LoginViewModel(
     private val komgaAuthState: KomgaAuthenticationState,
     private val notifications: AppNotifications,
     private val platform: PlatformType,
+
     private val offlineUserRepository: OfflineUserRepository,
+    private val offlineServerRepository: OfflineMediaServerRepository,
+    private val offlineSettingsRepository: OfflineSettingsRepository,
+    private val offlineLibraryApi: OfflineLibraryApi,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
     var url by mutableStateOf("")
@@ -50,6 +56,8 @@ class LoginViewModel(
     var userLoginError by mutableStateOf<String?>(null)
     var autoLoginError by mutableStateOf<String?>(null)
     val offlineIsAvailable = MutableStateFlow(false)
+    private val offlineUser = MutableStateFlow<OfflineUser?>(null)
+    val canGoOfflineAsCurrentUser = offlineUser.map { it != null }
 
     fun initialize() {
         if (state.value !is Uninitialized) return
@@ -57,11 +65,16 @@ class LoginViewModel(
         screenModelScope.launch {
             url = settingsRepository.getServerUrl().first()
             user = settingsRepository.getCurrentUser().first()
-            offlineIsAvailable.value = offlineUserRepository.findAll().any { it.id != OfflineUser.ROOT }
+            val offlineUsers = offlineUserRepository.findAll()
+            val offlineServer = offlineServerRepository.findByUrl(url)
+
+            offlineIsAvailable.value = offlineUsers.any { it.id != OfflineUser.ROOT }
+            offlineUser.value = offlineServer?.let { server -> offlineUsers.first { it.serverId == server.id } }
+            val isOffline = offlineSettingsRepository.getOfflineMode().first()
 
             when (platform) {
                 MOBILE, DESKTOP -> {
-                    if (isOffline.value || secretsRepository.getCookie(url) != null) {
+                    if (isOffline || secretsRepository.getCookie(url) != null) {
                         tryAutologin()
                     } else {
                         mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
@@ -92,6 +105,16 @@ class LoginViewModel(
             settingsRepository.putServerUrl(url)
             settingsRepository.putCurrentUser(user)
             tryUserLogin(user, password)
+        }
+    }
+
+    fun offlineLogin() {
+        notifications.runCatchingToNotifications(screenModelScope) {
+            val user = offlineUser.value ?: return@runCatchingToNotifications
+            offlineSettingsRepository.putOfflineMode(true)
+            offlineSettingsRepository.putUserId(user.id)
+            komgaAuthState.setStateValues(user.toKomgaUser(), offlineLibraryApi.getLibraries())
+            mutableState.value = LoadState.Success(Unit)
         }
     }
 

@@ -82,7 +82,9 @@ class LoginScreen : Screen {
                 onAutoLoginRetry = viewModel::retryAutoLogin,
                 onLogin = viewModel::loginWithCredentials,
                 offlineIsAvailable = viewModel.offlineIsAvailable.collectAsState().value,
-                onOfflineSelect = { rootNavigator.replaceAll(OfflineLoginScreen()) }
+                onOfflineSelect = { rootNavigator.replaceAll(OfflineLoginScreen()) },
+                canGoOfflineAsCurrentUser = viewModel.canGoOfflineAsCurrentUser.collectAsState(false).value,
+                goOfflineAsCurrentUser = viewModel::offlineLogin
             )
 
             is Success -> rootNavigator.replaceAll(MainScreen())

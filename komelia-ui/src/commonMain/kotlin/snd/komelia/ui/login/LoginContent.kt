@@ -63,7 +63,9 @@ fun LoginContent(
     onAutoLoginRetry: () -> Unit,
     onLogin: () -> Unit,
     offlineIsAvailable: Boolean,
-    onOfflineSelect: () -> Unit
+    onOfflineSelect: () -> Unit,
+    canGoOfflineAsCurrentUser: Boolean,
+    goOfflineAsCurrentUser: () -> Unit,
 ) {
 
     var showAutoLoginError by remember { mutableStateOf(true) }
@@ -78,9 +80,16 @@ fun LoginContent(
                 color = MaterialTheme.colorScheme.error
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = onAutoLoginRetry) { Text("Retry") }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 Button(onClick = { showAutoLoginError = false }) { Text("Login with another account") }
+                if (canGoOfflineAsCurrentUser) {
+                    Button(onClick = goOfflineAsCurrentUser) { Text("Go offline") }
+                }
+
+                Button(onClick = onAutoLoginRetry) { Text("Retry") }
             }
         }
     } else {
