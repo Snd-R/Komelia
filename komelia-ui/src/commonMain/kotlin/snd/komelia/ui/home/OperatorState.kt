@@ -62,7 +62,7 @@ open class EqualityNullableOpState<T>(
     init {
         val (op, value) = when (initial) {
             is Is -> Op.Equals to initial.value
-            is IsNot -> Op.Equals to initial.value
+            is IsNot -> Op.NotEquals to initial.value
             is IsNotNullT -> Op.IsNotNull to null
             is IsNullT -> Op.IsNull to null
             null -> Op.Equals to null
