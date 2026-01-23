@@ -31,7 +31,7 @@ import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.library.KomgaLibrary
 
 class FilterEditViewModel(
-    homeFilters: List<HomeFilterData>?,
+    private val initialFilters: List<HomeFilterData>?,
     private val appNotifications: AppNotifications,
     private val bookApi: KomgaBookApi,
     private val seriesApi: KomgaSeriesApi,
@@ -57,7 +57,7 @@ class FilterEditViewModel(
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
     val filters = MutableStateFlow(
 
-        homeFilters?.map {
+        initialFilters?.map {
             when (it) {
                 is BookFilterData -> BookFilterEditState(
                     seriesApi = seriesApi,
@@ -88,6 +88,36 @@ class FilterEditViewModel(
 
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications {
+            if (initialFilters == null) {
+                // FIXME initial data will remain empty until filter is modified
+                filters.value = filterRepository.getFilters().first().map {
+                    when (it) {
+                        is BooksHomeScreenFilter -> BookFilterEditState(
+                            seriesApi = seriesApi,
+                            bookApi = bookApi,
+                            readListApi = readListApi,
+                            appNotifications = appNotifications,
+                            coroutineScope = screenModelScope,
+                            options = filterSuggestionOptions,
+                            cardWidth = cardWidth,
+                            initialFilter = it,
+                            initialBooks = null,
+                        )
+
+                        is SeriesHomeScreenFilter -> SeriesFilterEditState(
+                            seriesApi = seriesApi,
+                            collectionApi = collectionApi,
+                            appNotifications = appNotifications,
+                            coroutineScope = screenModelScope,
+                            options = filterSuggestionOptions,
+                            cardWidth = cardWidth,
+                            initialFilter = it,
+                            initialSeries = null,
+                        )
+                    }
+                }
+            }
+
             val tags = referentialApi.getBookTags()
             val genres = referentialApi.getGenres()
             val authors = referentialApi.getAuthors(pageRequest = KomgaPageRequest(unpaged = true)).content

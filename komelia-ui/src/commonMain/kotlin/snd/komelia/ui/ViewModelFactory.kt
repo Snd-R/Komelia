@@ -147,7 +147,7 @@ class ViewModelFactory(
 
     fun getFilterEditViewModel(homeFilters: List<HomeFilterData>?): FilterEditViewModel {
         return FilterEditViewModel(
-            homeFilters = homeFilters,
+            initialFilters = homeFilters,
             appNotifications = dependencies.appNotifications,
             seriesApi = komgaApi.seriesApi,
             bookApi = komgaApi.bookApi,

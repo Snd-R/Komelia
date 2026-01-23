@@ -15,8 +15,13 @@ import snd.komelia.ui.common.components.ErrorContent
 import snd.komelia.ui.home.HomeFilterData
 import snd.komelia.ui.home.HomeScreen
 import snd.komelia.ui.home.edit.view.FilterEditContent
+import kotlin.jvm.Transient
 
-class FilterEditScreen(private val homeFilters: List<HomeFilterData>? = null) : Screen {
+class FilterEditScreen(
+    // FIXME should be serializable
+    @Transient
+    private val homeFilters: List<HomeFilterData>? = null
+) : Screen {
 
     @Composable
     override fun Content() {
