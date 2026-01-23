@@ -189,7 +189,6 @@ class ReaderState(
             val nextBook = getNextBook(booksState.nextBook.id)
             val nextBookPages = if (nextBook != null) loadBookPages(nextBook.id) else emptyList()
 
-            onProgressChange(1)
             this.booksState.value = BookState(
                 currentBook = booksState.nextBook,
                 currentBookPages = booksState.nextBookPages,
@@ -199,6 +198,7 @@ class ReaderState(
                 nextBook = nextBook,
                 nextBookPages = nextBookPages
             )
+            onProgressChange(1)
         } else {
             navigator replace MainScreen(
                 if (booksState.currentBook.oneshot) OneshotScreen(booksState.currentBook, bookSiblingsContext)
@@ -229,9 +229,11 @@ class ReaderState(
         return
     }
 
-    fun onProgressChange(page: Int) {
+    suspend fun onProgressChange(page: Int) {
+        readProgressPage.value = page
+
         if (markReadProgress) {
-            appNotifications.runCatchingToNotifications(stateScope) {
+            appNotifications.runCatchingToNotifications {
                 val currentBook = requireNotNull(booksState.value?.currentBook)
                 bookApi.markReadProgress(
                     currentBook.id,
@@ -239,7 +241,6 @@ class ReaderState(
                 )
             }
         }
-        readProgressPage.value = page
     }
 
     fun onReaderTypeChange(type: ReaderType) {
