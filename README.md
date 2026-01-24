@@ -2,12 +2,8 @@
 
 ### Downloads:
 
-Komelia is currently in early access testing in Google Play Store.\
-Get access by joining google group https://groups.google.com/g/komelia-test \
-Then just install app from https://play.google.com/store/apps/details?id=io.github.snd_r.komelia
-
-#### Other Downloads:
 - Latest prebuilt release is available at https://github.com/Snd-R/Komelia/releases
+- Google Play Store https://play.google.com/store/apps/details?id=io.github.snd_r.komelia
 - F-Droid https://f-droid.org/packages/io.github.snd_r.komelia/
 - AUR package https://aur.archlinux.org/packages/komelia
 
