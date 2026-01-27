@@ -1,14 +1,20 @@
 package snd.komelia.api
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import snd.komelia.komga.api.KomgaApi
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.sse.KomgaEvent
@@ -50,7 +56,21 @@ data class RemoteApi(
             // and for the server to respond with at least single event so that ktor could transform response body to sse session
             // launch the connection in separate coroutine to prevent blocking offline events
             coroutineScope.launch {
-                komgaClientFactory.sseSession().incoming.collect { incoming.emit(it) }
+                var session: KomgaSSESession? = null
+
+                while (session == null && isActive) {
+                    try {
+                        session = komgaClientFactory.sseSession()
+                    } catch (e: ClientRequestException) {
+                        logger.catching(e)
+                        delay(10_000)
+                    }
+                }
+
+                currentCoroutineContext().ensureActive()
+                if (session == null) return@launch
+
+                session.incoming.collect { incoming.emit(it) }
             }
 
             coroutineScope.launch {
