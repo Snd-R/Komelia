@@ -1,5 +1,7 @@
 package snd.komelia.api
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,7 +39,10 @@ data class RemoteApi(
         offlineEvents: SharedFlow<KomgaEvent>,
     ) : KomgaSSESession {
         override val incoming: MutableSharedFlow<KomgaEvent> = MutableSharedFlow()
-        private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+        private val logger = KotlinLogging.logger { }
+        private val coroutineScope = CoroutineScope(
+            Dispatchers.Default + SupervisorJob() +
+                    CoroutineExceptionHandler { _, exception -> logger.catching(exception) })
 
 
         init {
