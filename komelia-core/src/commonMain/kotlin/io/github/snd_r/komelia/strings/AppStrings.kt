@@ -100,6 +100,7 @@ data class KomfProviderSettingsStrings(
     val providerMangaUpdates: String,
     val providerMangaDex: String,
     val providerNautiljon: String,
+    val providerStripInfo: String,
     val providerYenPress: String,
     val providerViz: String,
     val providerWebtoons: String,
@@ -118,6 +119,7 @@ data class KomfProviderSettingsStrings(
             KomfCoreProviders.MANGA_UPDATES -> providerMangaUpdates
             KomfCoreProviders.MANGADEX -> providerMangaDex
             KomfCoreProviders.NAUTILJON -> providerNautiljon
+            KomfCoreProviders.STRIP_INFO -> providerStripInfo
             KomfCoreProviders.YEN_PRESS -> providerYenPress
             KomfCoreProviders.VIZ -> providerViz
             KomfCoreProviders.MANGA_BAKA -> providerMangaBaka
