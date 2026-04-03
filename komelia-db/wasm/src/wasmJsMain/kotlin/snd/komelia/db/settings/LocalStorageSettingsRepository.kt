@@ -2,6 +2,7 @@ package snd.komelia.db.settings
 
 import io.github.snd_r.komelia.image.UpsamplingMode
 import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.set
 import snd.komelia.db.AppSettings
@@ -50,9 +51,18 @@ class LocalStorageSettingsRepository {
     }
 
     fun getKomfSettings(): KomfSettings {
-        return localStorage.getItem(komfSettingsKey)
-            ?.let { json.decodeFromString<KomfSettings>(it) }
-            ?: KomfSettings()
+        val stored = localStorage.getItem(komfSettingsKey)
+            ?.let { runCatching { json.decodeFromString<KomfSettings>(it) }.getOrNull() }
+        if (stored != null) return stored
+
+        // When Komelia is served from a komf instance, auto-connect to that instance
+        // rather than defaulting to localhost:8085
+        val origin = window.location.origin
+        return if (origin.isNotBlank() && !origin.contains("localhost") && !origin.contains("127.0.0.1")) {
+            KomfSettings(enabled = true, remoteUrl = origin)
+        } else {
+            KomfSettings()
+        }
     }
 
     fun saveKomfSettings(settings: KomfSettings) {
