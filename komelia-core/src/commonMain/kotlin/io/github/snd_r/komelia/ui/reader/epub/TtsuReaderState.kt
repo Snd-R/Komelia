@@ -42,8 +42,8 @@ import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import snd.komga.client.book.KomgaBook

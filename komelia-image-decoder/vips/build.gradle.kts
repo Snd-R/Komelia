@@ -35,6 +35,7 @@ kotlin {
             val hostOs = when {
                 osName.startsWith("Win") -> "windows"
                 osName.startsWith("Linux") -> "linux"
+                osName.startsWith("Mac") -> "macos"
                 else -> error("Unsupported OS: $osName")
             }
 

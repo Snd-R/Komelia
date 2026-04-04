@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package io.github.snd_r.komelia.ui.settings.komf.providers
 
 import androidx.compose.foundation.background
@@ -41,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.localDateFormat
 import io.github.snd_r.komelia.platform.WindowSizeClass
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.platform.cursorForMove
@@ -64,9 +65,6 @@ import io.github.snd_r.komelia.ui.settings.komf.komfLanguageTagsSuggestions
 import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel.ProvidersConfigState
 import io.github.snd_r.komelia.updates.UpdateProgress
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format
-import kotlinx.datetime.toLocalDateTime
 import sh.calvin.reorderable.ReorderableColumn
 import snd.komf.api.KomfAuthorRole
 import snd.komf.api.KomfCoreProviders
@@ -282,8 +280,7 @@ private fun CommonSettingsContent(
         Column {
             if (mangaBakaDbMetadata != null) {
                 val downloadDate = remember(mangaBakaDbMetadata) {
-                    mangaBakaDbMetadata.downloadTimestamp.toLocalDateTime(TimeZone.currentSystemDefault())
-                        .format(localDateFormat)
+                    mangaBakaDbMetadata.downloadTimestamp.toString().substringBefore('T')
                 }
                 Text("Download date $downloadDate")
                 Text("Checksum ${mangaBakaDbMetadata.checksum}")
@@ -741,4 +738,3 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
         )
     }
 }
-

@@ -44,3 +44,16 @@ include(":third_party:indexeddb:external")
 includeBuild("third_party/secret-service") {
     dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
 }
+
+val localKomfRoot = file("../")
+if (
+    file("../settings.gradle.kts").exists() &&
+    file("../komf-client/build.gradle.kts").exists()
+) {
+    includeBuild(localKomfRoot) {
+        dependencySubstitution {
+            substitute(module("io.github.snd-r.komf:client"))
+                .using(project(":komf-client"))
+        }
+    }
+}

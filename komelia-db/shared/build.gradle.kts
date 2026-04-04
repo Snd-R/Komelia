@@ -21,6 +21,9 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         commonMain.dependencies {
             implementation(project(":komelia-core"))
             implementation(project(":komelia-image-decoder:shared"))
@@ -47,4 +50,3 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
-

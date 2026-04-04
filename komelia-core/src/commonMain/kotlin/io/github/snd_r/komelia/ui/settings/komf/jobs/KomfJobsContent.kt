@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package io.github.snd_r.komelia.ui.settings.komf.jobs
 
 import androidx.compose.animation.Crossfade
@@ -50,7 +52,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.platform.DefaultDateTimeFormats.dateTimeFormat
 import io.github.snd_r.komelia.platform.cursorForHand
 import io.github.snd_r.komelia.ui.common.AppFilterChipDefaults
 import io.github.snd_r.komelia.ui.common.Pagination
@@ -58,7 +59,6 @@ import io.github.snd_r.komelia.ui.common.cards.SeriesImageCard
 import io.github.snd_r.komelia.ui.dialogs.ConfirmationDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.format
 import snd.komf.api.job.KomfMetadataJob
 import snd.komf.api.job.KomfMetadataJobStatus
 import snd.komf.api.job.KomfMetadataJobStatus.COMPLETED
@@ -212,7 +212,8 @@ private fun JobCard(
         }
 
         Spacer(Modifier.weight(1f))
-        Text(job.startedAt.format(dateTimeFormat))
+        val startedAt = remember(job.startedAt) { job.startedAt.toString().substringBeforeLast(':').replace('T', ' ') }
+        Text(startedAt)
         when (job.status) {
             RUNNING -> {}
             FAILED ->
