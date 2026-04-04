@@ -259,6 +259,7 @@ val EnStrings = AppStrings(
             providerMangaDex = "MangaDex",
             providerNautiljon = "Nautiljon",
             providerStripInfo = "StripInfo",
+            providerLambiek = "Lambiek",
             providerYenPress = "YenPress",
             providerViz = "Viz",
             providerWebtoons = "Webtoons",

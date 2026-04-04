@@ -25,6 +25,7 @@ import snd.komf.api.KomfCoreProviders.MANGADEX
 import snd.komf.api.KomfCoreProviders.MANGA_BAKA
 import snd.komf.api.KomfCoreProviders.MANGA_UPDATES
 import snd.komf.api.KomfCoreProviders.NAUTILJON
+import snd.komf.api.KomfCoreProviders.LAMBIEK
 import snd.komf.api.KomfCoreProviders.STRIP_INFO
 import snd.komf.api.KomfCoreProviders.VIZ
 import snd.komf.api.KomfCoreProviders.WEBTOONS
@@ -168,6 +169,7 @@ class KomfProvidersSettingsViewModel(
         private val mangaDex = MangaDexConfigState(MANGADEX, config?.mangaDex, this::onMangaDexConfigUpdate)
         private val nautiljon = GenericProviderConfigState(NAUTILJON, config?.nautiljon, this::onProviderConfigUpdate)
         private val stripInfo = GenericProviderConfigState(STRIP_INFO, config?.stripInfo, this::onProviderConfigUpdate)
+        private val lambiek = GenericProviderConfigState(LAMBIEK, config?.lambiek, this::onProviderConfigUpdate)
         private val yenPress = GenericProviderConfigState(YEN_PRESS, config?.yenPress, this::onProviderConfigUpdate)
         private val viz = GenericProviderConfigState(VIZ, config?.viz, this::onProviderConfigUpdate)
         private val webtoons = GenericProviderConfigState(WEBTOONS, config?.webtoons, this::onProviderConfigUpdate)
@@ -187,6 +189,7 @@ class KomfProvidersSettingsViewModel(
                     if (config.mangaBaka.enabled) mangaBaka else null,
                     if (config.nautiljon.enabled) nautiljon else null,
                     if (config.stripInfo.enabled) stripInfo else null,
+                    if (config.lambiek.enabled) lambiek else null,
                     if (config.yenPress.enabled) yenPress else null,
                     if (config.viz.enabled) viz else null,
                     if (config.webtoons.enabled) webtoons else null,
@@ -216,6 +219,7 @@ class KomfProvidersSettingsViewModel(
                 MANGADEX -> mangaDex
                 NAUTILJON -> nautiljon
                 STRIP_INFO -> stripInfo
+                LAMBIEK -> lambiek
                 YEN_PRESS -> yenPress
                 VIZ -> viz
                 MANGA_BAKA -> mangaBaka
@@ -276,6 +280,7 @@ class KomfProvidersSettingsViewModel(
                 MANGA_UPDATES -> ProvidersConfigUpdateRequest(mangaUpdates = Some(config))
                 NAUTILJON -> ProvidersConfigUpdateRequest(nautiljon = Some(config))
                 STRIP_INFO -> ProvidersConfigUpdateRequest(stripInfo = Some(config))
+                LAMBIEK -> ProvidersConfigUpdateRequest(lambiek = Some(config))
                 YEN_PRESS -> ProvidersConfigUpdateRequest(yenPress = Some(config))
                 VIZ -> ProvidersConfigUpdateRequest(viz = Some(config))
                 WEBTOONS -> ProvidersConfigUpdateRequest(webtoons = Some(config))
