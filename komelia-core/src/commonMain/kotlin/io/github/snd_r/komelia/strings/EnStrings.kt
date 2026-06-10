@@ -210,6 +210,7 @@ val EnStrings = AppStrings(
         appThemeDark = "Dark",
         appThemeLight = "Light",
         appThemeOled = "Darker",
+        appLanguage = "Language",
         imageCardSize = "Image card size in grid view (minimum display size)",
         decoder = "Image Decoder/Sampler",
         epubReaderTypeKomga = "Komga Epub Reader",

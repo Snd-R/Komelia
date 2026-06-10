@@ -1,5 +1,6 @@
 package snd.komelia.db
 
+import io.github.snd_r.komelia.strings.AppLanguage
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
@@ -16,6 +17,7 @@ data class AppSettings(
     val bookPageLoadSize: Int = 20,
     val bookListLayout: BooksLayout = BooksLayout.GRID,
     val appTheme: AppTheme = AppTheme.DARK,
+    val language: String = AppLanguage.ENGLISH.code,
 
     val checkForUpdatesOnStartup: Boolean = true,
     val updateLastCheckedTimestamp: Instant? = null,

@@ -17,11 +17,18 @@ import io.github.snd_r.komelia.settings.EpubReaderSettingsRepository
 import io.github.snd_r.komelia.settings.ImageReaderSettingsRepository
 import io.github.snd_r.komelia.settings.KomfSettingsRepository
 import io.github.snd_r.komelia.settings.SecretsRepository
+import io.github.snd_r.komelia.strings.AppLanguage
+import io.github.snd_r.komelia.strings.AppStrings
 import io.github.snd_r.komelia.strings.EnStrings
+import io.github.snd_r.komelia.strings.ZhStrings
 import io.github.snd_r.komelia.updates.AppUpdater
 import io.github.snd_r.komelia.updates.OnnxModelDownloader
 import io.github.snd_r.komelia.updates.OnnxRuntimeInstaller
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import snd.komelia.image.ImageDecoder
 import snd.komelia.onnxruntime.OnnxRuntime
 import snd.komf.client.KomfClientFactory
@@ -55,5 +62,25 @@ class DesktopDependencyContainer(
     override val panelDetector: KomeliaPanelDetector?,
 ) : DependencyContainer {
     override val platformContext: PlatformContext = PlatformContext.INSTANCE
-    override val appStrings = MutableStateFlow(EnStrings)
+
+    private val _appStrings = MutableStateFlow<AppStrings>(EnStrings)
+    override val appStrings: StateFlow<AppStrings> = _appStrings
+
+    init {
+        GlobalScope.launch(Dispatchers.IO) {
+            settingsRepository.getLanguage().collect { language ->
+                _appStrings.value = when (language) {
+                    AppLanguage.CHINESE -> ZhStrings
+                    else -> EnStrings
+                }
+            }
+        }
+    }
+
+    private fun getStringsForLanguage(language: AppLanguage): AppStrings {
+        return when (language) {
+            AppLanguage.CHINESE -> ZhStrings
+            else -> EnStrings
+        }
+    }
 }

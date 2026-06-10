@@ -1,5 +1,6 @@
 package io.github.snd_r.komelia.settings
 
+import io.github.snd_r.komelia.strings.AppLanguage
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
@@ -39,5 +40,8 @@ interface CommonSettingsRepository {
 
     fun getAppTheme(): Flow<AppTheme>
     suspend fun putAppTheme(theme: AppTheme)
+
+    fun getLanguage(): Flow<AppLanguage>
+    suspend fun putLanguage(language: AppLanguage)
 
 }

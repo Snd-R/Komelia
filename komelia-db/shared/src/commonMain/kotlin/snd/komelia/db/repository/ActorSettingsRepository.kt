@@ -1,6 +1,7 @@
 package snd.komelia.db.repository
 
 import io.github.snd_r.komelia.settings.CommonSettingsRepository
+import io.github.snd_r.komelia.strings.AppLanguage
 import io.github.snd_r.komelia.ui.common.AppTheme
 import io.github.snd_r.komelia.ui.series.BooksLayout
 import io.github.snd_r.komelia.updates.AppVersion
@@ -101,5 +102,15 @@ class ActorSettingsRepository(
 
     override suspend fun putAppTheme(theme: AppTheme) {
         actor.transform { it.copy(appTheme = theme) }
+    }
+
+    override fun getLanguage(): Flow<AppLanguage> {
+        return actor.state.map { 
+            AppLanguage.values().firstOrNull { lang -> lang.code == it.language } ?: AppLanguage.ENGLISH 
+        }.distinctUntilChanged()
+    }
+
+    override suspend fun putLanguage(language: AppLanguage) {
+        actor.transform { it.copy(language = language.code) }
     }
 }

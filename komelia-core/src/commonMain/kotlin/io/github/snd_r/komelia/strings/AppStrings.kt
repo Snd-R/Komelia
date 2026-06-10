@@ -392,6 +392,7 @@ data class SettingsStrings(
     val appThemeDark: String,
     val appThemeLight: String,
     val appThemeOled: String,
+    val appLanguage: String,
     val imageCardSize: String,
     val decoder: String,
 

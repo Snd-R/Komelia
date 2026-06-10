@@ -34,6 +34,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
                 it[bookPageLoadSize] = settings.bookPageLoadSize
                 it[bookListLayout] = settings.bookListLayout.name
                 it[appTheme] = settings.appTheme.name
+                it[language] = settings.language
 
                 it[checkForUpdatesOnStartup] = settings.checkForUpdatesOnStartup
                 it[updateLastCheckedTimestamp] = settings.updateLastCheckedTimestamp
@@ -52,6 +53,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
             bookPageLoadSize = get(AppSettingsTable.bookPageLoadSize),
             bookListLayout = BooksLayout.valueOf(get(AppSettingsTable.bookListLayout)),
             appTheme = AppTheme.valueOf(get(AppSettingsTable.appTheme)),
+            language = getOrNull(AppSettingsTable.language) ?: "en",
             checkForUpdatesOnStartup = get(AppSettingsTable.checkForUpdatesOnStartup),
             updateLastCheckedTimestamp = get(AppSettingsTable.updateLastCheckedTimestamp),
             updateLastCheckedReleaseVersion = get(AppSettingsTable.updateLastCheckedReleaseVersion)

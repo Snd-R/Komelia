@@ -28,7 +28,9 @@ class AppSettingsScreen : Screen {
                     cardWidth = vm.cardWidth,
                     onCardWidthChange = vm::onCardWidthChange,
                     currentTheme = vm.currentTheme,
-                    onThemeChange = vm::onAppThemeChange
+                    onThemeChange = vm::onAppThemeChange,
+                    currentLanguage = vm.currentLanguage,
+                    onLanguageChange = vm::onLanguageChange
                 )
             }
         }
