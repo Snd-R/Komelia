@@ -21,12 +21,15 @@ import snd.komelia.settings.model.EpubReaderType.TTSU_EPUB
 import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
+import snd.komelia.ui.common.components.SwitchWithLabel
 import snd.komelia.ui.platform.cursorForHand
 
 @Composable
 fun EpubReaderSettingsContent(
     readerType: EpubReaderType,
     onReaderChange: (EpubReaderType) -> Unit,
+    fullscreenEnabled: Boolean,
+    onFullscreenEnabledChange: (Boolean) -> Unit,
 ) {
     val strings = LocalStrings.current.settings
     Column(
@@ -69,6 +72,15 @@ fun EpubReaderSettingsContent(
 
             KOMGA_EPUB -> Text("Komga webui epub reader adapted for use in Komelia")
 
+        }
+
+        if (readerType == KOMGA_EPUB) {
+            SwitchWithLabel(
+                checked = fullscreenEnabled,
+                onCheckedChange = onFullscreenEnabledChange,
+                label = { Text("Fullscreen mode") },
+                supportingText = { Text("Automatically enter fullscreen when opening a book on mobile") },
+            )
         }
     }
 }

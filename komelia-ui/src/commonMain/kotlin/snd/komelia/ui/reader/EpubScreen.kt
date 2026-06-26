@@ -1,9 +1,13 @@
 package snd.komelia.ui.reader
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
@@ -60,10 +64,10 @@ class EpubScreen(
         }
 
         val state = vm.state.collectAsState().value
+        val isFullscreen = LocalWindowState.current.isFullscreen.collectAsState(false)
         Column {
             PlatformTitleBar(applyInsets = false) {
                 if (canIntegrateWithSystemBar()) {
-                    val isFullscreen = LocalWindowState.current.isFullscreen.collectAsState(false)
                     if (state is LoadState.Success && !isFullscreen.value) {
                         val book = state.value.book.collectAsState().value
                         TitleBarContent(
@@ -85,10 +89,19 @@ class EpubScreen(
                     }
                 )
 
-                is LoadState.Success -> EpubContent(
-                    onWebviewCreated = { state.value.onWebviewCreated(it) },
-                    onBackButtonPress = state.value::onBackButtonPress
-                )
+                is LoadState.Success -> {
+                    // On mobile (edge-to-edge, no integrated title bar), pad below status bar when not fullscreen
+                    val modifier = if (!isFullscreen.value && !canIntegrateWithSystemBar())
+                        Modifier.statusBarsPadding().fillMaxSize()
+                    else
+                        Modifier.fillMaxSize()
+                    Box(modifier = modifier) {
+                        EpubContent(
+                            onWebviewCreated = { state.value.onWebviewCreated(it) },
+                            onBackButtonPress = state.value::onBackButtonPress
+                        )
+                    }
+                }
             }
         }
     }
