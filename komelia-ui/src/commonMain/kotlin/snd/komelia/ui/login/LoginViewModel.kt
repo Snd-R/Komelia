@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
@@ -34,6 +35,8 @@ import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.PlatformType.DESKTOP
 import snd.komelia.ui.platform.PlatformType.MOBILE
 import snd.komelia.ui.platform.PlatformType.WEB_KOMF
+
+private val logger = KotlinLogging.logger { }
 
 class LoginViewModel(
     private val settingsRepository: CommonSettingsRepository,
@@ -162,6 +165,7 @@ class LoginViewModel(
             else "Login error ${e::class.simpleName}: ${e.message}"
             mutableState.value = LoadState.Error(e)
         } catch (e: Throwable) {
+            logger.catching(e)
             userLoginError = formatExceptionMessage(e)
             mutableState.value = LoadState.Error(e)
         }
