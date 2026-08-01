@@ -24,16 +24,17 @@ object SharedLibrariesLoader {
 
     @Suppress("UnsafeDynamicallyLoadedCode")
     fun findAndLoadFile(filename: String) {
-        val filePath = System.getProperty("java.library.path")
+        val filePath = findFile(filename) ?: throw UnsatisfiedLinkError("Failed to find library $filename")
+        System.load(filePath.absolutePathString())
+    }
+
+    fun findFile(filename: String): Path? {
+        return System.getProperty("java.library.path")
             .split(":").asSequence()
             .map { Path(it) }
             .filter { it.exists() }
             .flatMap { it.listDirectoryEntries() }
             .firstOrNull { it.name == filename }
-
-        if (filePath == null) throw UnsatisfiedLinkError("Failed to find library $filename")
-
-        System.load(filePath.absolutePathString())
     }
 
     @Suppress("UnsafeDynamicallyLoadedCode")
