@@ -60,7 +60,7 @@ object OnnxRuntimeSharedLibraries {
         }
     }
 
-    private data class OrtLibraries(
+    data class OrtLibraries(
         val onnxruntime: Path,
         val sharedEp: Path,
         val directMl: Path?,
@@ -120,15 +120,8 @@ object OnnxRuntimeSharedLibraries {
                 "libhipblas-7909492e.so.3.0.70000" -> rocmHipBlas = entry
             }
         }
-        when {
-            (onnxruntime == null || sharedEp == null) && DesktopPlatform.Current == DesktopPlatform.Linux -> {
-                return getLinuxSystemLibs() ?: error("onnxruntime library not found")
-            }
-
-            onnxruntime == null || sharedEp == null -> {
-                error("onnxruntime library not found")
-            }
-        }
+        check(onnxruntime != null) { "onnxruntime library not found" }
+        check(sharedEp != null) { "onnxruntime shared ep library not found" }
 
         // copy to temp dir on windows to allow overriding original dlls during runtime
         return if (DesktopPlatform.Current == DesktopPlatform.Windows) {
@@ -151,22 +144,6 @@ object OnnxRuntimeSharedLibraries {
                 rocmEp = rocmEp,
                 rocmHipBlas = rocmHipBlas
             )
-    }
-
-    private fun getLinuxSystemLibs(): OrtLibraries? {
-        val onnxruntime = SharedLibrariesLoader.findFile("libonnxruntime.so")
-        val sharedEp = SharedLibrariesLoader.findFile("libonnxruntime_providers_shared.so")
-        if (onnxruntime == null || sharedEp == null) return null
-
-        return OrtLibraries(
-            onnxruntime = onnxruntime,
-            sharedEp = sharedEp,
-            directMl = null,
-            cudaEp = SharedLibrariesLoader.findFile("libonnxruntime_providers_cuda.so"),
-            trtEp = SharedLibrariesLoader.findFile("libonnxruntime_providers_tensorrt.so"),
-            rocmEp = null,
-            rocmHipBlas = null
-        )
     }
 
     private fun loadKomeliaJniLibs() {
