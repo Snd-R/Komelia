@@ -193,6 +193,8 @@ compose.desktop {
     }
 }
 
-tasks.withType<Jar> {
+tasks.withType<Zip>().named {
+    it.matches(Regex("package(Release)?UberJarForCurrentOS"))
+}.configureEach {
     exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
 }
