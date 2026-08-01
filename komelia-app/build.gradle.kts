@@ -192,3 +192,7 @@ compose.desktop {
         }
     }
 }
+
+tasks.withType<Jar> {
+    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
+}
