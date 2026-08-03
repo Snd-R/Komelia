@@ -1,8 +1,9 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -10,9 +11,13 @@ group = "io.github.snd-r.komelia.db.shared"
 version = "unspecified"
 
 kotlin {
-    jvmToolchain(17)
     jvm {}
-    androidTarget {}
+    android {
+        namespace = "io.github.snd_r.komelia.infra.database.transaction"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        compilerOptions { jvmTarget = JvmTarget.JVM_17 }
+    }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -35,16 +40,5 @@ kotlin {
     }
 }
 
-android {
-    namespace = "io.github.snd_r.komelia.infra.database.transaction"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
 

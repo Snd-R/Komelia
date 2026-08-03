@@ -4,8 +4,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
 }
@@ -14,13 +14,15 @@ group = "io.github.snd_r.komelia.db.sqlite"
 version = "unspecified"
 
 kotlin {
-    jvmToolchain(17)
-
     jvm {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
-    androidTarget {
-        compilerOptions { jvmTarget.set(JvmTarget.JVM_1_8) }
+    android {
+        namespace = "io.github.snd_r.komelia.infra.database.sqlite"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        compilerOptions { jvmTarget = JvmTarget.JVM_17 }
+        androidResources { enable = true }
     }
 
     sourceSets {
@@ -45,21 +47,9 @@ kotlin {
             implementation(libs.exposed.kotlin.datetime)
             implementation(libs.hikariCP)
             implementation(libs.flyway.core)
-            implementation(libs.sqlite.xerial.jdbc)
+//            implementation(libs.sqlite.xerial.jdbc)
+            implementation(files("sqlite-jdbc-3.51.3.0-linux.jar"))
         }
-    }
-}
-
-android {
-    namespace = "io.github.snd_r.komelia.infra.database.sqlite"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
 

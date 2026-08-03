@@ -1,11 +1,16 @@
 package snd.komelia.updates
 
+import androidx.compose.ui.platform.UriHandler
 import kotlinx.coroutines.flow.Flow
-import org.jetbrains.skiko.URIManager
+import snd.komelia.DesktopPlatform
+import java.awt.Desktop
+import java.net.URI
 
 class DesktopAppUpdater(
     private val updateClient: UpdateClient
 ) : AppUpdater {
+    private val uriHandler = DesktopUriHandler()
+
     override suspend fun getReleases(): List<AppRelease> {
         return updateClient.getKomeliaReleases().map {
             AppRelease(
@@ -21,12 +26,30 @@ class DesktopAppUpdater(
 
     override suspend fun updateToLatest(): Flow<UpdateProgress>? {
         val latest = updateClient.getKomeliaLatestRelease()
-        URIManager().openUri(latest.htmlUrl)
+        uriHandler.openUri(latest.htmlUrl)
         return null
     }
 
     override fun updateTo(release: AppRelease): Flow<UpdateProgress>? {
-        URIManager().openUri(release.htmlUrl)
+        uriHandler.openUri(release.htmlUrl)
         return null
+    }
+}
+
+
+private class DesktopUriHandler : UriHandler {
+    override fun openUri(uri: String) {
+        val desktop = Desktop.getDesktop()
+        if (desktop.isSupported(Desktop.Action.BROWSE)) {
+            desktop.browse(URI(uri))
+        } else when (DesktopPlatform.Current) {
+            DesktopPlatform.Linux -> Runtime.getRuntime().exec(arrayOf("xdg-open", URI(uri).toString()))
+            DesktopPlatform.Windows, DesktopPlatform.MacOS ->
+                throw UnsupportedOperationException(
+                    "AWT doesn't support the BROWSE action on ${DesktopPlatform.Current}"
+                )
+            DesktopPlatform.Unknown ->
+                throw UnsupportedOperationException("AWT doesn't support ${DesktopPlatform.Current}")
+        }
     }
 }

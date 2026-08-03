@@ -68,10 +68,15 @@ import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.ui.platform.canIntegrateWithSystemBar
 import snd.komelia.ui.windowBorder
+import java.awt.Desktop
 import java.awt.Dimension
+import java.awt.Frame
+import java.awt.Label
+import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.nio.file.Path
 import kotlin.system.exitProcess
+
 
 private val logger = KotlinLogging.logger {}
 private var shouldRestart = true
@@ -86,6 +91,7 @@ private val keyEvents = MutableSharedFlow<KeyEvent>(extraBufferCapacity = Int.MA
 fun main() {
     configureLogging()
     FileKit.init(appId = "komelia")
+
     if (DesktopPlatform.Current == Linux) {
         // try to load system glib2 and gtk libraries by loading webkit2gtk first
         // loading in this order should prevent conflict between system gtk and bundled glib2 version

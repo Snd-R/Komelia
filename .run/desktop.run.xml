@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="komelia-app:run" />
+          <option value="komelia-app:desktopApp:run" />
         </list>
       </option>
       <option name="vmOptions" />

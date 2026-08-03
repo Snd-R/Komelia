@@ -2,8 +2,6 @@ package snd.komelia
 
 import android.app.Activity
 import android.content.Context
-import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.dataStoreFile
 import coil3.memory.MemoryCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.BuildConfig
@@ -81,7 +79,6 @@ import snd.komelia.onnxruntime.OnnxRuntime
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komelia.settings.AndroidSecretsRepository
-import snd.komelia.settings.AppSettingsSerializer
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.updates.AndroidAppUpdater
 import snd.komelia.updates.AndroidOnnxModelDownloader
@@ -137,10 +134,9 @@ class AndroidAppModule(
 
 
     override suspend fun createAppRepositories(): AppRepositories {
-        val datastore = DataStoreFactory.create(
-            serializer = AppSettingsSerializer,
-            produceFile = { context.dataStoreFile("settings.pb") },
-            corruptionHandler = null,
+        val sharedPreferences = context.getSharedPreferences(
+            "io.github.snd-r.komelia.preferences",
+            Context.MODE_PRIVATE
         )
 
         return AppRepositories(
@@ -172,7 +168,7 @@ class AndroidAppModule(
             colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(databases.app),
             colorLevelsPresetRepository = ExposedColorLevelsPresetRepository(databases.app),
             bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(databases.app),
-            secretsRepository = AndroidSecretsRepository(datastore),
+            secretsRepository = AndroidSecretsRepository(sharedPreferences),
             komfSettingsRepository = ExposedKomfSettingsRepository(databases.app).let { repository ->
                 KomfSettingsRepositoryWrapper(
                     SettingsStateWrapper(

@@ -4,19 +4,21 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
 }
 
 group = "io.github.snd_r.komelia.infra.image_decoder.vips"
 version = "unspecified"
 
 kotlin {
-    jvmToolchain(17)
-
-    androidTarget {
-        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+    android {
+        namespace = "io.github.snd_r.komelia.infra.image_decoder.vips"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        compilerOptions { jvmTarget = JvmTarget.JVM_17 }
     }
+
     jvm {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
@@ -50,17 +52,5 @@ kotlin {
             implementation(libs.directories)
             compileOnly("org.jetbrains.skiko:skiko-awt-runtime-$hostOs-$hostArch:$version")
         }
-    }
-}
-android {
-    namespace = "io.github.snd_r.komelia.infra.image_decoder.vips"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 }

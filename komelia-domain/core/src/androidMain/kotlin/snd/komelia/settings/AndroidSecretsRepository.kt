@@ -1,29 +1,22 @@
 package snd.komelia.settings
 
-import androidx.datastore.core.DataStore
-import io.github.snd_r.komelia.settings.AppSettings
-import io.github.snd_r.komelia.settings.copy
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import android.content.SharedPreferences
+import androidx.core.content.edit
+
+private const val cookieKey = "cookieKey"
 
 class AndroidSecretsRepository(
-    private val dataStore: DataStore<AppSettings>
+    private val preferences: SharedPreferences
 ) : SecretsRepository {
     override suspend fun getCookie(url: String): String? {
-        return dataStore.data
-            .map { it.user.rememberMe.ifBlank { null } }
-            .firstOrNull()
+        return preferences.getString(cookieKey, null)
     }
 
     override suspend fun setCookie(url: String, cookie: String) {
-        dataStore.updateData {
-            it.copy { user = user.copy { rememberMe = cookie } }
-        }
+        preferences.edit { putString(cookieKey, cookie) }
     }
 
     override suspend fun deleteCookie(url: String) {
-        dataStore.updateData {
-            it.copy { user = user.copy { rememberMe = "" } }
-        }
+        preferences.edit { remove(cookieKey) }
     }
 }

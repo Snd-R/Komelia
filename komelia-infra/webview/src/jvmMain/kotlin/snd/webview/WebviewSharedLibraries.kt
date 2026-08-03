@@ -1,5 +1,6 @@
 package snd.webview
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import snd.jni.DesktopPlatform
 import snd.jni.DesktopPlatform.Linux
 import snd.jni.DesktopPlatform.MacOS
@@ -13,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.createDirectories
 
 object WebviewSharedLibraries {
+    val logger = KotlinLogging.logger {}
     private val loaded = AtomicBoolean(false)
 
     @Volatile
@@ -32,6 +34,13 @@ object WebviewSharedLibraries {
     }
 
     private fun loadLinuxLibs() {
+        // let jvm find and load libjawt. on some systems ldd might fail to find it when loading komelia_webview lib
+       try {
+           SharedLibrariesLoader.loadLibrary("jawt")
+       } catch (e: UnsatisfiedLinkError){
+           logger.catching(e)
+       }
+
         val extensionDir = tempDir.resolve("webkit").createDirectories()
         val classPathFile = SharedLibrariesLoader::class.java.getResource("/libkomelia_webkit_extension.so")
             ?: throw UnsatisfiedLinkError("Failed to find libkomelia_webkit_extension file")

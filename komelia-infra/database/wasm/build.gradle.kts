@@ -24,7 +24,6 @@ kotlin {
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.browser)
-//            implementation(projects.komeliaCore)
             implementation(projects.komeliaInfra.database.shared)
             implementation(projects.komeliaInfra.imageDecoder.shared)
             implementation(projects.thirdParty.indexeddb.core)

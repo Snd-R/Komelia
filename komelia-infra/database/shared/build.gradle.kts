@@ -1,8 +1,9 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -10,9 +11,14 @@ group = "io.github.snd-r.komelia.db.shared"
 version = "unspecified"
 
 kotlin {
-    jvmToolchain(17)
     jvm {}
-    androidTarget {}
+
+    android {
+        namespace = "io.github.snd_r.komelia.infra.database.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        compilerOptions { jvmTarget = JvmTarget.JVM_17 }
+    }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -27,6 +33,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.komeliaDomain.core)
             implementation(projects.komeliaDomain.offline)
+            implementation(projects.komeliaInfra.imageDecoder.shared)
             implementation(libs.filekit.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
@@ -34,21 +41,9 @@ kotlin {
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.ktor.client.core)
             implementation(libs.komga.client)
-            implementation(projects.komeliaInfra.imageDecoder.shared)
         }
     }
 }
 
-android {
-    namespace = "io.github.snd_r.komelia.infra.database.shared"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
 
