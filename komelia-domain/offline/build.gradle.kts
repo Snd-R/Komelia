@@ -56,10 +56,12 @@ kotlin {
             implementation(libs.androidx.documentfile)
             implementation(libs.androidx.workManager)
             implementation(libs.androidx.workManager.ktx)
+            implementation(libs.junrar)
         }
 
         jvmMain.dependencies {
             implementation(libs.commons.compress)
+            implementation(libs.junrar)
             implementation(libs.ktor.client.okhttp)
             implementation(projects.komeliaInfra.jni)
         }

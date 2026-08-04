@@ -25,6 +25,7 @@ hikari = "2.4.13"
 filekit = "0.14.2"
 flyway = "9.22.3"
 java-keyring = "1.0.4"
+junrar = "8.1.0"
 komf-client = "1.6.2"
 komga-client = "0.10.3"
 kotlin = "2.4.10"
@@ -80,6 +81,7 @@ filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref =
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "java-keyring" }
+junrar = { module = "com.github.junrar:junrar", version.ref = "junrar" }
 komf-client = { module = "io.github.snd-r.komf:client", version.ref = "komf-client" }
 komga-client = { module = "io.github.snd-r:komga-client", version.ref = "komga-client" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }

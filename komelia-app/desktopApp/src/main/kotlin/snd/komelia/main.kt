@@ -68,11 +68,7 @@ import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.ui.platform.canIntegrateWithSystemBar
 import snd.komelia.ui.windowBorder
-import java.awt.Desktop
 import java.awt.Dimension
-import java.awt.Frame
-import java.awt.Label
-import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.nio.file.Path
 import kotlin.system.exitProcess

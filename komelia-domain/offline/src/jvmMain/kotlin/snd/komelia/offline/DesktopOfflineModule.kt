@@ -6,6 +6,7 @@ import snd.komelia.offline.mediacontainer.DivinaExtractor
 import snd.komelia.offline.mediacontainer.EpubExtractor
 import snd.komelia.offline.mediacontainer.divina.DivinaZipExtractor
 import snd.komelia.offline.mediacontainer.divina.EpubZipExtractor
+import snd.komelia.offline.mediacontainer.divina.RarExtractor
 import snd.komelia.offline.mediacontainer.divina.ZipExtractor
 import snd.komelia.offline.sync.BookDownloadService
 import snd.komelia.offline.sync.DesktopDownloadManager
@@ -31,7 +32,7 @@ class DesktopOfflineModule(
     private val zipExtractor = ZipExtractor()
 
     override fun createDivinaExtractors(): List<DivinaExtractor> {
-        return listOf(DivinaZipExtractor(zipExtractor))
+        return listOf(DivinaZipExtractor(zipExtractor), RarExtractor())
     }
 
     override fun createEpubExtractor(): EpubExtractor {
