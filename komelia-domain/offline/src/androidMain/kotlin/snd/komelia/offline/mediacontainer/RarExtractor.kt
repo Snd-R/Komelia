@@ -20,16 +20,20 @@ class RarExtractor : DivinaExtractor {
         entryName: String
     ): ByteArray {
         return when (val androidFile = file.androidFile) {
-            is AndroidFile.FileWrapper -> Archive(androidFile.file).extractEntryAndClose(entryName)
+            is AndroidFile.FileWrapper -> Archive(androidFile.file).extractAndClose(entryName)
             is AndroidFile.UriWrapper -> {
                 val pfd = FileKit.context.contentResolver.openFileDescriptor(androidFile.uri, "r")
                     ?: error("Failed to open file descriptor ${androidFile.uri}")
-                Archive(FileInputStream(pfd.fileDescriptor)).extractEntryAndClose(entryName)
+                pfd.use { fd ->
+                    FileInputStream(fd.fileDescriptor).use { stream ->
+                        Archive(stream).extractAndClose(entryName)
+                    }
+                }
             }
         }
     }
 
-    private fun Archive.extractEntryAndClose(entryName: String): ByteArray {
+    private fun Archive.extractAndClose(entryName: String): ByteArray {
         return this.use { rar ->
             val header = rar.fileHeaders.find { it.fileName == entryName }
             rar.getInputStream(header).use { it.readBytes() }
