@@ -1,0 +1,13 @@
+<resources>
+    <string name="flter_any_value">Any</string>
+    <string name="filter_tags_search">Search tags</string>
+    <string name="filter_tags_reset">Reset</string>
+    <string name="filter_tags_genre_label">Genre</string>
+    <string name="filter_tags_tags_label">Tags</string>
+    <string name="filter_tags_show_more">Show more</string>
+    <string name="filter_tags_show_less">Show less</string>
+    <string name="filter_include_if_all_match">If all match</string>
+    <string name="filter_include_If_any_match">If any match</string>
+    <string name="filter_exclude_if_all_match">If all match</string>
+    <string name="filter_exclude_if_any_match">If any match</string>
+</resources>
