@@ -36,6 +36,7 @@ import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
+import snd.komelia.ui.platform.BackPressHandler
 import snd.komelia.ui.platform.PlatformType.MOBILE
 import snd.komelia.ui.reader.image.ReaderState
 import snd.komelia.ui.reader.image.ScreenScaleState
@@ -88,6 +89,8 @@ fun ReaderContent(
     val topLevelFocus = remember { FocusRequester() }
     val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
     var hasFocus by remember { mutableStateOf(false) }
+
+    BackPressHandler { if (showSettingsMenu) showSettingsMenu = false else onExit() }
     Box(
         Modifier
             .fillMaxSize()
@@ -106,7 +109,6 @@ fun ReaderContent(
                     Key.Escape -> showSettingsMenu = false
                     Key.H -> showHelpDialog = true
                     Key.DirectionLeft -> if (event.isAltPressed) onExit() else consumed = false
-                    Key.Back -> if (showSettingsMenu) showSettingsMenu = false else onExit()
                     Key.U -> commonReaderState.onStretchToFitCycle()
                     Key.C -> if (event.isAltPressed) commonReaderState.onColorCorrectionDisable() else consumed = false
                     else -> consumed = false
