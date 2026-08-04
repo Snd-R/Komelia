@@ -115,7 +115,7 @@ fun ReadListContent(
         val width = LocalWindowWidth.current
         if ((width == WindowSizeClass.COMPACT || width == WindowSizeClass.MEDIUM) && selectedBooks.isNotEmpty()) {
             BottomPopupBulkActionsPanel {
-                ReadListBulkActionsContent(readList, books, true)
+                ReadListBulkActionsContent(readList, selectedBooks, true)
             }
         }
     }
@@ -199,7 +199,7 @@ private fun BulkActionsToolbar(
                 if (selectedBooks.isNotEmpty()) {
                     Spacer(Modifier.weight(1f))
 
-                    ReadListBulkActionsContent(readList, books, false)
+                    ReadListBulkActionsContent(readList, selectedBooks, false)
                 }
             }
 
@@ -209,7 +209,7 @@ private fun BulkActionsToolbar(
                     else Text("Selection mode: Click on items to select or deselect them")
                 } else {
                     Spacer(Modifier.weight(1f))
-                    ReadListBulkActionsContent(readList, books, false)
+                    ReadListBulkActionsContent(readList, selectedBooks, false)
                 }
             }
 
