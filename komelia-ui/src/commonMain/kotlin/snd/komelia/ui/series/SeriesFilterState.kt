@@ -189,7 +189,7 @@ class SeriesFilterState(
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications {
             genresOptions = referentialApi.getGenres(libraryIds = library.value?.id?.let { listOf(it) }.orEmpty())
-            tagOptions = referentialApi.getSeriesTags(libraryId = library.value?.id)
+            tagOptions = referentialApi.getTags(libraryIds = library.value?.id?.let { listOf(it) }.orEmpty())
             releaseDateOptions = referentialApi.getSeriesReleaseDates(
                 libraryIds = library.value?.id?.let { listOf(it) }.orEmpty()
             )
