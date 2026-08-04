@@ -1,7 +1,7 @@
 include(ExternalProject)
 
 ExternalProject_Add(ep_iconv
-        URL https://ftpmirror.gnu.org/libiconv/libiconv-1.18.tar.gz
+        URL https://mirrors.kernel.org/gnu/libiconv/libiconv-1.18.tar.gz
         CONFIGURE_COMMAND <SOURCE_DIR>/configure ${HOST_FLAG} --prefix ${CMAKE_BINARY_DIR}/sysroot
             --enable-extra-encodings
         BUILD_COMMAND ${Make_EXECUTABLE}

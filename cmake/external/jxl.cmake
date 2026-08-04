@@ -22,10 +22,7 @@ if (NOT ANDROID)
 endif ()
 
 ExternalProject_Add(ep_jxl
-        GIT_REPOSITORY https://github.com/libjxl/libjxl
-        GIT_TAG v0.11.0
-        GIT_SHALLOW 1
-        GIT_PROGRESS 1
+        SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libjxl
         DEPENDS ep_highway ep_brotli
         CMAKE_ARGS ${JXL_ARGS}
         USES_TERMINAL_DOWNLOAD ON

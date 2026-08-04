@@ -10,3 +10,66 @@
 [submodule "third_party/indexeddb"]
 	path = third_party/indexeddb
 	url = https://github.com/Snd-R/indexeddb
+[submodule "third_party/brotli"]
+	path = third_party/brotli
+	url = https://github.com/google/brotli
+[submodule "dav1d"]
+	path = dav1d
+	url = https://code.videolan.org/videolan/dav1d.git
+[submodule "third_party/dav1d"]
+	path = third_party/dav1d
+	url = https://code.videolan.org/videolan/dav1d.git
+[submodule "third_party/libde265"]
+	path = third_party/libde265
+	url = https://github.com/strukturag/libde265.git
+[submodule "third_party/libexif"]
+	path = third_party/libexif
+	url = https://github.com/libexif/libexif
+[submodule "third_party/libexpat"]
+	path = third_party/libexpat
+	url = https://github.com/libexpat/libexpat.git
+[submodule "third_party/libffi"]
+	path = third_party/libffi
+	url = https://github.com/libffi/libffi
+[submodule "third_party/libheif"]
+	path = third_party/libheif
+	url = https://github.com/strukturag/libheif.git
+[submodule "third_party/highway"]
+	path = third_party/highway
+	url = https://github.com/google/highway
+[submodule "third_party/libjpeg-turbo"]
+	path = third_party/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo
+[submodule "third_party/libjxl"]
+	path = third_party/libjxl
+	url = https://github.com/libjxl/libjxl
+[submodule "third_party/Little-CMS"]
+	path = third_party/Little-CMS
+	url = https://github.com/mm2/Little-CMS
+[submodule "third_party/libpng"]
+	path = third_party/libpng
+	url = https://github.com/pnggroup/libpng
+[submodule "third_party/libvips"]
+	path = third_party/libvips
+	url = https://github.com/libvips/libvips.git
+[submodule "third_party/libwebp"]
+	path = third_party/libwebp
+	url = https://chromium.googlesource.com/webm/libwebp
+[submodule "third_party/zlib-ng"]
+	path = third_party/zlib-ng
+	url = https://github.com/zlib-ng/zlib-ng.git
+[submodule "third_party/onnxruntime"]
+	path = third_party/onnxruntime
+	url = https://github.com/microsoft/onnxruntime
+[submodule "third_party/libspng"]
+	path = third_party/libspng
+	url = https://github.com/randy408/libspng
+[submodule "third_party/glib"]
+	path = third_party/glib
+	url = https://gitlab.gnome.org/GNOME/glib.git
+[submodule "libtiff"]
+	path = libtiff
+	url = https://gitlab.com/libtiff/libtiff.git
+[submodule "third_party/libtiff"]
+	path = third_party/libtiff
+	url = https://gitlab.com/libtiff/libtiff.git

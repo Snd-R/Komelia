@@ -1,14 +1,8 @@
-Subject: [PATCH] vips_thumbnail resampling kernel
----
-Index: libvips/resample/thumbnail.c
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
 diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
---- a/libvips/resample/thumbnail.c	(revision 0b3a70c94e2530b79b8a14daa09079454c4d771d)
-+++ b/libvips/resample/thumbnail.c	(date 1759172814248)
-@@ -152,6 +152,7 @@
+index 69eb7a20d..640a48af3 100644
+--- a/libvips/resample/thumbnail.c
++++ b/libvips/resample/thumbnail.c
+@@ -154,6 +154,7 @@ typedef struct _VipsThumbnail {
  	/* Pyramids are stored in pages.
  	 */
  	gboolean page_pyramid;
@@ -16,7 +10,7 @@ diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
  
  } VipsThumbnail;
  
-@@ -811,7 +812,7 @@
+@@ -844,7 +845,7 @@ vips_thumbnail_build(VipsObject *object)
  		in = t[4];
  	}
  
@@ -25,7 +19,7 @@ diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
  		return -1;
  	in = t[5];
  
-@@ -1070,6 +1071,13 @@
+@@ -1157,6 +1158,13 @@ vips_thumbnail_class_init(VipsThumbnailClass *class)
  		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
  		G_STRUCT_OFFSET(VipsThumbnail, output_profile),
  		NULL);
@@ -39,7 +33,7 @@ diff --git a/libvips/resample/thumbnail.c b/libvips/resample/thumbnail.c
  }
  
  static void
-@@ -1080,6 +1088,7 @@
+@@ -1167,6 +1175,7 @@ vips_thumbnail_init(VipsThumbnail *thumbnail)
  	thumbnail->auto_rotate = TRUE;
  	thumbnail->intent = VIPS_INTENT_RELATIVE;
  	thumbnail->fail_on = VIPS_FAIL_ON_NONE;

@@ -22,6 +22,7 @@ if (KOMELIA_SUPERBUILD)
     endif ()
 
 
+    set(THIRD_PARTY_SOURCE_PATH ${PROJECT_SOURCE_DIR}/third_party)
     set(THIRD_PARTY_LIB_PATH ${CMAKE_BINARY_DIR}/sysroot)
     set(CMAKE_FIND_ROOT_PATH ${THIRD_PARTY_LIB_PATH};${CMAKE_FIND_ROOT_PATH})
     set_directory_properties(PROPERTIES EP_PREFIX ${THIRD_PARTY_LIB_PATH})
@@ -73,6 +74,7 @@ if (KOMELIA_SUPERBUILD)
             SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-infra/image-decoder/vips/native
             CMAKE_ARGS
             ${EP_CMAKE_ARGS}
+            BUILD_ALWAYS true
             USES_TERMINAL_BUILD true
     )
     if (WIN32)
@@ -95,6 +97,7 @@ if (KOMELIA_SUPERBUILD)
             -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
             -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
             -DVULKAN_GPU_ENUMERATION=${VULKAN_GPU_ENUMERATION}
+            BUILD_ALWAYS true
             USES_TERMINAL_BUILD true
     )
 
@@ -107,6 +110,7 @@ if (KOMELIA_SUPERBUILD)
                 CMAKE_ARGS
                 ${EP_CMAKE_ARGS}
                 -DWEBVIEW_USE_COMPAT_MINGW=${WEBVIEW_USE_COMPAT_MINGW}
+                BUILD_ALWAYS true
                 USES_TERMINAL_BUILD true
         )
     endif ()

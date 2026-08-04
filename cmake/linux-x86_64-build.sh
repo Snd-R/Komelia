@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-rm -rf ./cmake/build
 mkdir -p ./cmake/build/sysroot
 cd ./cmake/build
 

@@ -1,10 +1,7 @@
 include(ExternalProject)
 
 ExternalProject_Add(ep_ffi
-        GIT_REPOSITORY https://github.com/libffi/libffi
-        GIT_TAG v3.5.2
-        GIT_SHALLOW 1
-        GIT_PROGRESS 1
+        SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libffi
         BUILD_IN_SOURCE 1
         CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh && <SOURCE_DIR>/configure ${HOST_FLAG}
             --disable-exec-static-tramp

@@ -19,9 +19,7 @@ else ()
     endif ()
 
     ExternalProject_Add(ep_onnxruntime
-            GIT_REPOSITORY https://github.com/microsoft/onnxruntime
-            GIT_TAG v1.25.0
-            GIT_PROGRESS 1
+            SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/onnxruntime
             UPDATE_DISCONNECTED True
             SOURCE_SUBDIR cmake
             CMAKE_ARGS

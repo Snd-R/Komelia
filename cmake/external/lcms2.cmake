@@ -1,10 +1,7 @@
 include(ExternalProject)
 
 ExternalProject_Add(ep_lcms2
-        GIT_REPOSITORY https://github.com/mm2/Little-CMS
-        GIT_TAG lcms2.17
-        GIT_SHALLOW 1
-        GIT_PROGRESS 1
+        SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/Little-CMS
         DEPENDS ep_zlib
         CONFIGURE_COMMAND
             <SOURCE_DIR>/configure ${HOST_FLAG}

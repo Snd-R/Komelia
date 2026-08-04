@@ -1,12 +1,10 @@
 include(ExternalProject)
 
 ExternalProject_Add(ep_jpeg-turbo
-        GIT_REPOSITORY https://github.com/libjpeg-turbo/libjpeg-turbo
-        GIT_TAG 3.1.3
-        GIT_SHALLOW 1
-        GIT_PROGRESS 1
+        SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libjpeg-turbo
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}
+            -DWITH_SYSTEM_ZLIB=ON
         USES_TERMINAL_DOWNLOAD true
         USES_TERMINAL_BUILD true
 )
