@@ -25,6 +25,7 @@ kotlin {
                 "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=snd.komelia.ui.platform.CommonParcelize",
             )
         }
+        androidResources { enable = true }
     }
 
     jvm {

@@ -20,10 +20,5 @@ class RarExtractor : DivinaExtractor {
             val header = rar.fileHeaders.find { it.fileName == entryName }
             rar.getInputStream(header).use { it.readBytes() }
         }
-
-        return Archive(file.file).use { rar ->
-            val header = rar.fileHeaders.find { it.fileName == entryName }
-            rar.getInputStream(header).use { it.readBytes() }
-        }
     }
 }
