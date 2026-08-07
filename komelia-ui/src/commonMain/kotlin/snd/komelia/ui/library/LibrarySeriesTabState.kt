@@ -28,13 +28,20 @@ import snd.komelia.ui.LoadState
 import snd.komelia.ui.common.menus.SeriesMenuActions
 import snd.komelia.ui.series.SeriesFilter
 import snd.komelia.ui.series.SeriesFilterState
+import snd.komga.client.book.KomgaReadStatus.IN_PROGRESS
+import snd.komga.client.book.KomgaReadStatus.UNREAD
 import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.KomgaSort.Direction.ASC
 import snd.komga.client.common.KomgaSort.KomgaSeriesSort
+import snd.komga.client.common.KomgaSort.Order
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.search.allOfSeries
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.sse.KomgaEvent
+
+private const val SERIES_RANDOM_SORT = "random"
+private val SERIES_UNREAD_STATUSES = listOf(UNREAD, IN_PROGRESS)
 
 class LibrarySeriesTabState(
     private val seriesApi: KomgaSeriesApi,
@@ -108,6 +115,18 @@ class LibrarySeriesTabState(
 
     fun seriesMenuActions() = SeriesMenuActions(seriesApi, notifications, taskEmitter, screenModelScope)
 
+    fun openRandomSeries(onSeriesSelected: (KomgaSeries) -> Unit) {
+        notifications.runCatchingToNotifications(screenModelScope) {
+            getRandomSeries(filterState.state.value)?.let(onSeriesSelected)
+        }
+    }
+
+    fun openRandomUnreadSeries(onSeriesSelected: (KomgaSeries) -> Unit) {
+        notifications.runCatchingToNotifications(screenModelScope) {
+            getRandomSeries(filterState.state.value.copy(readStatus = SERIES_UNREAD_STATUSES))?.let(onSeriesSelected)
+        }
+    }
+
     fun onPageSizeChange(pageSize: Int) {
         pageLoadSize.value = pageSize
         screenModelScope.launch { settingsRepository.putSeriesPageLoadSize(pageSize) }
@@ -173,6 +192,23 @@ class LibrarySeriesTabState(
         )
     }
 
+    private suspend fun getRandomSeries(filter: SeriesFilter): KomgaSeries? {
+        val condition = allOfSeries {
+            library.value?.let { library { isEqualTo(it.id) } }
+            filter.addConditionTo(this)
+        }
+
+        return seriesApi.getSeriesList(
+            conditionBuilder = condition,
+            fulltextSearch = filter.searchTerm.ifBlank { null },
+            pageRequest = KomgaPageRequest(
+                size = 1,
+                pageIndex = 0,
+                sort = SeriesSort.RANDOM.komgaSort
+            )
+        ).content.firstOrNull()
+    }
+
     private fun delayLoadState(): Deferred<Unit> {
         return screenModelScope.async {
             delay(200)
@@ -224,6 +260,7 @@ class LibrarySeriesTabState(
         TITLE_DESC(KomgaSeriesSort.byTitleDesc()),
         DATE_ADDED_DESC(KomgaSeriesSort.byCreatedDateDesc()),
         DATE_ADDED_ASC(KomgaSeriesSort.byCreatedDateAsc()),
+        RANDOM(KomgaSeriesSort(listOf(Order(SERIES_RANDOM_SORT, ASC)))),
         //        FOLDER_NAME_ASC(KomgaSeriesSort.byFolderNameAsc()),
 //        FOLDER_NAME_DESC(KomgaSeriesSort.byFolderNameDesc()),
 //        BOOKS_COUNT_ASC(KomgaSeriesSort.byBooksCountAsc()),
