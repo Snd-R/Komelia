@@ -33,6 +33,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         readerType = ReaderType.valueOf(it[ImageReaderSettingsTable.readerType]),
                         stretchToFit = it[ImageReaderSettingsTable.stretchToFit],
                         pagedScaleType = LayoutScaleType.valueOf(it[ImageReaderSettingsTable.pagedScaleType]),
+                        gtcModeEnabled = it[ImageReaderSettingsTable.gtcModeEnabled],
                         pagedReadingDirection = PagedReadingDirection.valueOf(it[ImageReaderSettingsTable.pagedReadingDirection]),
                         pagedPageLayout = PageDisplayLayout.valueOf(it[ImageReaderSettingsTable.pagedPageLayout]),
                         continuousReadingDirection = ContinuousReadingDirection.valueOf(it[ImageReaderSettingsTable.continuousReadingDirection]),
@@ -65,6 +66,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[readerType] = settings.readerType.name
                 it[stretchToFit] = settings.stretchToFit
                 it[pagedScaleType] = settings.pagedScaleType.name
+                it[gtcModeEnabled] = settings.gtcModeEnabled
                 it[pagedReadingDirection] = settings.pagedReadingDirection.name
                 it[pagedPageLayout] = settings.pagedPageLayout.name
                 it[continuousReadingDirection] = settings.continuousReadingDirection.name

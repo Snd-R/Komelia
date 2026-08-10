@@ -19,6 +19,7 @@ class AppMigrations : MigrationResourcesProvider() {
         "V10__komf_settings.sql",
         "V11__home_filters.sql",
         "V12__offline_mode.sql",
+        "V13__gtc_page_orientation.sql",
     )
 
     override suspend fun getMigration(name: String): ByteArray? {

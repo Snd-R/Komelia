@@ -18,6 +18,7 @@ data class ImageReaderSettings(
     val readerType: ReaderType = PAGED,
     val stretchToFit: Boolean = true,
     val pagedScaleType: LayoutScaleType = LayoutScaleType.SCREEN,
+    val gtcModeEnabled: Boolean = false,
     val pagedReadingDirection: PagedReadingDirection = PagedReadingDirection.LEFT_TO_RIGHT,
     val pagedPageLayout: PageDisplayLayout = PageDisplayLayout.SINGLE_PAGE,
     val continuousReadingDirection: ContinuousReadingDirection = ContinuousReadingDirection.TOP_TO_BOTTOM,

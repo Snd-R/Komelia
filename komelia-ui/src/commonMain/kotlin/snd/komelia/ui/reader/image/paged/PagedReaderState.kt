@@ -90,11 +90,13 @@ class PagedReaderState(
     val layout = MutableStateFlow(SINGLE_PAGE)
     val layoutOffset = MutableStateFlow(false)
     val scaleType = MutableStateFlow(LayoutScaleType.SCREEN)
+    val gtcModeEnabled = MutableStateFlow(false)
     val readingDirection = MutableStateFlow(LEFT_TO_RIGHT)
 
     suspend fun initialize() {
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
         scaleType.value = settingsRepository.getPagedReaderScaleType().first()
+        gtcModeEnabled.value = settingsRepository.getGtcModeEnabled().first()
         readingDirection.value = when (readerState.series.value?.metadata?.readingDirection) {
             KomgaReadingDirection.LEFT_TO_RIGHT -> LEFT_TO_RIGHT
             KomgaReadingDirection.RIGHT_TO_LEFT -> RIGHT_TO_LEFT
@@ -118,7 +120,8 @@ class PagedReaderState(
                     readingDirection = readingDirection.value,
                 )
                 val containerSize = screenScaleState.areaSize.value
-                val maxPageSize = getMaxPageSize(spread.pages.map { it.metadata }, containerSize)
+                val pagesMeta = spread.pages.map { it.metadata }
+                val maxPageSize = getMaxPageSize(pagesMeta, gtcAdjustedContainerSize(pagesMeta, containerSize))
                 val targetSize = fitToScreenZoom(spread.pages, maxPageSize, layout.value)
                 screenScaleState.setTargetSize(targetSize.toSize())
                 delay(100)
@@ -144,7 +147,9 @@ class PagedReaderState(
         screenScaleState: ScreenScaleState,
         readingDirection: PagedReadingDirection,
     ) {
-        val maxPageSize = getMaxPageSize(spread.pages.map { it.metadata }, screenScaleState.areaSize.value)
+        val containerSize = screenScaleState.areaSize.value
+        val pagesMeta = spread.pages.map { it.metadata }
+        val maxPageSize = getMaxPageSize(pagesMeta, gtcAdjustedContainerSize(pagesMeta, containerSize))
         val zoomFactor = screenScaleState.transformation.value.scale
         val offset = screenScaleState.transformation.value.offset
         val areaSize = screenScaleState.areaSize.value.toSize()
@@ -156,6 +161,20 @@ class PagedReaderState(
         pages.forEachIndexed { index, result ->
             if (result.imageResult is ReaderImageResult.Success) {
                 val image = result.imageResult.image
+
+                if (isGtcApplicable(result.metadata, containerSize)) {
+                    // GTC: page is rotated 90 degrees for display, so pan/zoom offsets
+                    // (computed in unrotated screen space) don't map cleanly onto it.
+                    // Always display the whole image scaled to fit instead.
+                    val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit) ?: maxPageSize
+                    image.requestUpdate(
+                        visibleDisplaySize = IntRect(0, 0, imageDisplaySize.width, imageDisplaySize.height),
+                        zoomFactor = 1f,
+                        maxDisplaySize = maxPageSize
+                    )
+                    return@forEachIndexed
+                }
+
                 val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit)?:maxPageSize
 
                 val imageHorizontalVisibleWidth =
@@ -360,14 +379,17 @@ class PagedReaderState(
 
     private suspend fun completeLoadJob(pages: List<Page>): PagesLoadJob {
         val containerSize = screenScaleState.areaSize.value
-        val maxPageSize = getMaxPageSize(pages.map { it.metadata }, containerSize)
+        val pagesMeta = pages.map { it.metadata }
+        val maxPageSize = getMaxPageSize(pagesMeta, gtcAdjustedContainerSize(pagesMeta, containerSize))
+        val gtcRotationApplied = pagesMeta.singleOrNull()?.let { isGtcApplicable(it, containerSize) } ?: false
         val newScale = calculateScreenScale(
             pages,
             areaSize = containerSize,
             maxPageSize = maxPageSize,
             scaleType = scaleType.value,
             displayLayout = layout.value,
-            stretchToFit = readerState.imageStretchToFit.value
+            stretchToFit = readerState.imageStretchToFit.value,
+            gtcRotationApplied = gtcRotationApplied,
         )
         val spread = PageSpread(pages)
         when (readingDirection.value) {
@@ -526,6 +548,32 @@ class PagedReaderState(
         onScaleTypeChange(newScale)
     }
 
+    fun onGtcModeEnabledChange(enabled: Boolean) {
+        this.gtcModeEnabled.value = enabled
+        val currentPage = currentSpread.value.pages.firstOrNull()?.metadata
+        if (currentPage != null) loadPage(spreadIndexOf(currentPage))
+        stateScope.launch { settingsRepository.putGtcModeEnabled(enabled) }
+    }
+
+    /**
+     * GTC (device-height orientation): when enabled, a landscape page (its longest side
+     * horizontal) viewed on a portrait device is rotated so its longest side aligns with
+     * the device height, and the image is scaled to fit before display.
+     * Only applies to single page layout - rotating a two-page spread isn't well-defined.
+     */
+    private fun isGtcApplicable(pageMetadata: PageMetadata, containerSize: IntSize): Boolean {
+        return gtcModeEnabled.value &&
+                layout.value == SINGLE_PAGE &&
+                pageMetadata.isLandscape() &&
+                containerSize.height > containerSize.width
+    }
+
+    private fun gtcAdjustedContainerSize(pages: List<PageMetadata>, containerSize: IntSize): IntSize {
+        val page = pages.singleOrNull() ?: return containerSize
+        return if (isGtcApplicable(page, containerSize)) IntSize(containerSize.height, containerSize.width)
+        else containerSize
+    }
+
     fun onReadingDirectionChange(readingDirection: PagedReadingDirection) {
         this.readingDirection.value = readingDirection
         stateScope.launch { settingsRepository.putPagedReaderReadingDirection(readingDirection) }
@@ -538,12 +586,20 @@ class PagedReaderState(
         scaleType: LayoutScaleType,
         displayLayout: PageDisplayLayout,
         stretchToFit: Boolean,
+        gtcRotationApplied: Boolean = false,
     ): ScreenScaleState {
         val scaleState = ScreenScaleState()
         scaleState.setAreaSize(areaSize)
 
         val fitToScreenSize = fitToScreenZoom(pages, maxPageSize, displayLayout)
         scaleState.setTargetSize(fitToScreenSize.toSize())
+
+        if (gtcRotationApplied) {
+            // page dimensions are rotated relative to screen space (see isGtcApplicable),
+            // so the scaleType comparisons below don't apply cleanly - always fit to screen.
+            scaleState.setZoom(0f)
+            return scaleState
+        }
 
         val actualSpreadSize = pages.map {
             when (val result = it.imageResult) {

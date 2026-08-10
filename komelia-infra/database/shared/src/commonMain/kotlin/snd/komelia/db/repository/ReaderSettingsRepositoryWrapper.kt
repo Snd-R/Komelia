@@ -51,6 +51,14 @@ class ReaderSettingsRepositoryWrapper(
         wrapper.transform { it.copy(pagedScaleType = type) }
     }
 
+    override fun getGtcModeEnabled(): Flow<Boolean> {
+        return wrapper.mapState { it.gtcModeEnabled }
+    }
+
+    override suspend fun putGtcModeEnabled(enabled: Boolean) {
+        wrapper.transform { it.copy(gtcModeEnabled = enabled) }
+    }
+
     override fun getPagedReaderReadingDirection(): Flow<PagedReadingDirection> {
         return wrapper.mapState { it.pagedReadingDirection }
     }

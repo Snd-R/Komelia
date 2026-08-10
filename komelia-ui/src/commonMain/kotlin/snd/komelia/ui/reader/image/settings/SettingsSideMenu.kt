@@ -424,6 +424,15 @@ private fun ColumnScope.PagedReaderSettingsContent(
                 contentPadding = PaddingValues(horizontal = 10.dp)
             )
         }
+
+        val gtcModeEnabled = pageState.gtcModeEnabled.collectAsState().value
+        SwitchWithLabel(
+            checked = gtcModeEnabled,
+            onCheckedChange = pageState::onGtcModeEnabledChange,
+            label = { Text("GTC") },
+            supportingText = { Text("Rotate wide pages to fill device height, then scale to fit") },
+            contentPadding = PaddingValues(horizontal = 10.dp)
+        )
     }
 }
 

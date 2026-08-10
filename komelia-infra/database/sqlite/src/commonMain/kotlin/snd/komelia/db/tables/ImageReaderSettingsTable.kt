@@ -9,6 +9,7 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val stretchToFit = bool("stretch_to_fit")
 
     val pagedScaleType = text("paged_scale_type")
+    val gtcModeEnabled = bool("gtc_mode_enabled")
     val pagedReadingDirection = text("paged_reading_direction")
     val pagedPageLayout = text("paged_page_layout")
 

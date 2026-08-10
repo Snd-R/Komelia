@@ -95,8 +95,9 @@ fun BoxScope.PagedReaderContent(
             if (transitionPage != null) {
                 TransitionPage(transitionPage)
             } else {
+                val gtcModeEnabled = pagedReaderState.gtcModeEnabled.collectAsState().value
                 when (layout) {
-                    SINGLE_PAGE -> pages.firstOrNull()?.let { SinglePageLayout(it) }
+                    SINGLE_PAGE -> pages.firstOrNull()?.let { SinglePageLayout(it, gtcModeEnabled) }
                     DOUBLE_PAGES, DOUBLE_PAGES_NO_COVER -> DoublePageLayout(pages, readingDirection)
                 }
             }
@@ -165,13 +166,44 @@ private fun TransitionPage(page: TransitionPage) {
 }
 
 @Composable
-private fun SinglePageLayout(page: Page) {
+private fun SinglePageLayout(page: Page, gtcModeEnabled: Boolean) {
     Layout(content = { ReaderImageContent(page.imageResult) }) { measurable, constraints ->
-        val placeable = measurable.first().measure(constraints)
-        val startPadding = (constraints.maxWidth - placeable.width) / 2
-        val topPadding = ((constraints.maxHeight - placeable.height) / 2).coerceAtLeast(0)
-        layout(constraints.maxWidth, constraints.maxHeight) {
-            placeable.placeRelative(startPadding, topPadding)
+        // GTC: rotate landscape pages (longest side horizontal) 90 degrees on portrait
+        // devices so the longest side aligns with the device height, image scaled to fit.
+        val containerIsPortrait = constraints.maxHeight > constraints.maxWidth
+        val rotate = gtcModeEnabled && page.metadata.isLandscape() && containerIsPortrait
+
+        val childConstraints = if (rotate) {
+            constraints.copy(
+                minWidth = 0,
+                maxWidth = constraints.maxHeight,
+                minHeight = 0,
+                maxHeight = constraints.maxWidth,
+            )
+        } else constraints
+
+        val placeable = measurable.first().measure(childConstraints)
+
+        if (rotate) {
+            // after rotation the placeable's width/height swap on screen
+            val effectiveWidth = placeable.height
+            val effectiveHeight = placeable.width
+            val startPadding = (constraints.maxWidth - effectiveWidth) / 2
+            val topPadding = ((constraints.maxHeight - effectiveHeight) / 2).coerceAtLeast(0)
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                placeable.placeRelativeWithLayer(
+                    x = startPadding + (effectiveWidth - placeable.width) / 2,
+                    y = topPadding + (effectiveHeight - placeable.height) / 2,
+                ) {
+                    rotationZ = 90f
+                }
+            }
+        } else {
+            val startPadding = (constraints.maxWidth - placeable.width) / 2
+            val topPadding = ((constraints.maxHeight - placeable.height) / 2).coerceAtLeast(0)
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                placeable.placeRelative(startPadding, topPadding)
+            }
         }
     }
 }

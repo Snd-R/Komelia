@@ -25,6 +25,9 @@ interface ImageReaderSettingsRepository {
     fun getPagedReaderScaleType(): Flow<LayoutScaleType>
     suspend fun putPagedReaderScaleType(type: LayoutScaleType)
 
+    fun getGtcModeEnabled(): Flow<Boolean>
+    suspend fun putGtcModeEnabled(enabled: Boolean)
+
     fun getPagedReaderReadingDirection(): Flow<PagedReadingDirection>
     suspend fun putPagedReaderReadingDirection(direction: PagedReadingDirection)
 
