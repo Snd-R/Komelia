@@ -65,9 +65,9 @@ class BookDownloadService(
                 val bookFile = doDownload(library, series, book).also { file = it }
 
                 val offlineServer = saveServerAction.execute(serverUrl)
-                val offlineUser = saveUserAction.execute(user, offlineServer.id)
                 libraryImportAction.execute(library, offlineServer.id)
                 seriesImportAction.execute(series)
+                val offlineUser = saveUserAction.execute(user, offlineServer.id)
                 bookImportAction.execute(
                     book = book,
                     offlinePath = bookFile,
