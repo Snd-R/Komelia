@@ -33,6 +33,7 @@ import snd.komelia.settings.model.PagedReadingDirection.RIGHT_TO_LEFT
 import snd.komelia.ui.reader.image.ScreenScaleState
 import snd.komelia.ui.reader.image.common.PagedReaderHelpDialog
 import snd.komelia.ui.reader.image.common.ReaderControlsOverlay
+import snd.komelia.ui.platform.LockScreenOrientation
 import snd.komelia.ui.reader.image.common.ReaderImageContent
 import snd.komelia.ui.reader.image.common.ScalableContainer
 import snd.komelia.ui.reader.image.paged.PagedReaderState.Page
@@ -64,6 +65,8 @@ fun BoxScope.PagedReaderContent(
     val layoutOffset = pagedReaderState.layoutOffset.collectAsState().value
 
     val currentContainerSize = screenScaleState.areaSize.collectAsState().value
+    val gtcModeEnabled = pagedReaderState.gtcModeEnabled.collectAsState().value
+    LockScreenOrientation(locked = gtcModeEnabled)
 
     val coroutineScope = rememberCoroutineScope()
     ReaderControlsOverlay(
@@ -95,7 +98,6 @@ fun BoxScope.PagedReaderContent(
             if (transitionPage != null) {
                 TransitionPage(transitionPage)
             } else {
-                val gtcModeEnabled = pagedReaderState.gtcModeEnabled.collectAsState().value
                 when (layout) {
                     SINGLE_PAGE -> pages.firstOrNull()?.let { SinglePageLayout(it, gtcModeEnabled) }
                     DOUBLE_PAGES, DOUBLE_PAGES_NO_COVER -> DoublePageLayout(pages, readingDirection)
