@@ -11,6 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.app_updates_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.app_updates_updating
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.dialogs.AppDialog
 import snd.komelia.ui.platform.cursorForHand
 
@@ -24,7 +28,7 @@ fun UpdateProgressDialog(
         modifier = Modifier.widthIn(max = 600.dp),
         header = {
             Text(
-                "Updating",
+                stringResource(Res.string.app_updates_updating),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(10.dp)
             )
@@ -33,7 +37,7 @@ fun UpdateProgressDialog(
             FilledTonalButton(
                 onClick = onCancel,
                 modifier = Modifier.cursorForHand().padding(10.dp),
-                content = { Text("Cancel") }
+                content = { Text(stringResource(Res.string.app_updates_cancel)) }
             )
         },
         content = { DialogContent(totalSize, downloadedSize) },

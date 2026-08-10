@@ -16,6 +16,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.cards.SeriesImageCard
 import snd.komelia.ui.common.itemlist.ItemCardsSlider
 import snd.komga.client.collection.KomgaCollection
@@ -55,7 +58,8 @@ private fun CollectionLabel(collection: KomgaCollection) {
     Text(
         buildAnnotatedString {
             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                append("collection ")
+                append(stringResource(Res.string.collection))
+                append(" ")
             }
             append(collection.name)
         },

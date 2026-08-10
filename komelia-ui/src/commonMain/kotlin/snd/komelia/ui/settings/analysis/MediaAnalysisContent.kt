@@ -17,10 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_media_analysis_nothing_to_show
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.common.components.Pagination
 import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.strings.AppStrings
 
 @Composable
 fun MediaAnalysisContent(
@@ -42,7 +45,7 @@ fun MediaAnalysisContent(
         )
 
         if (books.isEmpty()) {
-            Text("Nothing to show")
+            Text(stringResource(Res.string.settings_media_analysis_nothing_to_show))
         } else {
             books.forEach {
                 BookAnalysisCard(
@@ -67,7 +70,6 @@ private fun BookAnalysisCard(
     onBookClick: (KomeliaBook) -> Unit,
     modifier: Modifier
 ) {
-    val strings = LocalStrings.current
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(5.dp),
@@ -95,7 +97,7 @@ private fun BookAnalysisCard(
                     Text(book.url, style = MaterialTheme.typography.bodyMedium)
                     Text("${book.media.mediaType} ${book.size}")
                     val text =
-                        "${book.media.status.name}: ${strings.errorCodes.getMessageForCode(book.media.comment)}"
+                        "${book.media.status.name}: ${AppStrings.getMessageStringForCode(book.media.comment)}"
                     Text(text, color = MaterialTheme.colorScheme.tertiary)
                 }
             }

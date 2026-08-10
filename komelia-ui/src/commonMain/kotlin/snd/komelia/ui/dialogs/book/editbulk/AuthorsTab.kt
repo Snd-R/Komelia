@@ -30,6 +30,11 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_add_custom_role
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_bulk_warning
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_tab_authors
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.LockableChipTextField
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
@@ -39,7 +44,7 @@ class AuthorsTab(
     private val vm: BookBulkEditDialogViewModel
 ) : DialogTab {
     override fun options() = TabItem(
-        title = "AUTHORS",
+        title = Res.string.book_edit_tab_authors,
         icon = Icons.Default.People
     )
 
@@ -74,7 +79,7 @@ private fun AuthorsTabContent(
         ) {
             Icon(Icons.Default.PriorityHigh, null, tint = warningColor)
             Text(
-                text = "You are editing authors for multiple books. This will override existing authors of each book.",
+                text = stringResource(Res.string.book_edit_bulk_warning),
                 color = warningColor
             )
         }
@@ -97,7 +102,7 @@ private fun AuthorsTabContent(
         TextField(
             value = newCustomRole,
             onValueChange = { newCustomRole = it },
-            label = { Text("Add custom role") },
+            label = { Text(stringResource(Res.string.book_edit_add_custom_role)) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,

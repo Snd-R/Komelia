@@ -24,9 +24,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_book_count
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit_mode_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit_mode_ordered_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_readlist_name
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalWindowWidth
@@ -139,16 +145,26 @@ private fun ReadListToolbar(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                "read list",
+                stringResource(
+                    Res.string.readlist_readlist_name,
+                    readList.name
+                ),
                 style = MaterialTheme.typography.labelMedium,
-                fontStyle = FontStyle.Italic
             )
-            Text(readList.name)
         }
 
         SuggestionChip(
             onClick = {},
-            label = { Text("${readList.bookIds.size} books", style = MaterialTheme.typography.bodyMedium) },
+            label = {
+                Text(
+                    pluralStringResource(
+                        Res.plurals.readlist_book_count,
+                        readList.bookIds.size,
+                        readList.bookIds.size
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
             modifier = Modifier.padding(10.dp, 0.dp),
         )
 
@@ -194,8 +210,8 @@ private fun BulkActionsToolbar(
     ) {
         when (LocalWindowWidth.current) {
             WindowSizeClass.FULL -> {
-                if (readList.ordered) Text("Edit mode: Click to select, drag to change order")
-                else Text("Selection mode: Click on items to select or deselect them")
+                if (readList.ordered) Text(stringResource(Res.string.readlist_edit_mode_ordered_desc))
+                else Text(stringResource(Res.string.readlist_edit_mode_desc))
                 if (selectedBooks.isNotEmpty()) {
                     Spacer(Modifier.weight(1f))
 
@@ -205,8 +221,8 @@ private fun BulkActionsToolbar(
 
             WindowSizeClass.EXPANDED -> {
                 if (selectedBooks.isEmpty()) {
-                    if (readList.ordered) Text("Edit mode: Click to select, drag to change order")
-                    else Text("Selection mode: Click on items to select or deselect them")
+                    if (readList.ordered) Text(stringResource(Res.string.readlist_edit_mode_ordered_desc))
+                    else Text(stringResource(Res.string.readlist_edit_mode_desc))
                 } else {
                     Spacer(Modifier.weight(1f))
                     ReadListBulkActionsContent(readList, selectedBooks, false)

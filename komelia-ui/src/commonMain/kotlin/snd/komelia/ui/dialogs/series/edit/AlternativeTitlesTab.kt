@@ -19,6 +19,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_alt_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_alt_title_label
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_tab_alt_titles
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.LockIcon
 import snd.komelia.ui.common.components.withTextFieldNavigation
@@ -31,7 +36,7 @@ internal class AlternativeTitlesTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "ALTERNATE TITLES",
+        title = Res.string.series_edit_tab_alt_titles,
         icon = Icons.Default.Title
     )
 
@@ -68,7 +73,7 @@ private fun AlternativeTitlesTabContent(
                 TextField(
                     value = altTitle.label,
                     onValueChange = { onTitleChange(index, altTitle.copy(label = it)) },
-                    label = { Text("Label") },
+                    label = { Text(stringResource(Res.string.series_edit_alt_title_label)) },
                     maxLines = 1,
                     modifier = Modifier.weight(.3f).withTextFieldNavigation(onTitleAdd)
                 )
@@ -78,7 +83,7 @@ private fun AlternativeTitlesTabContent(
                 TextField(
                     value = altTitle.title,
                     onValueChange = { onTitleChange(index, altTitle.copy(title = it)) },
-                    label = { Text("Alternate title") },
+                    label = { Text(stringResource(Res.string.series_edit_alt_title)) },
                     maxLines = 1,
                     modifier = Modifier.weight(.7f).withTextFieldNavigation()
                 )

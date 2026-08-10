@@ -16,6 +16,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_add_to_readlist
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_analyze
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_delete_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_delete_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_delete_downloaded
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_mark_read
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_mark_unread
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_refresh_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_add_to_collection
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_identify
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reset_metadata
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
@@ -37,29 +50,11 @@ fun OneshotActionsMenu(
 ) {
     val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
     val isOffline = LocalOfflineMode.current.collectAsState().value
-    var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteDownloadedDialog by remember { mutableStateOf(false) }
-    if (showDeleteDialog) {
-        ConfirmationDialog(
-            title = "Delete Book",
-            body = "The Book ${book.metadata.title} will be removed from this server alongside with stored media files. This cannot be undone. Continue?",
-            confirmText = "Yes, delete book \"${book.metadata.title}\"",
-            onDialogConfirm = {
-                actions.delete(book)
-                onDismissRequest()
-
-            },
-            onDialogDismiss = {
-                showDeleteDialog = false
-                onDismissRequest()
-            },
-            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
-        )
-    }
     if (showDeleteDownloadedDialog) {
         ConfirmationDialog(
-            title = "Delete downloaded Book",
-            body = "The Book ${book.metadata.title} will be removed from this device only",
+            title = stringResource(Res.string.book_delete_confirm_title),
+            body = stringResource(Res.string.book_delete_confirm_body, book.metadata.title),
             onDialogConfirm = {
                 actions.deleteDownloaded(book)
                 onDismissRequest()
@@ -113,7 +108,6 @@ fun OneshotActionsMenu(
 
     val showDropdown = derivedStateOf {
         expanded &&
-                !showDeleteDialog &&
                 !showKomfDialog &&
                 !showKomfResetDialog &&
                 !showAddToCollectionDialog &&
@@ -126,7 +120,7 @@ fun OneshotActionsMenu(
     ) {
         if (isAdmin && !isOffline) {
             DropdownMenuItem(
-                text = { Text("Analyze") },
+                text = { Text(stringResource(Res.string.book_analyze)) },
                 onClick = {
                     actions.analyze(book)
                     onDismissRequest()
@@ -134,7 +128,7 @@ fun OneshotActionsMenu(
             )
 
             DropdownMenuItem(
-                text = { Text("Refresh metadata") },
+                text = { Text(stringResource(Res.string.book_refresh_metadata)) },
                 onClick = {
                     actions.refreshMetadata(book)
                     onDismissRequest()
@@ -142,11 +136,11 @@ fun OneshotActionsMenu(
             )
 
             DropdownMenuItem(
-                text = { Text("Add to read list") },
+                text = { Text(stringResource(Res.string.book_add_to_readlist)) },
                 onClick = { showAddToReadListDialog = true },
             )
             DropdownMenuItem(
-                text = { Text("Add to collection") },
+                text = { Text(stringResource(Res.string.series_add_to_collection)) },
                 onClick = { showAddToCollectionDialog = true },
             )
         }
@@ -156,7 +150,7 @@ fun OneshotActionsMenu(
 
         if (!isRead) {
             DropdownMenuItem(
-                text = { Text("Mark as read") },
+                text = { Text(stringResource(Res.string.book_mark_read)) },
                 onClick = {
                     actions.markAsRead(book)
                     onDismissRequest()
@@ -166,7 +160,7 @@ fun OneshotActionsMenu(
 
         if (!isUnread) {
             DropdownMenuItem(
-                text = { Text("Mark as unread") },
+                text = { Text(stringResource(Res.string.book_mark_unread)) },
                 onClick = {
                     actions.markAsUnread(book)
                     onDismissRequest()
@@ -177,12 +171,12 @@ fun OneshotActionsMenu(
         val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
         if (komfIntegration.value) {
             DropdownMenuItem(
-                text = { Text("Identify (Komf)") },
+                text = { Text(stringResource(Res.string.series_identify)) },
                 onClick = { showKomfDialog = true },
             )
 
             DropdownMenuItem(
-                text = { Text("Reset Metadata (Komf)") },
+                text = { Text(stringResource(Res.string.series_reset_metadata)) },
                 onClick = { showKomfResetDialog = true },
             )
         }
@@ -192,27 +186,15 @@ fun OneshotActionsMenu(
         val deleteColor =
             if (deleteIsHovered.value) Modifier.background(MaterialTheme.colorScheme.errorContainer)
             else Modifier
-        if (isAdmin && !isOffline) {
-            DropdownMenuItem(
-                text = { Text("Delete") },
-                onClick = {
-                    showDeleteDialog = true
-                },
-                modifier = Modifier
-                    .hoverable(deleteInteractionSource)
-                    .then(deleteColor)
-            )
-        }
 
         if (isOffline) {
             DropdownMenuItem(
-                text = { Text("Delete downloaded") },
+                text = { Text(stringResource(Res.string.book_delete_downloaded)) },
                 onClick = { showDeleteDownloadedDialog = true },
                 modifier = Modifier
                     .hoverable(deleteInteractionSource)
                     .then(deleteColor)
             )
-
         }
     }
 }

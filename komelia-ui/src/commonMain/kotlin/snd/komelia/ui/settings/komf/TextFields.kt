@@ -3,7 +3,6 @@ package snd.komelia.ui.settings.komf
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,11 +24,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_text_discard
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_text_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_text_save
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.HttpTextField
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.PasswordTextField
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SavableTextField(
     currentValue: String,
@@ -90,7 +93,7 @@ fun SavableTextField(
                         textFieldValue = ""
                     },
                 ) {
-                    Text("Edit")
+                    Text(stringResource(Res.string.komf_settings_text_edit))
                 }
             }
 
@@ -104,7 +107,7 @@ fun SavableTextField(
                             textFieldValue = currentValue
                         },
                     ) {
-                        Text("Discard")
+                        Text(stringResource(Res.string.komf_settings_text_discard))
                     }
                     FilledTonalButton(
                         onClick = {
@@ -114,7 +117,7 @@ fun SavableTextField(
                         },
                         enabled = isChanged,
                     ) {
-                        Text("Save")
+                        Text(stringResource(Res.string.komf_settings_text_save))
                     }
                 }
             }
@@ -123,13 +126,12 @@ fun SavableTextField(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SavableHttpTextField(
     label: String,
     currentValue: String,
     onValueSave: (String) -> Unit,
-    confirmationText: String = "Save",
+    confirmationText: String = stringResource(Res.string.komf_settings_text_save),
     isError: Boolean = false,
     supportingText: @Composable (() -> Unit)? = null,
 ) {
@@ -158,7 +160,7 @@ fun SavableHttpTextField(
                     textFieldValue = currentValue
                 },
             ) {
-                Text("Discard")
+                Text(stringResource(Res.string.komf_settings_text_discard))
             }
             FilledTonalButton(
                 onClick = {
@@ -246,7 +248,7 @@ fun LanguageSelectionField(
             },
             enabled = isChanged,
         ) {
-            Text("Save")
+            Text(stringResource(Res.string.komf_settings_text_save))
         }
     }
 }

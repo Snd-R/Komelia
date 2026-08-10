@@ -6,7 +6,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
@@ -45,7 +44,12 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_delete_downloaded
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_download
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_download_confirm
 import kotlinx.coroutines.flow.filter
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.sync.model.DownloadEvent
 import snd.komelia.ui.LocalBookDownloadEvents
@@ -71,7 +75,6 @@ import snd.komelia.ui.readlist.BookReadListsContent
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.readlist.KomgaReadList
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BookScreenContent(
     library: KomgaLibrary?,
@@ -208,7 +211,6 @@ private fun ToolbarBookActions(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FlowRowScope.BookMainInfo(
     book: KomeliaBook,
@@ -253,7 +255,7 @@ private fun FlowRowScope.BookMainInfo(
                     onClick = onDownloadDelete,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.errorContainer)
                 ) {
-                    Text("Delete downloaded")
+                    Text(stringResource(Res.string.book_delete_downloaded))
                 }
             }
         }
@@ -310,7 +312,7 @@ fun DownloadButton(
             }
         }
         Spacer(Modifier.width(3.dp))
-        Text("Download")
+        Text(stringResource(Res.string.book_download))
 
 
     }
@@ -321,7 +323,7 @@ fun DownloadButton(
 
         if (permissionRequested) {
             ConfirmationDialog(
-                body = "Download book ${book.name}",
+                body = stringResource(Res.string.book_download_confirm, book.name),
                 onDialogConfirm = onDownload,
                 onDialogDismiss = { showDownloadConfirmation = false }
             )

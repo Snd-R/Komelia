@@ -26,7 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_download_canceled
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_download_complete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_storage_location
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_storage_location_change
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_storage_location_reset
 import io.github.vinceglb.filekit.PlatformFile
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.formatDecimal
 import snd.komelia.offline.sync.model.DownloadEvent
 import snd.komelia.ui.dialogs.permissions.StoragePermissionRequestDialog
@@ -45,7 +52,7 @@ fun OfflineDownloadsContent(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (storageLocation != null) {
             Column {
-                Text("Storage location")
+                Text(stringResource(Res.string.settings_offline_mode_storage_location))
                 Text(
                     rememberStorageLabel(storageLocation),
                     modifier = Modifier.padding(start = 10.dp),
@@ -63,8 +70,12 @@ fun OfflineDownloadsContent(
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(onClick = { showDirectoryPickerDialog = true }) { Text("Change location") }
-            Button(onClick = onStorageLocationReset) { Text("Reset to internal") }
+            Button(onClick = { showDirectoryPickerDialog = true }) {
+                Text(
+                    stringResource(Res.string.settings_offline_mode_storage_location_change)
+                )
+            }
+            Button(onClick = onStorageLocationReset) { Text(stringResource(Res.string.settings_offline_mode_storage_location_reset)) }
         }
 
         HorizontalDivider()
@@ -126,7 +137,7 @@ private fun RowScope.DownloadProgressIndicator(
 private fun DownloadCompleted(event: DownloadEvent.BookDownloadCompleted) {
     Column {
         Text(event.book.metadata.title)
-        Text("Download Complete ")
+        Text(stringResource(Res.string.settings_offline_mode_download_complete))
     }
 }
 
@@ -134,10 +145,10 @@ private fun DownloadCompleted(event: DownloadEvent.BookDownloadCompleted) {
 private fun DownloadError(event: DownloadEvent.BookDownloadError) {
     Column {
         Text(event.book?.metadata?.title ?: event.bookId.value)
-        val errorMessage = remember {
-            if (event.error is CancellationException) "Cancelled"
+        val errorMessage =
+            if (event.error is CancellationException) stringResource(Res.string.settings_offline_mode_download_canceled)
             else "${event.error::class.simpleName}: ${event.error.message}"
-        }
+
         Text(errorMessage, color = MaterialTheme.colorScheme.error)
     }
 }

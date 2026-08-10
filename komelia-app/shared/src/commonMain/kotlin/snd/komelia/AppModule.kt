@@ -56,7 +56,6 @@ import snd.komelia.offline.OfflineRepositories
 import snd.komelia.onnxruntime.OnnxRuntime
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.ui.DependencyContainer
-import snd.komelia.ui.strings.EnStrings
 import snd.komelia.updates.AppUpdater
 import snd.komelia.updates.OnnxModelDownloader
 import snd.komelia.updates.OnnxRuntimeInstaller
@@ -205,7 +204,6 @@ abstract class AppModule {
         )
 
         return DependencyContainer(
-            appStrings = MutableStateFlow(EnStrings),
             appRepositories = appRepositories,
 
             komgaApi = komgaApi,

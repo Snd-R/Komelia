@@ -33,6 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_cancel
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.dialogs.AppDialogLayout
 import snd.komelia.ui.dialogs.BasicAppDialog
@@ -213,7 +216,7 @@ private fun TabColumnDialog(
         controlButtons = {
             DialogConfirmCancelButtons(
                 confirmText = confirmationText,
-                cancelText = "Cancel",
+                cancelText = stringResource(Res.string.dialog_cancel),
                 onConfirm = onConfirm,
                 confirmEnabled = canConfirm,
                 showCancelButton = showCancelButton,
@@ -255,7 +258,7 @@ private fun TabNavigationItems(
         TabNavigationItem(
             label = {
                 Text(
-                    text = tab.options().title,
+                    text = stringResource(tab.options().title),
                     color = color,
                     style = MaterialTheme.typography.labelLarge
                 )

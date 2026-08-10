@@ -39,7 +39,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.thumbnail_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.thumbnail_generated
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.thumbnail_local_artwork
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.thumbnail_mark_as_selected
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.thumbnail_to_be_uploaded
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.thumbnail_user_uploaded
 import io.github.vinceglb.filekit.size
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.formatDecimal
 import snd.komelia.image.coil.BookThumbnailRequest
 import snd.komelia.image.coil.CollectionThumbnailRequest
@@ -95,9 +103,9 @@ fun ThumbnailEditCard(
         }
     ) {
         val (icon, tooltip) = when (thumbnail.type) {
-            USER_UPLOADED -> Icons.Default.CloudDone to "User uploaded"
-            SIDECAR -> Icons.Default.Folder to "Local artwork"
-            GENERATED -> Icons.AutoMirrored.Filled.InsertDriveFile to "Generated artwork"
+            USER_UPLOADED -> Icons.Default.CloudDone to stringResource(Res.string.thumbnail_user_uploaded)
+            SIDECAR -> Icons.Default.Folder to stringResource(Res.string.thumbnail_local_artwork)
+            GENERATED -> Icons.AutoMirrored.Filled.InsertDriveFile to stringResource(Res.string.thumbnail_generated)
             UNKNOWN -> Icons.Default.Folder to ""
         }
 
@@ -135,7 +143,7 @@ fun ThumbnailUploadCard(
             isDeleted = false,
             filesize = thumbnail.file.size(),
             typeIcon = Icons.Default.CloudUpload,
-            typeTooltip = "To be uploaded",
+            typeTooltip = stringResource(Res.string.thumbnail_to_be_uploaded),
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .fillMaxWidth()
@@ -179,7 +187,7 @@ private fun ThumbnailCardContent(
                     Icon(typeIcon, null)
                 }
             }
-            IconWithTooltip(tooltip = "Mark as selected") {
+            IconWithTooltip(tooltip = stringResource(Res.string.thumbnail_mark_as_selected)) {
                 IconButton(onClick = onSelect) {
                     Icon(
                         Icons.Default.Check,
@@ -191,7 +199,7 @@ private fun ThumbnailCardContent(
             }
 
             if (onDelete != null)
-                IconWithTooltip(tooltip = "Delete") {
+                IconWithTooltip(tooltip = stringResource(Res.string.thumbnail_delete)) {
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Default.Delete,

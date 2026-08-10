@@ -29,7 +29,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_create
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_duplicate_series
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_exists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_search_or_create
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_series_count
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_add_to_collection
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.AppDialog
 import snd.komelia.ui.platform.cursorForHand
@@ -66,7 +75,7 @@ private fun Header(onDismissRequest: () -> Unit) {
             modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Add to collection", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(Res.string.series_add_to_collection), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = onDismissRequest) { Icon(Icons.Default.Close, null) }
         }
@@ -93,11 +102,11 @@ private fun DialogContent(
             TextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("Search or create collection") },
+                label = { Text(stringResource(Res.string.collection_search_or_create)) },
                 supportingText = {
                     if (collectionExistsForQuery.value)
                         Text(
-                            "A collection with this name already exists",
+                            stringResource(Res.string.collection_exists),
                             color = MaterialTheme.colorScheme.error
                         )
                 },
@@ -106,7 +115,7 @@ private fun DialogContent(
             FilledTonalButton(
                 onClick = { coroutineScope.launch { onCreateNewCollection(query) } },
                 enabled = query.isNotBlank() && !collectionExistsForQuery.value,
-                content = { Text("Create") },
+                content = { Text(stringResource(Res.string.collection_create)) },
             )
         }
 
@@ -147,9 +156,16 @@ private fun CollectionEntry(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("${collection.seriesIds.size} series", style = MaterialTheme.typography.labelLarge)
+            Text(
+                pluralStringResource(
+                    Res.plurals.collection_series_count,
+                    collection.seriesIds.size,
+                    collection.seriesIds.size
+                ),
+                style = MaterialTheme.typography.labelLarge
+            )
             if (alreadyContainsSeries) Text(
-                "already contains this series",
+                stringResource(Res.string.collection_duplicate_series),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )

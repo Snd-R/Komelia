@@ -51,9 +51,20 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_all
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_completed
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_delete_all
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_delete_all_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_duration
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_failed
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_nothing_to_show
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_running
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_job_unknown_series
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.format
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.DefaultDateTimeFormats.dateTimeFormat
 import snd.komelia.ui.common.cards.SeriesImageCard
 import snd.komelia.ui.common.components.AppFilterChipDefaults
@@ -106,7 +117,7 @@ fun KomfJobsContent(
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (loading) CircularProgressIndicator()
                 else if (jobs.isEmpty()) {
-                    Text("Nothing to show")
+                    Text(stringResource(Res.string.komf_job_nothing_to_show))
                 } else {
                     key(currentPage, selectedStatus) {
                         jobs.forEach {
@@ -133,7 +144,6 @@ fun KomfJobsContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun JobCard(
     job: KomfMetadataJob,
@@ -209,7 +219,7 @@ private fun JobCard(
         }
         job.finishedAt?.let {
             val duration: Duration = it.minus(job.startedAt)
-            Text("duration: ${duration.toString(DurationUnit.SECONDS, 2)}")
+            Text(stringResource(Res.string.komf_job_duration, duration.toString(DurationUnit.SECONDS, 2)))
         }
 
         Spacer(Modifier.weight(1f))
@@ -250,7 +260,6 @@ private fun JobCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatusFilters(
     selectedStatus: KomfMetadataJobStatus?,
@@ -263,7 +272,7 @@ private fun StatusFilters(
         FilterChip(
             selected = selectedStatus == null,
             onClick = { onStatusSelect(null) },
-            label = { Text("All") },
+            label = { Text(stringResource(Res.string.komf_job_all)) },
             colors = AppFilterChipDefaults.filterChipColors(),
             border = null
         )
@@ -271,21 +280,21 @@ private fun StatusFilters(
         FilterChip(
             selected = selectedStatus == RUNNING,
             onClick = { onStatusSelect(RUNNING) },
-            label = { Text("Running") },
+            label = { Text(stringResource(Res.string.komf_job_running)) },
             colors = AppFilterChipDefaults.filterChipColors(),
             border = null
         )
         FilterChip(
             selected = selectedStatus == COMPLETED,
             onClick = { onStatusSelect(COMPLETED) },
-            label = { Text("Completed") },
+            label = { Text(stringResource(Res.string.komf_job_completed)) },
             colors = AppFilterChipDefaults.filterChipColors(),
             border = null
         )
         FilterChip(
             selected = selectedStatus == FAILED,
             onClick = { onStatusSelect(FAILED) },
-            label = { Text("Failed") },
+            label = { Text(stringResource(Res.string.komf_job_failed)) },
             colors = AppFilterChipDefaults.filterChipColors(),
             border = null
         )
@@ -297,11 +306,11 @@ private fun StatusFilters(
             colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
             modifier = Modifier.cursorForHand()
         ) {
-            Text("Delete all")
+            Text(stringResource(Res.string.komf_job_delete_all))
         }
         if (showConfirmationDialog) {
             ConfirmationDialog(
-                body = "Delete job history?",
+                body = stringResource(Res.string.komf_job_delete_all_confirm),
                 buttonConfirmColor = MaterialTheme.colorScheme.errorContainer,
                 onDialogConfirm = onDeleteAll,
                 onDialogDismiss = { showConfirmationDialog = false }
@@ -326,7 +335,7 @@ private fun SeriesTooltip(
             if (loading) CircularProgressIndicator()
             else {
                 Spacer(Modifier.weight(1f))
-                Text("Unknown series")
+                Text(stringResource(Res.string.komf_job_unknown_series))
             }
         }
     else SeriesImageCard(

@@ -22,7 +22,10 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.ErrorContent
@@ -64,7 +67,7 @@ class ColorCorrectionScreen(
                 }
                 Spacer(Modifier.width(10.dp).align(Alignment.Start).nonInteractive())
                 Text(
-                    text = "Color Correction",
+                    text = stringResource(Res.string.color_correction),
                     modifier = Modifier.heightIn(max = 32.dp).align(Alignment.Start).nonInteractive()
                 )
 

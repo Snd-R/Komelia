@@ -1,5 +1,151 @@
 package snd.komelia.ui.strings
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_exclude_if_all_match
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_exclude_if_any_match
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_include_If_any_match
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_include_if_all_match
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_anilist
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_bangumi
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_bookwalker
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_comicvine
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_hentag
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_kodansha
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mal
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mangabaka
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mangadex
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mangaupdates
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_nautiljon
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_viz
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_webtoons
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_yenpress
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1000
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1001
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1002
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1003
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1004
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1005
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1006
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1007
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1008
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1009
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1015
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1016
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1017
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1018
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1019
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1020
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1021
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1022
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1023
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1024
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1025
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1026
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1027
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1028
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1029
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1030
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1031
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1032
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1033
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1034
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1035
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1036
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1037
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1038
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1039
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_unknown
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_cover_first
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_cover_first_unread_or_first
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_cover_first_unread_or_last
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_cover_last
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval_daily
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval_disabled
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval_every_12h
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval_every_6h
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval_hourly
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval_weekly
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_continuous_reading_direction_left_to_rigth
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_continuous_reading_direction_right_to_left
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_continuous_reading_direction_top_to_bottom
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_downsampling_kernel_default
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_downsampling_kernel_lanczos2
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_downsampling_kernel_lanczos3
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_downsampling_kernel_mitchell
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_upsampling_mode_bicubic_catmull_rom
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_upsampling_mode_bicubic_mitchell
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_upsampling_mode_bilinear
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_upsampling_mode_nearest
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_layout_double_pages
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_layout_double_pages_no_cover
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_layout_single_page
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_reading_direction_left_to_right
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_reading_direction_right_to_left
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_fit_height
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_fit_width
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_original
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_type
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_inprogress
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_read
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_unread
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_sort_numbers_asc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_sort_numbers_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status_abandoned
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status_ended
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status_hiatus
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status_ongoing
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_read_status_inprogress
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_read_status_read
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_read_status_unread
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_date_added_asc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_date_added_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_release_date_asc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_release_date_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_title_asc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_title_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_updated_asc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_updated_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_left_to_right
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_vertical
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_webtoon
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_status_abandoned
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_status_ended
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_status_hiatus
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_status_ongoing
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme_dark
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme_darker
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme_light
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_epub_reader_type_komga
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_epub_reader_type_ttsu
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_mangajanai
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_none
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_user_model
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_default
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_large
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_medium
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_xlarge
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_age_restriction_allow_only
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_age_restriction_exclude
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_age_restriction_none
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_admin
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_file_download
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_kobo_sync
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_koreader_sync
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_page_streaming
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_user
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.UpscaleMode
@@ -11,6 +157,7 @@ import snd.komelia.settings.model.PageDisplayLayout
 import snd.komelia.settings.model.PagedReadingDirection
 import snd.komelia.settings.model.ReaderType
 import snd.komelia.ui.book.BooksFilterState.BooksSort
+import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.dialogs.user.UserEditDialogViewModel
 import snd.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.ALLOW_ONLY
 import snd.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUDE
@@ -52,637 +199,297 @@ import snd.komga.client.settings.KomgaThumbnailSize.LARGE
 import snd.komga.client.settings.KomgaThumbnailSize.MEDIUM
 import snd.komga.client.settings.KomgaThumbnailSize.XLARGE
 
-data class AppStrings(
-    val seriesView: SeriesViewStrings,
-    val filters: FilterStrings,
-    val seriesFilter: SeriesFilterStrings,
-    val booksFilter: BookFilterStrings,
-    val seriesEdit: SeriesEditStrings,
-    val bookEdit: BookEditStrings,
-    val libraryEdit: LibraryEditStrings,
-    val userEdit: UserEditStrings,
-    val reader: ReaderStrings,
-    val pagedReader: PagedReaderStrings,
-    val continuousReader: ContinuousReaderStrings,
-    val settings: SettingsStrings,
-    val imageSettings: ImageSettingsStrings,
-    val errorCodes: ErrorCodes,
-    val komf: KomfStrings
-)
+data object AppStrings {
 
-data class KomfStrings(
-    val providerSettings: KomfProviderSettingsStrings
-)
-
-data class KomfProviderSettingsStrings(
-    val providerAniList: String,
-    val providerBangumi: String,
-    val providerBookWalker: String,
-    val providerComicVine: String,
-    val providerHentag: String,
-    val providerKodansha: String,
-    val providerMal: String,
-    val providerMangaBaka: String,
-    val providerMangaUpdates: String,
-    val providerMangaDex: String,
-    val providerNautiljon: String,
-    val providerYenPress: String,
-    val providerViz: String,
-    val providerWebtoons: String,
-
-    ) {
-
-    fun forProvider(provider: KomfProviders) =
-        when (provider) {
-            KomfCoreProviders.ANILIST -> providerAniList
-            KomfCoreProviders.BANGUMI -> providerBangumi
-            KomfCoreProviders.BOOK_WALKER -> providerBookWalker
-            KomfCoreProviders.COMIC_VINE -> providerComicVine
-            KomfCoreProviders.HENTAG -> providerHentag
-            KomfCoreProviders.KODANSHA -> providerKodansha
-            KomfCoreProviders.MAL -> providerMal
-            KomfCoreProviders.MANGA_UPDATES -> providerMangaUpdates
-            KomfCoreProviders.MANGADEX -> providerMangaDex
-            KomfCoreProviders.NAUTILJON -> providerNautiljon
-            KomfCoreProviders.YEN_PRESS -> providerYenPress
-            KomfCoreProviders.VIZ -> providerViz
-            KomfCoreProviders.MANGA_BAKA -> providerMangaBaka
-            KomfCoreProviders.WEBTOONS -> providerWebtoons
-            is UnknownKomfProvider -> provider.name
-        }
-}
-
-
-data class SeriesViewStrings(
-    val statusEnded: String,
-    val statusOngoing: String,
-    val statusAbandoned: String,
-    val statusHiatus: String,
-
-    val readingDirectionLeftToRight: String,
-    val readingDirectionRightToLeft: String,
-    val readingDirectionVertical: String,
-    val readingDirectionWebtoon: String,
-) {
-    fun forSeriesStatus(status: KomgaSeriesStatus): String {
+    fun forReadStatus(status: KomgaReadStatus): StringResource {
         return when (status) {
-            ENDED -> statusEnded
-            ONGOING -> statusOngoing
-            ABANDONED -> statusAbandoned
-            HIATUS -> statusHiatus
+            UNREAD -> Res.string.series_book_filter_read_status_unread
+            IN_PROGRESS -> Res.string.series_book_filter_read_status_inprogress
+            READ -> Res.string.series_book_filter_read_status_read
         }
     }
 
-    fun forReadingDirection(direction: KomgaReadingDirection): String {
-        return when (direction) {
-            LEFT_TO_RIGHT -> readingDirectionLeftToRight
-            RIGHT_TO_LEFT -> readingDirectionRightToLeft
-            VERTICAL -> readingDirectionVertical
-            WEBTOON -> readingDirectionWebtoon
+    fun forBookSort(sort: BooksSort): StringResource {
+        return when (sort) {
+            BooksSort.NUMBER_ASC -> Res.string.series_book_filter_sort_numbers_asc
+            BooksSort.NUMBER_DESC -> Res.string.series_book_filter_sort_numbers_desc
         }
+
     }
 
-}
-
-data class SeriesEditStrings(
-    val title: String,
-    val sortTitle: String,
-    val summary: String,
-    val language: String,
-
-    val status: String,
-    val statusEnded: String,
-    val statusOngoing: String,
-    val statusAbandoned: String,
-    val statusHiatus: String,
-
-    val readingDirection: String,
-    val readingDirectionLeftToRight: String,
-    val readingDirectionRightToLeft: String,
-    val readingDirectionVertical: String,
-    val readingDirectionWebtoon: String,
-
-    val publisher: String,
-    val ageRating: String,
-    val totalBookCount: String,
-) {
-
-    fun forSeriesStatus(status: KomgaSeriesStatus): String {
+    fun forSeriesStatus(status: KomgaSeriesStatus): StringResource {
         return when (status) {
-            ENDED -> statusEnded
-            ONGOING -> statusOngoing
-            ABANDONED -> statusAbandoned
-            HIATUS -> statusHiatus
+            ENDED -> Res.string.series_status_ended
+            ONGOING -> Res.string.series_status_ongoing
+            ABANDONED -> Res.string.series_status_abandoned
+            HIATUS -> Res.string.series_status_hiatus
         }
     }
 
-    fun forReadingDirection(direction: KomgaReadingDirection): String {
+    fun forReadingDirection(direction: KomgaReadingDirection): StringResource {
         return when (direction) {
-            LEFT_TO_RIGHT -> readingDirectionLeftToRight
-            RIGHT_TO_LEFT -> readingDirectionRightToLeft
-            VERTICAL -> readingDirectionVertical
-            WEBTOON -> readingDirectionWebtoon
+            LEFT_TO_RIGHT -> Res.string.series_reading_direction_left_to_right
+            RIGHT_TO_LEFT -> Res.string.series_reading_direction_left_to_right
+            VERTICAL -> Res.string.series_reading_direction_vertical
+            WEBTOON -> Res.string.series_reading_direction_webtoon
         }
     }
-}
-
-data class BookEditStrings(
-    val title: String,
-    val number: String,
-    val sortNumber: String,
-    val summary: String,
-    val releaseDate: String,
-    val isbn: String,
-)
-
-data class LibraryEditStrings(
-    val emptyTrashAfterScan: String,
-    val scanForceModifiedTime: String,
-    val scanOnStartup: String,
-    val oneshotsDirectory: String,
-    val excludeDirectories: String,
-    val scanInterval: String,
-    val scanIntervalDisabled: String,
-    val scanIntervalHourly: String,
-    val scanIntervalEvery6H: String,
-    val scanIntervalEvery12H: String,
-    val scanIntervalDaily: String,
-    val scanIntervalWeekly: String,
-
-
-    val hashFiles: String,
-    val hashPages: String,
-    val analyzeDimensions: String,
-    val repairExtensions: String,
-    val convertToCbz: String,
-    val seriesCover: String,
-
-    val coverFirst: String,
-    val coverFirstUnreadOrFirst: String,
-    val coverFirstUnreadOrLast: String,
-    val coverLast: String,
-) {
-
-    fun forSeriesCover(cover: SeriesCover): String {
-        return when (cover) {
-            FIRST -> coverFirst
-            FIRST_UNREAD_OR_FIRST -> coverFirstUnreadOrFirst
-            FIRST_UNREAD_OR_LAST -> coverFirstUnreadOrLast
-            LAST -> coverLast
-        }
-    }
-
-    fun forScanInterval(scanInterval: ScanInterval): String {
-        return when (scanInterval) {
-            DISABLED -> scanIntervalDisabled
-            HOURLY -> scanIntervalHourly
-            EVERY_6H -> scanIntervalEvery6H
-            EVERY_12H -> scanIntervalEvery12H
-            DAILY -> scanIntervalDaily
-            WEEKLY -> scanIntervalWeekly
-        }
-    }
-}
-
-data class UserEditStrings(
-    val contentRestrictions: String,
-    val age: String,
-    val labelsAllow: String,
-    val labelsExclude: String,
-    val ageRestriction: String,
-    val ageRestrictionNone: String,
-    val ageRestrictionAllowOnly: String,
-    val ageRestrictionExclude: String,
-) {
-    fun forAgeRestriction(ageRestriction: UserEditDialogViewModel.AgeRestriction): String {
-        return when (ageRestriction) {
-            NONE -> ageRestrictionNone
-            ALLOW_ONLY -> ageRestrictionAllowOnly
-            EXCLUDE -> ageRestrictionExclude
-        }
-    }
-}
-
-data class ReaderStrings(
-    val zoom: String,
-    val readerPaged: String,
-    val readerPanels: String,
-    val readerType: String,
-    val readerContinuous: String,
-    val stretchToFit: String,
-    val decoder: String,
-    val pagesInfo: String,
-    val pageNumber: String,
-    val memoryUsage: String,
-    val pageDisplaySize: String,
-    val pageOriginalSize: String,
-) {
-    fun forReaderType(type: ReaderType): String {
-        return when (type) {
-            ReaderType.PAGED -> readerPaged
-            ReaderType.PANELS -> readerPanels
-            ReaderType.CONTINUOUS -> readerContinuous
-        }
-    }
-
-}
-
-data class PagedReaderStrings(
-    val scaleType: String,
-    val scaleScreen: String,
-    val scaleFitWidth: String,
-    val scaleFitHeight: String,
-    val scaleOriginal: String,
-
-    val readingDirection: String,
-    val readingDirectionLeftToRight: String,
-    val readingDirectionRightToLeft: String,
-
-    val layout: String,
-    val layoutSinglePage: String,
-    val layoutDoublePages: String,
-    val layoutDoublePagesNoCover: String,
-    val offsetPages: String,
-) {
-    fun forScaleType(type: LayoutScaleType): String {
-        return when (type) {
-            LayoutScaleType.SCREEN -> scaleScreen
-            LayoutScaleType.FIT_WIDTH -> scaleFitWidth
-            LayoutScaleType.FIT_HEIGHT -> scaleFitHeight
-            LayoutScaleType.ORIGINAL -> scaleOriginal
-        }
-    }
-
-    fun forReadingDirection(direction: PagedReadingDirection): String {
-        return when (direction) {
-            PagedReadingDirection.LEFT_TO_RIGHT -> readingDirectionLeftToRight
-            PagedReadingDirection.RIGHT_TO_LEFT -> readingDirectionRightToLeft
-        }
-    }
-
-    fun forLayout(layout: PageDisplayLayout): String {
-        return when (layout) {
-            PageDisplayLayout.SINGLE_PAGE -> layoutSinglePage
-            PageDisplayLayout.DOUBLE_PAGES -> layoutDoublePages
-            PageDisplayLayout.DOUBLE_PAGES_NO_COVER -> layoutDoublePagesNoCover
-        }
-    }
-}
-
-data class ContinuousReaderStrings(
-    val sidePadding: String,
-    val pageSpacing: String,
-
-    val readingDirection: String,
-    val readingDirectionTopToBottom: String,
-    val readingDirectionLeftToRight: String,
-    val readingDirectionRightToLeft: String,
-) {
-
-    fun forReadingDirection(direction: ContinuousReadingDirection): String {
-        return when (direction) {
-            ContinuousReadingDirection.TOP_TO_BOTTOM -> readingDirectionTopToBottom
-            ContinuousReadingDirection.LEFT_TO_RIGHT -> readingDirectionLeftToRight
-            ContinuousReadingDirection.RIGHT_TO_LEFT -> readingDirectionRightToLeft
-        }
-    }
-}
-
-data class SettingsStrings(
-    val serverSettings: String,
-    val thumbnailSize: String,
-    val thumbnailSizeDefault: String,
-    val thumbnailSizeMedium: String,
-    val thumbnailSizeLarge: String,
-    val thumbnailSizeXLarge: String,
-
-    val thumbnailRegenTitle: String,
-    val thumbnailRegenBody: String,
-    val thumbnailRegenIfBigger: String,
-    val thumbnailRegenAllBooks: String,
-    val thumbnailRegenNo: String,
-
-
-    val deleteEmptyCollections: String,
-    val deleteEmptyReadLists: String,
-    val taskPoolSize: String,
-    val rememberMeDurationDays: String,
-    val renewRememberMeKey: String,
-    val serverPort: String,
-    val serverContextPath: String,
-    val requiresRestart: String,
-    val serverSettingsDiscard: String,
-    val serverSettingsSave: String,
-
-    val appTheme: String,
-    val appThemeDark: String,
-    val appThemeLight: String,
-    val appThemeOled: String,
-    val imageCardSize: String,
-    val decoder: String,
-
-    val epubReaderTypeKomga: String,
-    val epubReaderTypeTtsu: String,
-) {
-    fun forThumbnailSize(size: KomgaThumbnailSize): String {
-        return when (size) {
-            DEFAULT -> thumbnailSizeDefault
-            MEDIUM -> thumbnailSizeMedium
-            LARGE -> thumbnailSizeLarge
-            XLARGE -> thumbnailSizeXLarge
-        }
-    }
-
-    fun forAppTheme(theme: AppTheme): String {
-        return when (theme) {
-            AppTheme.DARK -> appThemeDark
-            AppTheme.LIGHT -> appThemeLight
-            AppTheme.DARKER -> appThemeOled
-        }
-    }
-
-    fun forEpubReaderType(readerType: EpubReaderType): String {
-        return when (readerType) {
-            EpubReaderType.KOMGA_EPUB -> epubReaderTypeKomga
-            EpubReaderType.TTSU_EPUB -> epubReaderTypeTtsu
-        }
-    }
-}
-
-data class FilterStrings(
-    val anyValue: String,
-
-    val filterTagsSearch: String,
-    val filterTagsReset: String,
-    val filterTagsGenreLabel: String,
-    val filterTagsTagsLabel: String,
-    val filterTagsShowMore: String,
-    val filterTagsShowLess: String,
-
-    val includeIfAllMatch: String,
-    val includeIfAnyMatch: String,
-    val excludeIfAllMatch: String,
-    val excludeIfAnyMatch: String,
-) {
 
     fun forInclusionMode(mode: SeriesFilterState.TagInclusionMode) = when (mode) {
-        SeriesFilterState.TagInclusionMode.INCLUDE_IF_ALL_MATCH -> includeIfAllMatch
-        SeriesFilterState.TagInclusionMode.INCLUDE_IF_ANY_MATCH -> includeIfAnyMatch
+        SeriesFilterState.TagInclusionMode.INCLUDE_IF_ALL_MATCH -> Res.string.filter_include_if_all_match
+        SeriesFilterState.TagInclusionMode.INCLUDE_IF_ANY_MATCH -> Res.string.filter_include_If_any_match
     }
 
     fun forExclusionMode(mode: SeriesFilterState.TagExclusionMode) = when (mode) {
-        SeriesFilterState.TagExclusionMode.EXCLUDE_IF_ANY_MATCH -> excludeIfAnyMatch
-        SeriesFilterState.TagExclusionMode.EXCLUDE_IF_ALL_MATCH -> excludeIfAllMatch
+        SeriesFilterState.TagExclusionMode.EXCLUDE_IF_ANY_MATCH -> Res.string.filter_exclude_if_any_match
+        SeriesFilterState.TagExclusionMode.EXCLUDE_IF_ALL_MATCH -> Res.string.filter_exclude_if_all_match
     }
-}
 
-data class SeriesFilterStrings(
-    val resetFilters: String,
-    val hideFilters: String,
-    val anyValue: String,
-    val search: String,
-    val sort: String,
-    val sortTitleAsc: String,
-    val sortTitleDesc: String,
-    val sortDateAddedAsc: String,
-    val sortDateAddedDesc: String,
-    val sortReleaseDateAsc: String,
-    val sortReleaseDateDesc: String,
-    val sortUpdatedAsc: String,
-    val sortUpdatedDesc: String,
-    val sortFolderNameAsc: String,
-    val sortFolderNameDesc: String,
-    val sortBooksCountAsc: String,
-    val sortBooksCountDesc: String,
-
-    val filterTagsLabel: String,
-
-    val readStatus: String,
-    val readStatusUnread: String,
-    val readStatusInProgress: String,
-    val readStatusRead: String,
-
-    val publicationStatus: String,
-    val pubStatusEnded: String,
-    val pubStatusOngoing: String,
-    val pubStatusAbandoned: String,
-    val pubStatusHiatus: String,
-
-    val complete: String,
-    val oneshot: String,
-    val authors: String,
-    val publisher: String,
-    val language: String,
-    val releaseDate: String,
-    val ageRating: String,
-) {
-
-    fun forSeriesSort(sort: LibrarySeriesTabState.SeriesSort): String {
+    fun forSeriesSort(sort: LibrarySeriesTabState.SeriesSort): StringResource {
         return when (sort) {
-            LibrarySeriesTabState.SeriesSort.TITLE_ASC -> sortTitleAsc
-            LibrarySeriesTabState.SeriesSort.TITLE_DESC -> sortTitleDesc
-            LibrarySeriesTabState.SeriesSort.DATE_ADDED_ASC -> sortDateAddedAsc
-            LibrarySeriesTabState.SeriesSort.DATE_ADDED_DESC -> sortDateAddedDesc
-            LibrarySeriesTabState.SeriesSort.RELEASE_DATE_ASC -> sortReleaseDateAsc
-            LibrarySeriesTabState.SeriesSort.RELEASE_DATE_DESC -> sortReleaseDateDesc
-            LibrarySeriesTabState.SeriesSort.UPDATED_DESC -> sortUpdatedDesc
-            LibrarySeriesTabState.SeriesSort.UPDATED_ASC -> sortUpdatedAsc
-//            FOLDER_NAME_ASC -> sortFolderNameAsc
-//            FOLDER_NAME_DESC -> sortFolderNameDesc
-//            BOOKS_COUNT_ASC -> sortBooksCountAsc
-//            BOOKS_COUNT_DESC -> sortBooksCountDesc
+            LibrarySeriesTabState.SeriesSort.TITLE_ASC -> Res.string.series_filter_sort_title_asc
+            LibrarySeriesTabState.SeriesSort.TITLE_DESC -> Res.string.series_filter_sort_title_desc
+            LibrarySeriesTabState.SeriesSort.DATE_ADDED_ASC -> Res.string.series_filter_sort_date_added_asc
+            LibrarySeriesTabState.SeriesSort.DATE_ADDED_DESC -> Res.string.series_filter_sort_date_added_desc
+            LibrarySeriesTabState.SeriesSort.RELEASE_DATE_ASC -> Res.string.series_filter_sort_release_date_asc
+            LibrarySeriesTabState.SeriesSort.RELEASE_DATE_DESC -> Res.string.series_filter_sort_release_date_desc
+            LibrarySeriesTabState.SeriesSort.UPDATED_DESC -> Res.string.series_filter_sort_updated_asc
+            LibrarySeriesTabState.SeriesSort.UPDATED_ASC -> Res.string.series_filter_sort_updated_desc
         }
     }
 
-    fun forSeriesReadStatus(status: KomgaReadStatus): String {
+    fun forSeriesReadStatus(status: KomgaReadStatus): StringResource {
         return when (status) {
-            UNREAD -> readStatusUnread
-            IN_PROGRESS -> readStatusInProgress
-            READ -> readStatusRead
+            UNREAD -> Res.string.series_filter_read_status_unread
+            IN_PROGRESS -> Res.string.series_filter_read_status_inprogress
+            READ -> Res.string.series_filter_read_status_read
         }
     }
 
-    fun forPublicationStatus(status: KomgaSeriesStatus): String {
+    fun forPublicationStatus(status: KomgaSeriesStatus): StringResource {
         return when (status) {
-            ENDED -> pubStatusEnded
-            ONGOING -> pubStatusOngoing
-            ABANDONED -> pubStatusAbandoned
-            HIATUS -> pubStatusHiatus
+            ENDED -> Res.string.series_filter_publication_status_ended
+            ONGOING -> Res.string.series_filter_publication_status_ongoing
+            ABANDONED -> Res.string.series_filter_publication_status_abandoned
+            HIATUS -> Res.string.series_filter_publication_status_hiatus
         }
     }
 
-}
-
-data class BookFilterStrings(
-    val sort: String,
-    val sortNumberAsc: String,
-    val sortNumberDesc: String,
-    val sortFileNameAsc: String,
-    val sortFileNameDesc: String,
-    val sortReleaseDateAsc: String,
-    val sortReleaseDateDesc: String,
-
-    val readStatus: String,
-    val readStatusUnread: String,
-    val readStatusInProgress: String,
-    val readStatusRead: String,
-
-    val authors: String,
-    val tags: String,
-) {
-
-    fun forReadStatus(status: KomgaReadStatus): String {
-        return when (status) {
-            UNREAD -> readStatusUnread
-            IN_PROGRESS -> readStatusInProgress
-            READ -> readStatusRead
+    fun forSeriesCover(cover: SeriesCover): StringResource {
+        return when (cover) {
+            FIRST -> Res.string.library_edit_cover_first
+            FIRST_UNREAD_OR_FIRST -> Res.string.library_edit_cover_first_unread_or_first
+            FIRST_UNREAD_OR_LAST -> Res.string.library_edit_cover_first_unread_or_last
+            LAST -> Res.string.library_edit_cover_last
         }
     }
 
-    fun forBookSort(sort: BooksSort): String {
-        return when (sort) {
-            BooksSort.NUMBER_ASC -> sortNumberAsc
-            BooksSort.NUMBER_DESC -> sortNumberDesc
-//            BooksSort.FILENAME_ASC -> sortFileNameAsc
-//            BooksSort.FILENAME_DESC -> sortFileNameDesc
-//            BooksSort.RELEASE_DATE_ASC -> sortReleaseDateAsc
-//            BooksSort.RELEASE_DATE_DESC -> sortReleaseDateDesc
+    fun forScanInterval(scanInterval: ScanInterval): StringResource {
+        return when (scanInterval) {
+            DISABLED -> Res.string.library_edit_scan_interval_disabled
+            HOURLY -> Res.string.library_edit_scan_interval_hourly
+            EVERY_6H -> Res.string.library_edit_scan_interval_every_6h
+            EVERY_12H -> Res.string.library_edit_scan_interval_every_12h
+            DAILY -> Res.string.library_edit_scan_interval_daily
+            WEEKLY -> Res.string.library_edit_scan_interval_weekly
+        }
+    }
+
+    fun forAgeRestriction(ageRestriction: UserEditDialogViewModel.AgeRestriction): StringResource {
+        return when (ageRestriction) {
+            NONE -> Res.string.user_edit_age_restriction_none
+            ALLOW_ONLY -> Res.string.user_edit_age_restriction_allow_only
+            EXCLUDE -> Res.string.user_edit_age_restriction_exclude
+        }
+    }
+
+    fun forReaderType(type: ReaderType): StringResource {
+        return when (type) {
+            ReaderType.PAGED -> Res.string.reader_type_paged
+            ReaderType.PANELS -> Res.string.reader_type_panels
+            ReaderType.CONTINUOUS -> Res.string.reader_type_continuous
+        }
+    }
+
+    fun forScaleType(type: LayoutScaleType): StringResource {
+        return when (type) {
+            LayoutScaleType.SCREEN -> Res.string.reader_paged_scale_type
+            LayoutScaleType.FIT_WIDTH -> Res.string.reader_paged_scale_fit_width
+            LayoutScaleType.FIT_HEIGHT -> Res.string.reader_paged_scale_fit_height
+            LayoutScaleType.ORIGINAL -> Res.string.reader_paged_scale_original
+        }
+    }
+
+    fun forReadingDirection(direction: PagedReadingDirection): StringResource {
+        return when (direction) {
+            PagedReadingDirection.LEFT_TO_RIGHT -> Res.string.reader_paged_reading_direction_left_to_right
+            PagedReadingDirection.RIGHT_TO_LEFT -> Res.string.reader_paged_reading_direction_right_to_left
+        }
+    }
+
+    fun forLayout(layout: PageDisplayLayout): StringResource {
+        return when (layout) {
+            PageDisplayLayout.SINGLE_PAGE -> Res.string.reader_paged_layout_single_page
+            PageDisplayLayout.DOUBLE_PAGES -> Res.string.reader_paged_layout_double_pages
+            PageDisplayLayout.DOUBLE_PAGES_NO_COVER -> Res.string.reader_paged_layout_double_pages_no_cover
+        }
+    }
+
+    fun forReadingDirection(direction: ContinuousReadingDirection): StringResource {
+        return when (direction) {
+            ContinuousReadingDirection.TOP_TO_BOTTOM -> Res.string.reader_continuous_reading_direction_top_to_bottom
+            ContinuousReadingDirection.LEFT_TO_RIGHT -> Res.string.reader_continuous_reading_direction_left_to_rigth
+            ContinuousReadingDirection.RIGHT_TO_LEFT -> Res.string.reader_continuous_reading_direction_right_to_left
+        }
+    }
+
+    fun forUpsamplingMode(mode: UpsamplingMode): StringResource {
+        return when (mode) {
+            UpsamplingMode.NEAREST -> Res.string.reader_image_upsampling_mode_nearest
+            UpsamplingMode.BILINEAR -> Res.string.reader_image_upsampling_mode_bilinear
+            UpsamplingMode.MITCHELL -> Res.string.reader_image_upsampling_mode_bicubic_mitchell
+            UpsamplingMode.CATMULL_ROM -> Res.string.reader_image_upsampling_mode_bicubic_catmull_rom
+        }
+    }
+
+    fun forDownsamplingKernel(kernel: ReduceKernel): StringResource {
+        return when (kernel) {
+            ReduceKernel.NEAREST -> Res.string.reader_image_downsampling_kernel_default
+            ReduceKernel.LINEAR -> Res.string.reader_image_downsampling_kernel_default
+            ReduceKernel.CUBIC -> Res.string.reader_image_downsampling_kernel_default
+            ReduceKernel.MITCHELL -> Res.string.reader_image_downsampling_kernel_mitchell
+            ReduceKernel.LANCZOS2 -> Res.string.reader_image_downsampling_kernel_lanczos2
+            ReduceKernel.LANCZOS3 -> Res.string.reader_image_downsampling_kernel_lanczos3
+            ReduceKernel.MKS2013 -> Res.string.reader_image_downsampling_kernel_default
+            ReduceKernel.MKS2021 -> Res.string.reader_image_downsampling_kernel_default
+            ReduceKernel.DEFAULT -> Res.string.reader_image_downsampling_kernel_default
+        }
+    }
+
+    fun forOnnxRuntimeUpscaleMode(mode: UpscaleMode): StringResource {
+        return when (mode) {
+            UpscaleMode.USER_SPECIFIED_MODEL -> Res.string.settings_image_onnxruntime_upscale_mode_user_model
+            UpscaleMode.MANGAJANAI_PRESET -> Res.string.settings_image_onnxruntime_upscale_mode_mangajanai
+            UpscaleMode.NONE -> Res.string.settings_image_onnxruntime_upscale_mode_none
+        }
+    }
+
+    fun forThumbnailSize(size: KomgaThumbnailSize): StringResource {
+        return when (size) {
+            DEFAULT -> Res.string.settings_server_thumbnail_size_default
+            MEDIUM -> Res.string.settings_server_thumbnail_size_medium
+            LARGE -> Res.string.settings_server_thumbnail_size_large
+            XLARGE -> Res.string.settings_server_thumbnail_size_xlarge
+        }
+    }
+
+    fun forAppTheme(theme: AppTheme): StringResource {
+        return when (theme) {
+            AppTheme.DARK -> Res.string.settings_app_theme_dark
+            AppTheme.LIGHT -> Res.string.settings_app_theme_light
+            AppTheme.DARKER -> Res.string.settings_app_theme_darker
+        }
+    }
+
+    fun forEpubReaderType(readerType: EpubReaderType): StringResource {
+        return when (readerType) {
+            EpubReaderType.KOMGA_EPUB -> Res.string.settings_epub_reader_type_komga
+            EpubReaderType.TTSU_EPUB -> Res.string.settings_epub_reader_type_ttsu
+        }
+    }
+
+    @Composable
+    fun forUserRole(roleString: String): String {
+        return when (roleString) {
+            "ADMIN" -> stringResource(Res.string.user_roles_admin)
+            "USER" -> stringResource(Res.string.user_roles_user)
+            "FILE_DOWNLOAD" -> stringResource(Res.string.user_roles_file_download)
+            "PAGE_STREAMING" -> stringResource(Res.string.user_roles_page_streaming)
+            "KOBO_SYNC" -> stringResource(Res.string.user_roles_kobo_sync)
+            "KOREADER_SYNC" -> stringResource(Res.string.user_roles_koreader_sync)
+            else -> roleString
+        }
+    }
+
+    @Composable
+    fun forProvider(provider: KomfProviders): String =
+        when (provider) {
+            KomfCoreProviders.ANILIST -> stringResource(Res.string.komf_provider_anilist)
+            KomfCoreProviders.BANGUMI -> stringResource(Res.string.komf_provider_bangumi)
+
+            KomfCoreProviders.BOOK_WALKER -> stringResource(Res.string.komf_provider_bookwalker)
+            KomfCoreProviders.COMIC_VINE -> stringResource(Res.string.komf_provider_comicvine)
+            KomfCoreProviders.HENTAG -> stringResource(Res.string.komf_provider_hentag)
+            KomfCoreProviders.KODANSHA -> stringResource(Res.string.komf_provider_kodansha)
+            KomfCoreProviders.MAL -> stringResource(Res.string.komf_provider_mal)
+            KomfCoreProviders.MANGA_UPDATES -> stringResource(Res.string.komf_provider_mangaupdates)
+            KomfCoreProviders.MANGADEX -> stringResource(Res.string.komf_provider_mangadex)
+            KomfCoreProviders.NAUTILJON -> stringResource(Res.string.komf_provider_nautiljon)
+            KomfCoreProviders.YEN_PRESS -> stringResource(Res.string.komf_provider_yenpress)
+            KomfCoreProviders.VIZ -> stringResource(Res.string.komf_provider_viz)
+            KomfCoreProviders.MANGA_BAKA -> stringResource(Res.string.komf_provider_mangabaka)
+            KomfCoreProviders.WEBTOONS -> stringResource(Res.string.komf_provider_webtoons)
+            is UnknownKomfProvider -> provider.name
         }
 
-    }
-}
-
-
-data class ErrorCodes(
-    val err1000: String,
-    val err1001: String,
-    val err1002: String,
-    val err1003: String,
-    val err1004: String,
-    val err1005: String,
-    val err1006: String,
-    val err1007: String,
-    val err1008: String,
-    val err1009: String,
-    val err1015: String,
-    val err1016: String,
-    val err1017: String,
-    val err1018: String,
-    val err1019: String,
-    val err1020: String,
-    val err1021: String,
-    val err1022: String,
-    val err1023: String,
-    val err1024: String,
-    val err1025: String,
-    val err1026: String,
-    val err1027: String,
-    val err1028: String,
-    val err1029: String,
-    val err1030: String,
-    val err1031: String,
-    val err1032: String,
-    val err1033: String,
-    val err1034: String,
-    val err1035: String,
-    val err1036: String,
-    val err1037: String,
-    val err1038: String,
-    val err1039: String,
-) {
-    private val codeMap: Map<String, String> = mapOf(
-        "ERR_1000" to err1000,
-        "ERR_1001" to err1001,
-        "ERR_1002" to err1002,
-        "ERR_1003" to err1003,
-        "ERR_1004" to err1004,
-        "ERR_1005" to err1005,
-        "ERR_1006" to err1006,
-        "ERR_1007" to err1007,
-        "ERR_1008" to err1008,
-        "ERR_1009" to err1009,
-        "ERR_1015" to err1015,
-        "ERR_1016" to err1016,
-        "ERR_1017" to err1017,
-        "ERR_1018" to err1018,
-        "ERR_1019" to err1019,
-        "ERR_1020" to err1020,
-        "ERR_1021" to err1021,
-        "ERR_1022" to err1022,
-        "ERR_1023" to err1023,
-        "ERR_1024" to err1024,
-        "ERR_1025" to err1025,
-        "ERR_1026" to err1026,
-        "ERR_1027" to err1027,
-        "ERR_1028" to err1028,
-        "ERR_1029" to err1029,
-        "ERR_1030" to err1030,
-        "ERR_1031" to err1031,
-        "ERR_1032" to err1032,
-        "ERR_1033" to err1033,
-        "ERR_1034" to err1034,
-        "ERR_1035" to err1036,
-        "ERR_1036" to err1036,
-        "ERR_1037" to err1037,
-        "ERR_1038" to err1038,
-        "ERR_1039" to err1039,
+    private val codeMap: Map<String, StringResource> = mapOf(
+        "ERR_1000" to Res.string.komga_error_code_1000,
+        "ERR_1001" to Res.string.komga_error_code_1001,
+        "ERR_1002" to Res.string.komga_error_code_1002,
+        "ERR_1003" to Res.string.komga_error_code_1003,
+        "ERR_1004" to Res.string.komga_error_code_1004,
+        "ERR_1005" to Res.string.komga_error_code_1005,
+        "ERR_1006" to Res.string.komga_error_code_1006,
+        "ERR_1007" to Res.string.komga_error_code_1007,
+        "ERR_1008" to Res.string.komga_error_code_1008,
+        "ERR_1009" to Res.string.komga_error_code_1009,
+        "ERR_1015" to Res.string.komga_error_code_1015,
+        "ERR_1016" to Res.string.komga_error_code_1016,
+        "ERR_1017" to Res.string.komga_error_code_1017,
+        "ERR_1018" to Res.string.komga_error_code_1018,
+        "ERR_1019" to Res.string.komga_error_code_1019,
+        "ERR_1020" to Res.string.komga_error_code_1020,
+        "ERR_1021" to Res.string.komga_error_code_1021,
+        "ERR_1022" to Res.string.komga_error_code_1022,
+        "ERR_1023" to Res.string.komga_error_code_1023,
+        "ERR_1024" to Res.string.komga_error_code_1024,
+        "ERR_1025" to Res.string.komga_error_code_1025,
+        "ERR_1026" to Res.string.komga_error_code_1026,
+        "ERR_1027" to Res.string.komga_error_code_1027,
+        "ERR_1028" to Res.string.komga_error_code_1028,
+        "ERR_1029" to Res.string.komga_error_code_1029,
+        "ERR_1030" to Res.string.komga_error_code_1030,
+        "ERR_1031" to Res.string.komga_error_code_1031,
+        "ERR_1032" to Res.string.komga_error_code_1032,
+        "ERR_1033" to Res.string.komga_error_code_1033,
+        "ERR_1034" to Res.string.komga_error_code_1034,
+        "ERR_1035" to Res.string.komga_error_code_1035,
+        "ERR_1036" to Res.string.komga_error_code_1036,
+        "ERR_1037" to Res.string.komga_error_code_1037,
+        "ERR_1038" to Res.string.komga_error_code_1038,
+        "ERR_1039" to Res.string.komga_error_code_1039,
     )
 
-    fun getMessageForCode(code: String) = codeMap[code] ?: "Unknown error: $code"
+    @Composable
+    fun getMessageStringForCode(code: String): String {
+        return codeMap[code]?.let { stringResource(it) }
+            ?: stringResource(Res.string.komga_error_code_unknown)
+    }
 }
 
-data class ImageSettingsStrings(
-    val upsamplingMode: String,
-    val upsamplingModeNearest: String,
-    val upsamplingModeBilinear: String,
-    val upsamplingModeMitchell: String,
-    val upsamplingModeCatmullRom: String,
-
-    val downsamplingKernel: String,
-    val downsamplingKernelNearest: String,
-    val downsamplingKernelLinear: String,
-    val downsamplingKernelCubic: String,
-    val downsamplingKernelMitchell: String,
-    val downsamplingKernelLanczos2: String,
-    val downsamplingKernelLanczos3: String,
-    val downsamplingKernelMKS2013: String,
-    val downsamplingKernelMKS2021: String,
-    val downsamplingKernelDefault: String,
-
-    val onnxRuntimeExecutionProvider: String,
-    val onnxRuntimeUpscaleMode: String,
-    val onnxRuntimeUpscaleModeNone: String,
-    val onnxRuntimeUpscaleModeUserModel: String,
-    val onnxRuntimeUpscaleModeMangaJaNai: String,
-) {
-    fun forUpsamplingMode(mode: UpsamplingMode): String {
-        return when (mode) {
-            UpsamplingMode.NEAREST -> upsamplingModeNearest
-            UpsamplingMode.BILINEAR -> upsamplingModeBilinear
-            UpsamplingMode.MITCHELL -> upsamplingModeMitchell
-            UpsamplingMode.CATMULL_ROM -> upsamplingModeCatmullRom
+@Composable
+fun <T> stringLabels(
+    entries: List<T>,
+    stringTransform: (T) -> StringResource
+): List<LabeledEntry<T>> {
+    var labels by remember { mutableStateOf(emptyList<LabeledEntry<T>>()) }
+    val environment = rememberResourceEnvironment()
+    LaunchedEffect(environment) {
+        labels = entries.map { entry ->
+            val res = stringTransform(entry)
+            val str = getString(environment, res)
+            LabeledEntry(entry, str)
         }
     }
-
-    fun forDownsamplingKernel(kernel: ReduceKernel): String {
-        return when (kernel) {
-            ReduceKernel.NEAREST -> downsamplingKernelNearest
-            ReduceKernel.LINEAR -> downsamplingKernelLinear
-            ReduceKernel.CUBIC -> downsamplingKernelCubic
-            ReduceKernel.MITCHELL -> downsamplingKernelMitchell
-            ReduceKernel.LANCZOS2 -> downsamplingKernelLanczos2
-            ReduceKernel.LANCZOS3 -> downsamplingKernelLanczos3
-            ReduceKernel.MKS2013 -> downsamplingKernelMKS2013
-            ReduceKernel.MKS2021 -> downsamplingKernelMKS2021
-            ReduceKernel.DEFAULT -> downsamplingKernelDefault
-        }
-    }
-
-    fun forOnnxRuntimeUpscaleMode(mode: UpscaleMode): String {
-        return when (mode) {
-            UpscaleMode.USER_SPECIFIED_MODEL -> onnxRuntimeUpscaleModeUserModel
-            UpscaleMode.MANGAJANAI_PRESET -> onnxRuntimeUpscaleModeMangaJaNai
-            UpscaleMode.NONE -> onnxRuntimeUpscaleModeNone
-        }
-    }
+    return labels
 }

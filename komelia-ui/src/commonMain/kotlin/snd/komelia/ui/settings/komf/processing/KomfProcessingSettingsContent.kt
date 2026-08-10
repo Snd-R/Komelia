@@ -12,6 +12,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_aggreation_settings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_aggregate
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_aggregate_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_alt_title_fallback
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_alt_title_fallback_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_book_covers
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_book_covers_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_cover_settings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_default_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_default_reading_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_default_values
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_library_type
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_merge_genres
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_merge_genres_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_merge_tags
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_merge_tags_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_none
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_order_books
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_order_books_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_override_covers
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_override_covers_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_alt_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_alt_title_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_alt_title_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_covers
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_covers_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_title_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_series_title_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_title_settings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_processing_update_modes
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.ChipFieldWithSuggestions
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.DropdownMultiChoiceMenu
@@ -61,8 +94,8 @@ private fun ProcessingConfigContent(
             selectedOptions = state.updateModes.map { LabeledEntry(it, it.name) },
             options = remember { KomfUpdateMode.entries.map { LabeledEntry(it, it.name) } },
             onOptionSelect = { state.onUpdateModeSelect(it.value) },
-            label = { Text("Update Modes") },
-            placeholder = "None",
+            label = { Text(stringResource(Res.string.komf_processing_update_modes)) },
+            placeholder = stringResource(Res.string.komf_processing_none),
             inputFieldModifier = Modifier.fillMaxWidth()
         )
 
@@ -70,32 +103,35 @@ private fun ProcessingConfigContent(
             selectedOption = LabeledEntry(state.libraryType, state.libraryType.name),
             options = remember { KomfMediaType.entries.map { LabeledEntry(it, it.name) } },
             onOptionChange = { state.onLibraryTypeChange(it.value) },
-            label = { Text("Library type. Affects some options, mainly book name parsing") },
+            label = { Text(stringResource(Res.string.komf_processing_library_type)) },
             inputFieldModifier = Modifier.fillMaxWidth(),
         )
 
         SwitchWithLabel(
             checked = state.orderBooks,
             onCheckedChange = state::onOrderBooksChange,
-            label = { Text("Order Books") },
+            label = { Text(stringResource(Res.string.komf_processing_order_books)) },
 
             supportingText = {
                 Text(
-                    "Attempt to order books using naming pattern based on selected library type",
+                    stringResource(Res.string.komf_processing_order_books_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
         )
         HorizontalDivider()
 
-        Text("Aggregation settings", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_processing_aggreation_settings),
+            style = MaterialTheme.typography.titleLarge
+        )
         SwitchWithLabel(
             checked = state.aggregate,
             onCheckedChange = state::onAggregateChange,
-            label = { Text("Aggregate") },
+            label = { Text(stringResource(Res.string.komf_processing_aggregate)) },
             supportingText = {
                 Text(
-                    "aggregate and combine metadata from all enabled providers instead of taking first matched result",
+                    stringResource(Res.string.komf_processing_aggregate_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -105,10 +141,10 @@ private fun ProcessingConfigContent(
             checked = state.mergeGenres,
             onCheckedChange = state::onMergeGenresChange,
             enabled = state.aggregate,
-            label = { Text("Merge Genres") },
+            label = { Text(stringResource(Res.string.komf_processing_merge_genres)) },
             supportingText = {
                 Text(
-                    "if aggregate option is enabled merge genres instead of taking them from first matched result",
+                    stringResource(Res.string.komf_processing_merge_genres_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -118,26 +154,29 @@ private fun ProcessingConfigContent(
             checked = state.mergeTags,
             onCheckedChange = state::onMergeTagsChange,
             enabled = state.aggregate,
-            label = { Text("Merge Tags") },
+            label = { Text(stringResource(Res.string.komf_processing_merge_tags)) },
 
             supportingText = {
                 Text(
-                    "if aggregate option is enabled merge tags instead of taking them from first matched result",
+                    stringResource(Res.string.komf_processing_merge_tags_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
         )
 
         HorizontalDivider()
-        Text("Cover settings", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_processing_cover_settings),
+            style = MaterialTheme.typography.titleLarge
+        )
         SwitchWithLabel(
             checked = state.seriesCovers,
             onCheckedChange = state::onSeriesCoversChange,
-            label = { Text("Series Covers") },
+            label = { Text(stringResource(Res.string.komf_processing_series_covers)) },
 
             supportingText = {
                 Text(
-                    "Upload series covers",
+                    stringResource(Res.string.komf_processing_series_covers_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -146,11 +185,11 @@ private fun ProcessingConfigContent(
         SwitchWithLabel(
             checked = state.bookCovers,
             onCheckedChange = state::onBookCoversChange,
-            label = { Text("Book Covers") },
+            label = { Text(stringResource(Res.string.komf_processing_book_covers)) },
 
             supportingText = {
                 Text(
-                    "Upload book covers",
+                    stringResource(Res.string.komf_processing_book_covers_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -159,26 +198,29 @@ private fun ProcessingConfigContent(
         SwitchWithLabel(
             checked = state.overrideExistingCovers,
             onCheckedChange = state::onOverrideExistingCoversChange,
-            label = { Text("Override Existing Covers") },
+            label = { Text(stringResource(Res.string.komf_processing_override_covers)) },
 
             supportingText = {
                 Text(
-                    "If entry already has a user uploaded cover, mark newly uploaded cover as current.\nIf disabled, then upload cover without selecting it",
+                    stringResource(Res.string.komf_processing_override_covers_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
         )
 
         HorizontalDivider()
-        Text("Title Settings", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_processing_title_settings),
+            style = MaterialTheme.typography.titleLarge
+        )
         SwitchWithLabel(
             checked = state.seriesTitle,
             onCheckedChange = state::onSeriesTitleChange,
-            label = { Text("Series Title") },
+            label = { Text(stringResource(Res.string.komf_processing_series_title)) },
 
             supportingText = {
                 Text(
-                    "Update series title if matched metadata contains title data",
+                    stringResource(Res.string.komf_processing_series_title_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -186,11 +228,11 @@ private fun ProcessingConfigContent(
         SwitchWithLabel(
             checked = state.alternativeSeriesTitles,
             onCheckedChange = state::onAlternativeSeriesTitlesChange,
-            label = { Text("Alternative Series Titles") },
+            label = { Text(stringResource(Res.string.komf_processing_series_alt_title)) },
 
             supportingText = {
                 Text(
-                    "Update series alternative title if matched metadata contains alternative title data",
+                    stringResource(Res.string.komf_processing_series_alt_title_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -198,43 +240,47 @@ private fun ProcessingConfigContent(
         SwitchWithLabel(
             checked = state.fallbackToAltTitle,
             onCheckedChange = state::onFallbackToAltTitleChange,
-            label = { Text("Alternative Title Fallback") },
+            label = { Text(stringResource(Res.string.komf_processing_alt_title_fallback)) },
 
             supportingText = {
                 Text(
-                    "Use first available alternative title if no main title with specified language is found",
+                    stringResource(Res.string.komf_processing_alt_title_fallback_desc),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
         )
         LanguageSelectionField(
-            label = "Series title language (ISO 639)",
+            label = stringResource(Res.string.komf_processing_series_title_language),
             languageValue = state.seriesTitleLanguage,
             onLanguageValueChange = state::onSeriesTitleLanguageChange,
             onLanguageValueSave = state::onSeriesTitleLanguageSave
         )
         ChipFieldWithSuggestions(
-            label = { Text("Alternative title languages (ISO 639)") },
+            label = { Text(stringResource(Res.string.komf_processing_series_alt_title_language)) },
             values = state.alternativeSeriesTitleLanguages,
             onValuesChange = state::onAlternativeTitleLanguagesChange,
             suggestions = komfLanguageTagsSuggestions
         )
         HorizontalDivider()
-        Text("Default values", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_processing_default_values),
+            style = MaterialTheme.typography.titleLarge
+        )
+        val noneString = stringResource(Res.string.komf_processing_none)
         if (serverType == KOMGA) {
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(state.readingDirectionValue, state.readingDirectionValue?.name ?: "None"),
                 options = remember {
-                    listOf(LabeledEntry<KomfReadingDirection?>(null, "None")) +
+                    listOf(LabeledEntry<KomfReadingDirection?>(null, noneString)) +
                             KomfReadingDirection.entries.map { LabeledEntry(it, it.name) }
                 },
                 onOptionChange = { state.onReadingDirectionChange(it.value) },
-                label = { Text("Default series reading direction") },
+                label = { Text(stringResource(Res.string.komf_processing_default_reading_direction)) },
                 inputFieldModifier = Modifier.fillMaxWidth(),
             )
         }
         LanguageSelectionField(
-            label = "Default series language",
+            label = stringResource(Res.string.komf_processing_default_language),
             languageValue = state.defaultLanguageValue ?: "",
             onLanguageValueChange = state::onDefaultLanguageChange,
             onLanguageValueSave = state::onDefaultLanguageSave
@@ -243,4 +289,3 @@ private fun ProcessingConfigContent(
         Spacer(Modifier.height(30.dp))
     }
 }
-

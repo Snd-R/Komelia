@@ -29,6 +29,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_confirm
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.platform.VerticalScrollbar
 import snd.komelia.ui.platform.cursorForHand
 import kotlin.math.roundToInt
@@ -183,8 +187,8 @@ fun AppDialogLayout(
 
 @Composable
 fun DialogConfirmCancelButtons(
-    confirmText: String = "Confirm",
-    cancelText: String = "Cancel",
+    confirmText: String = stringResource(Res.string.dialog_confirm),
+    cancelText: String = stringResource(Res.string.dialog_cancel),
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     confirmEnabled: Boolean = true,

@@ -31,7 +31,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +52,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_home
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_libraries
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_libraries_unavailable
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_settings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.sidebar_task_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.common.menus.LibraryActionsMenu
@@ -145,7 +152,7 @@ fun ColumnScope.LibrariesNavBarContent(
     NavButton(
         onClick = { onLibrariesClick() },
         icon = Icons.AutoMirrored.Filled.LibraryBooks,
-        label = "Libraries",
+        label = stringResource(Res.string.navbar_libraries),
         isSelected = false,
         actionButton = if (!isAdmin || isOffline) null else {
             {
@@ -164,7 +171,7 @@ fun ColumnScope.LibrariesNavBarContent(
             onClick = { onLibraryClick(library.id) },
             icon = null,
             label = library.name,
-            errorLabel = if (library.unavailable) "Unavailable" else null,
+            errorLabel = if (library.unavailable) stringResource(Res.string.navbar_libraries_unavailable) else null,
             isSelected = currentScreen is LibraryScreen && currentScreen.libraryId == library.id,
             actionButton = if (!isAdmin && !isOffline) null else {
                 {
@@ -222,7 +229,7 @@ private fun NavMenu(
             NavButton(
                 onClick = { onHomeClick() },
                 icon = Icons.Default.Home,
-                label = "Home",
+                label = stringResource(Res.string.navbar_home),
                 isSelected = currentScreen is HomeScreen
             )
             LibrariesNavBarContent(
@@ -237,7 +244,7 @@ private fun NavMenu(
             NavButton(
                 onClick = onSettingsClick,
                 icon = Icons.Default.Settings,
-                label = "Settings",
+                label = stringResource(Res.string.navbar_settings),
                 isSelected = false
             )
 
@@ -302,7 +309,7 @@ private fun NavButton(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TaskQueueIndicator(queueStatus: TaskQueueStatus) {
     BasicTooltipBox(
@@ -310,10 +317,9 @@ private fun TaskQueueIndicator(queueStatus: TaskQueueStatus) {
         tooltip = {
             Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .9f)) {
                 Column(Modifier.padding(10.dp)) {
-                    when (queueStatus.count) {
-                        1 -> Text("1 pending task")
-                        else -> Text("${queueStatus.count} pending tasks")
-                    }
+                    Text(
+                        pluralStringResource(Res.plurals.sidebar_task_count, queueStatus.count, queueStatus.count)
+                    )
                     Spacer(Modifier.height(10.dp))
                     queueStatus.countByType.forEach { (task, count) ->
                         Text("$task: $count")

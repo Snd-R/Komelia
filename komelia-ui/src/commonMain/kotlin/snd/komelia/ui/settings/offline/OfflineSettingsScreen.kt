@@ -26,6 +26,12 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_downloads_tab
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_logs_tab
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_tab
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.settings.SettingsScreenContainer
 import snd.komelia.ui.settings.offline.downloads.OfflineDownloadsContent
@@ -44,7 +50,7 @@ class OfflineSettingsScreen : Screen {
             vm.initialize(currentNavigator)
         }
 
-        SettingsScreenContainer("Offline mode") {
+        SettingsScreenContainer(stringResource(Res.string.settings_offline_mode_title)) {
             var selectedTab by rememberSaveable { mutableStateOf(0) }
 
             SecondaryTabRow(selectedTabIndex = selectedTab) {
@@ -55,7 +61,7 @@ class OfflineSettingsScreen : Screen {
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Person, null)
-                        Text("Users")
+                        Text(stringResource(Res.string.settings_offline_mode_users_tab))
                     }
                 }
                 Tab(
@@ -65,7 +71,7 @@ class OfflineSettingsScreen : Screen {
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Download, null)
-                        Text("Downloads")
+                        Text(stringResource(Res.string.settings_offline_mode_downloads_tab))
                     }
                 }
 
@@ -76,7 +82,7 @@ class OfflineSettingsScreen : Screen {
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Cached, null)
-                        Text("Logs")
+                        Text(stringResource(Res.string.settings_offline_mode_logs_tab))
                     }
                 }
             }

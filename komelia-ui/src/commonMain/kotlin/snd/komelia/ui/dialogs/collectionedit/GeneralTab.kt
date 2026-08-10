@@ -12,6 +12,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit_order
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit_order_manual
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_general
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.CheckboxWithLabel
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
@@ -21,7 +27,7 @@ internal class GeneralTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "GENERAL",
+        title = Res.string.edit_tab_general,
         icon = Icons.Default.FormatAlignCenter
     )
 
@@ -33,7 +39,7 @@ internal class GeneralTab(
             TextField(
                 value = vm.name,
                 onValueChange = vm::name::set,
-                label = { Text("Name") },
+                label = { Text(stringResource(Res.string.collection_edit_name)) },
                 supportingText = {
                     vm.nameValidationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 },
@@ -45,13 +51,13 @@ internal class GeneralTab(
             HorizontalDivider()
             Column {
                 Text(
-                    "By default, series in a collection will be ordered by name. You can enable manual ordering to define your own order.",
+                    stringResource(Res.string.collection_edit_order),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 CheckboxWithLabel(
                     checked = vm.manualOrdering,
                     onCheckedChange = vm::manualOrdering::set,
-                    label = { Text("Manual ordering") }
+                    label = { Text(stringResource(Res.string.collection_edit_order_manual)) }
                 )
 
             }

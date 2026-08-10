@@ -10,7 +10,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import snd.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_age_rating
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_publisher
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_reading_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_status
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_tab_general
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.OptionsStateHolder
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.LabeledEntry
@@ -18,6 +25,7 @@ import snd.komelia.ui.common.components.LockableDropDown
 import snd.komelia.ui.common.components.LockableTextField
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.common.KomgaReadingDirection
 import snd.komga.client.series.KomgaSeriesStatus
 
@@ -26,7 +34,7 @@ internal class GeneralTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "GENERAL",
+        title = Res.string.series_edit_tab_general,
         icon = Icons.Default.FormatAlignCenter
     )
 
@@ -64,28 +72,43 @@ private fun GeneralTabContent(
     ageRating: StateHolder<Int?>,
     ageRatingLock: StateHolder<Boolean>,
 ) {
-    val strings = LocalStrings.current.seriesEdit
-
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
         LockableDropDown(
-            selectedOption = LabeledEntry(status.value, status.value?.let { strings.forSeriesStatus(it) } ?: ""),
-            options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forSeriesStatus(it)) },
+            selectedOption = LabeledEntry(
+                status.value,
+                status.value?.let { stringResource(AppStrings.forSeriesStatus(it)) } ?: ""),
+            options = KomgaSeriesStatus.entries.map {
+                LabeledEntry(
+                    it,
+                    stringResource(AppStrings.forSeriesStatus(it))
+                )
+            },
             onOptionChange = { status.onValueChange(it.value) },
-            label = { Text(strings.status) },
+            label = { Text(stringResource(Res.string.series_edit_status)) },
             lock = statusLock,
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
             inputFieldModifier = Modifier.fillMaxWidth(),
         )
 
         LockableDropDown(
-            selectedOption = readingDirection.value?.let { LabeledEntry(it, strings.forReadingDirection(it)) }
+            selectedOption = readingDirection.value?.let {
+                LabeledEntry(
+                    it,
+                    stringResource(AppStrings.forReadingDirection(it))
+                )
+            }
                 ?: LabeledEntry(null, ""),
-            options = KomgaReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) },
+            options = KomgaReadingDirection.entries.map {
+                LabeledEntry(
+                    it,
+                    stringResource(AppStrings.forReadingDirection(it))
+                )
+            },
             onOptionChange = { readingDirection.onValueChange(it.value) },
-            label = { Text(strings.readingDirection) },
+            label = { Text(stringResource(Res.string.series_edit_reading_direction)) },
             lock = readingDirectionLock,
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
             inputFieldModifier = Modifier.fillMaxWidth(),
@@ -95,7 +118,7 @@ private fun GeneralTabContent(
             text = language.value ?: "",
             onTextChange = language.setValue,
             errorMessage = language.errorMessage,
-            label = strings.language,
+            label = stringResource(Res.string.series_edit_language),
             lock = languageLock,
             maxLines = 1,
         )
@@ -104,7 +127,7 @@ private fun GeneralTabContent(
             text = publisher.value ?: "",
             onTextChange = publisher.setValue,
             errorMessage = publisher.errorMessage,
-            label = strings.publisher,
+            label = stringResource(Res.string.series_edit_publisher),
             lock = publisherLock,
             maxLines = 1,
         )
@@ -120,7 +143,7 @@ private fun GeneralTabContent(
                 }
             },
             errorMessage = ageRating.errorMessage,
-            label = strings.ageRating,
+            label = stringResource(Res.string.series_edit_age_rating),
             lock = ageRatingLock,
             maxLines = 1,
         )

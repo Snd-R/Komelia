@@ -8,6 +8,9 @@ import androidx.compose.runtime.remember
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_processing_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
@@ -27,13 +30,14 @@ class KomfProcessingSettingsScreen(val serverType: MediaServer) : Screen {
         val vmState = vm.state.collectAsState().value
         val komfConfigLoadError = vm.komfSharedState.configError.collectAsState().value
         LaunchedEffect(Unit) { vm.initialize() }
+        val titleSting = stringResource(Res.string.komf_settings_processing_title)
         val title = remember(serverType.name) {
             val serverName = when (serverType) {
                 KOMGA -> "Komga"
                 KAVITA -> "Kavita"
             }
 
-            "$serverName Metadata Processing Settings"
+            "$serverName $titleSting"
         }
         SettingsScreenContainer(title = title) {
 

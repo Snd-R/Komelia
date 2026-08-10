@@ -56,7 +56,6 @@ import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
-import snd.komelia.homefilters.homeScreenDefaultFilters
 import snd.komelia.http.komeliaUserAgent
 import snd.komelia.image.DesktopOnnxRuntimeUpscaler
 import snd.komelia.image.DesktopPanelDetector
@@ -86,6 +85,7 @@ import snd.komelia.secrets.AppKeyring
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.settings.KeyringSecretsRepository
 import snd.komelia.ui.error.NonRestartableException
+import snd.komelia.ui.home.edit.getDefaultFilters
 import snd.komelia.updates.DesktopAppUpdater
 import snd.komelia.updates.DesktopOnnxModelDownloader
 import snd.komelia.updates.DesktopOnnxRuntimeInstaller
@@ -189,13 +189,14 @@ class DesktopAppModule(
             homeScreenFilterRepository = ExposedHomeScreenFilterRepository(databases.app).let { repository ->
                 HomeScreenFilterRepositoryWrapper(
                     SettingsStateWrapper(
-                        settings = repository.getFilters() ?: homeScreenDefaultFilters,
+                        settings = repository.getFilters() ?: getDefaultFilters(),
                         saveSettings = repository::putFilters
                     )
                 )
             }
         )
     }
+
 
     override suspend fun createOfflineRepositories(): OfflineRepositories {
         return OfflineRepositories(

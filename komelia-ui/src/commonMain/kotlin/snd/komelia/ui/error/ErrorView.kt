@@ -34,7 +34,14 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.error_copied
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.error_copy
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.error_exit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.error_restart
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.error_unrecoverable
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.Theme
 import snd.komelia.ui.platform.HorizontalScrollbar
 import snd.komelia.ui.platform.VerticalScrollbar
@@ -46,12 +53,8 @@ fun ErrorView(
     onExit: () -> Unit
 ) {
     val stacktrace = exception.stackTraceToString().replace("\t", "    ")
-    val errorText = remember {
-        buildString {
-            append("Encountered Unrecoverable Error: ")
-            append("\"${exception::class.simpleName} ${exception.message}\"")
-        }
-    }
+    val errorText =
+        stringResource(Res.string.error_unrecoverable, "\"${exception::class.simpleName} ${exception.message}\"")
     ErrorView(
         exceptionMessage = errorText,
         stacktrace = stacktrace,
@@ -61,7 +64,6 @@ fun ErrorView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ErrorView(
     exceptionMessage: String,
@@ -90,7 +92,7 @@ fun ErrorView(
                 ) {
                     TooltipBox(
                         positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-                        tooltip = { Text("Copied to clipboard") },
+                        tooltip = { Text(stringResource(Res.string.error_copied)) },
                         state = tooltipState,
                         enableUserInput = false
                     ) {
@@ -100,21 +102,21 @@ fun ErrorView(
                                 scope.launch { tooltipState.show() }
                             },
                         ) {
-                            Text("Copy stacktrace to clipboard")
+                            Text(stringResource(Res.string.error_copy))
                         }
                     }
                     if (isRestartable) {
                         Button(
                             onClick = onRestart,
                         ) {
-                            Text("Restart")
+                            Text(stringResource(Res.string.error_restart))
                         }
 
                     }
                     Button(
                         onClick = onExit,
                     ) {
-                        Text("Exit")
+                        Text(stringResource(Res.string.error_exit))
                     }
                 }
             }

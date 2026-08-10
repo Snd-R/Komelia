@@ -48,8 +48,14 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_home
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_libraries
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_search
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_settings
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.book.bookScreen
 import snd.komelia.ui.home.HomeScreen
 import snd.komelia.ui.library.LibraryScreen
@@ -218,7 +224,7 @@ class MainScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     CompactNavButton(
-                        text = "Libraries",
+                        text = stringResource(Res.string.navbar_libraries),
                         icon = Icons.Default.LocalLibrary,
                         onClick = { toggleLibrariesDrawer() },
                         isSelected = false,
@@ -226,7 +232,7 @@ class MainScreen(
                     )
 
                     CompactNavButton(
-                        text = "Home",
+                        text = stringResource(Res.string.navbar_home),
                         icon = Icons.Default.Home,
                         onClick = { navigator.replaceAll(HomeScreen()) },
                         isSelected = navigator.lastItem is HomeScreen,
@@ -235,7 +241,7 @@ class MainScreen(
 
 
                     CompactNavButton(
-                        text = "Search",
+                        text = stringResource(Res.string.navbar_search),
                         icon = Icons.Default.Search,
                         onClick = { navigator.push(SearchScreen(null)) },
                         isSelected = navigator.lastItem is SearchScreen,
@@ -243,7 +249,7 @@ class MainScreen(
                     )
 
                     CompactNavButton(
-                        text = "Settings",
+                        text = stringResource(Res.string.navbar_settings),
                         icon = Icons.Default.Settings,
                         onClick = { navigator.parent!!.push(MobileSettingsScreen()) },
                         isSelected = navigator.lastItem is SettingsScreen,

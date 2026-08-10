@@ -1,23 +1,17 @@
 package snd.komelia.ui.settings.server
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,8 +23,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import snd.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_context_path
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_delete_empty_collections
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_delete_empty_read_lists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_discard
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_port
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_remember_me_duration
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_remember_me_key
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_requires_restart
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_save
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_task_pool_size
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_regen_all_books
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_regen_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_regen_if_bigger
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_regen_no
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_regen_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.OptionsStateHolder
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.CheckboxWithLabel
@@ -38,6 +48,8 @@ import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.withTextFieldNavigation
 import snd.komelia.ui.dialogs.ConfirmationDialog
+import snd.komelia.ui.strings.AppStrings
+import snd.komelia.ui.strings.stringLabels
 import snd.komga.client.settings.KomgaThumbnailSize
 
 @Composable
@@ -107,16 +119,18 @@ fun GeneralSettingsContent(
     serverContextPath: StateHolder<String?>,
     thumbnailSize: OptionsStateHolder<KomgaThumbnailSize>,
 ) {
-    val strings = LocalStrings.current.settings
 
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
             DropdownChoiceMenu(
-                selectedOption = LabeledEntry(thumbnailSize.value, strings.forThumbnailSize(thumbnailSize.value)),
-                options = thumbnailSize.options.map { LabeledEntry(it, strings.forThumbnailSize(it)) },
+                selectedOption = LabeledEntry(
+                    thumbnailSize.value,
+                    stringResource(AppStrings.forThumbnailSize(thumbnailSize.value))
+                ),
+                options = stringLabels(thumbnailSize.options) { AppStrings.forThumbnailSize(it) },
                 onOptionChange = { thumbnailSize.onValueChange(it.value) },
-                label = { Text(strings.thumbnailSize) }
+                label = { Text(stringResource(Res.string.settings_server_thumbnail_size)) }
             )
         }
 
@@ -124,13 +138,13 @@ fun GeneralSettingsContent(
             CheckboxWithLabel(
                 checked = deleteEmptyCollections.value,
                 onCheckedChange = deleteEmptyCollections.setValue,
-                label = { Text(strings.deleteEmptyCollections) },
+                label = { Text(stringResource(Res.string.settings_server_delete_empty_collections)) },
             )
 
             CheckboxWithLabel(
                 checked = deleteEmptyReadLists.value,
                 onCheckedChange = deleteEmptyReadLists.setValue,
-                label = { Text(strings.deleteEmptyReadLists) },
+                label = { Text(stringResource(Res.string.settings_server_delete_empty_read_lists)) },
             )
         }
 
@@ -140,7 +154,7 @@ fun GeneralSettingsContent(
                 if (newValue.isBlank()) taskPoolSize.setValue(null)
                 else newValue.toIntOrNull()?.let { taskPoolSize.setValue(it) }
             },
-            label = { Text(strings.taskPoolSize) },
+            label = { Text(stringResource(Res.string.settings_server_task_pool_size)) },
             supportingText = {
                 val error = taskPoolSize.errorMessage
                 if (error != null)
@@ -157,12 +171,12 @@ fun GeneralSettingsContent(
                     else newValue.toIntOrNull()?.let { rememberMeDurationDays.setValue(it) }
 
                 },
-                label = { Text(strings.rememberMeDurationDays) },
+                label = { Text(stringResource(Res.string.settings_server_remember_me_duration)) },
                 supportingText = {
                     val error = rememberMeDurationDays.errorMessage
                     if (error != null)
                         Text(text = error, color = MaterialTheme.colorScheme.error)
-                    else Text(strings.requiresRestart)
+                    else Text(stringResource(Res.string.settings_server_requires_restart))
                 },
                 modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
             )
@@ -170,7 +184,7 @@ fun GeneralSettingsContent(
             CheckboxWithLabel(
                 checked = renewRememberMeKey.value,
                 onCheckedChange = renewRememberMeKey.setValue,
-                label = { Text(strings.renewRememberMeKey) },
+                label = { Text(stringResource(Res.string.settings_server_remember_me_key)) },
             )
         }
 
@@ -182,16 +196,16 @@ fun GeneralSettingsContent(
 
             },
             placeholder = { Text(configServerPort.toString()) },
-            label = { Text(strings.serverPort) },
-            supportingText = { Text(strings.requiresRestart) },
+            label = { Text(stringResource(Res.string.settings_server_port)) },
+            supportingText = { Text(stringResource(Res.string.settings_server_requires_restart)) },
             modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
         )
 
         TextField(
             value = serverContextPath.value ?: "",
             onValueChange = { serverContextPath.setValue(it) },
-            label = { Text(strings.serverContextPath) },
-            supportingText = { Text(strings.requiresRestart) },
+            label = { Text(stringResource(Res.string.settings_server_context_path)) },
+            supportingText = { Text(stringResource(Res.string.settings_server_requires_restart)) },
             modifier = Modifier.fillMaxWidth().withTextFieldNavigation(),
         )
 
@@ -208,8 +222,6 @@ fun ChangesConfirmationButton(
     onSave: () -> Unit,
     onDiscard: () -> Unit,
 ) {
-    val strings = LocalStrings.current.settings
-
     var showThumbnailRegenerateDialog by remember { mutableStateOf(false) }
     if (showThumbnailRegenerateDialog) {
         ThumbRegenerationDialog(
@@ -230,7 +242,7 @@ fun ChangesConfirmationButton(
             enabled = isChanged,
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Text(strings.serverSettingsDiscard)
+            Text(stringResource(Res.string.settings_server_discard))
         }
         Spacer(Modifier.width(20.dp))
 
@@ -242,65 +254,7 @@ fun ChangesConfirmationButton(
             enabled = isChanged,
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Text(strings.serverSettingsSave)
-        }
-    }
-
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun ChangesConfirmationPopup(
-    thumbnailSizeChanged: Boolean,
-    onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
-
-    isChanged: Boolean,
-    onSave: () -> Unit,
-    onDiscard: () -> Unit,
-) {
-
-    var showThumbnailRegenerateDialog by remember { mutableStateOf(false) }
-    if (showThumbnailRegenerateDialog) {
-        ThumbRegenerationDialog(
-            onThumbnailRegenerate = onThumbnailRegenerate,
-            onDismiss = { showThumbnailRegenerateDialog = false }
-        )
-    }
-
-    if (isChanged) {
-        Popup(
-            alignment = Alignment.BottomCenter,
-        ) {
-            Surface(
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant),
-                shape = RoundedCornerShape(5.dp),
-                modifier = Modifier
-                    .width(600.dp)
-                    .padding(20.dp)
-            ) {
-                FlowRow(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("You have unsaved changes")
-                    Spacer(Modifier.weight(1f))
-
-                    TextButton(onClick = onDiscard) {
-                        Text("Discard")
-                    }
-                    Spacer(Modifier.width(20.dp))
-
-                    FilledTonalButton(
-                        onClick = {
-                            if (thumbnailSizeChanged) showThumbnailRegenerateDialog = true
-                            onSave()
-                        },
-                    ) {
-                        Text("Save Changes")
-
-                    }
-                }
-            }
+            Text(stringResource(Res.string.settings_server_save))
         }
     }
 
@@ -311,13 +265,12 @@ private fun ThumbRegenerationDialog(
     onThumbnailRegenerate: (forBiggerResultOnly: Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val strings = LocalStrings.current.settings
     ConfirmationDialog(
-        title = strings.thumbnailRegenTitle,
-        body = strings.thumbnailRegenBody,
-        buttonConfirm = strings.thumbnailRegenIfBigger,
-        buttonAlternate = strings.thumbnailRegenAllBooks,
-        buttonCancel = strings.thumbnailRegenNo,
+        title = stringResource(Res.string.settings_server_thumbnail_regen_title),
+        body = stringResource(Res.string.settings_server_thumbnail_regen_body),
+        buttonConfirm = stringResource(Res.string.settings_server_thumbnail_regen_if_bigger),
+        buttonAlternate = stringResource(Res.string.settings_server_thumbnail_regen_all_books),
+        buttonCancel = stringResource(Res.string.settings_server_thumbnail_regen_no),
         onDialogConfirm = { onThumbnailRegenerate(true) },
         onDialogConfirmAlternate = { onThumbnailRegenerate(false) },
         onDialogDismiss = onDismiss

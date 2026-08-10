@@ -11,7 +11,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import snd.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_isbn
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_release_date
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_summary
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_edit_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_general
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_age_rating
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_publisher
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_reading_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_sort_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.OptionsStateHolder
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.LabeledEntry
@@ -21,6 +32,7 @@ import snd.komelia.ui.dialogs.book.edit.BookEditMetadataState
 import snd.komelia.ui.dialogs.series.edit.SeriesEditMetadataState
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.common.KomgaReadingDirection
 
 class OneshotGeneralTab(
@@ -28,7 +40,7 @@ class OneshotGeneralTab(
     private val bookMetadata: BookEditMetadataState
 ) : DialogTab {
     override fun options() = TabItem(
-        title = "GENERAL",
+        title = Res.string.edit_tab_general,
         icon = Icons.Default.FormatAlignCenter
     )
 
@@ -135,9 +147,6 @@ class OneshotGeneralTab(
         isbn: StateHolder<String>,
         isbnLock: StateHolder<Boolean>,
     ) {
-        val seriesStrings = LocalStrings.current.seriesEdit
-        val bookStrings = LocalStrings.current.bookEdit
-
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -145,7 +154,7 @@ class OneshotGeneralTab(
                 text = title.value,
                 onTextChange = title.setValue,
                 errorMessage = title.errorMessage,
-                label = bookStrings.title,
+                label = stringResource(Res.string.book_edit_title),
                 lock = titleLock,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -153,7 +162,7 @@ class OneshotGeneralTab(
                 text = sortTitle.value,
                 onTextChange = sortTitle.setValue,
                 errorMessage = sortTitle.errorMessage,
-                label = seriesStrings.sortTitle,
+                label = stringResource(Res.string.series_edit_sort_title),
                 lock = sortTitleLock,
             )
 
@@ -161,7 +170,7 @@ class OneshotGeneralTab(
                 text = summary.value,
                 onTextChange = summary.setValue,
                 errorMessage = summary.errorMessage,
-                label = bookStrings.summary,
+                label = stringResource(Res.string.book_edit_summary),
                 lock = summaryLock,
                 minLines = 6,
                 maxLines = 12,
@@ -174,18 +183,18 @@ class OneshotGeneralTab(
                     selectedOption = readingDirection.value?.let {
                         LabeledEntry(
                             it,
-                            seriesStrings.forReadingDirection(it)
+                            stringResource(AppStrings.forReadingDirection(it))
                         )
                     }
                         ?: LabeledEntry(null, ""),
                     options = KomgaReadingDirection.entries.map {
                         LabeledEntry(
                             it,
-                            seriesStrings.forReadingDirection(it)
+                            stringResource(AppStrings.forReadingDirection(it))
                         )
                     },
                     onOptionChange = { readingDirection.onValueChange(it.value) },
-                    label = { Text(seriesStrings.readingDirection) },
+                    label = { Text(stringResource(Res.string.series_edit_reading_direction)) },
                     lock = readingDirectionLock,
                     inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
                     inputFieldModifier = Modifier.weight(.5f)
@@ -195,7 +204,7 @@ class OneshotGeneralTab(
                     text = language.value,
                     onTextChange = language.setValue,
                     errorMessage = language.errorMessage,
-                    label = seriesStrings.language,
+                    label = stringResource(Res.string.series_edit_language),
                     lock = languageLock,
                     maxLines = 1,
                     modifier = Modifier.weight(.5f),
@@ -207,7 +216,7 @@ class OneshotGeneralTab(
                     text = publisher.value,
                     onTextChange = publisher.setValue,
                     errorMessage = publisher.errorMessage,
-                    label = seriesStrings.publisher,
+                    label = stringResource(Res.string.series_edit_publisher),
                     lock = publisherLock,
                     maxLines = 1,
                     modifier = Modifier.weight(.5f)
@@ -219,12 +228,12 @@ class OneshotGeneralTab(
                         try {
                             if (it.isBlank()) ageRating.setValue(null)
                             else ageRating.setValue(it.toInt())
-                        } catch (e: NumberFormatException) {
+                        } catch (_: NumberFormatException) {
                             // ignore
                         }
                     },
                     errorMessage = ageRating.errorMessage,
-                    label = seriesStrings.ageRating,
+                    label = stringResource(Res.string.series_edit_age_rating),
                     lock = ageRatingLock,
                     maxLines = 1,
                     modifier = Modifier.weight(.5f)
@@ -236,7 +245,7 @@ class OneshotGeneralTab(
                     text = releaseDate.value,
                     onTextChange = { releaseDate.setValue(it) },
                     errorMessage = releaseDate.errorMessage,
-                    label = bookStrings.releaseDate,
+                    label = stringResource(Res.string.book_edit_release_date),
                     lock = releaseDateLock,
                     maxLines = 1,
                     modifier = Modifier.weight(.5f)
@@ -246,7 +255,7 @@ class OneshotGeneralTab(
                     text = isbn.value,
                     onTextChange = isbn.setValue,
                     errorMessage = isbn.errorMessage,
-                    label = bookStrings.isbn,
+                    label = stringResource(Res.string.book_edit_isbn),
                     lock = isbnLock,
                     maxLines = 1,
                     modifier = Modifier.weight(.5f)

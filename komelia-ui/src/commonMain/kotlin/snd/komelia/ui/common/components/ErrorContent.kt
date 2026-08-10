@@ -16,6 +16,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.error_unknown
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ErrorContent(
@@ -23,9 +26,10 @@ fun ErrorContent(
     onReload: (() -> Unit)? = null,
     onExit: (() -> Unit)? = null,
 ) {
+    val unknownError = stringResource(Res.string.error_unknown)
     val messageString = remember(exception) {
         exception.message?.let { message -> "${exception::class.simpleName} $message" }
-            ?: exception::class.simpleName ?: "Unknown Error"
+            ?: exception::class.simpleName ?: unknownError
     }
     ErrorContent(messageString, onReload, onExit)
 }

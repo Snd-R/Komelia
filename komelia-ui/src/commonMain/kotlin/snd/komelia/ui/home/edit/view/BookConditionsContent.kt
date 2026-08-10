@@ -22,6 +22,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_any
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_false
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_operator
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_readlist
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_selected
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_series
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_true
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_type
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.home.EqualityOpState
@@ -338,14 +349,14 @@ fun SeriesIdConditionContent(
             options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { state.setOp(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Operator") }
+            label = { Text(stringResource(Res.string.home_filter_operator)) }
         )
         SearchableOptionSelectionField(
             searchText = state.searchText.collectAsState().value,
             onSearchTextChange = state::onSearchTextChange,
             options = remember(options) { options.map { LabeledEntry(it, it.name) } },
             onValueChange = state::onSeriesSelect,
-            label = "Series"
+            label = stringResource(Res.string.home_filter_series)
         )
     }
 }
@@ -424,12 +435,12 @@ fun NumberSortConditionContent(
             options = NumericOpState.Op.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { state.setOp(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Operator") }
+            label = { Text(stringResource(Res.string.home_filter_operator)) }
         )
         FloatTextField(
             value = state.value.collectAsState().value,
             onValueChange = state::setValue,
-            label = "Number",
+            label = stringResource(Res.string.home_filter_number),
         )
     }
 }
@@ -452,47 +463,50 @@ fun PosterConditionContent(
             options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { state.setOp(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Operator") }
+            label = { Text(stringResource(Res.string.home_filter_operator)) }
         )
 
+        val stringAny = stringResource(Res.string.home_filter_any)
+        val stringTrue = stringResource(Res.string.home_filter_true)
+        val stringFalse = stringResource(Res.string.home_filter_false)
         DropdownChoiceMenu(
             selectedOption = remember(currentValue) {
                 LabeledEntry(
                     currentValue?.type,
-                    currentValue?.type?.name ?: "Any"
+                    currentValue?.type?.name ?: stringAny
                 )
             },
             options = remember {
                 listOf(
                     LabeledEntry<PosterMatch.Type?>(
                         null,
-                        "Any"
+                        stringAny
                     )
                 ).plus(PosterMatch.Type.entries.map { LabeledEntry(it, it.name) }
                 )
             },
             onOptionChange = { state.setType(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Type") }
+            label = { Text(stringResource(Res.string.home_filter_type)) }
         )
 
         DropdownChoiceMenu(
             selectedOption = remember(currentValue) {
                 LabeledEntry(
                     currentValue?.selected,
-                    currentValue?.selected?.toString() ?: "Any"
+                    currentValue?.selected?.toString() ?: stringAny
                 )
             },
             options = remember {
                 listOf(
-                    LabeledEntry(null, "Any"),
-                    LabeledEntry(true, "True"),
-                    LabeledEntry(false, "False"),
+                    LabeledEntry(null, stringAny),
+                    LabeledEntry(true, stringTrue),
+                    LabeledEntry(false, stringFalse),
                 )
             },
             onOptionChange = { state.setSelected(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Selected") }
+            label = { Text(stringResource(Res.string.home_filter_selected)) }
         )
 
     }
@@ -516,14 +530,14 @@ fun ReadListConditionContent(
             options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { state.setOp(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Operator") }
+            label = { Text(stringResource(Res.string.home_filter_operator)) }
         )
         SearchableOptionSelectionField(
             searchText = state.searchText.collectAsState().value,
             onSearchTextChange = state::onSearchTextChange,
             options = remember(options) { options.map { LabeledEntry(it, it.name) } },
             onValueChange = state::onReadListSelect,
-            label = "Read List"
+            label = stringResource(Res.string.home_filter_readlist)
         )
 
     }

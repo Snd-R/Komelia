@@ -55,6 +55,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_add_filter
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_delete_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_edit_done
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_label
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_reset_to_default
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_reset_to_default_confirm
+import org.jetbrains.compose.resources.stringResource
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -126,7 +136,7 @@ private fun Toolbar(
             onClick = { onEditEnd() },
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Text("Done")
+            Text(stringResource(Res.string.home_filter_edit_done))
             Icon(Icons.Default.Check, null)
         }
 
@@ -135,12 +145,12 @@ private fun Toolbar(
             onClick = { showResetDialog = true },
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Text("Reset to default")
+            Text(stringResource(Res.string.home_filter_reset_to_default))
             Icon(Icons.Default.Restore, null)
         }
         if (showResetDialog) {
             ConfirmationDialog(
-                body = "Reset homescreen filters to default?",
+                body = stringResource(Res.string.home_filter_reset_to_default_confirm),
                 onDialogConfirm = onReset,
                 onDialogDismiss = { showResetDialog = false }
             )
@@ -198,7 +208,7 @@ fun AddConditionButton(
                 .cursorForHand()
                 .menuAnchor(PrimaryNotEditable)
         ) {
-            Text("Add Filter")
+            Text(stringResource(Res.string.home_filter_add_filter))
         }
 
         ExposedDropdownMenu(
@@ -273,7 +283,7 @@ private fun ReorderableCollectionItemScope.FilterContent(
                 if (showEdit) {
                     OutlinedTextField(
                         value = labelText,
-                        label = { Text("Label") },
+                        label = { Text(stringResource(Res.string.home_filter_label)) },
                         onValueChange = {
                             labelText = it
                             filterState.label.value = it
@@ -295,7 +305,7 @@ private fun ReorderableCollectionItemScope.FilterContent(
                 onClick = { showEdit = !showEdit },
                 modifier = Modifier.cursorForHand()
             ) {
-                Text("Edit")
+                Text(stringResource(Res.string.home_filter_edit))
                 Icon(
                     imageVector = if (showEdit) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
                     contentDescription = null,
@@ -308,7 +318,7 @@ private fun ReorderableCollectionItemScope.FilterContent(
                 },
                 modifier = Modifier.cursorForHand()
             ) {
-                Text("Delete")
+                Text(stringResource(Res.string.home_filter_delete))
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = null,
@@ -327,7 +337,7 @@ private fun ReorderableCollectionItemScope.FilterContent(
 
     if (showDeleteConfirmation) {
         ConfirmationDialog(
-            body = "Delete ${label}?",
+            body = stringResource(Res.string.home_filter_delete_confirm, label),
             onDialogConfirm = onFilterRemove,
             onDialogDismiss = { showDeleteConfirmation = false })
     }

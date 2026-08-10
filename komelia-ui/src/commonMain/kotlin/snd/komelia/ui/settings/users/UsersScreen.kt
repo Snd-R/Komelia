@@ -6,6 +6,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -22,7 +25,7 @@ class UsersScreen : Screen {
         val vm = rememberScreenModel { viewModelFactory.getUsersViewModel() }
         LaunchedEffect(Unit) { vm.initialize() }
 
-        SettingsScreenContainer("Users") {
+        SettingsScreenContainer(stringResource(Res.string.settings_users_title)) {
             when (vm.state.collectAsState().value) {
                 is Error -> Text("Error")
                 Uninitialized, Loading -> LoadingMaxSizeIndicator()

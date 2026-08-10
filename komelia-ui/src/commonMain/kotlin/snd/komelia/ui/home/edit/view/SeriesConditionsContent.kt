@@ -22,6 +22,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_age
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_collection
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_genre
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_operator
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_publisher
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_sharing_label
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.home.EqualityOpState
@@ -417,7 +426,7 @@ private fun SeriesSharingLabelConditionContent(
         EqualityNullableOpDropdownSearchContent(
             state = state,
             options = state.sharingLabels.collectAsState(emptyList()).value,
-            label = "Sharing Label"
+            label = stringResource(Res.string.home_filter_sharing_label)
         )
     }
 }
@@ -454,7 +463,7 @@ private fun SeriesGenreConditionContent(
         EqualityNullableOpDropdownSearchContent(
             state = state,
             options = state.genres.collectAsState(emptyList()).value,
-            label = "Genre"
+            label = stringResource(Res.string.home_filter_genre)
         )
     }
 }
@@ -473,7 +482,7 @@ private fun SeriesLanguageConditionContent(
         EqualityOpDropdownSearchContent(
             state = state,
             options = state.languages.collectAsState(emptyList()).value,
-            label = "Language"
+            label = stringResource(Res.string.home_filter_language)
         )
     }
 }
@@ -492,7 +501,7 @@ private fun SeriesPublisherConditionContent(
         EqualityOpDropdownSearchContent(
             state = state,
             options = state.publishers.collectAsState(emptyList()).value,
-            label = "Publisher"
+            label = stringResource(Res.string.home_filter_publisher)
         )
     }
 }
@@ -537,13 +546,13 @@ fun SeriesAgeRatingConditionContent(
             options = NumericNullableOpState.Op.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { state.setOp(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Operator") }
+            label = { Text(stringResource(Res.string.home_filter_operator)) }
         )
         if (operator != NumericNullableOpState.Op.IsNull && operator != NumericNullableOpState.Op.IsNotNull)
             IntTextField(
                 value = state.value.collectAsState().value,
                 onValueChange = state::setValue,
-                label = "Age",
+                label = stringResource(Res.string.home_filter_age),
             )
     }
 }
@@ -566,14 +575,14 @@ fun CollectionIdConditionContent(
             options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
             onOptionChange = { state.setOp(it.value) },
             inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-            label = { Text("Operator") }
+            label = { Text(stringResource(Res.string.home_filter_operator)) }
         )
         SearchableOptionSelectionField(
             searchText = state.searchText.collectAsState().value,
             onSearchTextChange = state::onSearchTextChange,
             options = remember(options) { options.map { LabeledEntry(it, it.name) } },
             onValueChange = state::onCollectionSelect,
-            label = "Collection"
+            label = stringResource(Res.string.home_filter_collection)
         )
     }
 }

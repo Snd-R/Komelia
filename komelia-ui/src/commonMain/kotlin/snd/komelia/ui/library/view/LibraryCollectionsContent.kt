@@ -12,6 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_tab_collections_count
+import org.jetbrains.compose.resources.pluralStringResource
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
 import snd.komelia.ui.common.components.PageSizeSelectionDropdown
 import snd.komelia.ui.common.itemlist.CollectionLazyCardGrid
@@ -44,8 +47,11 @@ fun LibraryCollectionsContent(
             SuggestionChip(
                 onClick = {},
                 label = {
-                    if (collectionsTotalCount > 1) Text("$collectionsTotalCount collections")
-                    else Text("$collectionsTotalCount collection")
+                    pluralStringResource(
+                        Res.plurals.library_tab_collections_count,
+                        collectionsTotalCount,
+                        collectionsTotalCount
+                    )
                 },
                 modifier = Modifier.padding(end = 10.dp)
             )

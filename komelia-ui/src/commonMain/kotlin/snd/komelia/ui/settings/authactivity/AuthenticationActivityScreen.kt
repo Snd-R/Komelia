@@ -7,6 +7,9 @@ import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_auth_activity_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -24,7 +27,7 @@ class AuthenticationActivityScreen(val forMe: Boolean) : Screen {
         val vm = rememberScreenModel(forMe.toString()) { viewModelFactory.getAuthenticationActivityViewModel(forMe) }
         LaunchedEffect(forMe) { vm.initialize() }
 
-        SettingsScreenContainer("Authentication Activity") {
+        SettingsScreenContainer(stringResource(Res.string.settings_auth_activity_title)) {
             when (val state = vm.state.collectAsState().value) {
                 Uninitialized, Loading -> LoadingMaxSizeIndicator()
                 is Error -> Text(state.exception.message ?: "Error")

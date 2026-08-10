@@ -16,6 +16,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.app_updates_dismiss
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.app_updates_new_version_available
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.app_updates_update
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.dialogs.AppDialog
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.updates.AppRelease
@@ -47,7 +52,10 @@ private fun HeaderContent() {
         modifier = Modifier.padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("New version is available", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            stringResource(Res.string.app_updates_new_version_available),
+            style = MaterialTheme.typography.headlineSmall
+        )
         HorizontalDivider()
     }
 }
@@ -85,14 +93,14 @@ private fun ControlButtons(
         TextButton(
             onClick = onDismiss,
             modifier = Modifier.cursorForHand(),
-            content = { Text("Dismiss") }
+            content = { Text(stringResource(Res.string.app_updates_dismiss)) }
         )
 
         FilledTonalButton(
             onClick = onConfirm,
             modifier = Modifier.cursorForHand(),
         ) {
-            Text("Update")
+            Text(stringResource(Res.string.app_updates_update))
         }
     }
 }

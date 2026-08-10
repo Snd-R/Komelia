@@ -25,6 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_logs_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_logs_delete_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_logs_erros
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_logs_info
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_logs_nothing_to_show
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.DefaultDateTimeFormats.toSystemTimeString
 import snd.komelia.offline.sync.model.OfflineLogEntry
 import snd.komelia.ui.common.components.AppFilterChipDefaults
@@ -53,7 +60,7 @@ fun OfflineLogsContent(
         )
 
         if (logs.isEmpty()) {
-            Text("Nothing to show")
+            Text(stringResource(Res.string.settings_offline_mode_logs_nothing_to_show))
         } else {
             LogsContent(logs)
 
@@ -84,14 +91,14 @@ private fun StatusFilters(
         FilterChip(
             selected = selectedTab == TaskTab.ERROR,
             onClick = { onTabSelect(TaskTab.ERROR) },
-            label = { Text("Errors") },
+            label = { Text(stringResource(Res.string.settings_offline_mode_logs_erros)) },
             colors = AppFilterChipDefaults.filterChipColors(),
             border = null
         )
         FilterChip(
             selected = selectedTab == TaskTab.INFO,
             onClick = { onTabSelect(TaskTab.INFO) },
-            label = { Text("Info") },
+            label = { Text(stringResource(Res.string.settings_offline_mode_logs_info)) },
             colors = AppFilterChipDefaults.filterChipColors(),
             border = null
         )
@@ -99,11 +106,15 @@ private fun StatusFilters(
         var showDeleteDialog by remember { mutableStateOf(false) }
 
         Spacer(Modifier.weight(1f))
-        FilledTonalButton(onClick = { showDeleteDialog = true }) { Text("Delete all") }
+        FilledTonalButton(onClick = { showDeleteDialog = true }) {
+            Text(
+                stringResource(Res.string.settings_offline_mode_logs_delete)
+            )
+        }
 
         if (showDeleteDialog) {
             ConfirmationDialog(
-                body = "Delete job history?",
+                body = stringResource(Res.string.settings_offline_mode_logs_delete_confirm),
                 onDialogDismiss = { showDeleteDialog = false },
                 onDialogConfirm = onDelete
             )

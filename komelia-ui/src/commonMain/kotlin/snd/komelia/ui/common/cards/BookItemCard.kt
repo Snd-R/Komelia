@@ -50,7 +50,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_pages
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_unavailable
 import kotlinx.coroutines.flow.filter
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.sync.model.DownloadEvent
 import snd.komelia.ui.LocalBookDownloadEvents
@@ -186,7 +190,7 @@ private fun BookImageOverlay(
                 }
                 if (book.deleted || libraryIsDeleted) {
                     CardOutlinedText(
-                        text = "Unavailable",
+                        text = stringResource(Res.string.book_unavailable),
                         textColor = MaterialTheme.colorScheme.error
                     )
                 }
@@ -414,7 +418,7 @@ private fun BookDetailedListDetails(
         ) {
             item {
                 Text(
-                    "${book.media.pagesCount} pages",
+                    stringResource(Res.string.book_pages, book.media.pagesCount),
                     style = MaterialTheme.typography.bodySmall
                 )
             }

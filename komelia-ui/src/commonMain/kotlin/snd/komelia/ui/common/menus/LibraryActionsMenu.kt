@@ -15,8 +15,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_analyze
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_analyze_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_analyze_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_auto_identify
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_confirm_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_downloaded
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_downloaded_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_downloaded_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_empty_trash
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_empty_trash_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_empty_trash_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_refresh_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_reresh_metada_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_reresh_metada_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_reset_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_scan_files
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_scan_files_deep
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaLibraryApi
@@ -48,8 +71,8 @@ fun LibraryActionsMenu(
     var showAnalyzeDialog by remember { mutableStateOf(false) }
     if (showAnalyzeDialog)
         ConfirmationDialog(
-            title = "Analyze library",
-            body = "Analyzes all the media files in the library. The analysis captures information about the media. Depending on your library size, this may take a long time.",
+            title = stringResource(Res.string.library_analyze_confirm_title),
+            body = stringResource(Res.string.library_analyze_confirm_body),
             onDialogConfirm = { actions.analyze(library) },
             onDialogDismiss = { showAnalyzeDialog = false }
         )
@@ -57,8 +80,8 @@ fun LibraryActionsMenu(
     var refreshMetadataDialog by remember { mutableStateOf(false) }
     if (refreshMetadataDialog)
         ConfirmationDialog(
-            title = "Refresh metadata for library",
-            body = "Refreshes metadata for all the media files in the library. Depending on your library size, this may take a long time.",
+            title = stringResource(Res.string.library_reresh_metada_confirm_title),
+            body = stringResource(Res.string.library_reresh_metada_confirm_body),
             onDialogConfirm = { actions.refresh(library) },
             onDialogDismiss = { refreshMetadataDialog = false }
         )
@@ -66,11 +89,8 @@ fun LibraryActionsMenu(
     var emptyTrashDialog by remember { mutableStateOf(false) }
     if (emptyTrashDialog)
         ConfirmationDialog(
-            title = "Empty trash for library",
-            body = """
-                    By default the media server doesn't remove information for media right away.
-                    This helps if a drive is temporarily disconnected. 
-                    When you empty the trash for a library, all information about missing media is deleted.""".trimIndent(),
+            title = stringResource(Res.string.library_empty_trash_confirm_title),
+            body = stringResource(Res.string.library_empty_trash_confirm_body),
             onDialogConfirm = { actions.emptyTrash(library) },
             onDialogDismiss = { emptyTrashDialog = false }
         )
@@ -78,9 +98,9 @@ fun LibraryActionsMenu(
     var deleteLibraryDialog by remember { mutableStateOf(false) }
     if (deleteLibraryDialog)
         ConfirmationDialog(
-            title = "Delete Library",
-            body = "The library ${library.name} will be removed from this server. Your media files will not be affected. This cannot be undone. Continue?",
-            confirmText = "Yes, delete the library \"${library.name}\"",
+            title = stringResource(Res.string.library_delete_confirm_title),
+            body = stringResource(Res.string.library_delete_confirm_body, library.name),
+            confirmText = stringResource(Res.string.library_delete_confirm_confirm, library.name),
             onDialogConfirm = { actions.delete(library) },
             onDialogDismiss = { deleteLibraryDialog = false },
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
@@ -88,8 +108,8 @@ fun LibraryActionsMenu(
     var deleteOfflineLibraryDialog by remember { mutableStateOf(false) }
     if (deleteOfflineLibraryDialog)
         ConfirmationDialog(
-            title = "Delete downloaded Library",
-            body = "The library ${library.name} will be removed from this device only.",
+            title = stringResource(Res.string.library_delete_downloaded_confirm_title),
+            body = stringResource(Res.string.library_delete_downloaded_confirm_body, library.name),
             onDialogConfirm = { actions.deleteOffline(library) },
             onDialogDismiss = { deleteOfflineLibraryDialog = false },
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
@@ -111,7 +131,7 @@ fun LibraryActionsMenu(
     DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
         if (isAdmin && !isOffline) {
             DropdownMenuItem(
-                text = { Text("Scan library files") },
+                text = { Text(stringResource(Res.string.library_scan_files)) },
                 onClick = {
                     actions.scan(library)
                     onDismissRequest()
@@ -125,7 +145,7 @@ fun LibraryActionsMenu(
                 else Modifier
 
             DropdownMenuItem(
-                text = { Text("Scan library files (deep)") },
+                text = { Text(stringResource(Res.string.library_scan_files_deep)) },
                 onClick = {
                     actions.deepScan(library)
                     onDismissRequest()
@@ -135,28 +155,28 @@ fun LibraryActionsMenu(
                     .then(deepScanColor)
             )
             DropdownMenuItem(
-                text = { Text("Analyze") },
+                text = { Text(stringResource(Res.string.library_analyze)) },
                 onClick = {
                     showAnalyzeDialog = true
                     onDismissRequest()
                 }
             )
             DropdownMenuItem(
-                text = { Text("Refresh metadata") },
+                text = { Text(stringResource(Res.string.library_refresh_metadata)) },
                 onClick = {
                     refreshMetadataDialog = true
                     onDismissRequest()
                 }
             )
             DropdownMenuItem(
-                text = { Text("Empty trash") },
+                text = { Text(stringResource(Res.string.library_empty_trash)) },
                 onClick = {
                     emptyTrashDialog = true
                     onDismissRequest()
                 }
             )
             DropdownMenuItem(
-                text = { Text("Edit") },
+                text = { Text(stringResource(Res.string.library_edit)) },
                 onClick = {
                     showLibraryEditDialog = true
                     onDismissRequest()
@@ -171,7 +191,7 @@ fun LibraryActionsMenu(
                 vmFactory.getKomfLibraryIdentifyViewModel(library)
             }
             DropdownMenuItem(
-                text = { Text("Auto-Identify (Komf)") },
+                text = { Text(stringResource(Res.string.library_auto_identify)) },
                 onClick = {
                     autoIdentifyVm.autoIdentify()
                     onDismissRequest()
@@ -179,7 +199,7 @@ fun LibraryActionsMenu(
             )
 
             DropdownMenuItem(
-                text = { Text("Reset Metadata (Komf)") },
+                text = { Text(stringResource(Res.string.library_reset_metadata)) },
                 onClick = { showKomfResetDialog = true },
             )
         }
@@ -192,7 +212,7 @@ fun LibraryActionsMenu(
 
         if (!isOffline && isAdmin) {
             DropdownMenuItem(
-                text = { Text("Delete") },
+                text = { Text(stringResource(Res.string.library_delete)) },
                 onClick = {
                     deleteLibraryDialog = true
                     onDismissRequest()
@@ -204,7 +224,7 @@ fun LibraryActionsMenu(
         }
         if (isOffline) {
             DropdownMenuItem(
-                text = { Text("Delete downloaded") },
+                text = { Text(stringResource(Res.string.library_delete_downloaded)) },
                 onClick = {
                     deleteOfflineLibraryDialog = true
                     onDismissRequest()

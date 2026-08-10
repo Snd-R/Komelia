@@ -62,6 +62,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_channel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_channel_reset
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_curves_channel_input
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_curves_channel_output
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_curves_point_type
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_curves_point_type_corner
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_curves_point_type_smooth
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_reset_all
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.color.ColorChannel
 import snd.komelia.color.CurvePointType
 import snd.komelia.color.HistogramPaths
@@ -149,7 +159,7 @@ fun ColorCurvesContent(
                     .align(Alignment.CenterVertically)
                     .pointerHoverIcon(PointerIcon.Hand),
             ) {
-                Text("Reset All")
+                Text(stringResource(Res.string.color_correction_reset_all))
             }
         }
 
@@ -384,12 +394,12 @@ fun ChannelSelection(
         DropdownChoiceMenu(
             selectedOption = remember(selectedChannel) { LabeledEntry(selectedChannel, selectedChannel.name) },
             options = remember { ColorChannel.entries.map { LabeledEntry(it, it.name) } },
-            label = { Text("Channel") },
+            label = { Text(stringResource(Res.string.color_correction_channel)) },
             onOptionChange = { onChannelChange(it.value) },
             inputFieldModifier = Modifier.widthIn(min = 150.dp)
 
         )
-        Tooltip("Reset Channel") {
+        Tooltip(stringResource(Res.string.color_correction_channel_reset)) {
             IconButton(onClick = onChannelReset) {
                 Icon(Icons.Default.SettingsBackupRestore, null)
             }
@@ -408,7 +418,10 @@ private fun PointTypeSelection(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        Text("Point Type", style = MaterialTheme.typography.labelMedium)
+        Text(
+            stringResource(Res.string.color_correction_curves_point_type),
+            style = MaterialTheme.typography.labelMedium
+        )
         val primaryColor = MaterialTheme.colorScheme.primary
         val selectColor = MaterialTheme.colorScheme.surfaceVariant
         Row {
@@ -425,7 +438,7 @@ private fun PointTypeSelection(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Text("Smooth")
+                    Text(stringResource(Res.string.color_correction_curves_point_type_smooth))
                     Canvas(Modifier.size(28.dp).padding(6.dp)) { drawCircle(primaryColor) }
                 }
             }
@@ -442,7 +455,7 @@ private fun PointTypeSelection(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Text("Corner")
+                    Text(stringResource(Res.string.color_correction_curves_point_type_corner))
                     Canvas(Modifier.size(28.dp).padding(6.dp)) { rotate(45f) { drawRect(primaryColor) } }
                 }
             }
@@ -468,7 +481,7 @@ private fun ChannelValues(
             onvValueChange = { newX ->
                 selectedPoint?.let { onPointChange(selectedPoint, IntOffset(newX.toInt(), currentPointOffset?.y ?: 0)) }
             },
-            label = { Text("Input") },
+            label = { Text(stringResource(Res.string.color_correction_curves_channel_input)) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -480,7 +493,7 @@ private fun ChannelValues(
             onvValueChange = { newY ->
                 selectedPoint?.let { onPointChange(selectedPoint, IntOffset(currentPointOffset?.x ?: 0, newY.toInt())) }
             },
-            label = { Text("Output") },
+            label = { Text(stringResource(Res.string.color_correction_curves_channel_output)) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,

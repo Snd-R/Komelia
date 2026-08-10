@@ -37,6 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_delete_downloaded
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalWindowWidth
@@ -64,7 +67,6 @@ import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.readlist.KomgaReadList
 import snd.komga.client.series.KomgaSeries
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OneshotScreenContent(
     series: KomgaSeries,
@@ -266,7 +268,7 @@ private fun FlowRowScope.OneshotMainInfo(
                     onClick = onDownloadDelete,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.errorContainer)
                 ) {
-                    Text("Delete downloaded")
+                    Text(stringResource(Res.string.book_delete_downloaded))
                 }
             }
         }

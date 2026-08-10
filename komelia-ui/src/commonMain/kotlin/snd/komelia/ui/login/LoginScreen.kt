@@ -17,6 +17,9 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -52,7 +55,7 @@ class LoginScreen : Screen {
                         contentAlignment = Alignment.Center
                     ) { ScreenContent(vm, rootNavigator) }
 
-                WEB_KOMF -> SettingsScreenContainer(title = "Komga Login") {
+                WEB_KOMF -> SettingsScreenContainer(title = stringResource(Res.string.login_title)) {
                     ScreenContent(vm, rootNavigator)
                 }
             }

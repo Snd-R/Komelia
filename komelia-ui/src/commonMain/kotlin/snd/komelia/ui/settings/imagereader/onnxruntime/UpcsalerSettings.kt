@@ -20,8 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mangajanai_download
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mangajanai_downloading
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mangajanai_github
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mangajanai_preset
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mangajanai_preset_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mangajanai_redownload
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.Flow
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.image.UpscaleMode
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.updates.UpdateProgress
@@ -66,7 +74,7 @@ fun MangaJaNaiSettings(
     var showMangaJaNaiDownloadDialog by remember { mutableStateOf(false) }
     if (showMangaJaNaiDownloadDialog) {
         DownloadDialog(
-            headerText = "Downloading MangaJaNai ONNX models",
+            headerText = stringResource(Res.string.settings_image_onnxruntime_upscale_mangajanai_downloading),
             onDownloadRequest = startDownloadFlow,
             onDismiss = { showMangaJaNaiDownloadDialog = false },
         )
@@ -74,13 +82,13 @@ fun MangaJaNaiSettings(
 
     val uriHandler = LocalUriHandler.current
     Column {
-        Text("MangaJaNai ONNX models preset", style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(Res.string.settings_image_onnxruntime_upscale_mangajanai_preset),
+            style = MaterialTheme.typography.titleMedium
+        )
         Spacer(Modifier.height(5.dp))
         Text(
-            """
-                MangaJaNai is a collection of upscaling models for manga.
-                The models are mainly optimized to upscale digital manga images of Japanese or English text with height ranging from around 1200px to 2048px.
-            """.trimIndent(),
+            text = stringResource(Res.string.settings_image_onnxruntime_upscale_mangajanai_preset_desc),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(start = 5.dp)
         )
@@ -93,14 +101,17 @@ fun MangaJaNaiSettings(
                 onClick = { showMangaJaNaiDownloadDialog = true },
                 modifier = Modifier.cursorForHand()
             ) {
-                Text(if (isInstalled) "Re-download MangaJaNai preset" else "Download MangaJaNai preset")
+                Text(
+                    if (isInstalled) stringResource(Res.string.settings_image_onnxruntime_upscale_mangajanai_redownload)
+                    else stringResource(Res.string.settings_image_onnxruntime_upscale_mangajanai_download)
+                )
             }
 
             ElevatedButton(
                 onClick = { uriHandler.openUri("https://github.com/the-database/mangajanai") },
                 modifier = Modifier.cursorForHand()
             ) {
-                Text("Project on Github")
+                Text(stringResource(Res.string.settings_image_onnxruntime_upscale_mangajanai_github))
             }
         }
     }

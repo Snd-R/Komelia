@@ -9,6 +9,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_media_analysis_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -28,7 +31,7 @@ class MediaAnalysisScreen : Screen {
         val vm = rememberScreenModel { viewModelFactory.getMediaAnalysisViewModel() }
         LaunchedEffect(Unit) { vm.initialize() }
 
-        SettingsScreenContainer("Media Analysis") {
+        SettingsScreenContainer(stringResource(Res.string.settings_media_analysis_title)) {
             when (val state = vm.state.collectAsState().value) {
                 Uninitialized, Loading -> LoadingMaxSizeIndicator()
                 is Error -> Text(state.exception.message ?: "Error")

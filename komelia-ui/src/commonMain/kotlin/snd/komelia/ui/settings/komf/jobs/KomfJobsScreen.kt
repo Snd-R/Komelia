@@ -9,6 +9,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_jobs_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.MainScreen
@@ -27,7 +30,7 @@ class KomfJobsScreen(private val enableSeriesResolution: Boolean = true) : Scree
         LaunchedEffect(Unit) { vm.initialize() }
         val state = vm.state.collectAsState().value
 
-        SettingsScreenContainer(title = "Metadata Update Jobs") {
+        SettingsScreenContainer(title = stringResource(Res.string.komf_settings_jobs_title)) {
             when (state) {
                 is LoadState.Error -> Text(formatExceptionMessage(state.exception))
                 LoadState.Uninitialized, LoadState.Loading, is LoadState.Success -> KomfJobsContent(

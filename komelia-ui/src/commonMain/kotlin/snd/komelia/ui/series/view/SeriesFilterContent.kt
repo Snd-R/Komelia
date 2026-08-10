@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -33,8 +32,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_search
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_age_rating
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_authors
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_complete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_filter_tags_label
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_hide_filters
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_oneshot
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publisher
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_read_status
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_release_date
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_reset_filters
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort
 import kotlinx.coroutines.delay
-import snd.komelia.ui.LocalStrings
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.components.FilterDropdownChoice
 import snd.komelia.ui.common.components.FilterDropdownMultiChoice
@@ -54,16 +68,15 @@ import snd.komelia.ui.series.SeriesFilterState.Completion.ANY
 import snd.komelia.ui.series.SeriesFilterState.Completion.COMPLETE
 import snd.komelia.ui.series.SeriesFilterState.Completion.INCOMPLETE
 import snd.komelia.ui.series.SeriesFilterState.Format
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.series.KomgaSeriesStatus
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SeriesFilterContent(
     filterState: SeriesFilterState,
     onDismiss: () -> Unit,
 ) {
-    val strings = LocalStrings.current.seriesFilter
     val widthClass = LocalWindowWidth.current
 
     val spacing = remember(widthClass) {
@@ -98,7 +111,7 @@ fun SeriesFilterContent(
             }
             NoPaddingTextField(
                 text = searchTerm,
-                placeholder = strings.search,
+                placeholder = stringResource(Res.string.filter_search),
                 onTextChange = { searchTerm = it },
                 modifier = Modifier.weight(1f).height(40.dp).widthIn(min = 340.dp),
             )
@@ -116,14 +129,20 @@ fun SeriesFilterContent(
                     border = if (filterState.isChanged) null else ButtonDefaults.outlinedButtonBorder(true),
                     modifier = Modifier.height(40.dp).cursorForHand()
                 ) {
-                    Text(strings.resetFilters, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(Res.string.series_filter_reset_filters),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
 
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier.height(40.dp).cursorForHand()
                 ) {
-                    Text(strings.hideFilters, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(Res.string.series_filter_hide_filters),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
         }
@@ -133,10 +152,20 @@ fun SeriesFilterContent(
             verticalArrangement = Arrangement.spacedBy(spacing),
         ) {
             FilterDropdownChoice(
-                selectedOption = LabeledEntry(currentFilter.sortOrder, strings.forSeriesSort(currentFilter.sortOrder)),
-                options = LibrarySeriesTabState.SeriesSort.entries.map { LabeledEntry(it, strings.forSeriesSort(it)) },
+                selectedOption = LabeledEntry(
+                    currentFilter.sortOrder,
+
+                    stringResource(AppStrings.forSeriesSort(currentFilter.sortOrder)),
+
+                    ),
+                options = LibrarySeriesTabState.SeriesSort.entries.map {
+                    LabeledEntry(
+                        it,
+                        stringResource(AppStrings.forSeriesSort(it))
+                    )
+                },
                 onOptionChange = { filterState.onSortOrderChange(it.value) },
-                label = strings.sort,
+                label = stringResource(Res.string.series_filter_sort),
                 modifier = Modifier.width(width)
             )
             TagFiltersDropdownMenu(
@@ -157,7 +186,7 @@ fun SeriesFilterContent(
                 onExclusionModeChange = filterState::onExclusionModeChange,
 
                 contentPadding = PaddingValues(5.dp),
-                label = strings.filterTagsLabel,
+                label = stringResource(Res.string.series_filter_filter_tags_label),
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier
                     .width(width)
@@ -166,19 +195,40 @@ fun SeriesFilterContent(
             )
             FilterDropdownMultiChoice(
                 selectedOptions = currentFilter.readStatus
-                    .map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
-                options = KomgaReadStatus.entries.map { LabeledEntry(it, strings.forSeriesReadStatus(it)) },
+                    .map {
+                        LabeledEntry(
+                            it,
+                            stringResource(AppStrings.forSeriesReadStatus(it))
+                        )
+                    },
+                options = KomgaReadStatus.entries.map {
+                    LabeledEntry(
+                        it,
+                        stringResource(AppStrings.forSeriesReadStatus(it))
+                    )
+                },
                 onOptionSelect = { changed -> filterState.onReadStatusSelect(changed.value) },
-                label = strings.readStatus,
+                label = stringResource(Res.string.series_filter_read_status),
                 modifier = Modifier.width(width),
             )
 
             FilterDropdownMultiChoice(
                 selectedOptions = currentFilter.publicationStatus
-                    .map { LabeledEntry(it, strings.forPublicationStatus(it)) },
-                options = KomgaSeriesStatus.entries.map { LabeledEntry(it, strings.forPublicationStatus(it)) },
+                    .map {
+                        LabeledEntry(
+                            it,
+                            stringResource(AppStrings.forPublicationStatus(it))
+
+                        )
+                    },
+                options = KomgaSeriesStatus.entries.map {
+                    LabeledEntry(
+                        it,
+                        stringResource(AppStrings.forPublicationStatus(it))
+                    )
+                },
                 onOptionSelect = { changed -> filterState.onPublicationStatusSelect(changed.value) },
-                label = strings.publicationStatus,
+                label = stringResource(Res.string.series_filter_publication_status),
                 modifier = Modifier.width(width),
             )
 
@@ -193,7 +243,7 @@ fun SeriesFilterContent(
                 options = authorOptions,
                 onOptionSelect = { author -> filterState.onAuthorSelect(author.value) },
                 onSearch = filterState::onAuthorsSearch,
-                label = strings.authors,
+                label = stringResource(Res.string.series_filter_authors),
                 modifier = Modifier.width(width),
             )
 
@@ -201,7 +251,7 @@ fun SeriesFilterContent(
                 selectedOptions = currentFilter.publishers.map { stringEntry(it) },
                 options = filterState.publishersOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onPublisherSelect(changed.value) },
-                label = strings.publisher,
+                label = stringResource(Res.string.series_filter_publisher),
                 modifier = Modifier.width(width),
             )
 
@@ -209,14 +259,14 @@ fun SeriesFilterContent(
                 selectedOptions = currentFilter.languages.map { stringEntry(it) },
                 options = filterState.languagesOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onLanguageSelect(changed.value) },
-                label = strings.language,
+                label = stringResource(Res.string.series_filter_language),
                 modifier = Modifier.width(width),
             )
             FilterDropdownMultiChoice(
                 selectedOptions = currentFilter.releaseDates.map { stringEntry(it) },
                 options = filterState.releaseDateOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onReleaseDateSelect(changed.value) },
-                label = strings.releaseDate,
+                label = stringResource(Res.string.series_filter_release_date),
                 modifier = Modifier.width(width),
             )
 
@@ -224,7 +274,7 @@ fun SeriesFilterContent(
                 selectedOptions = currentFilter.ageRatings.map { stringEntry(it) },
                 options = filterState.ageRatingsOptions.map { stringEntry(it) },
                 onOptionSelect = { changed -> filterState.onAgeRatingSelect(changed.value) },
-                label = strings.ageRating,
+                label = stringResource(Res.string.series_filter_age_rating),
                 modifier = Modifier.width(width),
             )
 
@@ -256,7 +306,10 @@ fun SeriesFilterContent(
                         onClick = filterState::onCompletionToggle,
                         modifier = Modifier.size(30.dp)
                     )
-                    Text(strings.complete, style = MaterialTheme.typography.labelLarge, maxLines = 2)
+                    Text(
+                        stringResource(Res.string.series_filter_complete),
+                        style = MaterialTheme.typography.labelLarge, maxLines = 2
+                    )
                 }
                 Row(
                     modifier = Modifier
@@ -282,7 +335,10 @@ fun SeriesFilterContent(
                         onClick = filterState::onFormatToggle,
                         modifier = Modifier.size(30.dp)
                     )
-                    Text(strings.oneshot, style = MaterialTheme.typography.labelLarge, maxLines = 2)
+                    Text(
+                        stringResource(Res.string.series_filter_oneshot),
+                        style = MaterialTheme.typography.labelLarge, maxLines = 2
+                    )
                 }
             }
         }

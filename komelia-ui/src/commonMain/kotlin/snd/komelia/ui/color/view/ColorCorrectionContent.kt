@@ -26,6 +26,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_curves
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_levels
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.color.ColorCorrectionType
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.color.CurvesState
@@ -151,14 +155,14 @@ private fun EditorContent(
                 onClick = { onCurveTypeChange(ColorCorrectionType.entries[0]) },
                 modifier = Modifier.heightIn(min = 40.dp).pointerHoverIcon(PointerIcon.Hand),
             ) {
-                Text("Curves")
+                Text(stringResource(Res.string.color_correction_curves))
             }
             Tab(
                 selected = currentCurveType.ordinal == 1,
                 onClick = { onCurveTypeChange(ColorCorrectionType.entries[1]) },
                 modifier = Modifier.heightIn(min = 40.dp).pointerHoverIcon(PointerIcon.Hand),
             ) {
-                Text("Levels")
+                Text(stringResource(Res.string.color_correction_levels))
             }
         }
 

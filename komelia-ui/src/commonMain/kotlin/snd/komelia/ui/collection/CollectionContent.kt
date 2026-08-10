@@ -25,6 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit_mode_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit_ordered_mode_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_series_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.components.PageSizeSelectionDropdown
@@ -135,7 +142,7 @@ private fun CollectionToolbar(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "collection",
+                stringResource(Res.string.collection),
                 style = MaterialTheme.typography.labelMedium,
                 fontStyle = FontStyle.Italic
             )
@@ -144,7 +151,12 @@ private fun CollectionToolbar(
         }
         SuggestionChip(
             onClick = {},
-            label = { Text("$totalSeriesCount series", style = MaterialTheme.typography.bodyMedium) },
+            label = {
+                Text(
+                    pluralStringResource(Res.plurals.collection_series_count, totalSeriesCount, totalSeriesCount),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
             modifier = Modifier.padding(horizontal = 10.dp),
         )
 
@@ -191,8 +203,8 @@ private fun BulkActionsToolbar(
     ) {
         when (LocalWindowWidth.current) {
             FULL -> {
-                if (collection.ordered) Text("Click to select, drag to change order")
-                else Text("Click on items to select or deselect them")
+                if (collection.ordered) Text(stringResource(Res.string.collection_edit_ordered_mode_desc))
+                else Text(stringResource(Res.string.collection_edit_mode_desc))
                 if (selectedSeries.isNotEmpty()) {
                     Spacer(Modifier.weight(1f))
 
@@ -202,8 +214,8 @@ private fun BulkActionsToolbar(
 
             EXPANDED -> {
                 if (selectedSeries.isEmpty()) {
-                    if (collection.ordered) Text("Click to select, drag to change order")
-                    else Text("Click on items to select or deselect them")
+                    if (collection.ordered) Text(stringResource(Res.string.collection_edit_ordered_mode_desc))
+                    else Text(stringResource(Res.string.collection_edit_mode_desc))
                 } else {
                     Spacer(Modifier.weight(1f))
                     CollectionBulkActionsContent(collection, selectedSeries, false)

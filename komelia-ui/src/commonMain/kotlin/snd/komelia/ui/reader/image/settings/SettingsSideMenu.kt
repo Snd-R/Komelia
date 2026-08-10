@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +48,26 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_close_book
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_continuous_page_spacing
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_continuous_reading_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_continuous_side_padding
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_downsampling_kernel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_linear_light_downsampling
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_linear_light_downsampling_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_settings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_upsampling_mode
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_layout
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_offset_pages
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_reading_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_type
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_pages_info
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_zoom
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime
 import kotlinx.coroutines.Dispatchers
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.komga.api.model.KomeliaBook
@@ -61,7 +81,6 @@ import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
 import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalPlatform
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.NumberFieldWithIncrements
@@ -76,6 +95,8 @@ import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import snd.komelia.ui.settings.imagereader.onnxruntime.TileSizeSelector
 import snd.komelia.ui.settings.imagereader.onnxruntime.UpscaleModeSelector
 import snd.komelia.ui.settings.imagereader.onnxruntime.isOnnxRuntimeInstalled
+import snd.komelia.ui.strings.AppStrings
+import snd.komelia.ui.strings.stringLabels
 import kotlin.math.roundToInt
 
 @Composable
@@ -143,7 +164,7 @@ fun SettingsSideMenuOverlay(
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     Spacer(Modifier.width(3.dp))
-                    Text("Close Book")
+                    Text(stringResource(Res.string.reader_close_book))
                 }
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = { onShowHelpMenu() }) { Icon(Icons.AutoMirrored.Default.Help, null) }
@@ -153,20 +174,20 @@ fun SettingsSideMenuOverlay(
             }
 
             HorizontalDivider(modifier = Modifier.padding(top = 10.dp))
-            val strings = LocalStrings.current
-            val readerStrings = strings.reader
             val zoomPercentage = remember(zoom) { (zoom * 100).roundToInt() }
-            Text("${readerStrings.zoom}: $zoomPercentage%")
+            Text(stringResource(Res.string.reader_zoom, zoomPercentage))
+
             Column {
+                val readerTypes = stringLabels(ReaderType.entries) { AppStrings.forReaderType(it) }
                 DropdownChoiceMenu(
-                    selectedOption = LabeledEntry(readerType, readerStrings.forReaderType(readerType)),
-                    options = remember {
-                        val entries = ReaderType.entries.map { LabeledEntry(it, readerStrings.forReaderType(it)) }
-                        if (panelsReaderState == null) entries.filter { it.value != PANELS } else entries
-                    },
+                    selectedOption = LabeledEntry(
+                        readerType,
+                        stringResource(AppStrings.forReaderType(readerType))
+                    ),
+                    options = derivedStateOf { if (panelsReaderState == null) readerTypes.filter { it.value != PANELS } else readerTypes }.value,
                     onOptionChange = { onReaderTypeChange(it.value) },
                     inputFieldModifier = Modifier.fillMaxWidth(),
-                    label = { Text(readerStrings.readerType) },
+                    label = { Text(stringResource(Res.string.reader_type)) },
                     inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 when (readerType) {
@@ -192,7 +213,7 @@ fun SettingsSideMenuOverlay(
                     .cursorForHand()
                     .padding(10.dp)
             ) {
-                Text("Image Settings")
+                Text(stringResource(Res.string.reader_image_settings))
                 Spacer(Modifier.weight(1f))
                 Icon(
                     Icons.Filled.ArrowDropDown,
@@ -243,7 +264,7 @@ fun SettingsSideMenuOverlay(
                         .cursorForHand()
                         .padding(10.dp)
                 ) {
-                    Text("OnnxRuntime")
+                    Text(stringResource(Res.string.settings_image_onnxruntime))
                     Spacer(Modifier.weight(1f))
                     Icon(
                         Icons.Filled.ArrowDropDown,
@@ -295,7 +316,6 @@ fun SettingsSideMenuOverlay(
 
                 CONTINUOUS -> {
                     var showPagesInfo by remember { mutableStateOf(false) }
-                    val readerStrings = LocalStrings.current.reader
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -303,7 +323,7 @@ fun SettingsSideMenuOverlay(
                             .cursorForHand()
                             .padding(10.dp)
                     ) {
-                        Text(readerStrings.pagesInfo)
+                        Text(stringResource(Res.string.reader_pages_info))
                         Spacer(Modifier.weight(1f))
                         Icon(
                             Icons.Filled.ArrowDropDown,
@@ -331,17 +351,17 @@ fun SettingsSideMenuOverlay(
 
 @Composable
 private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
-    val strings = LocalStrings.current.continuousReader
 
     val readingDirection = state.readingDirection.collectAsState()
     DropdownChoiceMenu(
-        selectedOption = LabeledEntry(readingDirection.value, strings.forReadingDirection(readingDirection.value)),
-        options = remember {
-            ContinuousReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) }
-        },
+        selectedOption = LabeledEntry(
+            readingDirection.value,
+            stringResource(AppStrings.forReadingDirection(readingDirection.value))
+        ),
+        options = stringLabels(ContinuousReadingDirection.entries) { AppStrings.forReadingDirection(it) },
         onOptionChange = { state.onReadingDirectionChange(it.value) },
         inputFieldModifier = Modifier.fillMaxWidth(),
-        label = { Text(strings.readingDirection) },
+        label = { Text(stringResource(Res.string.reader_continuous_reading_direction)) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
@@ -349,7 +369,12 @@ private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderS
         val padding = state.sidePaddingFraction.collectAsState().value
         NumberFieldWithIncrements(
             value = padding * 200,
-            label = { Text("side padding", style = MaterialTheme.typography.labelMedium) },
+            label = {
+                Text(
+                    stringResource(Res.string.reader_continuous_side_padding),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
             onvValueChange = { state.onSidePaddingChange(it / 200) },
             stepSize = 5f,
             minValue = 0f,
@@ -360,7 +385,12 @@ private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderS
         val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
         NumberFieldWithIncrements(
             value = spacing.toFloat(),
-            label = { Text("page spacing", style = MaterialTheme.typography.labelMedium) },
+            label = {
+                Text(
+                    stringResource(Res.string.reader_continuous_page_spacing),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
             onvValueChange = { state.onPageSpacingChange(it.roundToInt()) },
             stepSize = 1f,
             minValue = 0f,
@@ -376,15 +406,17 @@ private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderS
 private fun ColumnScope.PagedReaderSettingsContent(
     pageState: PagedReaderState,
 ) {
-    val strings = LocalStrings.current.pagedReader
     val scaleType = pageState.scaleType.collectAsState().value
     Column {
         DropdownChoiceMenu(
-            selectedOption = LabeledEntry(scaleType, strings.forScaleType(scaleType)),
-            options = remember { LayoutScaleType.entries.map { LabeledEntry(it, strings.forScaleType(it)) } },
+            selectedOption = LabeledEntry(
+                scaleType,
+                stringResource(AppStrings.forScaleType(scaleType))
+            ),
+            options = stringLabels(LayoutScaleType.entries) { AppStrings.forScaleType(it) },
             onOptionChange = { pageState.onScaleTypeChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.scaleType) },
+            label = { Text(stringResource(Res.string.reader_paged_scale_type)) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
@@ -392,24 +424,25 @@ private fun ColumnScope.PagedReaderSettingsContent(
         DropdownChoiceMenu(
             selectedOption = LabeledEntry(
                 readingDirection,
-                strings.forReadingDirection(readingDirection)
+                stringResource(AppStrings.forReadingDirection(readingDirection))
             ),
-            options = remember {
-                PagedReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) }
-            },
+            options = stringLabels(PagedReadingDirection.entries) { AppStrings.forReadingDirection(it) },
             onOptionChange = { pageState.onReadingDirectionChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.readingDirection) },
+            label = { Text(stringResource(Res.string.reader_paged_reading_direction)) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
         val layout = pageState.layout.collectAsState().value
         DropdownChoiceMenu(
-            selectedOption = LabeledEntry(layout, strings.forLayout(layout)),
-            options = remember { PageDisplayLayout.entries.map { LabeledEntry(it, strings.forLayout(it)) } },
+            selectedOption = LabeledEntry(
+                layout,
+                stringResource(AppStrings.forLayout(layout))
+            ),
+            options = stringLabels(PageDisplayLayout.entries) { AppStrings.forLayout(it) },
             onOptionChange = { pageState.onLayoutChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.layout) },
+            label = { Text(stringResource(Res.string.reader_paged_layout)) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
@@ -420,7 +453,7 @@ private fun ColumnScope.PagedReaderSettingsContent(
             SwitchWithLabel(
                 checked = layoutOffset,
                 onCheckedChange = pageState::onLayoutOffsetChange,
-                label = { Text(strings.offsetPages) },
+                label = { Text(stringResource(Res.string.reader_paged_offset_pages)) },
                 contentPadding = PaddingValues(horizontal = 10.dp)
             )
         }
@@ -432,20 +465,17 @@ private fun PanelsReaderSettingsContent(
     readingDirection: PagedReadingDirection,
     onReadingDirectionChange: (PagedReadingDirection) -> Unit,
 ) {
-    val strings = LocalStrings.current.pagedReader
     Column {
 
         DropdownChoiceMenu(
             selectedOption = LabeledEntry(
                 readingDirection,
-                strings.forReadingDirection(readingDirection)
+                stringResource(AppStrings.forReadingDirection(readingDirection))
             ),
-            options = remember {
-                PagedReadingDirection.entries.map { LabeledEntry(it, strings.forReadingDirection(it)) }
-            },
+            options = stringLabels(PagedReadingDirection.entries) { AppStrings.forReadingDirection(it) },
             onOptionChange = { onReadingDirectionChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.readingDirection) },
+            label = { Text(stringResource(Res.string.reader_paged_reading_direction)) },
             inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }
@@ -496,26 +526,17 @@ private fun SamplingModeSettings(
     onLinearLightDownsamplingChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val strings = LocalStrings.current.imageSettings
-
     Column(modifier) {
         if (availableUpsamplingModes.size > 1) {
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(
                     upsamplingMode,
-                    strings.forUpsamplingMode(upsamplingMode)
+                    stringResource(AppStrings.forUpsamplingMode(upsamplingMode))
                 ),
-                options = remember(availableUpsamplingModes) {
-                    availableUpsamplingModes.map {
-                        LabeledEntry(
-                            it,
-                            strings.forUpsamplingMode(it)
-                        )
-                    }
-                },
+                options = stringLabels(availableUpsamplingModes) { AppStrings.forUpsamplingMode(it) },
                 onOptionChange = { onUpsamplingModeChange(it.value) },
                 inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text(strings.upsamplingMode) },
+                label = { Text(stringResource(Res.string.reader_image_upsampling_mode)) },
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
@@ -524,19 +545,12 @@ private fun SamplingModeSettings(
             DropdownChoiceMenu(
                 selectedOption = LabeledEntry(
                     downsamplingKernel,
-                    strings.forDownsamplingKernel(downsamplingKernel)
+                    stringResource(AppStrings.forDownsamplingKernel(downsamplingKernel))
                 ),
-                options = remember(availableDownsamplingKernels) {
-                    availableDownsamplingKernels.map {
-                        LabeledEntry(
-                            it,
-                            strings.forDownsamplingKernel(it)
-                        )
-                    }
-                },
+                options = stringLabels(availableDownsamplingKernels) { AppStrings.forDownsamplingKernel(it) },
                 onOptionChange = { onDownsamplingKernelChange(it.value) },
                 inputFieldModifier = Modifier.fillMaxWidth(),
-                label = { Text(strings.downsamplingKernel) },
+                label = { Text(stringResource(Res.string.reader_image_downsampling_kernel)) },
                 inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
@@ -547,9 +561,12 @@ private fun SamplingModeSettings(
             SwitchWithLabel(
                 checked = linearLightDownsampling,
                 onCheckedChange = onLinearLightDownsamplingChange,
-                label = { Text("Linear light downsampling") },
+                label = { Text(stringResource(Res.string.reader_image_linear_light_downsampling)) },
                 supportingText = {
-                    Text("slower but potentially more accurate", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        stringResource(Res.string.reader_image_linear_light_downsampling_desc),
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 },
                 contentPadding = PaddingValues(horizontal = 10.dp)
             )

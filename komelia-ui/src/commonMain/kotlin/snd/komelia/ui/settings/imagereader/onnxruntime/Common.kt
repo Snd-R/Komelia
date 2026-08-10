@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,18 +26,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_gpu
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_none
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_model_path
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_model_path_browse
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_tiling_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_tiling_none
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_tiling_size
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.formatDecimal
 import snd.komelia.image.UpscaleMode
 import snd.komelia.onnxruntime.DeviceInfo
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.LabeledEntry.Companion.intEntry
+import snd.komelia.ui.strings.AppStrings
+import snd.komelia.ui.strings.stringLabels
 
 @Composable
 fun UpscaleModeSelector(
@@ -47,16 +56,15 @@ fun UpscaleModeSelector(
     currentModelPath: PlatformFile?,
     onModelPathChange: (PlatformFile?) -> Unit,
 ) {
-    val strings = LocalStrings.current.imageSettings
     DropdownChoiceMenu(
-        selectedOption = LabeledEntry(currentMode, strings.forOnnxRuntimeUpscaleMode(currentMode)),
-        options = remember {
-            UpscaleMode.entries.map {
-                LabeledEntry(it, strings.forOnnxRuntimeUpscaleMode(it))
-            }
-        },
+        selectedOption = LabeledEntry(
+            currentMode,
+            stringResource(AppStrings.forOnnxRuntimeUpscaleMode(currentMode))
+
+        ),
+        options = stringLabels(UpscaleMode.entries) { AppStrings.forOnnxRuntimeUpscaleMode(it) },
         onOptionChange = { onModeChange(it.value) },
-        label = { Text("OnnxRuntime upscale mode") },
+        label = { Text(stringResource(Res.string.settings_image_onnxruntime_upscale_mode_none)) },
         inputFieldModifier = Modifier.fillMaxSize()
     )
     AnimatedVisibility(currentMode == UpscaleMode.USER_SPECIFIED_MODEL) {
@@ -73,7 +81,7 @@ fun UpscaleModeSelector(
                 value = currentModelPath?.toString() ?: "",
                 onValueChange = {},
                 enabled = false,
-                label = { Text("ONNX model path") },
+                label = { Text(stringResource(Res.string.settings_image_onnxruntime_upscale_model_path)) },
                 readOnly = true,
                 modifier = Modifier.weight(7f),
             )
@@ -82,13 +90,13 @@ fun UpscaleModeSelector(
                 onClick = { launcher.launch() },
                 modifier = Modifier.padding(horizontal = 10.dp),
             ) {
-                Text("Browse")
+                Text(stringResource(Res.string.settings_image_onnxruntime_upscale_model_path_browse))
             }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TileSizeSelector(
     tileSize: Int,
@@ -99,11 +107,16 @@ fun TileSizeSelector(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        val tilingOptionNone = stringResource(Res.string.settings_image_onnxruntime_upscale_tiling_none)
         DropdownChoiceMenu(
-            selectedOption = remember(tileSize) { if (tileSize == 0) LabeledEntry(0, "None") else intEntry(tileSize) },
+            selectedOption = remember(tileSize) {
+                if (tileSize == 0) LabeledEntry(0, tilingOptionNone) else intEntry(
+                    tileSize
+                )
+            },
             options = remember {
                 listOf(
-                    LabeledEntry(0, "None"),
+                    LabeledEntry(0, tilingOptionNone),
                     intEntry(4096),
                     intEntry(2048),
                     intEntry(1024),
@@ -113,7 +126,7 @@ fun TileSizeSelector(
                 )
             },
             onOptionChange = { onTileSizeChange(it.value) },
-            label = { Text("Tile size") },
+            label = { Text(stringResource(Res.string.settings_image_onnxruntime_upscale_tiling_size)) },
             modifier = Modifier.weight(1f),
             inputFieldModifier = Modifier.fillMaxSize()
         )
@@ -126,12 +139,7 @@ fun TileSizeSelector(
                     border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.surface)
                 ) {
                     Text(
-                        text = """
-                            Splits image into small regions of specified size and upscales them individually
-                            Upscaled regions are then recombined back into single upscaled image
-                            
-                            This helps upscaling without running out of VRAM for big images
-                            """.trimIndent(),
+                        text = stringResource(Res.string.settings_image_onnxruntime_upscale_tiling_desc),
                         modifier = Modifier.padding(10.dp),
                     )
                 }
@@ -159,7 +167,7 @@ fun DeviceSelector(
             selectedOption = LabeledEntry(selectedDevice, "${selectedDevice.name} ${selectedDevice.memoryGb()}GiB"),
             options = remember { availableDevices.map { LabeledEntry(it, "${it.name} ${it.memoryGb()}GiB") } },
             onOptionChange = { onDeviceIdChange(it.value.id) },
-            label = { Text("GPU") },
+            label = { Text(stringResource(Res.string.settings_image_onnxruntime_gpu)) },
             inputFieldModifier = Modifier.fillMaxSize()
         )
     }

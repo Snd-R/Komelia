@@ -17,6 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_tags
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_bulk_warning
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_genres
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_tags
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.LabeledEntry.Companion.stringEntry
 import snd.komelia.ui.common.components.LockableChipTextFieldWithSuggestions
@@ -28,7 +34,7 @@ internal class TagsTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "TAGS",
+        title = Res.string.edit_tab_tags,
         icon = Icons.Default.LocalOffer
     )
 
@@ -63,7 +69,7 @@ private fun TagsContent(
         Row(Modifier.border(Dp.Hairline, warningColor).padding(20.dp)) {
             Icon(Icons.Default.PriorityHigh, null, tint = warningColor)
             Text(
-                text = "You are editing tags for multiple series. This will override existing tags of each series.",
+                text = stringResource(Res.string.series_edit_bulk_warning),
                 color = warningColor
             )
         }
@@ -71,7 +77,7 @@ private fun TagsContent(
         LockableChipTextFieldWithSuggestions(
             values = tags.value,
             onValuesChange = { tags.setValue(it) },
-            label = "Tags",
+            label = stringResource(Res.string.series_edit_tags),
             suggestions = remember(allTags) { allTags.map { stringEntry(it) } },
             locked = tagsLock.value,
             onLockChange = { tagsLock.setValue(it) }
@@ -79,7 +85,7 @@ private fun TagsContent(
         LockableChipTextFieldWithSuggestions(
             values = genres.value,
             onValuesChange = { genres.setValue(it) },
-            label = "Genres",
+            label = stringResource(Res.string.series_edit_genres),
             suggestions = remember(allGenres) { allGenres.map { stringEntry(it) } },
             locked = genresLock.value,
             onLockChange = { genresLock.setValue(it) }

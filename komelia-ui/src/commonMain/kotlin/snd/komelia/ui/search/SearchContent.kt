@@ -20,6 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_books_tab
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_no_results_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_no_results_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_series_tab
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.cards.BookDetailedListCard
@@ -130,8 +136,11 @@ private fun EmptySearchResults() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(100.dp))
-        Text("The search returned no results", style = MaterialTheme.typography.titleLarge)
-        Text("Try searching for something else")
+        Text(
+            stringResource(Res.string.search_no_results_title),
+            style = MaterialTheme.typography.titleLarge
+        )
+        Text(stringResource(Res.string.search_no_results_body))
     }
 }
 
@@ -162,7 +171,7 @@ fun SearchToolBar(
             FilterChip(
                 onClick = { onSearchTypeChange(SearchResultsTab.SERIES) },
                 selected = searchType == SearchResultsTab.SERIES,
-                label = { Text("Series") },
+                label = { Text(stringResource(Res.string.search_series_tab)) },
                 colors = chipColors,
                 border = null,
             )
@@ -171,7 +180,7 @@ fun SearchToolBar(
             FilterChip(
                 onClick = { onSearchTypeChange(SearchResultsTab.BOOKS) },
                 selected = searchType == SearchResultsTab.BOOKS,
-                label = { Text("Books") },
+                label = { Text(stringResource(Res.string.search_books_tab)) },
                 colors = chipColors,
                 border = null,
             )

@@ -3,7 +3,13 @@ package snd.komelia.ui.dialogs.libraryedit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_add
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_dialog_next
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_library
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.tabs.TabDialog
 import snd.komga.client.library.KomgaLibrary
@@ -17,12 +23,18 @@ fun LibraryEditDialogs(
     val vm = remember { viewModelFactory.getLibraryEditDialogViewModel(library, onDismissRequest) }
     val coroutineScope = rememberCoroutineScope()
 
-    val title = if (library != null) "Edit Library" else "Add Library"
+    val title =
+        if (library != null) stringResource(Res.string.library_edit_library)
+        else stringResource(Res.string.library_add)
+
+    val libraryEditString = stringResource(Res.string.library_edit)
+    val libraryAddString = stringResource(Res.string.library_add)
+    val libraryNextString = stringResource(Res.string.library_edit_dialog_next)
     val confirmationText = remember(library, vm.currentTab) {
         when {
-            library != null -> "Edit"
-            vm.currentTab is MetadataTab -> "Add"
-            else -> "Next"
+            library != null -> libraryEditString
+            vm.currentTab is MetadataTab -> libraryAddString
+            else -> libraryNextString
         }
     }
 

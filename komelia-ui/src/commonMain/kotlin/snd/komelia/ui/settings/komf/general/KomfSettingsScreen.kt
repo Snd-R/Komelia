@@ -5,6 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
@@ -28,7 +31,7 @@ class KomfSettingsScreen(
         LaunchedEffect(Unit) { vm.initialize() }
 
         val komfConnectionError = vm.komfConnectionError.collectAsState().value
-        SettingsScreenContainer(title = "Komf Settings") {
+        SettingsScreenContainer(title = stringResource(Res.string.komf_settings_title)) {
             when (vmState) {
 
                 LoadState.Loading, LoadState.Uninitialized -> LoadingMaxSizeIndicator()

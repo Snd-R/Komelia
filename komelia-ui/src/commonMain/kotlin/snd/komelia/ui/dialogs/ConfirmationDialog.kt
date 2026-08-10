@@ -1,7 +1,6 @@
 package snd.komelia.ui.dialogs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -21,17 +20,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_confirm
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.CheckboxWithLabel
 import snd.komelia.ui.platform.cursorForHand
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ConfirmationDialog(
     body: String,
     title: String? = null,
     confirmText: String? = null,
-    buttonCancel: String = "Cancel",
-    buttonConfirm: String = "Confirm",
+    buttonCancel: String = stringResource(Res.string.dialog_cancel),
+    buttonConfirm: String = stringResource(Res.string.dialog_confirm),
     buttonAlternate: String? = null,
     buttonConfirmColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     onDialogConfirm: () -> Unit,

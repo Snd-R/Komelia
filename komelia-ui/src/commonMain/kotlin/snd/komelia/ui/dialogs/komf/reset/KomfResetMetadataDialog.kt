@@ -14,7 +14,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_library
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_library_warning
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_remove_comicinfo
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_remove_comicinfo_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_series_warning
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.SwitchWithLabel
 import snd.komelia.ui.dialogs.AppDialog
@@ -24,14 +31,6 @@ import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaSeries
-
-val resetSeriesText = """
-    All series metadata will be reset including field locks and thumbnails uploaded by Komf.
-    No files will be modified. Continue?
-""".trimIndent()
-val resetLibraryText = """
-    All metadata of all series inside this library will be reset including field locks and thumbnails uploaded by Komf. No files will be modified. Continue?
-""".trimIndent()
 
 @Composable
 fun KomfResetSeriesMetadataDialog(
@@ -54,7 +53,7 @@ fun KomfResetSeriesMetadataDialog(
     val viewModelFactory = LocalViewModelFactory.current
     val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest) }
     ResetDialog(
-        dialogText = resetSeriesText,
+        dialogText = stringResource(Res.string.komf_reset_series_warning),
         removeComicInfo = vm.removeComicInfo,
         onRemoveComicInfoChange = vm::removeComicInfo::set,
         onConfirm = { vm.onSeriesReset(seriesId, libraryId) },
@@ -78,7 +77,7 @@ fun KomfResetLibraryMetadataDialog(
     val viewModelFactory = LocalViewModelFactory.current
     val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest) }
     ResetDialog(
-        dialogText = resetLibraryText,
+        dialogText = stringResource(Res.string.komf_reset_library_warning),
         removeComicInfo = vm.removeComicInfo,
         onRemoveComicInfoChange = vm::removeComicInfo::set,
         onConfirm = { vm.onLibraryReset(libraryId) },
@@ -99,7 +98,7 @@ fun ResetDialog(
     AppDialog(
         contentPadding = PaddingValues(20.dp),
         modifier = Modifier.widthIn(max = 650.dp),
-        header = { DialogSimpleHeader("Reset Library Metadata") },
+        header = { DialogSimpleHeader(stringResource(Res.string.komf_reset_library)) },
         content = { DialogContent(dialogText, removeComicInfo, onRemoveComicInfoChange) },
         controlButtons = {
             DialogConfirmCancelButtons(
@@ -132,8 +131,8 @@ private fun DialogContent(
         SwitchWithLabel(
             checked = removeComicInfo,
             onCheckedChange = onRemoveComicInfoChange,
-            label = { Text("Remove ComicInfo.xml?") },
-            supportingText = { Text("Requires write access to files") }
+            label = { Text(stringResource(Res.string.komf_reset_remove_comicinfo)) },
+            supportingText = { Text(stringResource(Res.string.komf_reset_remove_comicinfo_desc)) }
         )
     }
 }

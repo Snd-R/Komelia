@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_tags
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_tags_other
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.DescriptionChips
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.LabeledEntry.Companion.stringEntry
@@ -78,7 +82,7 @@ fun TagList(
 
         if (tagEntries.size == tags.size && secondaryTags?.size == secondaryTagEntries?.size) {
             DescriptionChips(
-                label = "Tags",
+                label = stringResource(Res.string.book_tags),
                 chipValues = tagEntries,
                 secondaryValues = secondaryTagEntries,
                 onChipClick = onTagClick,
@@ -136,7 +140,7 @@ fun TagList(
                 )
             }
             DescriptionChips(
-                label = "Other tags",
+                label = stringResource(Res.string.book_tags_other),
                 chipValues = tagEntries,
                 secondaryValues = secondaryTagEntries,
                 onChipClick = onTagClick,

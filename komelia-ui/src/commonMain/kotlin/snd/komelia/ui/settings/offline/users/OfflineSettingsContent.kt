@@ -33,6 +33,23 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_delete_server_data
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_delete_server_data_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_delete_user_data
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_delete_user_data_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_go_offline
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_go_online
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_login_as
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_none_value
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_root
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_root_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_server
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_status
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_status_offline
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_status_online
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_offline_mode_users_user
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.offline.server.model.OfflineMediaServer
 import snd.komelia.offline.server.model.OfflineMediaServerId
 import snd.komelia.offline.user.model.OfflineUser
@@ -54,9 +71,26 @@ fun OfflineUserSettingsContent(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
         Column {
-            Text("user: ${currentUser?.email ?: "none"}")
-            Text("status: ${if (isOffline) "offline" else "online"}")
-            Text("server: ${if (currentUser?.id == OfflineUser.ROOT || onlineServerUrl == null) "none" else onlineServerUrl}")
+            Text(
+                stringResource(
+                    Res.string.settings_offline_mode_users_user,
+                    currentUser?.email ?: stringResource(Res.string.settings_offline_mode_users_none_value)
+                )
+            )
+            Text(
+                stringResource(
+                    Res.string.settings_offline_mode_users_status,
+                    if (isOffline) stringResource(Res.string.settings_offline_mode_users_status_offline)
+                    else stringResource(Res.string.settings_offline_mode_users_status_online)
+                )
+            )
+            Text(
+                stringResource(
+                    Res.string.settings_offline_mode_users_server,
+                    if (currentUser?.id == OfflineUser.ROOT || onlineServerUrl == null) stringResource(Res.string.settings_offline_mode_users_none_value)
+                    else onlineServerUrl
+                )
+            )
         }
 
         Row(
@@ -71,9 +105,9 @@ fun OfflineUserSettingsContent(
             }
 
             if (isOffline) {
-                FilledTonalButton(onClick = { goOnline() }) { Text("Go online") }
+                FilledTonalButton(onClick = { goOnline() }) { Text(stringResource(Res.string.settings_offline_mode_users_go_online)) }
             } else if (canGoOffline) {
-                FilledTonalButton(onClick = { currentUser?.let { loginAs(it.id) } }) { Text("Go offline as current user") }
+                FilledTonalButton(onClick = { currentUser?.let { loginAs(it.id) } }) { Text(stringResource(Res.string.settings_offline_mode_users_go_offline)) }
             }
         }
 
@@ -136,8 +170,8 @@ fun ServerCard(
 
                 if (showDeleteConfirmation) {
                     ConfirmationDialog(
-                        body = "Delete all server data?",
-                        confirmText = "Yes, delete all downloaded files and user data",
+                        body = stringResource(Res.string.settings_offline_mode_users_delete_server_data),
+                        confirmText = stringResource(Res.string.settings_offline_mode_users_delete_server_data_confirm),
                         onDialogConfirm = { onServerDelete(server.id) },
                         onDialogDismiss = { showDeleteConfirmation = false }
                     )
@@ -181,7 +215,7 @@ private fun UserCard(
         }
 
         FilledTonalButton(onClick = { goOffline(user.id) }) {
-            Text("login")
+            Text(stringResource(Res.string.settings_offline_mode_users_login_as))
         }
 
         IconButton(
@@ -193,8 +227,8 @@ private fun UserCard(
 
     if (showDeleteConfirmation) {
         ConfirmationDialog(
-            body = "Delete user data?",
-            confirmText = "Yes, delete user data and associated read progress",
+            body = stringResource(Res.string.settings_offline_mode_users_delete_user_data),
+            confirmText = stringResource(Res.string.settings_offline_mode_users_delete_user_data_confirm),
             onDialogConfirm = { onUserDelete(user.id) },
             onDialogDismiss = { showDeleteConfirmation = false }
         )
@@ -222,16 +256,15 @@ fun RootUserCard(goOffline: () -> Unit) {
                     null,
                     tint = MaterialTheme.colorScheme.tertiaryContainer
                 )
-                Text("root")
+                Text(stringResource(Res.string.settings_offline_mode_users_root))
             }
 
-            Text("Special user that has access to all downloaded books")
-            Text("Read progress will not be synced")
+            Text(stringResource(Res.string.settings_offline_mode_users_root_desc))
         }
 
 
         FilledTonalButton(onClick = { goOffline() }) {
-            Text("login")
+            Text(stringResource(Res.string.settings_offline_mode_users_login_as))
         }
     }
 }

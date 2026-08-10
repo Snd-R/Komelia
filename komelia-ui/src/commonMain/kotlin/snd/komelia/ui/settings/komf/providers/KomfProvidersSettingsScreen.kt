@@ -6,6 +6,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_settings_providers_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
@@ -21,7 +24,7 @@ class KomfProvidersSettingsScreen : Screen {
         val vmState = vm.state.collectAsState().value
         val komfConfigLoadError = vm.komfSharedState.configError.collectAsState().value
         LaunchedEffect(Unit) { vm.initialize() }
-        SettingsScreenContainer(title = "Metadata Providers Settings") {
+        SettingsScreenContainer(title = stringResource(Res.string.komf_settings_providers_title)) {
 
             if (komfConfigLoadError != null) {
                 Text(formatExceptionMessage(komfConfigLoadError))

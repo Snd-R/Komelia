@@ -25,6 +25,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset_name_already_exists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset_name_enter
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset_name_placeholder
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset_override_existing
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_preset_save
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.color.Preset
 import snd.komelia.ui.color.PresetsState
 import snd.komelia.ui.common.components.CheckboxWithLabel
@@ -50,17 +59,17 @@ fun <T : Preset> PresetsContent(
             options = remember(availablePresets) { availablePresets.map { LabeledEntry(it, it.name) } },
             onOptionChange = { preset -> preset.value?.let { state.onPresetSelect(it) } },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text("Presets") },
+            label = { Text(stringResource(Res.string.color_correction_preset)) },
             modifier = Modifier.weight(1f, false).widthIn(max = 400.dp).fillMaxWidth(),
         )
         if (selectedPreset == null)
-            Tooltip("Save Preset") {
+            Tooltip(stringResource(Res.string.color_correction_preset_save)) {
                 IconButton(onClick = { showNameDialog = true }) {
                     Icon(Icons.Default.Add, null)
                 }
             }
         else {
-            Tooltip("Delete Preset") {
+            Tooltip(stringResource(Res.string.color_correction_preset_delete)) {
                 IconButton(
                     onClick = { state.onPresetDelete(selectedPreset) },
                 ) {
@@ -82,7 +91,7 @@ fun <T : Preset> PresetsContent(
             },
             header = {
                 Text(
-                    "Enter a name for the preset",
+                    stringResource(Res.string.color_correction_preset_name_enter),
                     modifier = Modifier.padding(20.dp)
                 )
             },
@@ -94,10 +103,10 @@ fun <T : Preset> PresetsContent(
                         value = newPresetName,
                         onValueChange = { newPresetName = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Saved Settings") },
+                        placeholder = { Text(stringResource(Res.string.color_correction_preset_name_placeholder)) },
                         supportingText = {
                             if (!isValidName) Text(
-                                "Preset with that name already exists",
+                                stringResource(Res.string.color_correction_preset_name_already_exists),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
@@ -107,7 +116,7 @@ fun <T : Preset> PresetsContent(
                         CheckboxWithLabel(
                             checked = confirmOverride,
                             onCheckedChange = { confirmOverride = it },
-                            label = { Text("Override existing preset") }
+                            label = { Text(stringResource(Res.string.color_correction_preset_override_existing)) }
                         )
                     }
 

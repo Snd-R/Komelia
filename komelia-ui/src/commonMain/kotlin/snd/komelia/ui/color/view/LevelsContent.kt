@@ -35,6 +35,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_levels_black
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_levels_gamma
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_levels_output
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_levels_white
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.color_correction_reset_all
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.color.ColorChannel
 import snd.komelia.color.HistogramPaths
 import snd.komelia.ui.LocalWindowWidth
@@ -86,7 +93,7 @@ fun ColorLevelContent(
                     .align(Alignment.CenterVertically)
                     .pointerHoverIcon(PointerIcon.Hand),
             ) {
-                Text("Reset All")
+                Text(stringResource(Res.string.color_correction_reset_all))
             }
         }
 
@@ -107,7 +114,10 @@ fun ColorLevelContent(
                 gammaValue = state.gammaInputValue.collectAsState(1f).value,
                 onGammaValueChange = state::onGammaInputChange
             )
-            Text("Output Levels", modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                stringResource(Res.string.color_correction_levels_output),
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
             HorizontalGradient()
             HandleBar(state.outputHandleBarState)
             OutputFields(
@@ -186,7 +196,7 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = lowValue.toFloat(),
             onvValueChange = { onLowValueChange(it.toInt()) },
-            label = { Text("Black") },
+            label = { Text(stringResource(Res.string.color_correction_levels_black)) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -198,7 +208,7 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = gammaValue,
             onvValueChange = onGammaValueChange,
-            label = { Text("Gamma") },
+            label = { Text(stringResource(Res.string.color_correction_levels_gamma)) },
             stepSize = 0.01f,
             minValue = 0.1f,
             maxValue = 10f,
@@ -209,7 +219,7 @@ private fun InputFields(
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
             onvValueChange = { onHighValueChange(it.toInt()) },
-            label = { Text("White") },
+            label = { Text(stringResource(Res.string.color_correction_levels_white)) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -233,7 +243,7 @@ private fun OutputFields(
         NumberFieldWithIncrements(
             value = lowValue.toFloat(),
             onvValueChange = { onLowValueChange(it.toInt()) },
-            label = { Text("Black") },
+            label = { Text(stringResource(Res.string.color_correction_levels_black)) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,
@@ -244,7 +254,7 @@ private fun OutputFields(
         NumberFieldWithIncrements(
             value = highValue.toFloat(),
             onvValueChange = { onHighValueChange(it.toInt()) },
-            label = { Text("White") },
+            label = { Text(stringResource(Res.string.color_correction_levels_white)) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 255f,

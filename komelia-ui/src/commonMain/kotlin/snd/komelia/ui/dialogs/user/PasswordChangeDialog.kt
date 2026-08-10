@@ -27,7 +27,16 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_change_password
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_new_password
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_new_password_repeat
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_new_password_repeat_error
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_new_password_required
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.change_password_dialog_title
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.PasswordTextField
 import snd.komelia.ui.dialogs.AppDialog
@@ -58,12 +67,14 @@ fun PasswordChangeDialog(
     var repeatPassword by remember { mutableStateOf("") }
     var repeatPasswordError by remember { mutableStateOf<String?>(null) }
 
+    val newPasswordRequiredString = stringResource(Res.string.change_password_dialog_new_password_required)
+    val passwordsNotIdenticalString = stringResource(Res.string.change_password_dialog_new_password_repeat_error)
     AppDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.widthIn(max = 600.dp),
         header = {
             Text(
-                text = "Change Password",
+                text = stringResource(Res.string.change_password_dialog_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp)
             )
@@ -79,7 +90,7 @@ fun PasswordChangeDialog(
                 PasswordTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("New password") },
+                    label = { Text(stringResource(Res.string.change_password_dialog_new_password)) },
                     isError = passwordError != null,
                     supportingText = { passwordError?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
@@ -90,7 +101,7 @@ fun PasswordChangeDialog(
                 PasswordTextField(
                     value = repeatPassword,
                     onValueChange = { repeatPassword = it },
-                    label = { Text("Repeat new password") },
+                    label = { Text(stringResource(Res.string.change_password_dialog_new_password_repeat)) },
                     isError = repeatPasswordError != null,
                     supportingText = { repeatPasswordError?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
@@ -111,14 +122,14 @@ fun PasswordChangeDialog(
                     onClick = onDismiss,
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.change_password_dialog_cancel))
                 }
 
                 FilledTonalButton(
                     onClick = {
                         when {
-                            password.isBlank() -> passwordError = "New password is required"
-                            password != repeatPassword -> repeatPasswordError = "Passwords must be identical"
+                            password.isBlank() -> passwordError = newPasswordRequiredString
+                            password != repeatPassword -> repeatPasswordError = passwordsNotIdenticalString
                             else -> coroutineScope.launch {
                                 onPasswordChange(password)
                                 onDismiss()
@@ -127,7 +138,7 @@ fun PasswordChangeDialog(
                     },
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
-                    Text("Change Password")
+                    Text(stringResource(Res.string.change_password_dialog_change_password))
                 }
             }
         }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -42,9 +41,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_auto_identify
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_completed
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_no_results
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_processing
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_run_in_background
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_search
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_title
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.cards.KomfResultCard
 import snd.komelia.ui.dialogs.AppDialog
@@ -59,6 +69,7 @@ import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.Identify
 import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.IdentifyTab.SEARCH_RESULTS
 import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.SearchResultsState
 import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.series.KomgaSeries
 
 @Composable
@@ -74,7 +85,7 @@ fun KomfIdentifyDialog(
 
     AppDialog(
         modifier = Modifier.widthIn(max = 840.dp),
-        header = { DialogSimpleHeader("Identify") },
+        header = { DialogSimpleHeader(stringResource(Res.string.komf_identify)) },
         content = {
             Box(
                 modifier = Modifier.fillMaxSize().padding(vertical = 10.dp),
@@ -115,7 +126,7 @@ fun IdentifyConfigContent(state: ConfigState) {
             TextField(
                 value = state.searchName,
                 onValueChange = state::searchName::set,
-                label = { Text("Title") },
+                label = { Text(stringResource(Res.string.komf_identify_title)) },
                 modifier = Modifier.weight(1f)
             )
 
@@ -131,19 +142,18 @@ fun IdentifyConfigContent(state: ConfigState) {
                 enabled = !isLoading.value,
             ) {
                 if (isLoading.value && searchInProgress) CircularProgressIndicator(Modifier.size(25.dp))
-                else Text("Search")
+                else Text(stringResource(Res.string.komf_identify_search))
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun IdentifyResultsContent(
     state: SearchResultsState,
 ) {
     if (state.searchResults.isEmpty()) {
-        Text("No results")
+        Text(stringResource(Res.string.komf_identify_no_results))
         return
     }
     FlowRow(
@@ -190,7 +200,6 @@ fun IdentificationProgressContent(
 
 @Composable
 private fun ProviderProgressCard(progress: ProviderProgressStatus) {
-    val strings = LocalStrings.current.komf.providerSettings
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,13 +210,13 @@ private fun ProviderProgressCard(progress: ProviderProgressStatus) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(strings.forProvider(progress.provider))
+            Text(AppStrings.forProvider(progress.provider))
             Spacer(Modifier.weight(1f))
             progress.message?.let { Text(it) }
 
             when (progress.status) {
                 ProgressStatus.COMPLETED -> {
-                    Text("Completed")
+                    Text(stringResource(Res.string.komf_identify_completed))
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
@@ -252,7 +261,7 @@ private fun ProcessingProgressCard() {
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Processing")
+            Text(stringResource(Res.string.komf_identify_processing))
             Spacer(Modifier.weight(1f))
         }
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -272,7 +281,7 @@ fun IdentifyConfigButtons(state: ConfigState) {
             onClick = state.onDismiss,
             modifier = Modifier.cursorForHand()
         ) {
-            Text("Cancel")
+            Text(stringResource(Res.string.komf_identify_cancel))
         }
 
         FilledTonalButton(
@@ -287,7 +296,7 @@ fun IdentifyConfigButtons(state: ConfigState) {
             modifier = Modifier.cursorForHand()
         ) {
             if (isLoading.value && autoIdentifyProgress) CircularProgressIndicator(Modifier.size(25.dp))
-            else Text("Auto-Identify")
+            else Text(stringResource(Res.string.komf_identify_auto_identify))
         }
     }
 }
@@ -295,7 +304,7 @@ fun IdentifyConfigButtons(state: ConfigState) {
 @Composable
 fun IdentifySearchResultsButtons(state: SearchResultsState) {
     ControlButtons(
-        confirmationText = "Confirm",
+        confirmationText = stringResource(Res.string.komf_identify_confirm),
         onConfirm = { state.onResultConfirm() },
         onDismissRequest = state.onDismiss
     )
@@ -310,8 +319,8 @@ fun IdentificationProgressButtons(
         onClick = state.onDismiss,
         modifier = Modifier.cursorForHand()
     ) {
-        if (isLoading) Text("Run in background")
-        else Text("Confirm")
+        if (isLoading) Text(stringResource(Res.string.komf_identify_run_in_background))
+        else Text(stringResource(Res.string.komf_identify_confirm))
     }
 }
 
@@ -331,7 +340,7 @@ private fun ControlButtons(
             onClick = onDismissRequest,
             modifier = Modifier.cursorForHand()
         ) {
-            Text("Cancel")
+            Text(stringResource(Res.string.komf_identify_cancel))
         }
 
         FilledTonalButton(

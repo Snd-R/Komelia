@@ -42,7 +42,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.topbar_downloads_clear
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.topbar_downloads_recent
 import kotlinx.datetime.format
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.DefaultDateTimeFormats.localTimeFormat
 import snd.komelia.formatDecimal
 import snd.komelia.ui.platform.VerticalScrollbar
@@ -121,10 +125,13 @@ private fun NotificationsContent(
                 modifier = Modifier.padding(5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Recent downloads", modifier = Modifier.padding(start = 5.dp))
+                Text(
+                    stringResource(Res.string.topbar_downloads_recent),
+                    modifier = Modifier.padding(start = 5.dp)
+                )
                 Spacer(Modifier.weight(1f))
                 ElevatedButton(onClick = onNotificationsClear) {
-                    Text("Clear all")
+                    Text(stringResource(Res.string.topbar_downloads_clear))
                     Icon(Icons.Default.Clear, null)
                 }
             }

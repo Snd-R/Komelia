@@ -35,6 +35,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_read_button
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_read_button_incognito
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.platform.cursorForHand
 import snd.komga.client.book.MediaProfile.EPUB
@@ -92,7 +96,7 @@ private fun ReadButton(
             contentDescription = null,
         )
         Spacer(Modifier.width(10.dp))
-        Text("Read")
+        Text(stringResource(Res.string.book_read_button))
     }
 }
 
@@ -130,7 +134,7 @@ private fun IncognitoDropDown(
             modifier = Modifier.width(150.dp)
         ) {
             DropdownMenuItem(
-                text = { Text("Read incognito") },
+                text = { Text(stringResource(Res.string.book_read_button_incognito)) },
                 onClick = { onIncognitoRead() },
                 modifier = Modifier.cursorForHand()
             )

@@ -247,7 +247,6 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             readerSettingsRepository = appRepositories.imageReaderSettingsRepository,
             imageLoader = dependencies.bookImageLoader,
-            appStrings = dependencies.appStrings,
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,
             colorCorrectionRepository = appRepositories.bookColorCorrectionRepository,

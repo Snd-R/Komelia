@@ -4,7 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_save
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_bulk_dialog_title
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.tabs.TabDialog
 import snd.komga.client.series.KomgaSeries
@@ -20,10 +25,10 @@ fun SeriesBulkEditDialog(
 
     val coroutineScope = rememberCoroutineScope()
     TabDialog(
-        title = "Edit ${series.size} series",
+        title = pluralStringResource(Res.plurals.series_edit_bulk_dialog_title, series.size, series.size),
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
-        confirmationText = "Save Changes",
+        confirmationText = stringResource(Res.string.dialog_save),
         onConfirm = { coroutineScope.launch { vm.saveChanges() } },
         onTabChange = { vm.currentTab = it },
         onDismissRequest = { onDismissRequest() }

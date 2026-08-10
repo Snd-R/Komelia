@@ -21,7 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.LayoutDirection.Rtl
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_page_display_size
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_page_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_page_original_size
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.image.ReaderImage
 import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.PagedReadingDirection
@@ -29,7 +34,6 @@ import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
 import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalPlatform
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.platform.PlatformType.DESKTOP
 import snd.komelia.ui.platform.WindowSizeClass.COMPACT
@@ -223,20 +227,23 @@ fun PagedReaderPagesInfo(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
-        val readerStrings = LocalStrings.current.reader
         pages.forEach { page ->
             val pageImage = page.imageResult?.image
             val pageSize = pageImage?.originalSize?.collectAsState()?.value
             if (pageImage != null) {
                 val currentSize = pageImage.currentSize.collectAsState().value
-                Text("${readerStrings.pageNumber} ${page.metadata.pageNumber}")
+                Text(stringResource(Res.string.reader_page_number, page.metadata.pageNumber))
 
                 if (currentSize != null) {
-                    Text("${readerStrings.pageDisplaySize} ${currentSize.width} x ${currentSize.height}")
+                    Text(
+                        stringResource(Res.string.reader_page_display_size, currentSize.width, currentSize.height)
+                    )
                 }
 
                 if (pageSize != null) {
-                    Text("${readerStrings.pageOriginalSize}: ${pageSize.width} x ${pageSize.height}")
+                    Text(
+                        stringResource(Res.string.reader_page_original_size, pageSize.width, pageSize.height)
+                    )
                 }
             }
 
@@ -264,18 +271,24 @@ fun ContinuousReaderPagesInfo(
             }
     }
 
-    val readerStrings = LocalStrings.current.reader
     Column(modifier) {
         for ((page, image) in visiblePages) {
-            Text("${readerStrings.pageNumber} ${page.pageNumber}.", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(Res.string.reader_page_number, page.pageNumber),
+                style = MaterialTheme.typography.bodyMedium
+            )
 
             val currentSize = image?.currentSize?.collectAsState()?.value
             if (currentSize != null) {
-                Text("${readerStrings.pageDisplaySize} ${currentSize.width} x ${currentSize.height}")
+                Text(
+                    stringResource(Res.string.reader_page_display_size, currentSize.width, currentSize.height)
+                )
             }
 
             if (page.size != null) {
-                Text("${readerStrings.pageOriginalSize}: ${page.size.width} x ${page.size.height}")
+                Text(
+                    stringResource(Res.string.reader_page_original_size, page.size.width, page.size.height)
+                )
             }
 
             HorizontalDivider(Modifier.padding(vertical = 5.dp))

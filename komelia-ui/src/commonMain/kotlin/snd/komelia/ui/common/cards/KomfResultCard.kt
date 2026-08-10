@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,8 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.common.images.ThumbnailImage
+import snd.komelia.ui.strings.AppStrings
 import snd.komf.api.metadata.KomfMetadataSeriesSearchResult
 
 @Composable
@@ -72,7 +71,6 @@ fun KomfResultCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
     Column(
@@ -82,7 +80,6 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val strings = LocalStrings.current.komf.providerSettings
         TooltipBox(
             positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
             state = rememberTooltipState(),
@@ -115,7 +112,7 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
             shape = RoundedCornerShape(5.dp)
         ) {
             Text(
-                text = strings.forProvider(result.provider),
+                text = AppStrings.forProvider(result.provider),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )

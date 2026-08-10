@@ -15,6 +15,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_delete_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_delete_confirm_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_delete_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.readlistedit.ReadListEditDialog
 import snd.komga.client.readlist.KomgaReadList
@@ -29,9 +36,9 @@ fun ReadListActionsMenu(
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog) {
         ConfirmationDialog(
-            title = "Delete Read List",
-            body = "Read list ${readList.name} will be removed from this server. Your media files will not be affected. This cannot be undone. Continue?",
-            confirmText = "Yes, delete read list \"${readList.name}\"",
+            title = stringResource(Res.string.readlist_delete_confirm_title),
+            body = stringResource(Res.string.readlist_delete_confirm_body),
+            confirmText = stringResource(Res.string.readlist_delete_confirm_confirm, readList.name),
             onDialogConfirm = {
                 onReadListDelete()
                 onDismissRequest()
@@ -61,12 +68,12 @@ fun ReadListActionsMenu(
         val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
 
         DropdownMenuItem(
-            text = { Text("Edit") },
+            text = { Text(stringResource(Res.string.readlist_edit)) },
             onClick = { showEditDialog = true },
         )
 
         DropdownMenuItem(
-            text = { Text("Delete") },
+            text = { Text(stringResource(Res.string.readlist_delete)) },
             onClick = { showDeleteDialog = true },
             modifier = Modifier
                 .hoverable(deleteInteractionSource)

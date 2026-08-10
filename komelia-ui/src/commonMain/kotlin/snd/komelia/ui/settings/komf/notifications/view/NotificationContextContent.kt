@@ -34,6 +34,54 @@ import androidx.compose.ui.unit.dp
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_authors_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_authors_role
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_add
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_author
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_id
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_isbn
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_link
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_metadata_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_metadata_number_sort
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_metadata_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_release_date
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_summary
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_book_tags
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_close
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_library
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_library_id
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_library_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_list_value_add
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_list_value_and_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_preview
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_age_rating
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_alternative_publishers
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_alternative_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_author
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_book_count
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_book_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_books
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_genres
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_id
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_language
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_link
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_metadata_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_metadata_title_sort
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_publisher
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_reading_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_release_year
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_status
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_summary
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_tags
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_series_total_book_count
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_weblink_label
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context_weblink_url
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.NumberField
 import snd.komelia.ui.dialogs.AppDialog
 import snd.komelia.ui.dialogs.DialogSimpleHeader
@@ -52,13 +100,13 @@ fun NotificationContextDialog(
 ) {
     AppDialog(
         modifier = Modifier.widthIn(max = 800.dp),
-        header = { DialogSimpleHeader("Preview Context") },
+        header = { DialogSimpleHeader(stringResource(Res.string.komf_notification_context_preview)) },
         content = { NotificationContextDialogContent(notificationContextState) },
         controlButtons = {
             FilledTonalButton(
                 onClick = onDismissRequest,
             ) {
-                Text("Close")
+                Text(stringResource(Res.string.komf_notification_context_close))
             }
         },
         onDismissRequest = onDismissRequest,
@@ -71,111 +119,125 @@ fun NotificationContextDialogContent(
     state: NotificationContextState,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text("Library", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_notification_context_library),
+            style = MaterialTheme.typography.titleLarge
+        )
         TextField(
             value = state.libraryId,
             onValueChange = state::libraryId::set,
-            label = { Text("Id \$library.id") },
+            label = { Text(stringResource(Res.string.komf_notification_context_library_id)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.libraryName,
             onValueChange = state::libraryName::set,
-            label = { Text("Name \$library.name") },
+            label = { Text(stringResource(Res.string.komf_notification_context_library_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         HorizontalDivider()
 
-        Text("Series", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_notification_context_series),
+            style = MaterialTheme.typography.titleLarge
+        )
         TextField(
             value = state.seriesId,
             onValueChange = state::seriesId::set,
-            label = { Text("Id \$series.id") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_id)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesName,
             onValueChange = state::seriesName::set,
-            label = { Text("Name \$series.name") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         NumberField(
             value = state.seriesBookCount,
             onValueChange = { state.seriesBookCount = it },
-            label = { Text("Book Count \$series.bookCount") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_book_count)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesStatus,
             onValueChange = state::seriesStatus::set,
-            label = { Text("Status \$series.metadata.status") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_status)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesTitle,
             onValueChange = state::seriesTitle::set,
-            label = { Text("Metadata Title \$series.metadata.title") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_metadata_title)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesTitleSort,
             onValueChange = state::seriesTitleSort::set,
-            label = { Text("Metadata Title Sort \$series.metadata.titleSort") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_metadata_title_sort)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesSummary,
             onValueChange = state::seriesSummary::set,
-            label = { Text("Summary \$series.metadata.summary") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_summary)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesReadingDirection,
             onValueChange = state::seriesReadingDirection::set,
-            label = { Text("Reading Direction \$series.metadata.readingDirection") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_reading_direction)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesPublisher,
             onValueChange = state::seriesPublisher::set,
-            label = { Text("Publisher \$series.metadata.publisher") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_publisher)) },
             modifier = Modifier.fillMaxWidth()
         )
         NumberField(
             value = state.seriesAgeRating,
             onValueChange = state::seriesAgeRating::set,
-            label = { Text("Age Rating \$series.metadata.ageRating") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_age_rating)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.seriesLanguage,
             onValueChange = state::seriesLanguage::set,
-            label = { Text("Language \$series.metadata.language") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_language)) },
             modifier = Modifier.fillMaxWidth()
         )
         NumberField(
             value = state.seriesTotalBookCount,
             onValueChange = state::seriesTotalBookCount::set,
-            label = { Text("Total Book Count \$series.metadata.totalBookCount") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_total_book_count)) },
             modifier = Modifier.fillMaxWidth()
         )
         NumberField(
             value = state.seriesReleaseYer,
             onValueChange = state::seriesReleaseYer::set,
-            label = { Text("Release Year \$series.metadata.releaseYear") },
+            label = { Text(stringResource(Res.string.komf_notification_context_series_release_year)) },
             modifier = Modifier.fillMaxWidth()
         )
-        StringValueList(state.seriesGenres, state::seriesGenres::set, "Genres \$series.metadata.genres[i]")
-        StringValueList(state.seriesTags, state::seriesTags::set, "Tags \$series.metadata.tags[i]")
+        StringValueList(
+            state.seriesGenres,
+            state::seriesGenres::set,
+            stringResource(Res.string.komf_notification_context_series_genres)
+        )
+        StringValueList(
+            state.seriesTags,
+            state::seriesTags::set,
+            stringResource(Res.string.komf_notification_context_series_tags)
+        )
         StringValueList(
             state.seriesAlternativePublishers,
             state::seriesAlternativePublishers::set,
-            "Alternative Publishers \$series.metadata.alternativePublishers[i]"
+            stringResource(Res.string.komf_notification_context_series_alternative_publishers)
         )
         Column(Modifier.padding(start = 10.dp)) {
             ValueList(
                 values = state.seriesAlternativeTitles,
-                valueName = "Alternative Title",
+                valueName = stringResource(Res.string.komf_notification_context_series_alternative_title),
                 onAdd = state::onSeriesAlternativeTitleAdd,
                 onDelete = state::onSeriesAlternativeTitleDelete,
                 content = { AlternativeTitlesEdit(it) }
@@ -183,7 +245,7 @@ fun NotificationContextDialogContent(
             HorizontalDivider()
             ValueList(
                 values = state.seriesAuthors,
-                valueName = "Author",
+                valueName = stringResource(Res.string.komf_notification_context_series_author),
                 onAdd = state::onSeriesAuthorAdd,
                 onDelete = state::onSeriesAuthorDelete,
                 content = { AuthorsEdit(it) }
@@ -191,7 +253,7 @@ fun NotificationContextDialogContent(
             HorizontalDivider()
             ValueList(
                 values = state.seriesLinks,
-                valueName = "Link",
+                valueName = stringResource(Res.string.komf_notification_context_series_link),
                 onAdd = state::onSeriesLinkAdd,
                 onDelete = state::onSeriesLinkDelete,
                 content = { WebLinksEdit(it) }
@@ -199,7 +261,10 @@ fun NotificationContextDialogContent(
         }
 
         HorizontalDivider()
-        Text("Books", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_notification_context_series_books),
+            style = MaterialTheme.typography.titleLarge
+        )
         state.books.forEachIndexed { index, book ->
             var showBook by remember { mutableStateOf(false) }
             Column(
@@ -212,7 +277,7 @@ fun NotificationContextDialogContent(
 
                 ) {
                     Icon(if (showBook) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
-                    Text("Book ${index + 1}")
+                    Text(stringResource(Res.string.komf_notification_context_series_book_number, index + 1))
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { state.onBookDelete(book) }) {
                         Icon(Icons.Default.Delete, null)
@@ -229,7 +294,7 @@ fun NotificationContextDialogContent(
 
         }
 
-        FilledTonalButton(onClick = state::onBookAdd) { Text("Add Book") }
+        FilledTonalButton(onClick = state::onBookAdd) { Text(stringResource(Res.string.komf_notification_context_book_add)) }
     }
 }
 
@@ -240,63 +305,67 @@ private fun BookContext(state: BookContextState) {
         TextField(
             value = state.id,
             onValueChange = state::id::set,
-            label = { Text("Id \$books[i].id") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_id)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.name,
             onValueChange = state::name::set,
-            label = { Text("Name \$books[i].name") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         NumberField(
             value = state.number,
             onValueChange = { state.number = it ?: 0 },
-            label = { Text("Number \$books[i].number") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_number)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.title,
             onValueChange = state::title::set,
-            label = { Text("Metadata Title \$books[i].metadata.title") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_metadata_title)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.summary,
             onValueChange = state::summary::set,
-            label = { Text("Summary \$books[i].metadata.summary") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_summary)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.metadataNumber,
             onValueChange = state::metadataNumber::set,
-            label = { Text("Metadata Number \$books[i].metadata.number") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_metadata_number)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.metadataNumberSort,
             onValueChange = state::metadataNumberSort::set,
-            label = { Text("Metadata Number Sort \$books[i].metadata.numberSort") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_metadata_number_sort)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.releaseDate,
             onValueChange = state::releaseDate::set,
-            label = { Text("Release Date \$books[i].metadata.releaseDate") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_release_date)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.isbn,
             onValueChange = state::isbn::set,
-            label = { Text("ISBN \$books[i].metadata.isbn") },
+            label = { Text(stringResource(Res.string.komf_notification_context_book_isbn)) },
             modifier = Modifier.fillMaxWidth()
         )
 
-        StringValueList(state.tags, state::tags::set, "Tags \$book[i].metadata.tags[i]")
+        StringValueList(
+            state.tags,
+            state::tags::set,
+            stringResource(Res.string.komf_notification_context_book_tags),
+        )
         Column(Modifier.padding(start = 10.dp)) {
             ValueList(
                 values = state.authors,
-                valueName = "Author",
+                valueName = stringResource(Res.string.komf_notification_context_book_author),
                 onAdd = state::onAuthorAdd,
                 onDelete = state::onAuthorDelete,
                 content = { AuthorsEdit(it) }
@@ -304,7 +373,7 @@ private fun BookContext(state: BookContextState) {
             HorizontalDivider()
             ValueList(
                 values = state.links,
-                valueName = "Link",
+                valueName = stringResource(Res.string.komf_notification_context_book_link),
                 onAdd = state::onLinkAdd,
                 onDelete = state::onLinkDelete,
                 content = { WebLinksEdit(it) }
@@ -354,7 +423,11 @@ private fun <T> ValueList(
 
                 ) {
                     Icon(if (showBook) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
-                    Text("$valueName ${index + 1}")
+                    Text(
+                        stringResource(
+                            Res.string.komf_notification_context_list_value_and_number, valueName, index + 1
+                        )
+                    )
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { onDelete(value) }) {
                         Icon(Icons.Default.Delete, null)
@@ -371,7 +444,7 @@ private fun <T> ValueList(
         FilledTonalButton(
             onClick = onAdd,
             modifier = Modifier.cursorForHand()
-        ) { Text("Add $valueName") }
+        ) { Text(stringResource(Res.string.komf_notification_context_list_value_add, valueName)) }
     }
 }
 
@@ -399,13 +472,13 @@ private fun AuthorsEdit(state: AuthorContext) {
         TextField(
             value = state.name,
             onValueChange = state::name::set,
-            label = { Text("Name \$series.metadata.authors[i].name") },
+            label = { Text(stringResource(Res.string.komf_notification_context_authors_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.role,
             onValueChange = state::role::set,
-            label = { Text("Role \$series.metadata.authors[i].role") },
+            label = { Text(stringResource(Res.string.komf_notification_context_authors_role)) },
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -417,13 +490,13 @@ private fun WebLinksEdit(state: WebLinkContext) {
         TextField(
             value = state.label,
             onValueChange = state::label::set,
-            label = { Text("Label \$series.metadata.links[i].label") },
+            label = { Text(stringResource(Res.string.komf_notification_context_weblink_label)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = state.url,
             onValueChange = state::url::set,
-            label = { Text("Url \$series.metadata.links[i].url") },
+            label = { Text(stringResource(Res.string.komf_notification_context_weblink_url)) },
             modifier = Modifier.fillMaxWidth()
         )
     }

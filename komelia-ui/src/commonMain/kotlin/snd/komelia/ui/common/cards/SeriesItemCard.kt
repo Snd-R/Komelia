@@ -36,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_unavailable
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalLibraries
 import snd.komelia.ui.common.components.NoPaddingChip
 import snd.komelia.ui.common.images.SeriesThumbnail
@@ -211,7 +214,10 @@ private fun SeriesImageOverlay(
 
                 CardOutlinedText(text = series.metadata.title, maxLines = 4)
                 if (series.deleted || libraryIsDeleted) {
-                    CardOutlinedText(text = "Unavailable", textColor = MaterialTheme.colorScheme.error)
+                    CardOutlinedText(
+                        stringResource(Res.string.series_unavailable),
+                        textColor = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }

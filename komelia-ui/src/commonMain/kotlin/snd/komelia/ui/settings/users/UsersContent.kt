@@ -38,9 +38,21 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_add
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_change_password
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_delete_button
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_delete_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_delete_confirm_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_latest_activity
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_latest_activity_none
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_users_roles
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.DefaultDateTimeFormats.localDateTimeFormat
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.user.PasswordChangeDialog
@@ -77,7 +89,7 @@ fun UsersContent(
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
 
         ) {
-            Text("Add User")
+            Text(stringResource(Res.string.settings_users_add))
         }
 
         if (showUserAddDialog) {
@@ -127,11 +139,13 @@ private fun UserCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun UserRoles(user: KomgaUser) {
     Column {
-        Text("Roles:", fontWeight = FontWeight.Bold)
+        Text(
+            stringResource(Res.string.settings_users_roles),
+            fontWeight = FontWeight.Bold
+        )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             user.roles.forEach { role ->
                 SuggestionChip(
@@ -168,11 +182,11 @@ private fun UserInfo(
             Text(user.email)
 
             val activityText = latestActivity?.let {
-                "Latest activity: ${
+                stringResource(
+                    Res.string.settings_users_latest_activity,
                     it.dateTime.toLocalDateTime(TimeZone.currentSystemDefault()).format(localDateTimeFormat)
-                }"
-            }
-                ?: "No recent activity"
+                )
+            } ?: stringResource(Res.string.settings_users_latest_activity_none)
             Text(
                 activityText,
                 style = MaterialTheme.typography.bodyMedium
@@ -207,7 +221,7 @@ private fun UserActions(
             ) {
                 Icon(Icons.Default.Edit, null)
                 Spacer(Modifier.width(10.dp))
-                Text("Edit User")
+                Text(stringResource(Res.string.settings_users_edit))
             }
 
         FilledTonalButton(
@@ -217,7 +231,7 @@ private fun UserActions(
         ) {
             Icon(Icons.Default.LockReset, null)
             Spacer(Modifier.width(10.dp))
-            Text("Change Password")
+            Text(stringResource(Res.string.settings_users_change_password))
         }
 
 
@@ -233,7 +247,7 @@ private fun UserActions(
             ) {
                 Icon(Icons.Default.Delete, null)
                 Spacer(Modifier.width(10.dp))
-                Text("Delete User")
+                Text(stringResource(Res.string.settings_users_delete))
             }
     }
 
@@ -249,10 +263,10 @@ private fun UserActions(
 
     if (showDeleteDialog) {
         ConfirmationDialog(
-            title = "Delete User",
-            body = "The user ${user.email} will be deleted from this server. This cannot be undone. Continue?",
-            confirmText = "Yes, delete \"${user.email}\"",
-            buttonConfirm = "DELETE",
+            title = stringResource(Res.string.settings_users_delete),
+            body = stringResource(Res.string.settings_users_delete_confirm, user.email),
+            confirmText = stringResource(Res.string.settings_users_delete_confirm_confirm, user.email),
+            buttonConfirm = stringResource(Res.string.settings_users_delete_button),
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer,
             onDialogConfirm = { onUserDelete(user.id) },
             onDialogDismiss = { showDeleteDialog = false }

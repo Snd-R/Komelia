@@ -17,12 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_image_card_size
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.settings.model.AppTheme
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.common.components.AppSliderDefaults
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.strings.AppStrings
+import snd.komelia.ui.strings.stringLabels
 import kotlin.math.roundToInt
 
 @Composable
@@ -35,19 +40,18 @@ fun AppearanceSettingsContent(
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        val strings = LocalStrings.current.settings
 
         DropdownChoiceMenu(
-            label = { Text(strings.appTheme) },
-            selectedOption = LabeledEntry(currentTheme, strings.forAppTheme(currentTheme)),
-            options = AppTheme.entries.map { LabeledEntry(it, strings.forAppTheme(it)) },
+            label = { Text(stringResource(Res.string.settings_app_theme)) },
+            selectedOption = LabeledEntry(currentTheme, stringResource(AppStrings.forAppTheme(currentTheme))),
+            options = stringLabels(AppTheme.entries) { AppStrings.forAppTheme(it) },
             onOptionChange = { onThemeChange(it.value) },
             inputFieldModifier = Modifier.widthIn(min = 250.dp)
         )
 
         HorizontalDivider()
 
-        Text(strings.imageCardSize, modifier = Modifier.padding(10.dp))
+        Text(stringResource(Res.string.settings_app_image_card_size), modifier = Modifier.padding(10.dp))
         Slider(
             value = cardWidth.value,
             onValueChange = { onCardWidthChange(it.roundToInt().dp) },
@@ -72,10 +76,6 @@ fun AppearanceSettingsContent(
             ) {
 
             }
-
-
         }
-
     }
-
 }

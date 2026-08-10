@@ -2,7 +2,6 @@ package snd.komelia.ui.settings.account
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -20,7 +19,13 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_account_change_password
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_account_email
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_account_roles
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.dialogs.user.PasswordChangeDialog
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.user.KomgaUser
 
 @Composable
@@ -37,23 +42,29 @@ fun AccountSettingsContent(user: KomgaUser) {
 @Composable
 private fun EmailDetails(user: KomgaUser) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Email:  ${user.email}", fontWeight = FontWeight.Bold)
+        Text(
+            stringResource(Res.string.settings_account_email, user.email),
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RolesDetails(user: KomgaUser) {
     Row(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("Roles:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+        Text(
+            stringResource(Res.string.settings_account_roles),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 10.dp)
+        )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             user.roles.forEach { role ->
                 SuggestionChip(
                     onClick = {},
-                    label = { Text(role) }
+                    label = { Text(AppStrings.forUserRole(role)) }
                 )
             }
         }
@@ -68,7 +79,7 @@ private fun PasswordDetails(user: KomgaUser) {
         onClick = { showPasswordDialog = true },
         modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
     ) {
-        Text("Change Password")
+        Text(stringResource(Res.string.settings_account_change_password))
     }
     if (showPasswordDialog) {
         PasswordChangeDialog(user = user, onDismiss = { showPasswordDialog = false })

@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.image.BookImageLoader
 import snd.komelia.image.ReaderImage
@@ -59,7 +58,6 @@ import snd.komelia.settings.model.ContinuousReadingDirection.TOP_TO_BOTTOM
 import snd.komelia.ui.reader.image.PageMetadata
 import snd.komelia.ui.reader.image.ReaderState
 import snd.komelia.ui.reader.image.ScreenScaleState
-import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.common.KomgaReadingDirection
 import kotlin.math.roundToInt
@@ -72,7 +70,6 @@ class ContinuousReaderState(
     private val imageLoader: BookImageLoader,
     private val settingsRepository: ImageReaderSettingsRepository,
     private val notifications: AppNotifications,
-    private val appStrings: Flow<AppStrings>,
     private val readerImageFactory: ReaderImageFactory,
     private val pageChangeFlow: MutableSharedFlow<Unit>,
     val screenScaleState: ScreenScaleState,
@@ -234,9 +231,6 @@ class ContinuousReaderState(
             }.launchIn(stateScope)
 
         imageDisplayFlow.drop(1).onEach { pageChangeFlow.emit(Unit) }.launchIn(stateScope)
-
-        val strings = appStrings.first().continuousReader
-        notifications.add(AppNotification.Normal("Continuous ${strings.forReadingDirection(readingDirection.value)}"))
     }
 
     fun stop() {

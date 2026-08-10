@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -48,14 +47,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_authors
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_sort
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_tags
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filters
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_selection_mode
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_books_count
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_no_books
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.settings.model.BooksLayout
 import snd.komelia.settings.model.BooksLayout.GRID
 import snd.komelia.settings.model.BooksLayout.LIST
 import snd.komelia.ui.LoadState
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.book.BooksFilterState
 import snd.komelia.ui.book.BooksFilterState.BooksSort
@@ -80,6 +89,7 @@ import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.series.SeriesBooksState.BooksData
 import snd.komelia.ui.series.SeriesFilterState.TagExclusionMode
 import snd.komelia.ui.series.SeriesFilterState.TagInclusionMode
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.series.KomgaSeries
@@ -181,7 +191,7 @@ private fun LazyGridScope.BooksContent(
 ) {
     if (books.isEmpty()) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Text("No books", modifier = Modifier.fillMaxWidth())
+            Text(stringResource(Res.string.series_no_books), modifier = Modifier.fillMaxWidth())
         }
     } else
         when (layout) {
@@ -231,20 +241,22 @@ private fun BooksToolBar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 5.dp)
         ) {
-            val booksLabel = remember(series) {
-                if (series == null) null
-                else buildString {
-                    append(series.booksCount)
-                    if (series.metadata.totalBookCount != null) append(" / ${series.metadata.totalBookCount}")
-                    if (series.booksCount > 1) append(" books")
-                    else append(" book")
-                }
-            }
 
-            booksLabel?.let {
+            series?.let {
+                val label = remember(series) {
+                    buildString {
+                        append(series.booksCount)
+                        if (series.metadata.totalBookCount != null) append(" / ${series.metadata.totalBookCount}")
+                    }
+                }
                 SuggestionChip(
                     onClick = {},
-                    label = { Text(booksLabel, style = MaterialTheme.typography.bodyMedium) },
+                    label = {
+                        Text(
+                            text = pluralStringResource(Res.plurals.series_books_count, series.booksCount, label),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
                     modifier = Modifier.padding(10.dp, 0.dp)
                 )
             }
@@ -348,7 +360,7 @@ fun BooksBulkActionsToolbar(
         when (LocalWindowWidth.current) {
             FULL, EXPANDED -> {
                 if (selectedBooks.isEmpty()) {
-                    Text("Click on items to select or deselect them")
+                    Text(stringResource(Res.string.series_book_selection_mode))
                 } else {
                     Spacer(Modifier.weight(1f))
                     BooksBulkActionsContent(
@@ -364,7 +376,6 @@ fun BooksBulkActionsToolbar(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ExpandableBookFiltersRow(filterState: BooksFilterState) {
     var showFilters by remember { mutableStateOf(false) }
@@ -474,7 +485,7 @@ fun BookFilterDialog(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Book Filters", modifier = Modifier.padding(start = 10.dp))
+                Text(stringResource(Res.string.series_book_filters), modifier = Modifier.padding(start = 10.dp))
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, null) }
             }
@@ -491,12 +502,11 @@ private fun SortOrder(
     modifier: Modifier,
     withLabel: Boolean,
 ) {
-    val strings = LocalStrings.current.booksFilter
     FilterDropdownChoice(
-        selectedOption = LabeledEntry(sortOrder, strings.forBookSort(sortOrder)),
-        options = BooksSort.entries.map { LabeledEntry(it, strings.forBookSort(it)) },
+        selectedOption = LabeledEntry(sortOrder, stringResource(AppStrings.forBookSort(sortOrder))),
+        options = BooksSort.entries.map { LabeledEntry(it, stringResource(AppStrings.forBookSort(it))) },
         onOptionChange = { filterState.onSortOrderChange(it.value) },
-        label = if (withLabel) strings.sort else null,
+        label = if (withLabel) stringResource(Res.string.series_book_filter_sort) else null,
         modifier = modifier
     )
 }
@@ -508,13 +518,12 @@ private fun ReadStatusFilter(
     modifier: Modifier,
     withLabel: Boolean,
 ) {
-    val strings = LocalStrings.current.booksFilter
     FilterDropdownMultiChoice(
-        selectedOptions = readStatus.map { LabeledEntry(it, strings.forReadStatus(it)) },
-        options = KomgaReadStatus.entries.map { LabeledEntry(it, strings.forReadStatus(it)) },
+        selectedOptions = readStatus.map { LabeledEntry(it, stringResource(AppStrings.forReadStatus(it))) },
+        options = KomgaReadStatus.entries.map { LabeledEntry(it, stringResource(AppStrings.forReadStatus(it))) },
         onOptionSelect = { changed -> filterState.onReadStatusSelect(changed.value) },
-        label = if (withLabel) strings.readStatus else null,
-        placeholder = if (withLabel) null else strings.readStatus,
+        label = if (withLabel) stringResource(Res.string.series_book_filter_read_status) else null,
+        placeholder = if (withLabel) null else stringResource(Res.string.series_book_filter_read_status),
         modifier = modifier
     )
 }
@@ -526,13 +535,12 @@ private fun AuthorsFilter(
     modifier: Modifier,
     withLabel: Boolean,
 ) {
-    val strings = LocalStrings.current.booksFilter
     FilterDropdownMultiChoice(
         selectedOptions = authors.map { LabeledEntry(it, it.name) },
         options = filterState.authorsOptions.map { LabeledEntry(it, it.name) },
         onOptionSelect = { changed -> filterState.onAuthorSelect(changed.value) },
-        label = if (withLabel) strings.authors else null,
-        placeholder = if (withLabel) null else strings.authors,
+        label = if (withLabel) stringResource(Res.string.series_book_filter_authors) else null,
+        placeholder = if (withLabel) null else stringResource(Res.string.series_book_filter_authors),
         modifier = modifier
     )
 }
@@ -547,7 +555,6 @@ private fun TagsFilter(
     modifier: Modifier,
     withLabel: Boolean,
 ) {
-    val strings = LocalStrings.current.booksFilter
     TagFiltersDropdownMenu(
         allTags = filterState.tagOptions,
         includeTags = includeTags,
@@ -560,8 +567,8 @@ private fun TagsFilter(
         exclusionMode = exclusionMode,
         onExclusionModeChange = filterState::onExclusionModeChange,
 
-        label = if (withLabel) strings.tags else null,
-        placeholder = if (withLabel) null else strings.tags,
+        label = if (withLabel) stringResource(Res.string.series_book_filter_tags) else null,
+        placeholder = if (withLabel) null else stringResource(Res.string.series_book_filter_tags),
         contentPadding = PaddingValues(5.dp),
         modifier = modifier.clip(RoundedCornerShape(5.dp)),
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant,

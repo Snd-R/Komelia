@@ -17,14 +17,12 @@ import snd.komelia.image.processing.ColorCorrectionStep
 import snd.komelia.komga.api.KomgaApi
 import snd.komelia.offline.OfflineDependencies
 import snd.komelia.onnxruntime.OnnxRuntime
-import snd.komelia.ui.strings.AppStrings
 import snd.komelia.updates.AppUpdater
 import snd.komelia.updates.OnnxModelDownloader
 import snd.komelia.updates.OnnxRuntimeInstaller
 import snd.komf.client.KomfClientFactory
 
 data class DependencyContainer(
-    val appStrings: StateFlow<AppStrings>,
     val appRepositories: AppRepositories,
     val komgaApi: StateFlow<KomgaApi>,
 

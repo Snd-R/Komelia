@@ -6,9 +6,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.screen_error
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server
 import kotlinx.coroutines.Dispatchers
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
-import snd.komelia.ui.LocalStrings
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.OptionsStateHolder
 import snd.komelia.ui.StateHolder
@@ -25,10 +28,9 @@ class ServerSettingsScreen : Screen {
         LaunchedEffect(Unit) { vm.initialize() }
         val state = vm.state.collectAsState().value
 
-        val strings = LocalStrings.current.settings
-        SettingsScreenContainer(strings.serverSettings) {
+        SettingsScreenContainer(stringResource(Res.string.settings_server)) {
             when (state) {
-                is LoadState.Error -> Text("Error ${state.exception.message}")
+                is LoadState.Error -> Text(stringResource(Res.string.screen_error, state.exception.message ?: ""))
                 LoadState.Loading, LoadState.Uninitialized -> LoadingMaxSizeIndicator()
                 is LoadState.Success -> {
                     val thumbnailSize = vm.thumbnailSize.collectAsState()

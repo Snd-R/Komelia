@@ -26,6 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_series_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.common.images.CollectionThumbnail
 import snd.komelia.ui.common.menus.CollectionActionsMenu
@@ -119,7 +123,13 @@ private fun CollectionImageOverlay(
         CardGradientOverlay()
         Column(Modifier.padding(10.dp)) {
             CardOutlinedText(collection.name)
-            CardOutlinedText("${collection.seriesIds.size} series")
+            CardOutlinedText(
+                pluralStringResource(
+                    Res.plurals.collection_series_count,
+                    collection.seriesIds.size,
+                    collection.seriesIds.size
+                )
+            )
         }
     }
 

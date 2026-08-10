@@ -20,7 +20,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_add_add
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_add_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_add_dialog_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_add_email
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_add_password
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_add_roles
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_admin
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_file_download
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_page_streaming
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.CheckboxWithLabel
@@ -87,7 +98,7 @@ fun UserAddDialog(
         modifier = Modifier.widthIn(max = 600.dp),
         header = {
             Text(
-                text = "Add User",
+                text = stringResource(Res.string.user_add_dialog_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp)
             )
@@ -102,7 +113,7 @@ fun UserAddDialog(
                 TextField(
                     value = email,
                     onValueChange = onEmailChange,
-                    label = { Text("Email") },
+                    label = { Text(stringResource(Res.string.user_add_email)) },
                     supportingText = {
                         if (emailValidation != null)
                             Text(text = emailValidation, color = MaterialTheme.colorScheme.error)
@@ -113,31 +124,31 @@ fun UserAddDialog(
                 PasswordTextField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    label = { Text("Password") },
+                    label = { Text(stringResource(Res.string.user_add_password)) },
                     isError = passwordValidation != null,
                     supportingText = { passwordValidation?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Column {
-                    Text("Roles")
+                    Text(stringResource(Res.string.user_add_roles))
 
                     CheckboxWithLabel(
                         checked = administratorRole,
                         onCheckedChange = onAdministratorRoleChange,
-                        label = { Text("Administrator") }
+                        label = { Text(stringResource(Res.string.user_roles_admin)) }
                     )
 
                     CheckboxWithLabel(
                         checked = pageStreamingRole,
                         onCheckedChange = onPageStreamingRoleChange,
-                        label = { Text("Page Streaming") }
+                        label = { Text(stringResource(Res.string.user_roles_page_streaming)) }
                     )
 
                     CheckboxWithLabel(
                         checked = fileDownloadRole,
                         onCheckedChange = onFileDownloadRoleChange,
-                        label = { Text("File Download") }
+                        label = { Text(stringResource(Res.string.user_roles_file_download)) }
                     )
                 }
             }
@@ -153,7 +164,7 @@ fun UserAddDialog(
                     onClick = onDismissRequest,
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.user_add_cancel))
                 }
 
                 FilledTonalButton(
@@ -166,7 +177,7 @@ fun UserAddDialog(
                     enabled = isValid,
                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                 ) {
-                    Text("Add")
+                    Text(stringResource(Res.string.user_add_add))
                 }
             }
         }

@@ -1,6 +1,5 @@
 package snd.komelia.ui.color.view
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -18,7 +17,6 @@ import snd.komelia.color.ColorChannel.RED
 import snd.komelia.color.ColorChannel.VALUE
 import snd.komelia.color.HistogramPaths
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Tooltip(text: String, content: @Composable () -> Unit) {
     TooltipBox(

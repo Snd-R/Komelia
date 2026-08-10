@@ -18,6 +18,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_general
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_browse
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_root_folder
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.dialogs.filebrowser.FileBrowserDialogContent
 import snd.komelia.ui.dialogs.tabs.DialogTab
@@ -27,7 +33,7 @@ class GeneralTab(
     private val vm: LibraryEditDialogViewModel,
 ) : DialogTab {
     override fun options() = TabItem(
-        title = "GENERAL",
+        title = Res.string.edit_tab_general,
         icon = Icons.Default.Category
     )
 
@@ -54,7 +60,7 @@ private fun GeneralTabContent(
         TextField(
             value = name.value,
             onValueChange = name.setValue,
-            label = { Text("Name") },
+            label = { Text(stringResource(Res.string.library_edit_name)) },
             isError = name.errorMessage != null,
             supportingText = { name.errorMessage?.let { Text(it) } },
             modifier = Modifier.fillMaxWidth()
@@ -64,7 +70,7 @@ private fun GeneralTabContent(
             TextField(
                 value = rootFolder.value,
                 onValueChange = rootFolder.setValue,
-                label = { Text("Root folder") },
+                label = { Text(stringResource(Res.string.library_edit_root_folder)) },
                 isError = rootFolder.errorMessage != null,
                 supportingText = { rootFolder.errorMessage?.let { Text(it) } },
                 modifier = Modifier.weight(7f)
@@ -74,7 +80,7 @@ private fun GeneralTabContent(
                 onClick = { showFileBrowserDialog = true },
                 modifier = Modifier.padding(horizontal = 10.dp),
             ) {
-                Text("Browse")
+                Text(stringResource(Res.string.library_edit_browse))
             }
         }
     }

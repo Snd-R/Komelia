@@ -27,6 +27,12 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_all_libraries
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_tab_collections
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_tab_readlists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_tab_series
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -270,7 +276,7 @@ fun LibraryToolBar(
                     )
                 }
             }
-            Text(library?.let { library.name } ?: "All Libraries")
+            Text(library?.let { library.name } ?: stringResource(Res.string.library_all_libraries))
 
             Spacer(Modifier.width(5.dp))
         }
@@ -281,7 +287,7 @@ fun LibraryToolBar(
                 FilterChip(
                     onClick = onBrowseClick,
                     selected = currentTab == SERIES,
-                    label = { Text("Series") },
+                    label = { Text(stringResource(Res.string.library_tab_series)) },
                     colors = chipColors,
                     border = null,
                 )
@@ -292,7 +298,7 @@ fun LibraryToolBar(
                 FilterChip(
                     onClick = onCollectionsClick,
                     selected = currentTab == COLLECTIONS,
-                    label = { Text("Collections") },
+                    label = { Text(stringResource(Res.string.library_tab_collections)) },
                     colors = chipColors,
                     border = null,
                 )
@@ -303,7 +309,7 @@ fun LibraryToolBar(
                 FilterChip(
                     onClick = onReadListsClick,
                     selected = currentTab == READ_LISTS,
-                    label = { Text("Read Lists") },
+                    label = { Text(stringResource(Res.string.library_tab_readlists)) },
                     colors = chipColors,
                     border = null,
                 )

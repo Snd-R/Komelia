@@ -17,7 +17,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.image.BookImageLoader
 import snd.komelia.image.ReaderImage.PageId
@@ -50,7 +48,6 @@ import snd.komelia.ui.reader.image.ScreenScaleState
 import snd.komelia.ui.reader.image.SpreadIndex
 import snd.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookEnd
 import snd.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookStart
-import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.common.KomgaReadingDirection
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -61,7 +58,6 @@ class PagedReaderState(
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
     private val imageLoader: BookImageLoader,
-    private val appStrings: Flow<AppStrings>,
     private val pageChangeFlow: MutableSharedFlow<Unit>,
     val screenScaleState: ScreenScaleState,
 ) {
@@ -129,9 +125,6 @@ class PagedReaderState(
             .filterNotNull()
             .onEach { newBook -> onNewBookLoaded(newBook) }
             .launchIn(stateScope)
-
-        val strings = appStrings.first().pagedReader
-        appNotifications.add(AppNotification.Normal("Paged ${strings.forReadingDirection(readingDirection.value)}"))
     }
 
     fun stop() {

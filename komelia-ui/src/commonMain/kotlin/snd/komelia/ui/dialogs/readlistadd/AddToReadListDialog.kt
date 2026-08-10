@@ -29,7 +29,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_add_to_readlist
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_book_count
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_book_duplicate
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_create
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_exists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_search_or_create
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.AppDialog
@@ -66,7 +75,10 @@ private fun Header(onDismissRequest: () -> Unit) {
             modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Add to read list", style = MaterialTheme.typography.titleLarge)
+            Text(
+                stringResource(Res.string.book_add_to_readlist),
+                style = MaterialTheme.typography.titleLarge
+            )
             Spacer(Modifier.weight(1f))
             IconButton(onClick = onDismissRequest) { Icon(Icons.Default.Close, null) }
         }
@@ -93,11 +105,11 @@ private fun DialogContent(
             TextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("Search or create read list") },
+                label = { Text(stringResource(Res.string.readlist_search_or_create)) },
                 supportingText = {
                     if (readListExistsForQuery.value)
                         Text(
-                            "A read list with this name already exists",
+                            stringResource(Res.string.readlist_exists),
                             color = MaterialTheme.colorScheme.error
                         )
                 },
@@ -106,7 +118,7 @@ private fun DialogContent(
             FilledTonalButton(
                 onClick = { coroutineScope.launch { onCreateNewReadList(query) } },
                 enabled = query.isNotBlank() && !readListExistsForQuery.value,
-                content = { Text("Create") },
+                content = { Text(stringResource(Res.string.readlist_create)) },
             )
         }
 
@@ -147,9 +159,12 @@ private fun ReadListEntry(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("${readList.bookIds.size} books", style = MaterialTheme.typography.labelLarge)
+            Text(
+                pluralStringResource(Res.plurals.readlist_book_count, readList.bookIds.size, readList.bookIds.size),
+                style = MaterialTheme.typography.labelLarge
+            )
             if (alreadyContainsSeries) Text(
-                "already contains this book",
+                stringResource(Res.string.readlist_book_duplicate),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )

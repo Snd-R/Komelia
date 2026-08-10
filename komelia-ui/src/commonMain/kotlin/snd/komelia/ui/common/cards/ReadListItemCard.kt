@@ -26,6 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_book_count
+import org.jetbrains.compose.resources.pluralStringResource
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.common.images.ReadListThumbnail
 import snd.komelia.ui.common.menus.ReadListActionsMenu
@@ -118,7 +121,10 @@ private fun ReadListImageOverlay(
         Column(Modifier.padding(10.dp)) {
             CardOutlinedText(readlist.name)
             CardOutlinedText(
-                if (readlist.bookIds.size == 1) "1 book" else "${readlist.bookIds.size} books",
+                pluralStringResource(
+                    Res.plurals.readlist_book_count,
+                    readlist.bookIds.size, readlist.bookIds.size
+                )
             )
         }
     }

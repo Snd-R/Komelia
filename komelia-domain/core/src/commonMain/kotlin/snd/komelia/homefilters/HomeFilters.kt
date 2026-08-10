@@ -9,54 +9,6 @@ import snd.komga.client.search.KomgaSearchCondition
 import snd.komga.client.search.allOfBooks
 import kotlin.time.Duration.Companion.days
 
-val homeScreenDefaultFilters = listOf(
-    BooksHomeScreenFilter.CustomFilter(
-        order = 1,
-        label = "Keep reading",
-        filter = allOfBooks { readStatus { isEqualTo(KomgaReadStatus.IN_PROGRESS) } }.toBookCondition(),
-        pageRequest = KomgaPageRequest(sort = KomgaSort.KomgaBooksSort.byReadDateDesc())
-    ),
-    BooksHomeScreenFilter.OnDeck(
-        order = 2,
-        label = "On deck",
-        pageSize = 20,
-    ),
-    BooksHomeScreenFilter.CustomFilter(
-        order = 3,
-        label = "Recently released books",
-        filter = allOfBooks { releaseDate { isInLast(30.days) } }.toBookCondition(),
-        pageRequest = KomgaPageRequest(
-            sort = KomgaSort.KomgaBooksSort.byReleaseDateDesc(),
-        )
-    ),
-    BooksHomeScreenFilter.CustomFilter(
-        order = 4,
-        label = "Recently added books",
-        filter = allOfBooks {}.toBookCondition(),
-        pageRequest = KomgaPageRequest(
-            sort = KomgaSort.KomgaBooksSort.byCreatedDateDesc(),
-            size = 20
-        )
-    ),
-    SeriesHomeScreenFilter.RecentlyAdded(
-        order = 5,
-        label = "Recently added series",
-        pageSize = 20,
-    ),
-    SeriesHomeScreenFilter.RecentlyUpdated(
-        order = 6,
-        label = "Recently updated series",
-        pageSize = 20,
-    ),
-    BooksHomeScreenFilter.CustomFilter(
-        order = 7,
-        label = "Recently read books",
-        filter = allOfBooks {
-            readStatus { isEqualTo(KomgaReadStatus.READ) }
-        }.toBookCondition(),
-        pageRequest = KomgaPageRequest(sort = KomgaSort.KomgaBooksSort.byReadDateDesc())
-    ),
-).sortedBy { it.order }
 
 @Serializable
 sealed interface HomeScreenFilter {

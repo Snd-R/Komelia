@@ -26,6 +26,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_mobile_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.platform.BackPressHandler
 import snd.komelia.ui.platform.PlatformTitleBar
@@ -54,7 +57,10 @@ class MobileSettingsScreen : Screen {
                     IconButton(onClick = { currentNavigator.pop() }) {
                         Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                     }
-                    Text("Settings", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        stringResource(Res.string.settings_mobile_title),
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
 
                 HorizontalDivider()

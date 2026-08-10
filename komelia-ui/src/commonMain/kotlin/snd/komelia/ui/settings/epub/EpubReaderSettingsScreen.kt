@@ -5,6 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_epub_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.ErrorContent
@@ -20,7 +23,7 @@ class EpubReaderSettingsScreen : Screen {
         LaunchedEffect(Unit) {
             vm.initialize()
         }
-        SettingsScreenContainer(title = "Epub Reader Settings") {
+        SettingsScreenContainer(title = stringResource(Res.string.settings_epub_title)) {
             when (val result = vm.state.collectAsState().value) {
                 is LoadState.Error -> ErrorContent(result.exception)
                 LoadState.Uninitialized, LoadState.Loading -> LoadingMaxSizeIndicator()

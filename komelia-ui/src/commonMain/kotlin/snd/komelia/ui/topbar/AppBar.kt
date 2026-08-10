@@ -36,8 +36,12 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.topbar_go_online
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.topbar_offline
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.LocalKeyEvents
 import snd.komelia.ui.LocalWindowState
@@ -130,11 +134,11 @@ fun AppBar(
                 modifier = Modifier.align(Alignment.End).padding(end = 10.dp),
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.errorContainer)
             ) {
-                Text("Offline")
+                Text(stringResource(Res.string.topbar_offline))
             }
             if (showConfirmationDialog) {
                 ConfirmationDialog(
-                    body = "Go Online?",
+                    body = stringResource(Res.string.topbar_go_online),
                     onDialogConfirm = onOfflineModeChange,
                     onDialogDismiss = { showConfirmationDialog = false }
                 )

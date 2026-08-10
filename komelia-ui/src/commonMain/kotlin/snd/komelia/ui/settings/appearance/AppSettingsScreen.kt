@@ -6,6 +6,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_appearance_title
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
@@ -20,7 +23,7 @@ class AppSettingsScreen : Screen {
         LaunchedEffect(Unit) { vm.initialize() }
         val state = vm.state.collectAsState()
 
-        SettingsScreenContainer("Appearance") {
+        SettingsScreenContainer(stringResource(Res.string.settings_appearance_title)) {
             when (val result = state.value) {
                 is LoadState.Error -> Text("${result::class.simpleName}: ${result.exception.message}")
                 LoadState.Uninitialized, LoadState.Loading -> LoadingMaxSizeIndicator()

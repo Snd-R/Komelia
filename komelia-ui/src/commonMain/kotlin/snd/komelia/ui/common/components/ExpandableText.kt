@@ -23,6 +23,10 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.text_collapse
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.text_expand
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ExpandableText(
@@ -60,7 +64,7 @@ fun ExpandableText(
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text(
-                    text = (if (isExpanded) "Collapse" else "Expand").uppercase()
+                    text = (if (isExpanded) stringResource(Res.string.text_collapse) else stringResource(Res.string.text_expand)).uppercase()
                 )
             }
         }

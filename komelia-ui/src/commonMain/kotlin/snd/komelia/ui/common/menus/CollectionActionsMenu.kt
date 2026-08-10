@@ -15,6 +15,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_delete
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_delete_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_delete_confirm_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_delete_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.collectionedit.CollectionEditDialog
 import snd.komga.client.collection.KomgaCollection
@@ -29,9 +36,9 @@ fun CollectionActionsMenu(
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog) {
         ConfirmationDialog(
-            title = "Delete Collection",
-            body = "Collection ${collection.name} will be removed from this server. Your media files will not be affected. This cannot be undone. Continue?",
-            confirmText = "Yes, delete collection \"${collection.name}\"",
+            title = stringResource(Res.string.collection_delete_confirm_title),
+            body = stringResource(Res.string.collection_delete_confirm_body, collection.name),
+            confirmText = stringResource(Res.string.collection_delete_confirm_confirm, collection.name),
             onDialogConfirm = {
                 onCollectionDelete()
                 onDismissRequest()
@@ -61,12 +68,12 @@ fun CollectionActionsMenu(
         val deleteInteractionSource = remember { MutableInteractionSource() }
         val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
         DropdownMenuItem(
-            text = { Text("Edit") },
+            text = { Text(stringResource(Res.string.collection_edit)) },
             onClick = { showEditDialog = true },
         )
 
         DropdownMenuItem(
-            text = { Text("Delete") },
+            text = { Text(stringResource(Res.string.collection_delete)) },
             onClick = { showDeleteDialog = true },
             modifier = Modifier
                 .hoverable(deleteInteractionSource)

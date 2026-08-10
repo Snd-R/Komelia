@@ -58,7 +58,6 @@ import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.fonts.fontsDirectory
-import snd.komelia.homefilters.homeScreenDefaultFilters
 import snd.komelia.http.komeliaUserAgent
 import snd.komelia.image.AndroidPanelDetector
 import snd.komelia.image.AndroidReaderImageFactory
@@ -80,6 +79,7 @@ import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komelia.settings.AndroidSecretsRepository
 import snd.komelia.settings.ImageReaderSettingsRepository
+import snd.komelia.ui.home.edit.getDefaultFilters
 import snd.komelia.updates.AndroidAppUpdater
 import snd.komelia.updates.AndroidOnnxModelDownloader
 import snd.komelia.updates.AppUpdater
@@ -180,7 +180,7 @@ class AndroidAppModule(
             homeScreenFilterRepository = ExposedHomeScreenFilterRepository(databases.app).let { repository ->
                 HomeScreenFilterRepositoryWrapper(
                     SettingsStateWrapper(
-                        settings = repository.getFilters() ?: homeScreenDefaultFilters,
+                        settings = repository.getFilters() ?: getDefaultFilters(),
                         saveSettings = repository::putFilters
                     )
                 )
@@ -249,7 +249,6 @@ class AndroidAppModule(
     }
 
     override fun createAppUpdater(updateClient: UpdateClient): AppUpdater? {
-        @Suppress("KotlinConstantConditions")
         return if (BuildConfig.ENABLE_SELF_UPDATES) AndroidAppUpdater(updateClient, context) else null
     }
 

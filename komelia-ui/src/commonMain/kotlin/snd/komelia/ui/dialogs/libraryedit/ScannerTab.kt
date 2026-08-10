@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -24,7 +23,19 @@ import androidx.compose.ui.unit.dp
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
-import snd.komelia.ui.LocalStrings
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_empty_trash_after_scan
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_exclude_directories
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_oneshots_directory
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_cbx
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_epub
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_file_types
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_force_modified_time
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_interval
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_on_startup
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_scan_pdf
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_tab_scanner
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.OptionsStateHolder
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.CheckboxWithLabel
@@ -32,6 +43,7 @@ import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.library.ScanInterval
 
 internal class ScannerTab(
@@ -39,7 +51,7 @@ internal class ScannerTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "SCANNER",
+        title = Res.string.library_edit_tab_scanner,
         icon = Icons.AutoMirrored.Filled.ManageSearch
     )
 
@@ -72,39 +84,47 @@ private fun ScannerTabContent(
     scanPdf: StateHolder<Boolean>,
     excludeDirectories: StateHolder<List<String>>,
 ) {
-    val strings = LocalStrings.current.libraryEdit
 
     Column {
         CheckboxWithLabel(
             checked = emptyTrashAfterScan.value,
             onCheckedChange = emptyTrashAfterScan.setValue,
-            label = { Text(strings.emptyTrashAfterScan) }
+            label = { Text(stringResource(Res.string.library_edit_empty_trash_after_scan)) }
         )
         CheckboxWithLabel(
             checked = scanForceModifiedTime.value,
             onCheckedChange = scanForceModifiedTime.setValue,
-            label = { Text(strings.scanForceModifiedTime) }
+            label = { Text(stringResource(Res.string.library_edit_scan_force_modified_time)) }
         )
 
         CheckboxWithLabel(
             checked = scanOnStartup.value,
             onCheckedChange = scanOnStartup.setValue,
-            label = { Text(strings.scanOnStartup) }
+            label = { Text(stringResource(Res.string.library_edit_scan_on_startup)) }
         )
 
         DropdownChoiceMenu(
-            selectedOption = LabeledEntry(scanInterval.value, strings.forScanInterval(scanInterval.value)),
-            options = ScanInterval.entries.map { LabeledEntry(it, strings.forScanInterval(it)) },
+            selectedOption = LabeledEntry(
+                scanInterval.value,
+                stringResource(AppStrings.forScanInterval(scanInterval.value))
+
+            ),
+            options = ScanInterval.entries.map {
+                LabeledEntry(
+                    it,
+                    stringResource(AppStrings.forScanInterval(it))
+                )
+            },
             onOptionChange = { scanInterval.onValueChange(it.value) },
             inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(strings.scanInterval) }
+            label = { Text(stringResource(Res.string.library_edit_scan_interval)) }
         )
 
         Spacer(Modifier.size(20.dp))
         TextField(
             value = oneshotsDirectory.value,
             onValueChange = oneshotsDirectory.setValue,
-            label = { Text(strings.oneshotsDirectory) },
+            label = { Text(stringResource(Res.string.library_edit_oneshots_directory)) },
             modifier = Modifier.fillMaxWidth()
         )
         ScanFileTypes(scanCbx, scanEpub, scanPdf)
@@ -117,7 +137,7 @@ private fun ScannerTabContent(
 
         ChipTextField(
             state = state,
-            label = { Text(strings.excludeDirectories) },
+            label = { Text(stringResource(Res.string.library_edit_exclude_directories)) },
             onSubmit = { text -> Chip(text) },
             readOnlyChips = true
         )
@@ -132,20 +152,20 @@ private fun ScanFileTypes(
     scanPdf: StateHolder<Boolean>,
 ) {
     Column(Modifier.padding(vertical = 15.dp)) {
-        Text("Scan for these file types")
+        Text(stringResource(Res.string.library_edit_scan_file_types))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             ScanFiletypeChip(
-                label = { Text("Comic Book archives") },
+                label = { Text(stringResource(Res.string.library_edit_scan_cbx)) },
                 selected = scanCbx.value,
                 onValueChange = scanCbx.setValue
             )
             ScanFiletypeChip(
-                label = { Text("PDF") },
+                label = { Text(stringResource(Res.string.library_edit_scan_pdf)) },
                 selected = scanPdf.value,
                 onValueChange = scanPdf.setValue
             )
             ScanFiletypeChip(
-                label = { Text("Epub") },
+                label = { Text(stringResource(Res.string.library_edit_scan_epub)) },
                 selected = scanEpub.value,
                 onValueChange = scanEpub.setValue
             )
@@ -154,7 +174,6 @@ private fun ScanFileTypes(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScanFiletypeChip(
     label: @Composable () -> Unit,

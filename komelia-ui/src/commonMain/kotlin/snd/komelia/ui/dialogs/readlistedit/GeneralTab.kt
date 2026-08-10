@@ -12,6 +12,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_general
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit_order
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit_order_manual
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_edit_summary
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.CheckboxWithLabel
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
@@ -21,7 +28,7 @@ internal class GeneralTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "GENERAL",
+        title = Res.string.edit_tab_general,
         icon = Icons.Default.FormatAlignCenter
     )
 
@@ -33,7 +40,7 @@ internal class GeneralTab(
             TextField(
                 value = vm.name,
                 onValueChange = vm::name::set,
-                label = { Text("Name") },
+                label = { Text(stringResource(Res.string.readlist_edit_name)) },
                 supportingText = {
                     vm.nameValidationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 },
@@ -45,7 +52,7 @@ internal class GeneralTab(
             TextField(
                 value = vm.summary,
                 onValueChange = vm::summary::set,
-                label = { Text("Summary") },
+                label = { Text(stringResource(Res.string.readlist_edit_summary)) },
                 minLines = 6,
                 maxLines = 12,
                 modifier = Modifier.fillMaxWidth()
@@ -54,13 +61,13 @@ internal class GeneralTab(
             HorizontalDivider()
             Column {
                 Text(
-                    "By default, books in a read list are ordered manually. You can disable manual ordering to sort books by release date.",
+                    stringResource(Res.string.readlist_edit_order),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 CheckboxWithLabel(
                     checked = vm.manualOrdering,
                     onCheckedChange = vm::manualOrdering::set,
-                    label = { Text("Manual ordering") }
+                    label = { Text(stringResource(Res.string.readlist_edit_order_manual)) }
                 )
 
             }

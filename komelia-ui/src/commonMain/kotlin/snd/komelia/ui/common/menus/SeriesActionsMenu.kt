@@ -16,8 +16,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_add_to_collection
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_analyze
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_delete_confirm_body
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_delete_confirm_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_download_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_refresh_metadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaSeriesApi
@@ -45,29 +53,11 @@ fun SeriesActionsMenu(
     val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
     val isOffline = LocalOfflineMode.current.collectAsState().value
 
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    if (showDeleteDialog) {
-        ConfirmationDialog(
-            title = "Delete Series",
-            body = "The Series ${series.metadata.title} will be removed from this server alongside with stored media files. This cannot be undone. Continue?",
-            confirmText = "Yes, delete series \"${series.metadata.title}\"",
-            onDialogConfirm = {
-                actions.delete(series)
-                onDismissRequest()
-
-            },
-            onDialogDismiss = {
-                showDeleteDialog = false
-                onDismissRequest()
-            },
-            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
-        )
-    }
     var showDeleteDownloadedDialog by remember { mutableStateOf(false) }
     if (showDeleteDownloadedDialog) {
         ConfirmationDialog(
-            title = "Delete downloaded series",
-            body = "The series ${series.metadata.title} will be removed from this device",
+            title = stringResource(Res.string.series_delete_confirm_title),
+            body = stringResource(Res.string.series_delete_confirm_body, series.metadata.title),
             onDialogConfirm = {
                 actions.deleteDownloaded(series)
                 onDismissRequest()
@@ -126,7 +116,7 @@ fun SeriesActionsMenu(
 
         if (permissionRequested) {
             ConfirmationDialog(
-                "Download series \"${series.metadata.title}\"?",
+                stringResource(Res.string.series_download_confirm, series.metadata.title),
                 onDialogConfirm = { actions.download(series) },
                 onDialogDismiss = { showDownloadDialog = false }
             )
@@ -135,7 +125,6 @@ fun SeriesActionsMenu(
 
     val showDropdown = derivedStateOf {
         expanded &&
-                !showDeleteDialog &&
                 !showKomfDialog &&
                 !showKomfResetDialog &&
                 !showEditDialog &&
@@ -147,7 +136,7 @@ fun SeriesActionsMenu(
     ) {
         if (isAdmin && !isOffline) {
             DropdownMenuItem(
-                text = { Text("Analyze") },
+                text = { Text(stringResource(Res.string.series_analyze)) },
                 onClick = {
                     actions.analyze(series)
                     onDismissRequest()
@@ -155,7 +144,7 @@ fun SeriesActionsMenu(
             )
 
             DropdownMenuItem(
-                text = { Text("Refresh metadata") },
+                text = { Text(stringResource(Res.string.series_refresh_metadata)) },
                 onClick = {
                     actions.refreshMetadata(series)
                     onDismissRequest()
@@ -163,7 +152,7 @@ fun SeriesActionsMenu(
             )
 
             DropdownMenuItem(
-                text = { Text("Add to collection") },
+                text = { Text(stringResource(Res.string.series_add_to_collection)) },
                 onClick = { showAddToCollectionDialog = true },
             )
         }

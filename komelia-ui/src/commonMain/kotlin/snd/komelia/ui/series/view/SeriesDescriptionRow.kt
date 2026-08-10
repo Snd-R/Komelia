@@ -2,7 +2,6 @@ package snd.komelia.ui.series.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,10 +26,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_alternative_titles
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_release_year
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_summary_from_book
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_unavailable
 import kotlinx.datetime.LocalDate
-import snd.komelia.ui.LocalStrings
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.ExpandableText
 import snd.komelia.ui.library.SeriesScreenFilter
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.common.KomgaReadingDirection
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.series.KomgaAlternativeTitle
@@ -40,7 +45,6 @@ import snd.komga.client.series.KomgaSeriesStatus.ENDED
 import snd.komga.client.series.KomgaSeriesStatus.HIATUS
 import snd.komga.client.series.KomgaSeriesStatus.ONGOING
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SeriesDescriptionRow(
     library: KomgaLibrary,
@@ -55,7 +59,6 @@ fun SeriesDescriptionRow(
     onFilterClick: (SeriesScreenFilter) -> Unit,
     modifier: Modifier
 ) {
-    val strings = LocalStrings.current.seriesView
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -63,7 +66,7 @@ fun SeriesDescriptionRow(
     ) {
 
         if (releaseDate != null)
-            Text("Release Year: ${releaseDate.year}", fontSize = 10.sp)
+            Text(stringResource(Res.string.series_release_year, releaseDate.year.toString()), fontSize = 10.sp)
 
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             ElevatedButton(
@@ -78,7 +81,7 @@ fun SeriesDescriptionRow(
             if (status != null) {
                 SuggestionChip(
                     onClick = { onFilterClick(SeriesScreenFilter(publicationStatus = listOf(status))) },
-                    label = { Text(strings.forSeriesStatus(status)) },
+                    label = { Text(stringResource(AppStrings.forSeriesStatus(status))) },
                     border = null,
                     colors =
                         when (status) {
@@ -121,14 +124,14 @@ fun SeriesDescriptionRow(
             if (readingDirection != null) {
                 SuggestionChip(
                     onClick = {},
-                    label = { Text(strings.forReadingDirection(readingDirection)) }
+                    label = { Text(stringResource(AppStrings.forReadingDirection(readingDirection))) }
                 )
             }
 
             if (deleted) {
                 SuggestionChip(
                     onClick = {},
-                    label = { Text("Unavailable") },
+                    label = { Text(stringResource(Res.string.series_unavailable)) },
                     border = null,
                     colors = SuggestionChipDefaults.suggestionChipColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer
@@ -140,7 +143,7 @@ fun SeriesDescriptionRow(
         if (alternateTitles.isNotEmpty()) {
             SelectionContainer {
                 Column {
-                    Text("Alternative titles", fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.series_alternative_titles), fontWeight = FontWeight.Bold)
                     alternateTitles.forEach {
                         Row {
                             Text(
@@ -166,13 +169,8 @@ fun SeriesSummary(
     bookSummary: String,
     bookSummaryNumber: String,
 ) {
-    val summaryText = remember(seriesSummary) {
-        if (seriesSummary.isNotBlank()) {
-            seriesSummary
-        } else if (bookSummary.isNotBlank()) {
-            "Summary from book ${bookSummaryNumber}:\n" + bookSummary
-        } else null
-    }
+    val bookSummary = stringResource(Res.string.series_summary_from_book, bookSummaryNumber, bookSummary)
+    val summaryText = remember(seriesSummary) { seriesSummary.ifBlank { bookSummary.ifBlank { null } } }
     if (summaryText != null) {
         ExpandableText(
             text = summaryText,

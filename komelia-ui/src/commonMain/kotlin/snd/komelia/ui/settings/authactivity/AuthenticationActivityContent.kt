@@ -26,8 +26,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_auth_activity_ip
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_auth_activity_source
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_auth_activity_successful
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_auth_activity_useragent
 import kotlinx.datetime.TimeZone.Companion.currentSystemDefault
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.Pagination
 import snd.komga.client.user.KomgaAuthenticationActivity
 
@@ -74,7 +80,7 @@ private fun AuthenticationInfoCard(
                 }
                 Text(formattedDate)
                 Spacer(Modifier.weight(1f))
-                Text("Source: ${activity.source}")
+                Text(stringResource(Res.string.settings_auth_activity_source, activity.source))
             }
 
             val email = activity.email
@@ -91,14 +97,14 @@ private fun AuthenticationInfoCard(
                 Text(
                     buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("IP: ")
+                            append(stringResource(Res.string.settings_auth_activity_ip))
                         }
                         append(activity.ip)
                     },
                 )
                 Spacer(Modifier.weight(1f))
                 if (activity.success) {
-                    Text("Successful")
+                    Text(stringResource(Res.string.settings_auth_activity_successful))
                     Icon(
                         Icons.Default.Done,
                         null,
@@ -119,7 +125,7 @@ private fun AuthenticationInfoCard(
             HorizontalDivider(Modifier.padding(vertical = 5.dp))
             Text(
                 buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("User Agent: ") }
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(stringResource(Res.string.settings_auth_activity_useragent)) }
                     withStyle(SpanStyle(fontSize = 14.sp)) {
                         append(activity.userAgent)
                     }

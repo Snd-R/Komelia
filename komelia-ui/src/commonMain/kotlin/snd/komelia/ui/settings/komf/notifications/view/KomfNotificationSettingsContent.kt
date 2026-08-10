@@ -14,6 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_apprise
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.settings.komf.notifications.AppriseState
@@ -32,14 +36,14 @@ fun KomfSettingsContent(
                 onClick = { selectedTab = 0 },
                 modifier = Modifier.heightIn(min = 40.dp).cursorForHand(),
             ) {
-                Text("Discord")
+                Text(stringResource(Res.string.komf_notification_apprise))
             }
             Tab(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
                 modifier = Modifier.heightIn(min = 40.dp).cursorForHand(),
             ) {
-                Text("Apprise")
+                Text(stringResource(Res.string.komf_notification_discord))
             }
         }
         Spacer(Modifier.height(30.dp))

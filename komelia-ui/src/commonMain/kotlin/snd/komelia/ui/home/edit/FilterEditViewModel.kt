@@ -15,7 +15,6 @@ import snd.komelia.AppNotifications
 import snd.komelia.homefilters.BooksHomeScreenFilter
 import snd.komelia.homefilters.HomeScreenFilterRepository
 import snd.komelia.homefilters.SeriesHomeScreenFilter
-import snd.komelia.homefilters.homeScreenDefaultFilters
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReadListApi
@@ -179,34 +178,35 @@ class FilterEditViewModel(
     }
 
     fun onResetFiltersToDefault() {
-        this.filters.value = homeScreenDefaultFilters.map {
-            when (it) {
-                is BooksHomeScreenFilter -> BookFilterEditState(
-                    seriesApi = seriesApi,
-                    bookApi = bookApi,
-                    readListApi = readListApi,
-                    appNotifications = appNotifications,
-                    coroutineScope = screenModelScope,
-                    options = filterSuggestionOptions,
-                    cardWidth = cardWidth,
-                    initialFilter = it,
-                    initialBooks = null,
-                )
-
-                is SeriesHomeScreenFilter -> SeriesFilterEditState(
-                    seriesApi = seriesApi,
-                    collectionApi = collectionApi,
-                    appNotifications = appNotifications,
-                    coroutineScope = screenModelScope,
-                    options = filterSuggestionOptions,
-                    cardWidth = cardWidth,
-                    initialFilter = it,
-                    initialSeries = null,
-                )
-            }
-        }
         screenModelScope.launch {
-            filterRepository.putFilters(homeScreenDefaultFilters)
+            val defaultFilters = getDefaultFilters()
+            filters.value = defaultFilters.map {
+                when (it) {
+                    is BooksHomeScreenFilter -> BookFilterEditState(
+                        seriesApi = seriesApi,
+                        bookApi = bookApi,
+                        readListApi = readListApi,
+                        appNotifications = appNotifications,
+                        coroutineScope = screenModelScope,
+                        options = filterSuggestionOptions,
+                        cardWidth = cardWidth,
+                        initialFilter = it,
+                        initialBooks = null,
+                    )
+
+                    is SeriesHomeScreenFilter -> SeriesFilterEditState(
+                        seriesApi = seriesApi,
+                        collectionApi = collectionApi,
+                        appNotifications = appNotifications,
+                        coroutineScope = screenModelScope,
+                        options = filterSuggestionOptions,
+                        cardWidth = cardWidth,
+                        initialFilter = it,
+                        initialSeries = null,
+                    )
+                }
+            }
+            filterRepository.putFilters(defaultFilters)
         }
     }
 

@@ -19,7 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_panel_detection_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_panel_detection_download
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_panel_detection_downloading
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_panel_detection_installed
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_panel_detection_redownload
 import kotlinx.coroutines.flow.Flow
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.updates.UpdateProgress
 
@@ -31,7 +38,7 @@ fun PanelDetectionSettings(
     var showDownloadDialog by remember { mutableStateOf(false) }
     if (showDownloadDialog) {
         DownloadDialog(
-            headerText = "Downloading panel detection model",
+            headerText = stringResource(Res.string.settings_image_onnxruntime_panel_detection_downloading),
             onDownloadRequest = onDownloadRequest,
             onDismiss = { showDownloadDialog = false },
         )
@@ -39,10 +46,7 @@ fun PanelDetectionSettings(
 
     Column {
         Text(
-            """
-                If model is available, a new "Panels" reader mode will be added.
-                In this mode reader will zoom and scroll from panel to panel
-            """.trimIndent(),
+            stringResource(Res.string.settings_image_onnxruntime_panel_detection_desc),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(start = 5.dp)
         )
@@ -55,10 +59,13 @@ fun PanelDetectionSettings(
                 onClick = { showDownloadDialog = true },
                 modifier = Modifier.cursorForHand()
             ) {
-                Text(if (isDownloaded) "Re-download Model" else "Download Model")
+                Text(
+                    if (isDownloaded) stringResource(Res.string.settings_image_onnxruntime_panel_detection_redownload)
+                    else stringResource(Res.string.settings_image_onnxruntime_panel_detection_download)
+                )
             }
             if (isDownloaded) {
-                Text("Installed")
+                Text(stringResource(Res.string.settings_image_onnxruntime_panel_detection_installed))
                 Icon(Icons.Default.Check, null, tint = Color.Green)
             }
         }

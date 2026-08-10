@@ -29,11 +29,19 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
+import snd.komelia.AppNotification
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
 import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalPlatform
+import snd.komelia.ui.LocalToaster
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
 import snd.komelia.ui.platform.BackPressHandler
@@ -48,6 +56,8 @@ import snd.komelia.ui.reader.image.panels.PanelsReaderContent
 import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.reader.image.settings.SettingsOverlay
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
+import snd.komelia.ui.strings.AppStrings
+import snd.komelia.ui.toToast
 
 @Composable
 fun ReaderContent(
@@ -85,6 +95,7 @@ fun ReaderContent(
     LaunchedEffect(density) {
         commonReaderState.pixelDensity.value = density
     }
+    ReaderTypeNotification(commonReaderState, pagedReaderState, continuousReaderState, panelsReaderState)
 
     val topLevelFocus = remember { FocusRequester() }
     val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
@@ -235,5 +246,55 @@ fun ReaderControlsOverlay(
         contentAlignment = Alignment.Center
     ) {
         content()
+    }
+}
+
+@Composable
+private fun ReaderTypeNotification(
+    commonReaderState: ReaderState,
+    pagedReaderState: PagedReaderState,
+    continuousReaderState: ContinuousReaderState,
+    panelsReaderState: PanelsReaderState?,
+) {
+    val notifications = LocalToaster.current
+    val environment = rememberResourceEnvironment()
+
+    LaunchedEffect(Unit) {
+        val str = when (commonReaderState.readerType.value) {
+            PAGED -> buildString {
+                append(getString(environment, Res.string.reader_type_paged))
+                append("\n")
+                append(
+                    getString(
+                        environment,
+                        AppStrings.forReadingDirection(pagedReaderState.readingDirection.value)
+                    )
+                )
+            }
+
+            PANELS -> buildString {
+                append(getString(environment, Res.string.reader_type_panels))
+                append("\n")
+                append(
+                    getString(
+                        environment,
+                        AppStrings.forReadingDirection(panelsReaderState!!.readingDirection.value)
+                    )
+                )
+            }
+
+            CONTINUOUS -> buildString {
+                append(getString(environment, Res.string.reader_type_continuous))
+                append("\n")
+                append(
+                    getString(
+                        environment,
+                        AppStrings.forReadingDirection(continuousReaderState.readingDirection.value)
+                    )
+                )
+            }
+        }
+
+        notifications.show(AppNotification.Normal(str).toToast())
     }
 }

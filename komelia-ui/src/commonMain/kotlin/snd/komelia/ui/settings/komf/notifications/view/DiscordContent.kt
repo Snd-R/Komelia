@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -53,7 +52,35 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_context
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_add_webhook
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_add_webhook_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_add_webhook_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_add_webhook_dialog
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_description
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_field_add
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_field_inline
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_field_name
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_field_number
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_field_value
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_footer
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_preview
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_save
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_sytax_link
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_test_send
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_title_url
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_velocity_link
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_template_write
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_upload_series_cover
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_webhook_invalid
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_webhook_url
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_discord_webhooks
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_notification_template
 import io.ktor.http.*
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.CheckboxWithLabel
@@ -97,7 +124,7 @@ fun DiscordNotificationsContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
 
-        Text("Webhooks")
+        Text(stringResource(Res.string.komf_notification_discord_webhooks))
         discordWebhooks.forEach { webhook ->
             Row {
                 TextField(
@@ -119,13 +146,13 @@ fun DiscordNotificationsContent(
             onClick = { showAddWebhookDialog = true },
             modifier = Modifier.cursorForHand()
         ) {
-            Text("Add Webhook")
+            Text(stringResource(Res.string.komf_notification_discord_add_webhook))
         }
 
         SwitchWithLabel(
             checked = discordUploadSeriesCover.value,
             onCheckedChange = { discordUploadSeriesCover.setValue(it) },
-            label = { Text("Upload series cover") }
+            label = { Text(stringResource(Res.string.komf_notification_discord_upload_series_cover)) }
         )
 
         if (showAddWebhookDialog) {
@@ -184,7 +211,10 @@ private fun AddDiscordWebhookDialog(
                 modifier = Modifier.padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("Add New Discord Webhook", style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    stringResource(Res.string.komf_notification_discord_add_webhook_dialog),
+                    style = MaterialTheme.typography.headlineSmall
+                )
                 HorizontalDivider()
             }
         },
@@ -196,12 +226,12 @@ private fun AddDiscordWebhookDialog(
                 TextField(
                     value = newWebhook,
                     onValueChange = { newWebhook = it },
-                    label = { Text("Webhook URL") },
+                    label = { Text(stringResource(Res.string.komf_notification_discord_webhook_url)) },
                     placeholder = { Text("https://discord.com/api/webhooks/...") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = isError.value,
                     interactionSource = interactionSource,
-                    supportingText = { if (isError.value) Text("Invalid webhook URL") },
+                    supportingText = { if (isError.value) Text(stringResource(Res.string.komf_notification_discord_webhook_invalid)) },
                     visualTransformation = if (isFocused) VisualTransformation.None else PasswordVisualTransformation(),
                 )
             }
@@ -215,7 +245,7 @@ private fun AddDiscordWebhookDialog(
                 TextButton(
                     onClick = onDismissRequest,
                     modifier = Modifier.cursorForHand(),
-                    content = { Text("Cancel") }
+                    content = { Text(stringResource(Res.string.komf_notification_discord_add_webhook_cancel)) }
                 )
 
                 FilledTonalButton(
@@ -226,14 +256,13 @@ private fun AddDiscordWebhookDialog(
                     modifier = Modifier.cursorForHand(),
                     enabled = isValidUrl.value
                 ) {
-                    Text("Confirm")
+                    Text(stringResource(Res.string.komf_notification_discord_add_webhook_confirm))
                 }
             }
         }
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TemplatesContent(
     titleTemplate: StateHolder<String>,
@@ -258,11 +287,14 @@ private fun TemplatesContent(
     var showNotificationContextDialog by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Notification Template", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.komf_notification_template),
+            style = MaterialTheme.typography.titleLarge
+        )
         Column {
-            Text("Uses markdown syntax. Templates are rendered using Apache Velocity")
+            Text(stringResource(Res.string.komf_notification_discord_desc))
             Text(
-                "Discord Markdown Text 101",
+                stringResource(Res.string.komf_notification_discord_template_sytax_link),
                 color = MaterialTheme.colorScheme.secondary,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable {
@@ -270,7 +302,7 @@ private fun TemplatesContent(
                 }.padding(2.dp).cursorForHand()
             )
             Text(
-                "Velocity Template Language syntax reference",
+                stringResource(Res.string.komf_notification_discord_template_velocity_link),
                 color = MaterialTheme.colorScheme.secondary,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable {
@@ -286,7 +318,7 @@ private fun TemplatesContent(
                 onClick = { selectedTab = 0 },
                 modifier = Modifier.heightIn(min = 40.dp).cursorForHand(),
             ) {
-                Text("Write")
+                Text(stringResource(Res.string.komf_notification_discord_template_write))
             }
             Tab(
                 selected = selectedTab == 1,
@@ -296,7 +328,7 @@ private fun TemplatesContent(
                 },
                 modifier = Modifier.heightIn(min = 40.dp).cursorForHand(),
             ) {
-                Text("Preview")
+                Text(stringResource(Res.string.komf_notification_discord_template_preview))
             }
         }
 
@@ -345,7 +377,7 @@ private fun TemplatesContent(
                 onClick = { showNotificationContextDialog = true },
                 modifier = Modifier.cursorForHand()
             ) {
-                Text("Notification Context")
+                Text(stringResource(Res.string.komf_notification_context))
 
             }
 
@@ -353,7 +385,7 @@ private fun TemplatesContent(
                 onClick = onTemplateSend,
                 modifier = Modifier.cursorForHand()
             ) {
-                Text("Test Send")
+                Text(stringResource(Res.string.komf_notification_discord_template_test_send))
             }
 
             FilledTonalButton(
@@ -361,7 +393,7 @@ private fun TemplatesContent(
                 enabled = true,
                 modifier = Modifier.cursorForHand()
             ) {
-                Text("Save")
+                Text(stringResource(Res.string.komf_notification_discord_template_save))
             }
         }
     }
@@ -391,20 +423,20 @@ private fun TemplatesEditor(
         TextField(
             value = titleTemplate.value,
             onValueChange = { titleTemplate.setValue(it) },
-            label = { Text("Title. 256 characters max") },
+            label = { Text(stringResource(Res.string.komf_notification_discord_template_title)) },
             maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
         HttpTextField(
             value = titleUrlTemplate.value,
             onValueChange = { titleUrlTemplate.setValue(it) },
-            label = { Text("Title Url") },
+            label = { Text(stringResource(Res.string.komf_notification_discord_template_title_url)) },
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = descriptionTemplate.value,
             onValueChange = { descriptionTemplate.setValue(it) },
-            label = { Text("Description. 4096 characters max") },
+            label = { Text(stringResource(Res.string.komf_notification_discord_template_description)) },
             minLines = 4,
             modifier = Modifier.fillMaxWidth()
         )
@@ -413,7 +445,7 @@ private fun TemplatesEditor(
         TextField(
             value = footerTemplate.value,
             onValueChange = { footerTemplate.setValue(it) },
-            label = { Text("Footer. 2048 characters max") },
+            label = { Text(stringResource(Res.string.komf_notification_discord_template_footer)) },
             maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
@@ -441,7 +473,7 @@ private fun TemplateFieldsEditor(
 
                 ) {
                     Icon(if (showField) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
-                    Text("Field ${index + 1}")
+                    Text(stringResource(Res.string.komf_notification_discord_template_field_number, index + 1))
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { onFieldDelete(field) }) {
                         Icon(Icons.Default.Delete, null)
@@ -463,7 +495,7 @@ private fun TemplateFieldsEditor(
             enabled = fieldTemplates.size < 25,
             modifier = Modifier.cursorForHand()
         ) {
-            Text("Add Field")
+            Text(stringResource(Res.string.komf_notification_discord_template_field_add))
         }
     }
 
@@ -481,19 +513,19 @@ private fun TemplateFieldEditor(
             TextField(
                 value = state.nameTemplate,
                 onValueChange = { state.nameTemplate = it },
-                label = { Text("Field name. 256 characters max") },
+                label = { Text(stringResource(Res.string.komf_notification_discord_template_field_name)) },
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
             )
             CheckboxWithLabel(
                 checked = state.inline,
                 onCheckedChange = { state.inline = it },
-                label = { Text("Inline") })
+                label = { Text(stringResource(Res.string.komf_notification_discord_template_field_inline)) })
         }
         TextField(
             value = state.valueTemplate,
             onValueChange = { state.valueTemplate = it },
-            label = { Text("Field value. 1024 characters max") },
+            label = { Text(stringResource(Res.string.komf_notification_discord_template_field_value)) },
             minLines = 4,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -540,7 +572,6 @@ private fun TemplatesPreview(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PreviewContent(
     titlePreview: String,

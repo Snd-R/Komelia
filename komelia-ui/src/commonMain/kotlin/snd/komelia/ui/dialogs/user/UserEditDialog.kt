@@ -25,8 +25,25 @@ import androidx.compose.ui.unit.dp
 import com.dokar.chiptextfield.Chip
 import com.dokar.chiptextfield.m3.ChipTextField
 import com.dokar.chiptextfield.rememberChipTextFieldState
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_age
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_age_restriction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_content_restrictions
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_dialog_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_labels_allow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_labels_exclude
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_roles_for_user
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_save
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_share_libraries
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_share_libraries_all
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_tab_content_restriction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_tab_roles
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_edit_tab_shared_libraries
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_admin
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_file_download
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.user_roles_page_streaming
 import kotlinx.coroutines.launch
-import snd.komelia.ui.LocalStrings
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.OptionsStateHolder
 import snd.komelia.ui.StateHolder
@@ -37,6 +54,7 @@ import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabDialog
 import snd.komelia.ui.dialogs.tabs.TabItem
 import snd.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction
+import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.user.KomgaUser
@@ -52,10 +70,10 @@ fun UserEditDialog(
     val coroutineScope = rememberCoroutineScope()
 
     TabDialog(
-        title = "Edit User",
+        title = stringResource(Res.string.user_edit_dialog_title),
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
-        confirmationText = "Save Changes",
+        confirmationText = stringResource(Res.string.user_edit_save),
         onConfirm = {
             coroutineScope.launch {
                 vm.saveChanges()
@@ -70,7 +88,7 @@ fun UserEditDialog(
 
 class UserRolesTab(private val vm: UserEditDialogViewModel) : DialogTab {
     override fun options() = TabItem(
-        title = "Roles",
+        title = Res.string.user_edit_tab_roles,
         icon = Icons.Default.RecentActors
     )
 
@@ -92,22 +110,22 @@ class UserRolesTab(private val vm: UserEditDialogViewModel) : DialogTab {
         fileDownload: StateHolder<Boolean>
     ) {
         Column {
-            Text("Roles for ${user.email}")
+            Text(stringResource(Res.string.user_edit_roles_for_user, user.email))
             Spacer(Modifier.height(20.dp))
             CheckboxWithLabel(
                 checked = administrator.value,
                 onCheckedChange = { administrator.setValue(it) },
-                label = { Text("Administrator") }
+                label = { Text(stringResource(Res.string.user_roles_admin)) }
             )
             CheckboxWithLabel(
                 checked = pageStreaming.value,
                 onCheckedChange = { pageStreaming.setValue(it) },
-                label = { Text("Page Streaming") }
+                label = { Text(stringResource(Res.string.user_roles_page_streaming)) }
             )
             CheckboxWithLabel(
                 checked = fileDownload.value,
                 onCheckedChange = { fileDownload.setValue(it) },
-                label = { Text("File Download") }
+                label = { Text(stringResource(Res.string.user_roles_file_download)) }
             )
         }
     }
@@ -116,7 +134,7 @@ class UserRolesTab(private val vm: UserEditDialogViewModel) : DialogTab {
 class UserSharedLibrariesTab(private val vm: UserEditDialogViewModel) : DialogTab {
 
     override fun options() = TabItem(
-        title = "Shared Libraries",
+        title = Res.string.user_edit_tab_shared_libraries,
         icon = Icons.Default.Share
     )
 
@@ -142,12 +160,12 @@ class UserSharedLibrariesTab(private val vm: UserEditDialogViewModel) : DialogTa
         onLibraryUncheck: (KomgaLibraryId) -> Unit,
     ) {
         Column {
-            Text("Share Libraries")
+            Text(stringResource(Res.string.user_edit_share_libraries))
             Spacer(Modifier.height(20.dp))
             CheckboxWithLabel(
                 checked = shareAll,
                 onCheckedChange = onShareAllChange,
-                label = { Text("All Libraries") }
+                label = { Text(stringResource(Res.string.user_edit_share_libraries_all)) }
             )
 
             HorizontalDivider()
@@ -179,7 +197,7 @@ class UserSharedLibrariesTab(private val vm: UserEditDialogViewModel) : DialogTa
 class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : DialogTab {
 
     override fun options() = TabItem(
-        title = "Content Restriction",
+        title = Res.string.user_edit_tab_content_restriction,
         icon = Icons.Default.LockPerson
     )
 
@@ -202,17 +220,23 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
         labelsAllow: StateHolder<Set<String>>,
         labelsExclude: StateHolder<Set<String>>,
     ) {
-        val strings = LocalStrings.current.userEdit
-
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Text(strings.contentRestrictions)
+            Text(stringResource(Res.string.user_edit_content_restrictions))
             Column(verticalArrangement = Arrangement.spacedBy(40.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     DropdownChoiceMenu(
-                        selectedOption = LabeledEntry(restriction.value, strings.forAgeRestriction(restriction.value)),
-                        options = restriction.options.map { LabeledEntry(it, strings.forAgeRestriction(it)) },
+                        selectedOption = LabeledEntry(
+                            restriction.value,
+                            stringResource(AppStrings.forAgeRestriction(restriction.value))
+                        ),
+                        options = restriction.options.map {
+                            LabeledEntry(
+                                it,
+                                stringResource(AppStrings.forAgeRestriction(restriction.value))
+                            )
+                        },
                         onOptionChange = { restriction.onValueChange(it.value) },
-                        label = { Text(strings.ageRestriction) },
+                        label = { Text(stringResource(Res.string.user_edit_age_restriction)) },
                         inputFieldModifier = Modifier.weight(1f)
                     )
                     TextField(
@@ -221,7 +245,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                             val newValue = it.toIntOrNull()
                             if (newValue != null) age.setValue(newValue)
                         },
-                        label = { Text(strings.age) },
+                        label = { Text(stringResource(Res.string.user_edit_age)) },
                         modifier = Modifier.weight(1f),
                         enabled = restriction.value != AgeRestriction.NONE
                     )
@@ -234,7 +258,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                 }
                 ChipTextField(
                     state = labelsAllowState,
-                    label = { Text(strings.labelsAllow) },
+                    label = { Text(stringResource(Res.string.user_edit_labels_allow)) },
                     onSubmit = { text -> Chip(text) },
                     readOnlyChips = true,
                     modifier = Modifier.fillMaxWidth()
@@ -247,7 +271,7 @@ class UserContentRestrictionTab(private val vm: UserEditDialogViewModel) : Dialo
                 }
                 ChipTextField(
                     state = labelsExcludeState,
-                    label = { Text(strings.labelsExclude) },
+                    label = { Text(stringResource(Res.string.user_edit_labels_exclude)) },
                     onSubmit = { text -> Chip(text) },
                     readOnlyChips = true,
                     modifier = Modifier.fillMaxWidth()

@@ -16,6 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_bulk_warning
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_sharing_labels
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit_tab_sharing
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.LockableChipTextField
 import snd.komelia.ui.dialogs.tabs.DialogTab
@@ -26,7 +31,7 @@ internal class SharingTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "SHARING",
+        title = Res.string.series_edit_tab_sharing,
         icon = Icons.Default.People
     )
 
@@ -52,14 +57,14 @@ private fun SharingContent(
         Row(Modifier.border(Dp.Hairline, warningColor).padding(20.dp)) {
             Icon(Icons.Default.PriorityHigh, null, tint = warningColor)
             Text(
-                text = "You are editing tags for multiple series. This will override existing tags of each series.",
+                text = stringResource(Res.string.series_edit_bulk_warning),
                 color = warningColor
             )
         }
 
         LockableChipTextField(
             values = labels,
-            label = "Labels",
+            label = stringResource(Res.string.series_edit_sharing_labels),
             lock = labelsLock
         )
     }

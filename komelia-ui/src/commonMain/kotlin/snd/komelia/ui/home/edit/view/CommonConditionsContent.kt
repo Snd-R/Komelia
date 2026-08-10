@@ -43,8 +43,24 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_add_condition
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_any
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_author
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_condition
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_datepicker_canel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_datepicker_ok
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_days
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_limit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_operator
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_role
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_sort
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_sort_direction
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_tag
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.home_filter_value
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.scrollbar
@@ -88,7 +104,7 @@ fun <T> SimpleConditionLayout(
                 conditionType,
                 options = options,
                 onOptionChange = { onConditionTypeChange(it.value) },
-                label = { Text("Condition") },
+                label = { Text(stringResource(Res.string.home_filter_condition)) },
                 inputFieldModifier = Modifier.widthIn(conditionInputMinWidth)
             )
             content()
@@ -101,7 +117,7 @@ fun TagConditionContent(state: TagConditionState) {
     EqualityNullableOpDropdownSearchContent(
         state,
         state.tags.collectAsState(emptyList()).value,
-        "Tag"
+        stringResource(Res.string.home_filter_tag)
     )
 }
 
@@ -162,20 +178,21 @@ fun RowScope.AuthorConditionContent(
         options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { state.setOp(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
+    val stringAny = stringResource(Res.string.home_filter_any)
     DropdownChoiceMenu(
         selectedOption = remember(currentValue) {
-            LabeledEntry(currentValue?.role, currentValue?.role ?: "Any")
+            LabeledEntry(currentValue?.role, currentValue?.role ?: stringAny)
         },
         options = remember(roleOptions) {
-            listOf(LabeledEntry<String?>(null, "Any"))
+            listOf(LabeledEntry<String?>(null, stringAny))
                 .plus(roleOptions.map { LabeledEntry(it, it) })
         },
         onOptionChange = { state.setRoleValue(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Role") }
+        label = { Text(stringResource(Res.string.home_filter_role)) }
     )
 
     SearchableOptionSelectionField(
@@ -183,7 +200,7 @@ fun RowScope.AuthorConditionContent(
         onSearchTextChange = state::setSearchText,
         options = nameOptions.map { LabeledEntry.stringEntry(it) },
         onValueChange = { state.setNameValue(it) },
-        label = "Author"
+        label = stringResource(Res.string.home_filter_author)
     )
 }
 
@@ -233,7 +250,7 @@ fun RowScope.EqualityNullableOpContent(
         options = EqualityNullableOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { state.setOp(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
     if (operator != EqualityNullableOpState.Op.IsNull && operator != EqualityNullableOpState.Op.IsNotNull)
@@ -257,7 +274,7 @@ fun RowScope.BooleanOpContent(
         options = BooleanOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { onOperatorChange(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 }
 
@@ -274,7 +291,7 @@ fun <T> RowScope.EqualityOpDropDownContent(
         options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { onOpChange(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
     DropdownChoiceMenu(
@@ -282,7 +299,7 @@ fun <T> RowScope.EqualityOpDropDownContent(
         options = valueOptions,
         onOptionChange = { onValueChange(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Value") }
+        label = { Text(stringResource(Res.string.home_filter_value)) }
     )
 }
 
@@ -410,7 +427,7 @@ fun RowScope.StringOpContent(
         options = StringOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { onOperatorChange(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
     var textValue by remember { mutableStateOf(value ?: "") }
@@ -424,7 +441,6 @@ fun RowScope.StringOpContent(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RowScope.DateOpContent(
     operator: DateOpState.Op,
@@ -441,7 +457,7 @@ private fun RowScope.DateOpContent(
         options = DateOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { onOperatorChange(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
     when (operator) {
@@ -545,12 +561,12 @@ private fun DatePickerField(
                     }
                     showDatePicker = false
                 }) {
-                    Text("OK")
+                    Text(stringResource(Res.string.home_filter_datepicker_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.home_filter_datepicker_canel))
                 }
             }
         ) {
@@ -559,7 +575,6 @@ private fun DatePickerField(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PeriodPickerField(
     duration: Duration?,
@@ -582,7 +597,7 @@ private fun PeriodPickerField(
                 }
 
             },
-            label = { Text("Days") },
+            label = { Text(stringResource(Res.string.home_filter_days)) },
             modifier = Modifier.width(100.dp),
         )
     }
@@ -605,7 +620,7 @@ fun <T> ConditionAddButton(
                 .cursorForHand()
                 .menuAnchor(PrimaryNotEditable)
         ) {
-            Text("Add condition")
+            Text(stringResource(Res.string.home_filter_add_condition))
         }
 
         val scrollState = rememberScrollState()
@@ -645,7 +660,7 @@ fun EqualityNullableOpDropdownSearchContent(
         options = EqualityNullableOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { state.setOp(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
     if (operator != EqualityNullableOpState.Op.IsNull && operator != EqualityNullableOpState.Op.IsNotNull) {
@@ -677,7 +692,7 @@ fun EqualityOpDropdownSearchContent(
         options = EqualityOpState.Op.entries.map { LabeledEntry(it, it.name) },
         onOptionChange = { state.setOp(it.value) },
         inputFieldModifier = Modifier.widthIn(min = conditionInputMinWidth),
-        label = { Text("Operator") }
+        label = { Text(stringResource(Res.string.home_filter_operator)) }
     )
 
     var searchText by remember { mutableStateOf(value ?: "") }
@@ -711,14 +726,14 @@ fun <T> PageSettingsContent(
             selectedOption = sort,
             options = sortOptions,
             onOptionChange = { onSortChange(it.value) },
-            label = { Text("Sort") },
+            label = { Text(stringResource(Res.string.home_filter_sort)) },
             inputFieldModifier = Modifier.widthIn(min = 150.dp)
         )
         DropdownChoiceMenu(
             selectedOption = remember(sortDirection) { LabeledEntry(sortDirection, sortDirection.name) },
             options = remember { KomgaSort.Direction.entries.map { LabeledEntry(it, it.name) } },
             onOptionChange = { onSortDirectionChange(it.value) },
-            label = { Text("Direction") },
+            label = { Text(stringResource(Res.string.home_filter_sort_direction)) },
             inputFieldModifier = Modifier.widthIn(min = 60.dp)
         )
         PageSizeSettingsContent(pageSize, onPageSizeChange)
@@ -742,7 +757,7 @@ fun PageSizeSettingsContent(pageSize: Int, onPageSizeChange: (Int) -> Unit) {
                 }
             }
         },
-        label = { Text("Limit") },
+        label = { Text(stringResource(Res.string.home_filter_limit)) },
         modifier = Modifier.width(70.dp),
     )
 

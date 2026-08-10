@@ -3,6 +3,8 @@ package snd.komelia.ui.dialogs.book.edit
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.runtime.Composable
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_links
 import snd.komelia.ui.dialogs.LinksEditContent
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
@@ -12,7 +14,7 @@ class LinksTab(
     private val vm: BookEditMetadataState
 ) : DialogTab {
     override fun options() = TabItem(
-        title = "LINKS",
+        title = Res.string.edit_tab_links,
         icon = Icons.Default.Link
     )
 

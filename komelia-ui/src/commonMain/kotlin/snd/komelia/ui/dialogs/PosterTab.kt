@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,12 +34,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.edit_tab_poster
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.poster_edit_desc
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
-import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.cards.ThumbnailEditCard
 import snd.komelia.ui.common.cards.ThumbnailUploadCard
 import snd.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.ThumbnailToBeUploaded
@@ -58,7 +60,7 @@ import kotlin.math.roundToInt
 class PosterTab(private val state: PosterEditState) : DialogTab {
 
     override fun options() = TabItem(
-        title = "POSTER",
+        title = Res.string.edit_tab_poster,
         icon = Icons.Default.Image,
     )
 
@@ -229,7 +231,6 @@ class PosterEditState(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 fun PosterEditContent(
     posterState: PosterEditState,
     cardWidth: Dp,
@@ -260,7 +261,7 @@ fun PosterEditContent(
                     .clip(RectangleShape)
             )
             Text(
-                "Choose an image - drag and drop",
+                stringResource(Res.string.poster_edit_desc),
                 textDecoration = TextDecoration.Underline,
                 color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Bold

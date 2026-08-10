@@ -9,6 +9,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_barcode
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_barcode_isbn
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_comicinfo
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_comicinfo_append_volume_to_series
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_comicinfo_book_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_comicinfo_collections
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_comicinfo_readlists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_comicinfo_series_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_epub
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_epub_book_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_epub_series_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_local_artwork
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_local_media
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_mylar
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_import_mylar_series_metadata
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_edit_tab_metadata
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.StateHolder
 import snd.komelia.ui.common.components.CheckboxWithLabel
 import snd.komelia.ui.common.components.ChildSwitchingCheckboxWithLabel
@@ -20,7 +38,7 @@ internal class MetadataTab(
 ) : DialogTab {
 
     override fun options() = TabItem(
-        title = "METADATA",
+        title = Res.string.library_edit_tab_metadata,
         icon = Icons.Default.Book
     )
 
@@ -91,7 +109,7 @@ private fun ComicInfoSettings(
 ) {
     Column {
         ChildSwitchingCheckboxWithLabel(
-            label = { Text("Import metadata for CBR/CBZ containing a ComicInfo.xml file") },
+            label = { Text(stringResource(Res.string.library_edit_import_comicinfo)) },
             children = listOf(
                 importComicInfoBook,
                 importComicInfoSeries,
@@ -104,31 +122,31 @@ private fun ComicInfoSettings(
             modifier = Modifier.padding(start = 10.dp)
         ) {
             CheckboxWithLabel(
-                label = { Text("Book metadata") },
+                label = { Text(stringResource(Res.string.library_edit_import_comicinfo_book_metadata)) },
                 checked = importComicInfoBook.value,
                 onCheckedChange = importComicInfoBook.setValue,
             )
 
             CheckboxWithLabel(
-                label = { Text("Series metadata") },
+                label = { Text(stringResource(Res.string.library_edit_import_comicinfo_series_metadata)) },
                 checked = importComicInfoSeries.value,
                 onCheckedChange = importComicInfoSeries.setValue,
             )
 
             CheckboxWithLabel(
-                label = { Text("Append volume to series title") },
+                label = { Text(stringResource(Res.string.library_edit_import_comicinfo_append_volume_to_series)) },
                 checked = importComicInfoSeriesAppendVolume.value,
                 onCheckedChange = importComicInfoSeriesAppendVolume.setValue,
             )
 
             CheckboxWithLabel(
-                label = { Text("Collections") },
+                label = { Text(stringResource(Res.string.library_edit_import_comicinfo_collections)) },
                 checked = importComicInfoCollection.value,
                 onCheckedChange = importComicInfoCollection.setValue,
             )
 
             CheckboxWithLabel(
-                label = { Text("Read lists") },
+                label = { Text(stringResource(Res.string.library_edit_import_comicinfo_readlists)) },
                 checked = importComicInfoReadList.value,
                 onCheckedChange = importComicInfoReadList.setValue,
             )
@@ -143,7 +161,7 @@ private fun EpubSettings(
 ) {
     Column {
         ChildSwitchingCheckboxWithLabel(
-            label = { Text("Import metadata from EPUB files") },
+            label = { Text(stringResource(Res.string.library_edit_import_epub)) },
             children = listOf(
                 importEpubBook,
                 importEpubSeries,
@@ -151,12 +169,12 @@ private fun EpubSettings(
         )
         Column(Modifier.padding(start = 10.dp)) {
             CheckboxWithLabel(
-                label = { Text("Book metadata") },
+                label = { Text(stringResource(Res.string.library_edit_import_epub_book_metadata)) },
                 checked = importEpubBook.value,
                 onCheckedChange = importEpubBook.setValue,
             )
             CheckboxWithLabel(
-                label = { Text("Series metadata") },
+                label = { Text(stringResource(Res.string.library_edit_import_epub_series_metadata)) },
                 checked = importEpubSeries.value,
                 onCheckedChange = importEpubSeries.setValue,
             )
@@ -169,10 +187,10 @@ private fun MylarSettings(
     importMylarSeries: StateHolder<Boolean>,
 ) {
     Column {
-        Text("Import metadata generated by Mylar")
+        Text(stringResource(Res.string.library_edit_import_mylar))
         Column(Modifier.padding(start = 10.dp)) {
             CheckboxWithLabel(
-                label = { Text("Series metadata") },
+                label = { Text(stringResource(Res.string.library_edit_import_mylar_series_metadata)) },
                 checked = importMylarSeries.value,
                 onCheckedChange = importMylarSeries.setValue,
             )
@@ -186,10 +204,10 @@ private fun LocalArtworkSettings(
 ) {
 
     Column {
-        Text("Import local media assets")
+        Text(stringResource(Res.string.library_edit_import_local_media))
         Column(Modifier.padding(start = 10.dp)) {
             CheckboxWithLabel(
-                label = { Text("Local artwork") },
+                label = { Text(stringResource(Res.string.library_edit_import_local_artwork)) },
                 checked = importLocalArtwork.value,
                 onCheckedChange = importLocalArtwork.setValue,
             )
@@ -203,10 +221,10 @@ private fun BarcodeISBNSettings(
 ) {
 
     Column {
-        Text("Import ISBN within barcode")
+        Text(stringResource(Res.string.library_edit_import_barcode))
         Column(Modifier.padding(start = 10.dp)) {
             CheckboxWithLabel(
-                label = { Text("ISBN barcode") },
+                label = { Text(stringResource(Res.string.library_edit_import_barcode_isbn)) },
                 checked = importBarcodeIsbn.value,
                 onCheckedChange = importBarcodeIsbn.setValue,
             )

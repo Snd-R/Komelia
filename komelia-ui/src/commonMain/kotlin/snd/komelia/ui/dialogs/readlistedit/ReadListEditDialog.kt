@@ -4,7 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_save
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.tabs.TabDialog
 import snd.komga.client.readlist.KomgaReadList
@@ -21,10 +25,10 @@ fun ReadListEditDialog(
 
     val coroutineScope = rememberCoroutineScope()
     TabDialog(
-        title = "Edit ${readList.name}",
+        title = stringResource(Res.string.dialog_edit, readList.name),
         currentTab = vm.currentTab,
         tabs = vm.tabs(),
-        confirmationText = "Save Changes",
+        confirmationText = stringResource(Res.string.dialog_save),
         confirmEnabled = vm.canSave(),
         onConfirm = { coroutineScope.launch { vm.saveChanges() } },
         onTabChange = { vm.currentTab = it },

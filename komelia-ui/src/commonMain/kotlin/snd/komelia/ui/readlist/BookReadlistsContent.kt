@@ -24,13 +24,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_book_readlists
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.readlist_readlist_name
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.common.cards.BookImageCard
 import snd.komelia.ui.common.itemlist.ItemCardsSlider
@@ -57,7 +57,7 @@ fun BookReadListsContent(
                     .padding(20.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("Read lists")
+                Text(stringResource(Res.string.readlist_book_readlists))
                 if (show) Icon(Icons.Default.ExpandLess, null)
                 else Icon(Icons.Default.ExpandMore, null)
             }
@@ -92,12 +92,7 @@ fun BookReadListsContent(
 @Composable
 private fun ReadListLabel(readList: KomgaReadList) {
     Text(
-        buildAnnotatedString {
-            withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                append("read list ")
-            }
-            append(readList.name)
-        },
+        stringResource(Res.string.readlist_readlist_name, readList.name),
         style = MaterialTheme.typography.titleMedium,
         textDecoration = TextDecoration.Underline
     )
