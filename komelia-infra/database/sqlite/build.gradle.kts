@@ -47,8 +47,8 @@ kotlin {
             implementation(libs.exposed.kotlin.datetime)
             implementation(libs.hikariCP)
             implementation(libs.flyway.core)
-//            implementation(libs.sqlite.xerial.jdbc)
-            implementation(files("sqlite-jdbc-3.51.3.0-linux.jar"))
+            implementation(libs.sqlite.xerial.jdbc)
+////            implementation(files("sqlite-jdbc-3.51.3.0-linux.jar"))
         }
     }
 }

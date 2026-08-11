@@ -177,9 +177,9 @@ private fun SinglePageLayout(page: Page, gtcModeEnabled: Boolean) {
 
         val childConstraints = if (rotate) {
             constraints.copy(
-                minWidth = 0,
+                minWidth = constraints.minHeight,
                 maxWidth = constraints.maxHeight,
-                minHeight = 0,
+                minHeight = constraints.minWidth,
                 maxHeight = constraints.maxWidth,
             )
         } else constraints
