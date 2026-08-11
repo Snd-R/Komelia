@@ -10,7 +10,7 @@ private val logger = KotlinLogging.logger { }
 
 class BookContentExtractors(
     divinaExtractors: List<DivinaExtractor>,
-    private val epubExtractor: EpubExtractor
+    private val epubExtractor: EpubExtractor?
 ) {
 
     val divinaExtractors = divinaExtractors
@@ -39,6 +39,7 @@ class BookContentExtractors(
 
             MediaProfile.EPUB -> {
                 if (media.epubDivinaCompatible) {
+                    if (epubExtractor == null) throw IllegalStateException("Epub content is not supported")
                     epubExtractor.getEntryBytes(book.fileDownloadPath, media.pages[page - 1].fileName)
                 } else throw IllegalStateException("Epub profile does not support getting page content")
             }
@@ -56,8 +57,10 @@ class BookContentExtractors(
             MediaProfile.DIVINA -> getDivinaExtractorOrThrow(media)
                 .getEntryBytes(book.fileDownloadPath, filename)
 
-            MediaProfile.EPUB -> epubExtractor
-                .getEntryBytes(book.fileDownloadPath, filename)
+            MediaProfile.EPUB -> {
+                if (epubExtractor == null) throw IllegalStateException("Extractor does not support extraction of files")
+                epubExtractor.getEntryBytes(book.fileDownloadPath, filename)
+            }
 
             MediaProfile.PDF, null -> throw IllegalStateException("Extractor does not support extraction of files")
         }

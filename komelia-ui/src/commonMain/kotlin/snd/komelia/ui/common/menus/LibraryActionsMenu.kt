@@ -250,7 +250,7 @@ data class LibraryMenuActions(
     constructor(
         libraryApi: KomgaLibraryApi,
         notifications: AppNotifications,
-        taskEmitter: OfflineTaskEmitter,
+        taskEmitter: OfflineTaskEmitter?,
         scope: CoroutineScope
     ) : this(
         scan = {
@@ -287,7 +287,7 @@ data class LibraryMenuActions(
             notifications.runCatchingToNotifications(scope) { libraryApi.deleteOne(it.id) }
         },
         deleteOffline = {
-            scope.launch { taskEmitter.deleteLibrary(it.id) }
+            scope.launch { checkNotNull(taskEmitter).deleteLibrary(it.id) }
         }
     )
 }

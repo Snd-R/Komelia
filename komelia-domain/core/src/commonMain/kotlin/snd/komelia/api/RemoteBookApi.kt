@@ -23,7 +23,7 @@ import snd.komga.client.search.BookConditionBuilder
 
 class RemoteBookApi(
     private val bookClient: KomgaBookClient,
-    private val offlineBookRepository: OfflineBookRepository,
+    private val offlineBookRepository: OfflineBookRepository?,
 ) : KomgaBookApi {
     override suspend fun getOne(bookId: KomgaBookId): KomeliaBook {
         val book = bookClient.getOne(bookId)
@@ -195,7 +195,7 @@ class RemoteBookApi(
     }
 
     private suspend fun getKomeliaBook(book: KomgaBook): KomeliaBook {
-        val offlineBook = offlineBookRepository.find(book.id)
+        val offlineBook = offlineBookRepository?.find(book.id)
         return KomeliaBook(
             book = book,
             downloaded = offlineBook != null,
@@ -206,7 +206,7 @@ class RemoteBookApi(
 
     private suspend fun getKomeliaBookPage(bookPage: Page<KomgaBook>): Page<KomeliaBook> {
         val ids = bookPage.content.map { it.id }
-        val offlineBooks = offlineBookRepository.findIn(ids).associateBy { it.id }
+        val offlineBooks = offlineBookRepository?.findIn(ids)?.associateBy { it.id } ?: emptyMap()
         val komeliaBooks = bookPage.content.map {
             val offlineBook = offlineBooks[it.id]
             KomeliaBook(

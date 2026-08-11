@@ -21,7 +21,6 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = "komelia-infra-database-transaction"
         browser()
     }
 

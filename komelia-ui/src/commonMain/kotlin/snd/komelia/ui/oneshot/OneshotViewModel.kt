@@ -55,7 +55,7 @@ class OneshotViewModel(
     private val events: SharedFlow<KomgaEvent>,
     private val notifications: AppNotifications,
     private val libraries: StateFlow<List<KomgaLibrary>>,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     settingsRepository: CommonSettingsRepository,
     readListApi: KomgaReadListApi,
     collectionApi: KomgaCollectionsApi,
@@ -149,13 +149,13 @@ class OneshotViewModel(
 
     fun onBookDownload() {
         screenModelScope.launch {
-            book.value?.let { taskEmitter.downloadBook(it.id) }
+            book.value?.let { checkNotNull(taskEmitter).downloadBook(it.id) }
         }
     }
 
     fun onBookDownloadDelete() {
         screenModelScope.launch {
-            taskEmitter.deleteSeries(seriesId)
+            checkNotNull(taskEmitter).deleteSeries(seriesId)
         }
     }
 

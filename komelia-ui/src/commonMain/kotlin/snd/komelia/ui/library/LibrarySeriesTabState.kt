@@ -43,7 +43,7 @@ class LibrarySeriesTabState(
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val settingsRepository: CommonSettingsRepository,
     private val library: StateFlow<KomgaLibrary?>,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     val cardWidth: StateFlow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
     val pageLoadSize = MutableStateFlow(50)

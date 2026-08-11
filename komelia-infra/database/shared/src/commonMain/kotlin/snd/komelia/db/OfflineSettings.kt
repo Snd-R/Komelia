@@ -10,7 +10,7 @@ import kotlin.time.Instant
 @Serializable
 data class OfflineSettings(
     val isOfflineModeEnabled: Boolean = false,
-    val downloadDirectory: PlatformFile,
+    val downloadDirectory: PlatformFile ,
     val userId: KomgaUserId = OfflineUser.ROOT,
     val serverId: OfflineMediaServerId? = null,
     val readProgressSyncDate: Instant? = null,

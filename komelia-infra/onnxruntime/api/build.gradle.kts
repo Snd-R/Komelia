@@ -23,7 +23,6 @@ kotlin {
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = "komelia-onnxruntime-shared"
         browser()
     }
 

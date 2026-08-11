@@ -50,7 +50,7 @@ class CollectionViewModel(
     private val notifications: AppNotifications,
     private val seriesApi: KomgaSeriesApi,
     private val komgaEvents: SharedFlow<KomgaEvent>,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     cardWidthFlow: Flow<Dp>
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 

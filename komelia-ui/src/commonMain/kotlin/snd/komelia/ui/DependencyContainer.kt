@@ -49,6 +49,6 @@ data class DependencyContainer(
     val upscaler: KomeliaUpscaler?,
     val panelDetector: KomeliaPanelDetector?,
 
-    val offlineDependencies: OfflineDependencies,
+    val offlineDependencies: OfflineDependencies?,
 )
 

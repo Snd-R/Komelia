@@ -49,7 +49,7 @@ class HomeViewModel(
     private val appNotifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val filterRepository: HomeScreenFilterRepository,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     cardWidthFlow: Flow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)

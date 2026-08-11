@@ -43,7 +43,7 @@ class SeriesBooksState(
     private val notifications: AppNotifications,
     private val bookApi: KomgaBookApi,
     private val events: SharedFlow<KomgaEvent>,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     private val screenModelScope: CoroutineScope,
     val cardWidth: StateFlow<Dp>,
     referentialApi: KomgaReferentialApi,
@@ -178,8 +178,8 @@ class SeriesBooksState(
         },
         markAsUnread = { books -> launchWithReloadLock { books.forEach { bookApi.deleteReadProgress(it.id) } } },
         delete = { books -> launchWithReloadLock { books.forEach { bookApi.deleteBook(it.id) } } },
-        download = { books -> launchWithReloadLock { books.forEach { taskEmitter.downloadBook(it.id) } } },
-        deleteDownloaded = { books -> launchWithReloadLock { books.forEach { taskEmitter.deleteBook(it.id) } } }
+        download = { books -> launchWithReloadLock { books.forEach { requireNotNull(taskEmitter).downloadBook(it.id) } } },
+        deleteDownloaded = { books -> launchWithReloadLock { books.forEach { taskEmitter?.deleteBook(it.id) } } }
     )
 
     private suspend fun launchWithReloadLock(block: suspend () -> Unit) {

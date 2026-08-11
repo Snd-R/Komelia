@@ -12,6 +12,5 @@ config.devServer = Object.assign(
                 target: 'http://localhost:25600',
             },
         ],
-
     }
 )

@@ -479,7 +479,7 @@ abstract class OfflineModule(
     }
 
     protected abstract fun createDivinaExtractors(): List<DivinaExtractor>
-    protected abstract fun createEpubExtractor(): EpubExtractor
+    protected abstract fun createEpubExtractor(): EpubExtractor?
     protected abstract fun createPlatformDownloadManager(
         downloadService: BookDownloadService,
         logJournalRepository: LogJournalRepository,

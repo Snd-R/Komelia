@@ -14,6 +14,6 @@ actual fun Url.resolve(childUrl: String): Url {
     return Url(jsUrl.toString())
 }
 
-private fun jsCodepoints(s: String): Int = js("return Array.from(s).length;")
+private fun jsCodepoints(s: String): Int = js("{ return Array.from(s).length; }")
 private fun toFixed(x: Float, num: Int): String = js("x.toFixed(num)")
 private fun toFixed(x: Double, num: Int): String = js("x.toFixed(num)")

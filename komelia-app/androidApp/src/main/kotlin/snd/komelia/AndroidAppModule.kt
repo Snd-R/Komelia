@@ -252,7 +252,7 @@ class AndroidAppModule(
         return if (BuildConfig.ENABLE_SELF_UPDATES) AndroidAppUpdater(updateClient, context) else null
     }
 
-    override fun createImageDecoder() = VipsImageDecoder()
+    override suspend fun createImageDecoder() = VipsImageDecoder()
 
     override suspend fun createReaderImageFactory(
         imageDecoder: KomeliaImageDecoder,

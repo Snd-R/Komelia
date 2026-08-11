@@ -33,6 +33,7 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.ConfirmationDialog
@@ -115,42 +116,6 @@ fun BookBulkActionDialogs(state: BookBulkActionsState) {
             )
         }
     }
-
-//    if (state.showDeleteDialog) {
-//        val textBody = remember(state.books.size) {
-//            buildString {
-//                if (state.books.size == 1) {
-//                    append("Book ")
-//                } else {
-//                    append("${state.books.size} books ")
-//                }
-//                append("will be removed from this server alongside with stored media files. This cannot be undone. Continue?")
-//            }
-//        }
-//
-//        val confirmationText = remember(state.books.size) {
-//            buildString {
-//                append("Yes, delete ")
-//                if (state.books.size == 1) {
-//                    append("book and its files")
-//                } else {
-//                    append("${state.books.size} books and their files")
-//                }
-//            }
-//        }
-//        ConfirmationDialog(
-//            title = "Delete Books",
-//            body = textBody,
-//            confirmText = confirmationText,
-//            onDialogConfirm = {
-//                coroutineScope.launch { state.actions.delete(state.books) }
-//                state.showDeleteDialog = false
-//            },
-//            onDialogDismiss = { state.showDeleteDialog = false },
-//            buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
-//        )
-//    }
-
 }
 
 @Composable
@@ -162,14 +127,15 @@ fun rememberBookBulkActionsState(
     val factory = LocalViewModelFactory.current
     val isOffline = LocalOfflineMode.current.collectAsState().value
     val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
-
+    val offlineAvailable = LocalOfflineAvailable.current
     return remember(books, actions, isOffline) {
         BookBulkActionsState(
             books = books,
             actions = actions ?: factory.getBookBulkActions(),
             isOffline = isOffline,
             isAdmin = isAdmin,
-            coroutineScope = coroutineScope
+            offlineAvailable = offlineAvailable,
+            coroutineScope = coroutineScope,
         )
     }
 }
@@ -179,6 +145,7 @@ data class BookBulkActionsState(
     val actions: BookBulkActions,
     private val isOffline: Boolean,
     private val isAdmin: Boolean,
+    private val offlineAvailable: Boolean,
     private val coroutineScope: CoroutineScope,
 ) {
 
@@ -186,7 +153,6 @@ data class BookBulkActionsState(
     var showEditDialog by mutableStateOf(false)
     var showDownloadDialog by mutableStateOf(false)
     var showDeleteDownloadedDialog by mutableStateOf(false)
-//    var showDeleteDialog by mutableStateOf(false)
 
     val buttons = buildList {
         add(
@@ -222,23 +188,14 @@ data class BookBulkActionsState(
                     icon = Icons.Default.AutoDelete,
                     onClick = { showDeleteDownloadedDialog = true }
                 ))
-        if (!isOffline && books.any { !it.downloaded })
+
+        if (offlineAvailable && !isOffline && books.any { !it.downloaded })
             add(
                 BulkActionButtonData(
                     description = Res.string.book_download,
                     icon = Icons.Default.Download,
                     onClick = { showDownloadDialog = true }
                 ))
-
-//        if (!isOffline && isAdmin) {
-//            add(
-//                BulkActionButtonData(
-//                    description = "Delete from server",
-//                    icon = Icons.Default.Delete,
-//                    onClick =
-//                        { showDeleteDialog = true }
-//                ))
-//        }
     }
 }
 
@@ -252,7 +209,7 @@ data class BookBulkActions(
 
     constructor(
         bookApi: KomgaBookApi,
-        taskEmitter: OfflineTaskEmitter,
+        taskEmitter: OfflineTaskEmitter?,
         notifications: AppNotifications,
     ) : this(
         markAsRead = { books ->
@@ -274,12 +231,12 @@ data class BookBulkActions(
         },
         download = { books ->
             books.forEach { book ->
-                taskEmitter.downloadBook(book.id)
+                checkNotNull(taskEmitter).downloadBook(book.id)
             }
         },
         deleteDownloaded = { books ->
             books.forEach { book ->
-                taskEmitter.deleteBook(book.id)
+                checkNotNull(taskEmitter).deleteBook(book.id)
             }
         }
     )

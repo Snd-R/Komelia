@@ -46,7 +46,7 @@ class ReadListViewModel(
     private val readListId: KomgaReadListId,
     private val readListApi: KomgaReadListApi,
     private val bookApi: KomgaBookApi,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     cardWidthFlow: Flow<Dp>

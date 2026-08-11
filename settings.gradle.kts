@@ -20,6 +20,7 @@ dependencyResolutionManagement {
 
 include(":komelia-app:androidApp")
 include(":komelia-app:desktopApp")
+include(":komelia-app:webApp")
 include(":komelia-app:shared")
 include(":komelia-domain:core")
 include(":komelia-domain:offline")
@@ -37,13 +38,13 @@ include(":komelia-infra:jni")
 include(":komelia-infra:onnxruntime:api")
 include(":komelia-infra:onnxruntime:jvm")
 include(":komelia-infra:webview")
-//
+
 //include(":komelia-komf-extension:app")
 //include(":komelia-komf-extension:content")
 //include(":komelia-komf-extension:background")
 //include(":komelia-komf-extension:popup")
 //include(":komelia-komf-extension:shared")
-//
+
 include(":third_party:ChipTextField:chiptextfield-core")
 include(":third_party:ChipTextField:chiptextfield-m3")
 include(":third_party:compose-sonner:sonner")

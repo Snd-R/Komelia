@@ -32,6 +32,7 @@ import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
@@ -186,7 +187,8 @@ fun SeriesActionsMenu(
             )
         }
 
-        if (!isOffline && showDownloadOption) {
+        val offlineAvailable = LocalOfflineAvailable.current
+        if (!isOffline && showDownloadOption && offlineAvailable) {
             DropdownMenuItem(
                 text = { Text("Download") },
                 onClick = { showDownloadDialog = true },
@@ -221,21 +223,6 @@ fun SeriesActionsMenu(
                 onClick = { showKomfResetDialog = true },
             )
         }
-
-//        if (isAdmin && !isOffline) {
-//            val deleteInteractionSource = remember { MutableInteractionSource() }
-//            val deleteIsHovered = deleteInteractionSource.collectIsHoveredAsState()
-//            val deleteColor =
-//                if (deleteIsHovered.value) Modifier.background(MaterialTheme.colorScheme.errorContainer)
-//                else Modifier
-//            DropdownMenuItem(
-//                text = { Text("Delete from server") },
-//                onClick = { showDeleteDialog = true },
-//                modifier = Modifier
-//                    .hoverable(deleteInteractionSource)
-//                    .then(deleteColor)
-//            )
-//        }
     }
 }
 
@@ -252,7 +239,7 @@ data class SeriesMenuActions(
     constructor(
         seriesApi: KomgaSeriesApi,
         notifications: AppNotifications,
-        taskEmitter: OfflineTaskEmitter,
+        taskEmitter: OfflineTaskEmitter?,
         scope: CoroutineScope,
     ) : this(
         analyze = {
@@ -277,7 +264,7 @@ data class SeriesMenuActions(
         delete = {
             notifications.runCatchingToNotifications(scope) { seriesApi.delete(it.id) }
         },
-        download = { scope.launch { taskEmitter.downloadSeries(it.id) } },
-        deleteDownloaded = { scope.launch { taskEmitter.deleteSeries(it.id) } }
+        download = { scope.launch { checkNotNull(taskEmitter).downloadSeries(it.id) } },
+        deleteDownloaded = { scope.launch { checkNotNull(taskEmitter).deleteSeries(it.id) } }
     )
 }

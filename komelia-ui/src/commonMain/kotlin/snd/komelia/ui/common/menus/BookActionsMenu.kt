@@ -37,6 +37,7 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.book.edit.BookEditDialog
@@ -161,7 +162,8 @@ fun BookActionsMenu(
                 onClick = { showEditDialog = true },
             )
         }
-        if (!isOffline && showDownloadOption) {
+        val offlineAvailable = LocalOfflineAvailable.current
+        if (!isOffline && showDownloadOption && offlineAvailable) {
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.book_download)) },
                 onClick = { showDownloadDialog = true },
@@ -175,7 +177,7 @@ fun BookActionsMenu(
                 if (deleteIsHovered.value) Modifier.background(MaterialTheme.colorScheme.errorContainer)
                 else Modifier
             DropdownMenuItem(
-                text = { Text(stringResource(Res.string.book_delete_downloaded) ) },
+                text = { Text(stringResource(Res.string.book_delete_downloaded)) },
                 onClick = { showDeleteDownloadedDialog = true },
                 modifier = Modifier
                     .hoverable(deleteInteractionSource)
@@ -199,7 +201,7 @@ data class BookMenuActions(
         bookApi: KomgaBookApi,
         notifications: AppNotifications,
         scope: CoroutineScope,
-        taskEmitter: OfflineTaskEmitter
+        taskEmitter: OfflineTaskEmitter?
     ) : this(
         analyze = {
             notifications.runCatchingToNotifications(scope) {
@@ -227,7 +229,7 @@ data class BookMenuActions(
         delete = {
             notifications.runCatchingToNotifications(scope) { bookApi.deleteBook(it.id) }
         },
-        download = { scope.launch { taskEmitter.downloadBook(it.id) } },
-        deleteDownloaded = { scope.launch { taskEmitter.deleteBook(it.id) } }
+        download = { scope.launch { checkNotNull(taskEmitter).downloadBook(it.id) } },
+        deleteDownloaded = { scope.launch { checkNotNull(taskEmitter).deleteBook(it.id) } }
     )
 }

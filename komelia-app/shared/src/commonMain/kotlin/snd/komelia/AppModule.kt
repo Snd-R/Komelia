@@ -13,6 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,36 +117,39 @@ abstract class AppModule {
 
         val imageDecoder = createImageDecoder()
 
-        val isOffline = offlineRepositories.offlineSettingsRepository.getOfflineMode().stateIn(initScope)
+        val isOffline = offlineRepositories?.offlineSettingsRepository?.getOfflineMode()?.stateIn(initScope)
+            ?: MutableStateFlow(false)
         val currentUserFlow = MutableStateFlow<KomgaUser?>(null)
         val currentServerUrl = appRepositories.settingsRepository.getServerUrl().stateIn(initScope)
 
         val androidContext = createCoilContext()
-        val offlineModule: OfflineDependencies = createOfflineModule(
-            repositories = offlineRepositories,
-            komgaClientFactory = komgaClientFactory,
-            onlineUser = currentUserFlow
-                .combine(isOffline) { user, isOffline -> if (isOffline) null else user }
-                .stateIn(initScope),
-            onlineServerUrl = appRepositories.settingsRepository.getServerUrl().stateIn(initScope),
-            isOffline = isOffline,
-        ).initDependencies()
+        val offlineModule: OfflineDependencies? = offlineRepositories?.let {
+            createOfflineModule(
+                repositories = offlineRepositories,
+                komgaClientFactory = komgaClientFactory,
+                onlineUser = currentUserFlow
+                    .combine(isOffline) { user, isOffline -> if (isOffline) null else user }
+                    .stateIn(initScope),
+                onlineServerUrl = appRepositories.settingsRepository.getServerUrl().stateIn(initScope),
+                isOffline = isOffline,
+            )?.initDependencies()
+        }
 
         val komgaApi = isOffline.map { offline ->
-            if (offline) offlineModule.komgaApi
+            if (offline && offlineModule != null) offlineModule.komgaApi
             else createRemoteApi(
                 komgaClientFactory = komgaClientFactory,
                 offlineRepositories = offlineRepositories,
-                offlineEvents = offlineModule.komgaEvents
+                offlineEvents = offlineModule?.komgaEvents
             )
         }.stateIn(initScope)
 
         val komgaNoRemoteCacheApi = isOffline.map { offline ->
-            if (offline) offlineModule.komgaApi
+            if (offline && offlineModule!=null) offlineModule.komgaApi
             else createRemoteApi(
                 komgaClientFactory = komgaClientFactoryNoCache,
                 offlineRepositories = offlineRepositories,
-                offlineEvents = offlineModule.komgaEvents
+                offlineEvents = offlineModule?.komgaEvents
             )
         }.stateIn(initScope)
 
@@ -203,7 +207,7 @@ abstract class AppModule {
             onnxRuntimeUpscaler = upscaler,
         )
 
-        return DependencyContainer(
+        val dependencies = DependencyContainer(
             appRepositories = appRepositories,
 
             komgaApi = komgaApi,
@@ -232,27 +236,30 @@ abstract class AppModule {
             panelDetector = panelDetector,
             offlineDependencies = offlineModule,
         )
+        afterInit(dependencies)
+        return dependencies
     }
 
     protected open suspend fun beforeInit() = Unit
+    protected open suspend fun afterInit(dependencies: DependencyContainer) = Unit
 
     protected fun createRemoteApi(
         komgaClientFactory: KomgaClientFactory,
-        offlineRepositories: OfflineRepositories,
-        offlineEvents: SharedFlow<KomgaEvent>,
+        offlineRepositories: OfflineRepositories?,
+        offlineEvents: SharedFlow<KomgaEvent>?,
     ) = RemoteApi(
         actuatorApi = RemoteActuatorApi(komgaClientFactory.actuatorClient()),
         announcementsApi = RemoteAnnouncementsApi(komgaClientFactory.announcementClient()),
         bookApi = RemoteBookApi(
             bookClient = komgaClientFactory.bookClient(),
-            offlineBookRepository = offlineRepositories.bookRepository
+            offlineBookRepository = offlineRepositories?.bookRepository
         ),
         collectionsApi = RemoteCollectionsApi(komgaClientFactory.collectionClient()),
         fileSystemApi = RemoteFileSystemApi(komgaClientFactory.fileSystemClient()),
         libraryApi = RemoteLibraryApi(komgaClientFactory.libraryClient()),
         readListApi = RemoteReadListApi(
             readListClient = komgaClientFactory.readListClient(),
-            offlineBookRepository = offlineRepositories.bookRepository
+            offlineBookRepository = offlineRepositories?.bookRepository
         ),
         referentialApi = RemoteReferentialApi(komgaClientFactory.referentialClient()),
         seriesApi = RemoteSeriesApi(komgaClientFactory.seriesClient()),
@@ -260,7 +267,7 @@ abstract class AppModule {
         tasksApi = RemoteTaskApi(komgaClientFactory.taskClient()),
         userApi = RemoteUserApi(komgaClientFactory.userClient()),
         komgaClientFactory = komgaClientFactory,
-        offlineEvents = offlineEvents
+        offlineEvents = offlineEvents ?: MutableSharedFlow()
     )
 
     protected fun createCoil(
@@ -325,13 +332,13 @@ abstract class AppModule {
 
 
     protected abstract suspend fun createAppRepositories(): AppRepositories
-    protected abstract suspend fun createOfflineRepositories(): OfflineRepositories
+    protected abstract suspend fun createOfflineRepositories(): OfflineRepositories?
     protected abstract fun createKtorClient(): HttpClient
     protected abstract fun createKtorClientWithoutCache(): HttpClient
 
     protected abstract fun createAppUpdater(updateClient: UpdateClient): AppUpdater?
 
-    protected abstract fun createImageDecoder(): KomeliaImageDecoder
+    protected abstract suspend fun createImageDecoder(): KomeliaImageDecoder
     protected abstract suspend fun createReaderImageFactory(
         imageDecoder: KomeliaImageDecoder,
         pipeline: ImageProcessingPipeline,
@@ -366,5 +373,5 @@ abstract class AppModule {
         onlineServerUrl: StateFlow<String>,
         isOffline: StateFlow<Boolean>,
         komgaClientFactory: KomgaClientFactory,
-    ): OfflineModule
+    ): OfflineModule?
 }

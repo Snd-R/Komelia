@@ -35,7 +35,7 @@ class SettingsNavigationViewModel(
     private val userApi: KomgaUserApi,
     private val komgaSharedState: KomgaAuthenticationState,
     private val secretsRepository: SecretsRepository,
-    private val offlineSettingsRepository: OfflineSettingsRepository,
+    private val offlineSettingsRepository: OfflineSettingsRepository?,
     private val isOffline: StateFlow<Boolean>,
     private val currentServerUrl: Flow<String>,
     private val bookApi: KomgaBookApi,
@@ -71,7 +71,7 @@ class SettingsNavigationViewModel(
     fun logout() {
         appNotifications.runCatchingToNotifications(screenModelScope) {
             if (isOffline.value) {
-                offlineSettingsRepository.putOfflineMode(false)
+                checkNotNull(offlineSettingsRepository).putOfflineMode(false)
             } else {
                 runCatching { userApi.logout() }
             }

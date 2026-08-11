@@ -16,7 +16,7 @@ import snd.komga.client.readlist.KomgaReadListUpdateRequest
 
 class RemoteReadListApi(
     private val readListClient: KomgaReadListClient,
-    private val offlineBookRepository: OfflineBookRepository,
+    private val offlineBookRepository: OfflineBookRepository?,
 ) : KomgaReadListApi {
     override suspend fun getAll(
         search: String?,
@@ -41,7 +41,8 @@ class RemoteReadListApi(
         pageRequest: KomgaPageRequest?
     ): Page<KomeliaBook> {
         val bookPage = readListClient.getBooksForReadList(id, query, pageRequest)
-        val offlineBooks = offlineBookRepository.findIn(bookPage.content.map { it.id }).associateBy { it.id }
+        val offlineBooks = offlineBookRepository?.findIn(bookPage.content.map { it.id })?.associateBy { it.id }
+            ?: emptyMap()
         val komeliaBooks = bookPage.content.map {
             val offlineBook = offlineBooks[it.id]
             KomeliaBook(
@@ -86,7 +87,7 @@ class RemoteReadListApi(
     ): KomeliaBook? {
         val book = readListClient.getBookSiblingNext(readListId, bookId)
         return book?.let {
-            val offlineBook = offlineBookRepository.find(it.id)
+            val offlineBook = offlineBookRepository?.find(it.id)
             KomeliaBook(
                 book = book,
                 downloaded = offlineBook != null,
@@ -102,7 +103,7 @@ class RemoteReadListApi(
     ): KomeliaBook? {
         val book = readListClient.getBookSiblingPrevious(readListId, bookId)
         return book?.let {
-            val offlineBook = offlineBookRepository.find(it.id)
+            val offlineBook = offlineBookRepository?.find(it.id)
             KomeliaBook(
                 book = book,
                 downloaded = offlineBook != null,

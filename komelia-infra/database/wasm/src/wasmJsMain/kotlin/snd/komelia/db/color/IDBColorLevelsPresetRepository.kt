@@ -1,9 +1,9 @@
 package snd.komelia.db.color
 
-import Database
-import com.juul.indexeddb.external.IDBKey
-import io.github.snd_r.komelia.color.ColorLevelsPreset
-import io.github.snd_r.komelia.color.repository.ColorLevelsPresetRepository
+import com.juul.indexeddb.Database
+import snd.komelia.color.ColorLevelsPreset
+import snd.komelia.color.repository.ColorLevelsPresetRepository
+import snd.komelia.db.Key
 import snd.komelia.db.color.jsModel.JsColorLevelsPreset
 import snd.komelia.db.color.jsModel.toColorLevelsPreset
 import snd.komelia.db.color.jsModel.toJs
@@ -24,14 +24,14 @@ class IDBColorLevelsPresetRepository(
     }
 
     override suspend fun savePreset(preset: ColorLevelsPreset) {
-         database.writeTransaction(colorLevelsPresets) {
-            objectStore(colorLevelsPresets).put(preset.toJs(), IDBKey(preset.name))
+        database.writeTransaction(colorLevelsPresets) {
+            objectStore(colorLevelsPresets).put(preset.toJs(), Key(preset.name))
         }
     }
 
     override suspend fun deletePreset(preset: ColorLevelsPreset) {
         database.writeTransaction(colorLevelsPresets) {
-            objectStore(colorLevelsPresets).delete(IDBKey(preset.name))
+            objectStore(colorLevelsPresets).delete(Key(preset.name))
         }
     }
 }

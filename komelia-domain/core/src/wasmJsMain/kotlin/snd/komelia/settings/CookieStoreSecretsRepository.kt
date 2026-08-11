@@ -1,4 +1,4 @@
-package io.github.snd_r.komelia.settings
+package snd.komelia.settings
 
 import kotlinx.browser.document
 

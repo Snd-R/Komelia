@@ -258,7 +258,7 @@ class DesktopAppModule(
 
     override fun createAppUpdater(updateClient: UpdateClient) = DesktopAppUpdater(updateClient)
 
-    override fun createImageDecoder() = VipsImageDecoder()
+    override suspend fun createImageDecoder() = VipsImageDecoder()
 
     override suspend fun createReaderImageFactory(
         imageDecoder: KomeliaImageDecoder,

@@ -59,6 +59,7 @@ import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.settings.model.BooksLayout
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.collection.SeriesCollectionsContent
@@ -275,7 +276,8 @@ fun SeriesToolBar(
                 }
             }
             var showDownloadConfirmationDialog by remember { mutableStateOf(false) }
-            if (!isOffline) {
+            val offlineAvailable = LocalOfflineAvailable.current
+            if (!isOffline && offlineAvailable) {
                 IconButton(
                     onClick = { showDownloadConfirmationDialog = true },
                 ) {

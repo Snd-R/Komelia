@@ -38,6 +38,7 @@ import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.ConfirmationDialog
@@ -82,7 +83,11 @@ fun SeriesBulkActionDialogs(
     if (state.showDeleteDownloadedDialog) {
         ConfirmationDialog(
             title = stringResource(Res.string.series_delete_confirm_title),
-            body = pluralStringResource(Res.plurals.series_bulk_delete_confirm_body, state.series.size, state.series.size),
+            body = pluralStringResource(
+                Res.plurals.series_bulk_delete_confirm_body,
+                state.series.size,
+                state.series.size
+            ),
             onDialogConfirm = {
                 coroutineScope.launch { state.actions.deleteDownloaded(state.series) }
                 state.showDeleteDownloadedDialog = false
@@ -140,6 +145,7 @@ fun rememberSeriesBulkActionsState(
     val isOffline = LocalOfflineMode.current.collectAsState().value
     val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
     val isKomfEnabled = LocalKomfIntegration.current.collectAsState(false).value
+    val offlineAvailable = LocalOfflineAvailable.current
 
     return remember(series, coroutineScope, isOffline, isAdmin, isKomfEnabled) {
         SeriesBulkActionsState(
@@ -148,7 +154,8 @@ fun rememberSeriesBulkActionsState(
             coroutineScope = coroutineScope,
             isOffline = isOffline,
             isAdmin = isAdmin,
-            isKomfEnabled = isKomfEnabled
+            isKomfEnabled = isKomfEnabled,
+            offlineAvailable = offlineAvailable
         )
     }
 }
@@ -160,6 +167,7 @@ data class SeriesBulkActionsState(
     private val isOffline: Boolean,
     private val isKomfEnabled: Boolean,
     private val isAdmin: Boolean,
+    private val offlineAvailable: Boolean
 ) {
     var showAddToCollectionDialog by mutableStateOf(false)
     var showEditDialog by mutableStateOf(false)
@@ -201,7 +209,7 @@ data class SeriesBulkActionsState(
             )
         }
 
-        if (!isOffline) {
+        if (!isOffline && offlineAvailable) {
             add(
                 BulkActionButtonData(
                     description = Res.string.series_download,
@@ -244,7 +252,7 @@ data class SeriesBulkActions(
     constructor(
         seriesApi: KomgaSeriesApi,
         komfClient: KomfMetadataClient,
-        taskEmitter: OfflineTaskEmitter,
+        taskEmitter: OfflineTaskEmitter?,
         notifications: AppNotifications,
     ) : this(
         markAsRead = { series ->
@@ -264,10 +272,10 @@ data class SeriesBulkActions(
             }
         },
         download = { series ->
-            series.forEach { taskEmitter.downloadSeries(it.id) }
+            series.forEach { checkNotNull(taskEmitter).downloadSeries(it.id) }
         },
         deleteDownloaded = { series ->
-            series.forEach { taskEmitter.deleteSeries(it.id) }
+            series.forEach { checkNotNull(taskEmitter).deleteSeries(it.id) }
         },
         komfIdentify = { series ->
             series.forEach {

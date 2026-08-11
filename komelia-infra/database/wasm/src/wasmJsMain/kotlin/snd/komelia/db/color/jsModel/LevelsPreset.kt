@@ -1,6 +1,6 @@
 package snd.komelia.db.color.jsModel
 
-import io.github.snd_r.komelia.color.ColorLevelsPreset
+import snd.komelia.color.ColorLevelsPreset
 import snd.komelia.db.makeJsObject
 import snd.komelia.db.set
 

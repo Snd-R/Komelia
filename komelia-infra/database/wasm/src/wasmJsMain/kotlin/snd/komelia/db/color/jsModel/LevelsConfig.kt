@@ -1,7 +1,7 @@
 package snd.komelia.db.color.jsModel
 
-import io.github.snd_r.komelia.color.ColorLevelChannels
-import io.github.snd_r.komelia.color.ColorLevelsConfig
+import snd.komelia.color.ColorLevelChannels
+import snd.komelia.color.ColorLevelsConfig
 import snd.komelia.db.makeJsObject
 import snd.komelia.db.set
 

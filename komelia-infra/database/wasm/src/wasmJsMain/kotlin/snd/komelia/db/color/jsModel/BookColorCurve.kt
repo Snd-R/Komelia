@@ -1,7 +1,7 @@
 package snd.komelia.db.color.jsModel
 
-import io.github.snd_r.komelia.color.ColorCurveBookPoints
-import io.github.snd_r.komelia.color.ColorCurvePoints
+import snd.komelia.color.ColorCurveBookPoints
+import snd.komelia.color.ColorCurvePoints
 import snd.komelia.db.makeJsObject
 import snd.komelia.db.set
 import snd.komga.client.book.KomgaBookId

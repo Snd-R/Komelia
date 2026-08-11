@@ -47,7 +47,7 @@ class BookViewModel(
     private val notifications: AppNotifications,
     private val komgaEvents: SharedFlow<KomgaEvent>,
     private val libraries: StateFlow<List<KomgaLibrary>>,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     settingsRepository: CommonSettingsRepository,
     readListApi: KomgaReadListApi,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
@@ -122,13 +122,13 @@ class BookViewModel(
 
     fun onBookDownload() {
         screenModelScope.launch {
-            book.value?.let { taskEmitter.downloadBook(it.id) }
+            book.value?.let { checkNotNull(taskEmitter).downloadBook(it.id) }
         }
     }
 
     fun onBookDownloadDelete() {
         screenModelScope.launch {
-            book.value?.let { taskEmitter.deleteBook(it.id) }
+            book.value?.let { checkNotNull(taskEmitter).deleteBook(it.id) }
         }
     }
 

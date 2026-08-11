@@ -54,6 +54,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_naviga
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_updates
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_user_settings
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.dialogs.ConfirmationDialog
@@ -98,6 +99,7 @@ fun SettingsNavigationMenu(
     Column(
         modifier = modifier.verticalScroll(rememberScrollState())
     ) {
+        val offlineAvailable = LocalOfflineAvailable.current
         val isOffline = LocalOfflineMode.current.collectAsState().value
         Text(
             stringResource(Res.string.settings_navigation_app_settings),
@@ -132,12 +134,14 @@ fun SettingsNavigationMenu(
                 color = contentColor,
             )
         }
-        NavigationButton(
-            label = stringResource(Res.string.settings_navigation_offline_mode),
-            onClick = { onNavigation(OfflineSettingsScreen()) },
-            isSelected = currentScreen is OfflineSettingsScreen,
-            color = contentColor,
-        )
+        if (offlineAvailable) {
+            NavigationButton(
+                label = stringResource(Res.string.settings_navigation_offline_mode),
+                onClick = { onNavigation(OfflineSettingsScreen()) },
+                isSelected = currentScreen is OfflineSettingsScreen,
+                color = contentColor,
+            )
+        }
 
         HorizontalDivider(Modifier.padding(vertical = 10.dp))
 

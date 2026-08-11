@@ -47,7 +47,7 @@ class SeriesViewModel(
     private val notifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
     private val seriesApi: KomgaSeriesApi,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     bookApi: KomgaBookApi,
     collectionApi: KomgaCollectionsApi,
     referentialApi: KomgaReferentialApi,
@@ -129,7 +129,7 @@ class SeriesViewModel(
 
     fun onDownload() {
         screenModelScope.launch {
-            series.value?.let { taskEmitter.downloadSeries(it.id) }
+            series.value?.let { checkNotNull(taskEmitter).downloadSeries(it.id) }
         }
     }
 

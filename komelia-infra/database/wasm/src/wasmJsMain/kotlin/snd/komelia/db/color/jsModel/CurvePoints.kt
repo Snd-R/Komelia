@@ -1,8 +1,8 @@
 package snd.komelia.db.color.jsModel
 
-import io.github.snd_r.komelia.color.ColorCurvePoints
-import io.github.snd_r.komelia.color.CurvePoint
-import io.github.snd_r.komelia.color.CurvePointType
+import snd.komelia.color.ColorCurvePoints
+import snd.komelia.color.CurvePoint
+import snd.komelia.color.CurvePointType
 import snd.komelia.db.makeJsObject
 import snd.komelia.db.set
 

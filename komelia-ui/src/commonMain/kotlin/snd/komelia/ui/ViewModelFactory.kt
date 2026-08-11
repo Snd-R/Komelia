@@ -129,7 +129,7 @@ class ViewModelFactory(
             komgaEvents = dependencies.komgaEvents.events,
             libraryFlow = getLibraryFlow(libraryId),
             settingsRepository = appRepositories.settingsRepository,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
     }
 
@@ -140,7 +140,7 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             komgaEvents = dependencies.komgaEvents.events,
             filterRepository = appRepositories.homeScreenFilterRepository,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
             cardWidthFlow = getGridCardWidth(),
         )
     }
@@ -174,11 +174,11 @@ class ViewModelFactory(
             ),
             notificationsState = NotificationsState(
                 komgaEvents = dependencies.komgaEvents.events,
-                bookDownloadEvents = dependencies.offlineDependencies.bookDownloadEvents
+                bookDownloadEvents = dependencies.offlineDependencies?.bookDownloadEvents
             ),
             libraries = dependencies.komgaSharedState.libraries,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
     }
 
@@ -191,7 +191,7 @@ class ViewModelFactory(
         series = series,
         libraries = dependencies.komgaSharedState.libraries,
         seriesApi = komgaApi.seriesApi,
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         bookApi = komgaApi.bookApi,
         collectionApi = komgaApi.collectionsApi,
         notifications = dependencies.appNotifications,
@@ -211,7 +211,7 @@ class ViewModelFactory(
             libraries = dependencies.komgaSharedState.libraries,
             settingsRepository = appRepositories.settingsRepository,
             readListApi = komgaApi.readListApi,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
     }
 
@@ -228,7 +228,7 @@ class ViewModelFactory(
         events = dependencies.komgaEvents.events,
         notifications = dependencies.appNotifications,
         libraries = dependencies.komgaSharedState.libraries,
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         settingsRepository = appRepositories.settingsRepository,
         readListApi = komgaApi.readListApi,
         collectionApi = komgaApi.collectionsApi,
@@ -268,10 +268,10 @@ class ViewModelFactory(
             komgaAuthState = dependencies.komgaSharedState,
             notifications = dependencies.appNotifications,
             platform = platformType,
-            offlineUserRepository = dependencies.offlineDependencies.repositories.userRepository,
-            offlineServerRepository = dependencies.offlineDependencies.repositories.mediaServerRepository,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            offlineLibraryApi = dependencies.offlineDependencies.komgaApi.libraryApi,
+            offlineUserRepository = dependencies.offlineDependencies?.repositories?.userRepository,
+            offlineServerRepository = dependencies.offlineDependencies?.repositories?.mediaServerRepository,
+            offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
+            offlineLibraryApi = dependencies.offlineDependencies?.komgaApi?.libraryApi,
         )
     }
 
@@ -450,7 +450,7 @@ class ViewModelFactory(
             userApi = komgaApi.userApi,
             komgaSharedState = dependencies.komgaSharedState,
             secretsRepository = appRepositories.secretsRepository,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
+            offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
             isOffline = dependencies.isOffline,
             currentServerUrl = appRepositories.settingsRepository.getServerUrl(),
             bookApi = komgaApi.bookApi,
@@ -483,7 +483,7 @@ class ViewModelFactory(
             seriesApi = komgaApi.seriesApi,
             komgaEvents = dependencies.komgaEvents.events,
             cardWidthFlow = getGridCardWidth(),
-            taskEmitter = dependencies.offlineDependencies.taskEmitter
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter
         )
     }
 
@@ -492,7 +492,7 @@ class ViewModelFactory(
             readListId = readListId,
             readListApi = komgaApi.readListApi,
             bookApi = komgaApi.bookApi,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
             notifications = dependencies.appNotifications,
             komgaEvents = dependencies.komgaEvents.events,
             cardWidthFlow = getGridCardWidth()
@@ -636,7 +636,7 @@ class ViewModelFactory(
     fun getSeriesBulkActions() = SeriesBulkActions(
         seriesApi = komgaApi.seriesApi,
         komfClient = dependencies.komfClientFactory.metadataClient(KOMGA),
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         notifications = dependencies.appNotifications,
     )
 
@@ -647,7 +647,7 @@ class ViewModelFactory(
 
     fun getBookBulkActions() = BookBulkActions(
         bookApi = komgaApi.bookApi,
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         notifications = dependencies.appNotifications
     )
 
@@ -674,32 +674,34 @@ class ViewModelFactory(
     }
 
     fun getOfflineModeSettingsViewModel(): OfflineSettingsViewModel {
+        val offlineDependencies = checkNotNull(dependencies.offlineDependencies)
         return OfflineSettingsViewModel(
             authState = dependencies.komgaSharedState,
             appNotifications = dependencies.appNotifications,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            userRepository = dependencies.offlineDependencies.repositories.userRepository,
-            serverRepository = dependencies.offlineDependencies.repositories.mediaServerRepository,
-            logJournalRepository = dependencies.offlineDependencies.repositories.logJournalRepository,
-            serverDeleteAction = dependencies.offlineDependencies.actions.get(),
-            userDeleteAction = dependencies.offlineDependencies.actions.get(),
+            offlineSettingsRepository = offlineDependencies.repositories.offlineSettingsRepository,
+            userRepository = offlineDependencies.repositories.userRepository,
+            serverRepository = offlineDependencies.repositories.mediaServerRepository,
+            logJournalRepository = offlineDependencies.repositories.logJournalRepository,
+            serverDeleteAction = offlineDependencies.actions.get(),
+            userDeleteAction = offlineDependencies.actions.get(),
             platformContext = dependencies.coilContext,
 
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
-            downloadEvents = dependencies.offlineDependencies.bookDownloadEvents
+            taskEmitter = offlineDependencies.taskEmitter,
+            downloadEvents = offlineDependencies.bookDownloadEvents
         )
     }
 
     fun getOfflineLoginViewModel(): OfflineLoginViewModel {
+        val offlineDependencies = checkNotNull(dependencies.offlineDependencies)
         return OfflineLoginViewModel(
             appNotifications = dependencies.appNotifications,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            userRepository = dependencies.offlineDependencies.repositories.userRepository,
-            serverRepository = dependencies.offlineDependencies.repositories.mediaServerRepository,
+            offlineSettingsRepository = offlineDependencies.repositories.offlineSettingsRepository,
+            userRepository = offlineDependencies.repositories.userRepository,
+            serverRepository = offlineDependencies.repositories.mediaServerRepository,
             komgaAuthState = dependencies.komgaSharedState,
-            offlineLibraryApi = dependencies.offlineDependencies.komgaApi.libraryApi,
-            serverDeleteAction = dependencies.offlineDependencies.actions.get(),
-            userDeleteAction = dependencies.offlineDependencies.actions.get(),
+            offlineLibraryApi = offlineDependencies.komgaApi.libraryApi,
+            serverDeleteAction = offlineDependencies.actions.get(),
+            userDeleteAction = offlineDependencies.actions.get(),
         )
     }
 

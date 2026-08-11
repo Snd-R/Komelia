@@ -1,7 +1,7 @@
 package snd.komelia.db.settings
 
-import io.github.snd_r.komelia.fonts.UserFont
-import io.github.snd_r.komelia.fonts.UserFontsRepository
+import snd.komelia.fonts.UserFont
+import snd.komelia.fonts.UserFontsRepository
 
 class NoopFontsRepository : UserFontsRepository {
     override suspend fun getAllFonts(): List<UserFont> {

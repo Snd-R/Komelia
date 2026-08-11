@@ -112,9 +112,10 @@ fun MainView(
                 LocalWindowHeight provides windowHeight,
                 LocalLibraries provides dependencies.komgaSharedState.libraries,
                 LocalReloadEvents provides viewModelFactory.screenReloadEvents,
-                LocalBookDownloadEvents provides dependencies.offlineDependencies.bookDownloadEvents,
+                LocalBookDownloadEvents provides dependencies.offlineDependencies?.bookDownloadEvents,
                 LocalOfflineMode provides dependencies.isOffline,
-                LocalKomgaState provides dependencies.komgaSharedState
+                LocalKomgaState provides dependencies.komgaSharedState,
+                LocalOfflineAvailable provides (dependencies.offlineDependencies != null)
             ) {
                 MainContent(platformType, dependencies.komgaSharedState)
 

@@ -1,5 +1,7 @@
 package snd.komelia.db
 
+import com.juul.indexeddb.Key
+
 internal fun <T : JsAny> makeJsObject(): T = js("{ return {}; }")
 
 @Suppress("UNUSED_PARAMETER")
@@ -16,3 +18,5 @@ internal operator fun JsAny.set(name: String, value: JsAny) =
 
 internal operator fun JsAny.set(name: String, value: String) =
     setObjectField(this, name, value.toJsString())
+
+fun Key(key: String): Key = Key(key.toJsString())

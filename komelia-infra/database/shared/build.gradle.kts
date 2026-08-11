@@ -22,7 +22,6 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = "komelia-infra-database-shared"
         browser()
     }
 

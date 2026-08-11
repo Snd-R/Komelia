@@ -54,6 +54,7 @@ import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.sync.model.DownloadEvent
 import snd.komelia.ui.LocalBookDownloadEvents
 import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.BookReadButton
@@ -238,6 +239,7 @@ private fun FlowRowScope.BookMainInfo(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val offlineAvailable = LocalOfflineAvailable.current
 
             if (!book.deleted && !library.unavailable) {
                 if (readIsSupported(book)) {
@@ -246,11 +248,11 @@ private fun FlowRowScope.BookMainInfo(
                         onIncognitoRead = { onBookReadPress(false) },
                     )
                 }
-                if (!book.downloaded || book.isLocalFileOutdated) {
+                if (offlineAvailable && (!book.downloaded || book.isLocalFileOutdated)) {
                     DownloadButton(book, onDownload)
                 }
             }
-            if (book.downloaded) {
+            if (offlineAvailable && book.downloaded) {
                 ElevatedButton(
                     onClick = onDownloadDelete,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.errorContainer)

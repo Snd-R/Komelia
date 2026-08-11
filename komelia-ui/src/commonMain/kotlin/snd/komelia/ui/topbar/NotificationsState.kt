@@ -24,7 +24,7 @@ private typealias NotificationId = String
 
 class NotificationsState(
     private val komgaEvents: SharedFlow<KomgaEvent>,
-    bookDownloadEvents: SharedFlow<DownloadEvent>,
+    bookDownloadEvents: SharedFlow<DownloadEvent>?,
 ) {
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val notificationMap: MutableStateFlow<Map<NotificationId, Notification>> = MutableStateFlow(emptyMap())
@@ -37,13 +37,13 @@ class NotificationsState(
 
 
     init {
-        bookDownloadEvents.onEach { event ->
+        bookDownloadEvents?.onEach { event ->
             when (event) {
                 is DownloadEvent.BookDownloadProgress -> handleBookProgress(event)
                 is DownloadEvent.BookDownloadCompleted -> handleBookCompleted(event)
                 is DownloadEvent.BookDownloadError -> {}
             }
-        }.launchIn(coroutineScope)
+        }?.launchIn(coroutineScope)
     }
 
     private fun handleBookProgress(event: DownloadEvent.BookDownloadProgress) {

@@ -1,14 +1,14 @@
 package snd.komelia.ui.platform
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.BrowserCursor
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.fromKeyword
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 
-//TODO do not use internal classes
-@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+@OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.cursorForMove() =
-    this.pointerHoverIcon(BrowserCursor("move"))
+    this.pointerHoverIcon(PointerIcon.fromKeyword("move"))
 
 actual fun Modifier.cursorForHand(): Modifier =
     this.pointerHoverIcon(PointerIcon.Hand)

@@ -1,9 +1,9 @@
 package snd.komelia.db.color
 
-import Database
-import com.juul.indexeddb.external.IDBKey
-import io.github.snd_r.komelia.color.ColorCurvePreset
-import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
+import com.juul.indexeddb.Database
+import snd.komelia.color.ColorCurvePreset
+import snd.komelia.color.repository.ColorCurvePresetRepository
+import snd.komelia.db.Key
 import snd.komelia.db.color.jsModel.JsColorCurvePreset
 import snd.komelia.db.color.jsModel.toColorCurvePreset
 import snd.komelia.db.color.jsModel.toJs
@@ -23,13 +23,13 @@ class IDBColorCurvesPresetRepository(private val database: Database) : ColorCurv
 
     override suspend fun savePreset(preset: ColorCurvePreset) {
         database.writeTransaction(colorCurvePresets) {
-            objectStore(colorCurvePresets).put(preset.toJs(), IDBKey(preset.name))
+            objectStore(colorCurvePresets).put(preset.toJs(), Key(preset.name))
         }
     }
 
     override suspend fun deletePreset(preset: ColorCurvePreset) {
         database.writeTransaction(colorCurvePresets) {
-            objectStore(colorCurvePresets).delete(IDBKey(preset.name))
+            objectStore(colorCurvePresets).delete(Key(preset.name))
         }
     }
 }
