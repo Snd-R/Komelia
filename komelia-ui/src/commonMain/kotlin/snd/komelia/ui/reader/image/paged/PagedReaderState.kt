@@ -121,9 +121,11 @@ class PagedReaderState(
                 )
                 val containerSize = screenScaleState.areaSize.value
                 val pagesMeta = spread.pages.map { it.metadata }
+                val gtcApplied = pagesMeta.singleOrNull()?.let { isGtcApplicable(it, containerSize) } ?: false
                 val maxPageSize = getMaxPageSize(pagesMeta, gtcAdjustedContainerSize(pagesMeta, containerSize))
                 val targetSize = fitToScreenZoom(spread.pages, maxPageSize, layout.value)
-                screenScaleState.setTargetSize(targetSize.toSize())
+                val targetSizeForScale = if (gtcApplied) IntSize(targetSize.height, targetSize.width) else targetSize
+                screenScaleState.setTargetSize(targetSizeForScale.toSize())
                 delay(100)
             }
             .launchIn(stateScope)
@@ -592,11 +594,16 @@ class PagedReaderState(
         scaleState.setAreaSize(areaSize)
 
         val fitToScreenSize = fitToScreenZoom(pages, maxPageSize, displayLayout)
-        scaleState.setTargetSize(fitToScreenSize.toSize())
+        val targetSizeForScale = if (gtcRotationApplied) {
+            // fitToScreenSize was computed against a width/height-swapped maxPageSize
+            // (see gtcAdjustedContainerSize), so it is expressed in rotated-page space.
+            // Swap it back to real screen space so the zoom-limit math below compares
+            // matching axes against areaSize.
+            IntSize(fitToScreenSize.height, fitToScreenSize.width)
+        } else fitToScreenSize
+        scaleState.setTargetSize(targetSizeForScale.toSize())
 
         if (gtcRotationApplied) {
-            // page dimensions are rotated relative to screen space (see isGtcApplicable),
-            // so the scaleType comparisons below don't apply cleanly - always fit to screen.
             scaleState.setZoom(0f)
             return scaleState
         }
