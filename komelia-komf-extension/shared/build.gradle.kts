@@ -8,7 +8,6 @@ plugins {
 
 kotlin {
     wasmJs {
-        outputModuleName = "shared"
         binaries.executable()
         browser()
     }

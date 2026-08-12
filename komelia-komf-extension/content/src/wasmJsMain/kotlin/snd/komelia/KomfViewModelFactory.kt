@@ -1,16 +1,15 @@
 package snd.komelia
 
-import io.github.snd_r.komelia.AppNotifications
-import io.github.snd_r.komelia.settings.KomfSettingsRepository
-import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
-import io.github.snd_r.komelia.ui.dialogs.komf.identify.KomfLibraryIdentifyViewmodel
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
-import io.github.snd_r.komelia.ui.settings.komf.KomfSharedState
-import io.github.snd_r.komelia.ui.settings.komf.general.KomfSettingsViewModel
-import io.github.snd_r.komelia.ui.settings.komf.jobs.KomfJobsViewModel
-import io.github.snd_r.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel
-import io.github.snd_r.komelia.ui.settings.komf.processing.KomfProcessingSettingsViewModel
-import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel
+import snd.komelia.settings.KomfSettingsRepository
+import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
+import snd.komelia.ui.dialogs.komf.identify.KomfLibraryIdentifyViewmodel
+import snd.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
+import snd.komelia.ui.settings.komf.KomfSharedState
+import snd.komelia.ui.settings.komf.general.KomfSettingsViewModel
+import snd.komelia.ui.settings.komf.jobs.KomfJobsViewModel
+import snd.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel
+import snd.komelia.ui.settings.komf.processing.KomfProcessingSettingsViewModel
+import snd.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komf.api.MediaServer

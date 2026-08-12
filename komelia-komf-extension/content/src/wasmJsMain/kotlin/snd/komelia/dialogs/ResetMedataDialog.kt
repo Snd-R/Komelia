@@ -2,10 +2,9 @@ package snd.komelia.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.ResetDialog
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.resetLibraryText
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.resetSeriesText
 import snd.komelia.LocalKomfViewModelFactory
+import snd.komelia.ui.dialogs.komf.reset.KomfResetLibraryMetadataDialog
+import snd.komelia.ui.dialogs.komf.reset.KomfResetSeriesMetadataDialog
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komf.api.MediaServer
@@ -19,8 +18,7 @@ fun ResetSeriesMetadataDialog(
 ) {
     val viewModelFactory = LocalKomfViewModelFactory.current
     val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest, mediaServer) }
-    ResetDialog(
-        dialogText = resetSeriesText,
+    KomfResetSeriesMetadataDialog(
         removeComicInfo = vm.removeComicInfo,
         onRemoveComicInfoChange = vm::removeComicInfo::set,
         onConfirm = { vm.onSeriesReset(seriesId, libraryId) },
@@ -36,8 +34,7 @@ fun ResetLibraryMetadataDialog(
 ) {
     val viewModelFactory = LocalKomfViewModelFactory.current
     val vm = remember { viewModelFactory.getKomfResetMetadataDialogViewModel(onDismissRequest, mediaServer) }
-    ResetDialog(
-        dialogText = resetLibraryText,
+    KomfResetLibraryMetadataDialog(
         removeComicInfo = vm.removeComicInfo,
         onRemoveComicInfoChange = vm::removeComicInfo::set,
         onConfirm = { vm.onLibraryReset(libraryId) },

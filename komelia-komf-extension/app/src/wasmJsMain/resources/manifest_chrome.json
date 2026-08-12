@@ -18,8 +18,7 @@
     "128": "icon.png"
   },
   "background": {
-    "service_worker": "background.js",
-    "scripts": ["background.js"]
+    "service_worker": "background.js"
   },
   "web_accessible_resources": [
     {
@@ -27,15 +26,13 @@
         "<all_urls>"
       ],
       "resources": [
-        @wasmFiles@
+        @wasmFiles@,
+        "strings.commonMain.cvr"
       ]
     }
   ],
   "permissions": [
     "storage",
-    "scripting"
-  ],
-  "optional_permissions": [
     "scripting"
   ],
   "optional_host_permissions": [

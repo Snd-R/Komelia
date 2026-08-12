@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.snd_r.komelia.ui.dialogs.AppDialog
-import io.github.snd_r.komelia.ui.dialogs.DialogSimpleHeader
+import snd.komelia.ui.dialogs.AppDialog
+import snd.komelia.ui.dialogs.DialogSimpleHeader
 
 @Composable
 fun ErrorDialog(

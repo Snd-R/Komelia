@@ -14,15 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
-import io.github.snd_r.komelia.platform.PlatformType
-import io.github.snd_r.komelia.platform.WindowSizeClass
-import io.github.snd_r.komelia.ui.AppNotifications
-import io.github.snd_r.komelia.ui.LocalKeyEvents
-import io.github.snd_r.komelia.ui.LocalPlatform
-import io.github.snd_r.komelia.ui.LocalTheme
-import io.github.snd_r.komelia.ui.LocalWindowHeight
-import io.github.snd_r.komelia.ui.LocalWindowWidth
-import io.github.snd_r.komelia.ui.common.AppTheme
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +24,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.LocalResourceReader
 import org.w3c.dom.AddEventListenerOptions
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -48,6 +41,15 @@ import snd.komelia.dialogs.ResetSeriesMetadataDialog
 import snd.komelia.dialogs.SettingsDialog
 import snd.komelia.kavita.KavitaComponent
 import snd.komelia.komga.KomgaComponent
+import snd.komelia.ui.AppNotifications
+import snd.komelia.ui.LocalKeyEvents
+import snd.komelia.ui.LocalPlatform
+import snd.komelia.ui.LocalTheme
+import snd.komelia.ui.LocalWindowHeight
+import snd.komelia.ui.LocalWindowWidth
+import snd.komelia.ui.Theme
+import snd.komelia.ui.platform.PlatformType
+import snd.komelia.ui.platform.WindowSizeClass
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komf.api.MediaServer
@@ -63,7 +65,7 @@ class AppState(
     private val windowWidth = MutableStateFlow(WindowSizeClass.fromDp(window.innerWidth.dp))
     private val windowHeight = MutableStateFlow(WindowSizeClass.fromDp(window.innerHeight.dp))
 
-    private val theme = MutableStateFlow(AppTheme.DARK)
+    private val theme = MutableStateFlow(Theme.DARK)
     private val currentDialog = MutableStateFlow<KomfActiveDialog>(KomfActiveDialog.None)
 
     private val mediaServer = MutableStateFlow(MediaServer.KOMGA)
@@ -148,7 +150,7 @@ class AppState(
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class)
     private fun startDialogContentApp() {
         ComposeViewport(viewportContainerId = komfAppMountElement.id) {
             val theme = this.theme.collectAsState().value
@@ -170,7 +172,8 @@ class AppState(
                         LocalTheme provides theme,
                         LocalWindowWidth provides windowWidth.collectAsState().value,
                         LocalWindowHeight provides windowHeight.collectAsState().value,
-                        LocalKomfViewModelFactory provides viewModelFactory
+                        LocalKomfViewModelFactory provides viewModelFactory,
+                        LocalResourceReader provides CustomWasmResourceReader
                     ) {
                         val currentDialog = currentDialog.collectAsState().value
                         val onDismissRequest = {

@@ -3,14 +3,13 @@
 package snd.komelia
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.AppNotifications
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.AttributeKey
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope

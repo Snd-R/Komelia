@@ -62,6 +62,22 @@ fun KomfResetSeriesMetadataDialog(
 }
 
 @Composable
+fun KomfResetSeriesMetadataDialog(
+    removeComicInfo: Boolean,
+    onRemoveComicInfoChange: (Boolean) -> Unit,
+    onConfirm: suspend () -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    ResetDialog(
+        dialogText = stringResource(Res.string.komf_reset_series_warning),
+        removeComicInfo = removeComicInfo,
+        onRemoveComicInfoChange = onRemoveComicInfoChange,
+        onConfirm = onConfirm,
+        onDismissRequest = onDismissRequest
+    )
+}
+
+@Composable
 fun KomfResetLibraryMetadataDialog(
     library: KomgaLibrary,
     onDismissRequest: () -> Unit,
@@ -81,6 +97,22 @@ fun KomfResetLibraryMetadataDialog(
         removeComicInfo = vm.removeComicInfo,
         onRemoveComicInfoChange = vm::removeComicInfo::set,
         onConfirm = { vm.onLibraryReset(libraryId) },
+        onDismissRequest = onDismissRequest
+    )
+}
+
+@Composable
+fun KomfResetLibraryMetadataDialog(
+    removeComicInfo: Boolean,
+    onRemoveComicInfoChange: (Boolean) -> Unit,
+    onConfirm: suspend () -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    ResetDialog(
+        dialogText = stringResource(Res.string.komf_reset_library_warning),
+        removeComicInfo = removeComicInfo,
+        onRemoveComicInfoChange = onRemoveComicInfoChange,
+        onConfirm = onConfirm,
         onDismissRequest = onDismissRequest
     )
 }

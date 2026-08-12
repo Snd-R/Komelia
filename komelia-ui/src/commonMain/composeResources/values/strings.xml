@@ -527,7 +527,7 @@
     <string name="settings_navigation_komf_processing">Processing</string>
     <string name="settings_navigation_komf_providers">Providers</string>
     <string name="settings_navigation_komf_notifications">Notifications</string>
-    <string name="settings_navigation_komf_jobs">job History</string>
+    <string name="settings_navigation_komf_jobs">Job History</string>
     <string name="settings_navigation_log_out">Log Out</string>
     <string name="settings_navigation_log_out_confirm">Are you sure you want to logout?</string>
 

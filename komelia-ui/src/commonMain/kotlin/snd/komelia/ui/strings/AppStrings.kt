@@ -129,6 +129,11 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_epub_r
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_mangajanai
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_none
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_user_model
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_connection
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_jobs
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_notifications
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_processing
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_providers
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_default
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_large
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_medium
@@ -201,6 +206,11 @@ import snd.komga.client.settings.KomgaThumbnailSize.XLARGE
 
 data object AppStrings {
 
+    val komfConnection = Res.string.settings_navigation_komf_connection
+    val komfJobs = Res.string.settings_navigation_komf_jobs
+    val komfNotifications = Res.string.settings_navigation_komf_notifications
+    val komfProcessing = Res.string.settings_navigation_komf_processing
+    val komfProviders = Res.string.settings_navigation_komf_providers
     fun forReadStatus(status: KomgaReadStatus): StringResource {
         return when (status) {
             UNREAD -> Res.string.series_book_filter_read_status_unread

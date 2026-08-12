@@ -85,9 +85,9 @@ kotlin {
             implementation(libs.richEditor.compose.get().toString()){
                 exclude(group = "org.jetbrains.compose.material", module = "material")
             }
-            implementation(libs.voyager.screenmodel)
-            implementation(libs.voyager.navigator)
-            implementation(libs.voyager.transition)
+            api(libs.voyager.screenmodel)
+            api(libs.voyager.navigator)
+            api(libs.voyager.transition)
 
         }
 

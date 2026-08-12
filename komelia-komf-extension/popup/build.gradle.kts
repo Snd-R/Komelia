@@ -13,22 +13,23 @@ kotlin {
     wasmJs {
         outputModuleName = "popup"
         binaries.executable()
-        browser()
-        compilerOptions {
-            freeCompilerArgs.add("-Xwasm-attach-js-exception")
-
+        browser {
+            commonWebpackConfig { devtool = "false" }
         }
     }
 
     sourceSets {
+        wasmJsMain {
+            languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
+        }
         wasmJsMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.materialIconsExtended)
             implementation(libs.kotlinx.browser)
             implementation(libs.kotlinx.serialization.json)
-            implementation(project(":komelia-komf-extension:shared"))
+            implementation(projects.komeliaKomfExtension.shared)
         }
     }
 }

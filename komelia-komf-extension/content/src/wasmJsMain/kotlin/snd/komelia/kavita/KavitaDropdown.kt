@@ -5,7 +5,6 @@ import kotlinx.browser.window
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 
-
 class KavitaDropdown(
     items: List<DropdownItem>,
 ) {

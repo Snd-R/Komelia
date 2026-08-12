@@ -7,11 +7,3 @@ config.entry = {
         require('path').resolve(__dirname, "kotlin/popup.mjs"),
     ]
 };
-
-Object.defineProperty(config, 'devtool', {
-    get() {
-        return false;
-    },
-    set() {
-    },
-});
