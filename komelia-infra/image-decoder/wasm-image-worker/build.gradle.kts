@@ -21,6 +21,9 @@ kotlin {
     }
 
     sourceSets {
+        wasmJsMain {
+            languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
+        }
         wasmJsMain.dependencies {
             implementation(libs.kotlin.logging)
             implementation(libs.kotlinx.browser)

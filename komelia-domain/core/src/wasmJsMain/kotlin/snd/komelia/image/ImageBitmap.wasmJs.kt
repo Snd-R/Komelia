@@ -38,9 +38,9 @@ suspend fun KomeliaImage.toBitmap(): Bitmap {
     val imageInfo = ImageInfo(colorInfo, width, height)
     val bitmap = Bitmap()
     bitmap.allocPixels(imageInfo)
-    // FIXME? blocking js array to kotlin array copy
-    //  blocking kotlin array to skia pixels copy
+    // FIXME? blocking copy from js array to WasmGC heap array
     val imageBytes = getBytes()
+    //FIXME? blocking copy from WasmGC heap array to skia linear memory
     bitmap.installPixels(imageBytes)
     bitmap.setImmutable()
     return bitmap

@@ -8,7 +8,7 @@ import snd.komelia.image.ImageFormat
 import snd.komelia.image.ImageRect
 import snd.komelia.image.KomeliaImage
 import snd.komelia.image.ReduceKernel
-import snd.komelia.image.wasm.asByteArray
+import snd.komelia.image.wasm.fastArrayBufferToByteArray
 import snd.komelia.image.wasm.jsArray
 import snd.komelia.image.wasm.messages.CloseImageResponse
 import snd.komelia.image.wasm.messages.FindTrimResponse
@@ -102,7 +102,7 @@ class WorkerImage(
     override suspend fun getBytes(): ByteArray {
         val message = getBytesRequest(worker.getNextId(), imageId)
         val result = worker.postMessage<GetBytesResponse>(message)
-        return result.bytes.asByteArray()
+        return fastArrayBufferToByteArray(result.bytes.buffer)
     }
 
     override fun close() {
