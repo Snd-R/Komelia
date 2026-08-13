@@ -38,7 +38,7 @@ class App : Application() {
     private fun initWorkManager() {
         val config = Configuration.Builder()
             .setMinimumLoggingLevel(android.util.Log.DEBUG)
-            .setWorkerFactory(MyWorkerFactory(dependencies.filterNotNull().map { it.offlineDependencies }))
+            .setWorkerFactory(MyWorkerFactory(dependencies.filterNotNull().map { it.offlineDependencies }.filterNotNull()))
             .setWorkerCoroutineContext(Dispatchers.IO)
             .build()
         WorkManager.initialize(this, config)
