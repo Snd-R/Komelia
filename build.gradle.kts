@@ -105,7 +105,7 @@ val windowsLibs = setOf(
     "libgobject-2.0-0.dll",
     "libheif.dll",
     "libhwy.dll",
-    "liblcms2-2.dll",
+    "liblcms2.dll",
     "libintl-8.dll",
     "libjpeg-62.dll",
     "libjxl.dll",
