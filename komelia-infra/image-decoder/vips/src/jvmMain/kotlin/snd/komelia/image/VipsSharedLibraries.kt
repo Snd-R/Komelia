@@ -91,7 +91,7 @@ object VipsSharedLibraries {
         "libjxl_threads",
         "libjxl",
         "libpng16",
-        "libtiff",
+        "libtiff-6",
         "libheif",
         windowsBundledLibVipsName,
         "libkomelia_vips",

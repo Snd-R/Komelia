@@ -23,7 +23,7 @@ val androidx86BuildDir = "$projectDir/cmake/build-android-x86"
 
 val resourcesDir = "$projectDir/komelia-infra/jni/src/jvmMain/resources/"
 val androidJniLibsDir = "$projectDir/komelia-infra/jni/src/androidMain/jniLibs"
-val composeDistroResourcesDir = "$projectDir/komelia-app/desktopUnpackedResources"
+val composeDistroResourcesDir = "$projectDir/komelia-app/desktopApp/desktopUnpackedResources"
 val composeCommonResources = "$projectDir/komelia-ui/src/commonMain/composeResources/files"
 
 val epubReader = "$rootDir/komelia-epub-reader"
@@ -113,7 +113,7 @@ val windowsLibs = setOf(
     "libjxl_threads.dll",
     "libsharpyuv.dll",
     "libpng16.dll",
-    "libtiff.dll",
+    "libtiff-6.dll",
     "libvips-42.dll",
     "libwebp.dll",
     "libwebpdecoder.dll",
