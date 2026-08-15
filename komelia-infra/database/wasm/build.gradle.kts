@@ -30,7 +30,7 @@ kotlin {
             implementation(libs.kotlinx.browser)
             implementation(libs.kotlinx.datetime)
             implementation(libs.filekit.core)
-            implementation(libs.indexedd)
+            implementation(libs.indexeddb)
         }
     }
 }

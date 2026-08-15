@@ -81,7 +81,7 @@ filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "file
 filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-indexedd = { module = "com.juul.indexeddb:core", version.ref = "indexeddb" }
+indexeddb = { module = "com.juul.indexeddb:core", version.ref = "indexeddb" }
 java-keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "java-keyring" }
 junrar = { module = "com.github.junrar:junrar", version.ref = "junrar" }
 komf-client = { module = "io.github.snd-r.komf:client", version.ref = "komf-client" }

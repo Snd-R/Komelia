@@ -43,7 +43,7 @@ kotlin {
 
             implementation(libs.kotlin.logging)
             implementation(libs.kotlinx.browser)
-            implementation(libs.indexedd)
+            implementation(libs.indexeddb)
             implementation(libs.filekit.core)
         }
 
