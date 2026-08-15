@@ -11,16 +11,17 @@ import snd.komelia.offline.OfflineDependencies
 import snd.komelia.offline.sync.DownloadWorker
 
 class MyWorkerFactory(
-    private val dependencies: Flow<OfflineDependencies>
+    private val dependencies: Flow<OfflineDependencies?>
 ) : WorkerFactory() {
 
     override fun createWorker(
         appContext: Context,
         workerClassName: String,
         workerParameters: WorkerParameters
-    ): ListenableWorker {
+    ): ListenableWorker? {
         return runBlocking {
-            val currentDependencies = dependencies.first()
+            val currentDependencies = dependencies.first() ?: return@runBlocking null
+
             DownloadWorker(
                 context = appContext,
                 workerParams = workerParameters,
