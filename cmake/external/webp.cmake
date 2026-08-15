@@ -2,6 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_webp
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libwebp
+        PATCH_COMMAND git clean -dfx
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DWEBP_BUILD_VWEBP=OFF

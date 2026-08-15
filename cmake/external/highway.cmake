@@ -2,6 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_highway
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/highway
+        PATCH_COMMAND git clean -dfx
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DHWY_ENABLE_TESTS=OFF

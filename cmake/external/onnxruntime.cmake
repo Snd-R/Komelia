@@ -20,6 +20,7 @@ else ()
 
     ExternalProject_Add(ep_onnxruntime
             SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/onnxruntime
+            PATCH_COMMAND git clean -dfx
             UPDATE_DISCONNECTED True
             SOURCE_SUBDIR cmake
             CMAKE_ARGS

@@ -2,6 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_tiff
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libtiff
+        PATCH_COMMAND git clean -dfx
         DEPENDS ep_zlib ep_jxl ep_webp
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}

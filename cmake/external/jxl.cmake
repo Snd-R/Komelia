@@ -23,6 +23,7 @@ endif ()
 
 ExternalProject_Add(ep_jxl
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libjxl
+        PATCH_COMMAND git clean -dfx
         DEPENDS ep_highway ep_brotli
         CMAKE_ARGS ${JXL_ARGS}
         USES_TERMINAL_DOWNLOAD ON

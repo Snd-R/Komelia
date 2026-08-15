@@ -31,12 +31,12 @@ case "$1" in
     armv7a)
             echo "Build script target arch: armv7a"
             ANDROID_ABI="armeabi-v7a"
-            MESON_CROSS_CPU_FAMILY="armv7a"
+            MESON_CROSS_CPU_FAMILY="arm"
             MESON_CROSS_CPU="arm"
             CLANG_C_PATH="${TOOLCHAIN_PATH}/bin/armv7a-linux-androideabi26-clang"
             CLANG_CPP_PATH="${TOOLCHAIN_PATH}/bin/armv7a-linux-androideabi26-clang++"
             CLANG_LIBOMP_PATH="${TOOLCHAIN_PATH}/lib/clang/19/lib/linux/arm/libomp.so"
-            AUTOCONF_HOST="armv7a-linux-android"
+            AUTOCONF_HOST="armv7a-linux-androideabi"
             ;;
     aarch64)
             echo "Build script target arch: aarch64"

@@ -2,6 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_lcms2
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/Little-CMS
+        PATCH_COMMAND git clean -dfx
         DEPENDS ep_zlib
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}

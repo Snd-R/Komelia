@@ -3,6 +3,7 @@ include(ExternalProject)
 ExternalProject_Add(ep_glib
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/glib
         DEPENDS ep_zlib ep_ffi ep_iconv
+        PATCH_COMMAND git clean -dfx
         CONFIGURE_COMMAND ${Meson_EXECUTABLE} setup ${EP_MESON_ARGS} <BINARY_DIR> <SOURCE_DIR>
             -Dselinux=disabled
             -Dglib_debug=disabled

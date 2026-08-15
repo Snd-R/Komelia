@@ -2,6 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_jpeg-turbo
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libjpeg-turbo
+        PATCH_COMMAND git clean -dfx
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DWITH_TOOLS=OFF

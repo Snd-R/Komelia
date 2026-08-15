@@ -2,6 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_ffi
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libffi
+        PATCH_COMMAND git clean -dfx
         BUILD_IN_SOURCE 1
         CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh && <SOURCE_DIR>/configure ${HOST_FLAG}
             --disable-exec-static-tramp
