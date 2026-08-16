@@ -1,5 +1,8 @@
+import org.apache.commons.io.IOUtils
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+import java.io.FileOutputStream
+import java.util.zip.GZIPOutputStream
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
@@ -357,4 +360,73 @@ tasks.register("komeliaBuildNonJvmDependencies") {
     group = "build"
     dependsOn("buildWebui")
     dependsOn("cmakeSystemDepsCopyJniLibs")
+}
+
+tasks.register<DefaultTask>("packageWebApp") {
+    description = "build and package webapp"
+    group = "build"
+    dependsOn(projects.komeliaApp.webApp.path + ":wasmJsBrowserDistribution")
+    dependsOn(projects.komeliaInfra.imageDecoder.wasmImageWorker.path + ":wasmJsBrowserDistribution")
+
+    val appInput = "${project.layout.projectDirectory}/komelia-app/webApp/build/dist/wasmJs/productionExecutable/"
+    val appResourcesInput =
+        "${project.layout.projectDirectory}/komelia-app/webApp/build/dist/wasmJs/productionExecutable/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/"
+    val webWorkerInput =
+        "${project.layout.projectDirectory}/komelia-infra/image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/"
+
+    val output = "${project.layout.buildDirectory.get()}/komf-webui"
+    val outputResourcesFiles =
+        "${project.layout.buildDirectory.get()}/komf-webui/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/files"
+    val outputResourcesValues =
+        "${project.layout.buildDirectory.get()}/komf-webui/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/values"
+    delete(output)
+    mkdir(output)
+    mkdir(outputResourcesFiles)
+    mkdir(outputResourcesValues)
+    inputs.dir(appInput)
+    inputs.dir(appResourcesInput)
+    inputs.dir(webWorkerInput)
+    outputs.dir(output)
+
+    fun gzipFiles(files: FileCollection, outputDir: String) {
+        files.forEach { file ->
+            val input = file.inputStream()
+            val output = FileOutputStream("$outputDir/${file.name}.gz")
+            val gzip = GZIPOutputStream(output)
+            IOUtils.copyLarge(input, gzip)
+            gzip.close()
+            output.close()
+            input.close()
+        }
+    }
+
+    gzipFiles(
+        fileTree(appInput) {
+            include("*.wasm")
+            include("*.js")
+            include("*.html")
+            include("*.css")
+        },
+        output
+    )
+    gzipFiles(
+        fileTree(webWorkerInput) {
+            include("*.wasm")
+            include("*.js")
+        },
+        output
+    )
+
+    gzipFiles(
+        fileTree("$appResourcesInput/files") {
+            include("*.html")
+        },
+        "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/files"
+    )
+    gzipFiles(
+        fileTree("$appResourcesInput/values"){
+            include("*.cvr")
+        },
+        "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/values"
+    )
 }
