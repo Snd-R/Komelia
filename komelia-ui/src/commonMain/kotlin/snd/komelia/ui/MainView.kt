@@ -97,11 +97,9 @@ fun MainView(
 
             if (viewModelFactory == null) return@Surface
 
-            val notificationToaster = rememberToasterState()
-
             CompositionLocalProvider(
                 LocalViewModelFactory provides viewModelFactory,
-                LocalToaster provides notificationToaster,
+                LocalNotifications provides dependencies.appNotifications,
                 LocalKomgaEvents provides dependencies.komgaEvents.events,
                 LocalKomfIntegration provides dependencies.appRepositories.komfSettingsRepository.getKomfEnabled(),
                 LocalKeyEvents provides keyEvents,

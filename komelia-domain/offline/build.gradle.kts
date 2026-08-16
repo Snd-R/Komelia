@@ -25,6 +25,7 @@ kotlin {
     wasmJs {
         browser()
     }
+    compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
     sourceSets {
         all {

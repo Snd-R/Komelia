@@ -169,7 +169,7 @@ class ContinuousReaderState(
                             withContext(Dispatchers.Default) {
                                 pageIntervals.value = listOf(
                                     BookPagesInterval(
-                                        newState.previousBook!!,
+                                        newState.previousBook,
                                         // https://issuetracker.google.com/issues/273025639
                                         // can only prepend 130 elements without losing current items position
                                         newState.previousBookPages.takeLast(100)
@@ -197,7 +197,7 @@ class ContinuousReaderState(
                             withContext(Dispatchers.Default) {
                                 pageIntervals.value = currentIntervals.plus(
                                     BookPagesInterval(
-                                        newState.nextBook!!,
+                                        newState.nextBook,
                                         newState.nextBookPages
                                     )
                                 )
@@ -529,7 +529,7 @@ class ContinuousReaderState(
                 val width = containerSize.width - (sidePaddingPx.value * 2)
                 val maxSize = IntSize(width, Int.MAX_VALUE)
                 ImageDisplaySize(
-                    displaySize = image.calculateSizeForArea(maxSize, readerState.imageStretchToFit.value)?:maxSize,
+                    displaySize = image.calculateSizeForArea(maxSize, readerState.imageStretchToFit.value) ?: maxSize,
                     maxSize = maxSize
                 )
             }
@@ -538,7 +538,7 @@ class ContinuousReaderState(
                 val height = containerSize.height - (sidePaddingPx.value * 2)
                 val maxSize = IntSize(Int.MAX_VALUE, height)
                 ImageDisplaySize(
-                    displaySize = image.calculateSizeForArea(maxSize, readerState.imageStretchToFit.value)?:maxSize,
+                    displaySize = image.calculateSizeForArea(maxSize, readerState.imageStretchToFit.value) ?: maxSize,
                     maxSize = maxSize
                 )
             }
@@ -555,7 +555,7 @@ class ContinuousReaderState(
         } else {
             val pageId = page.toPageId()
             val image = imageDisplayFlow.first { it.pageId == pageId }
-            return image
+            image
         }
     }
 

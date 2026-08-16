@@ -25,6 +25,7 @@ kotlin {
     wasmJs {
         browser()
     }
+    compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
     sourceSets {
         all {
@@ -32,6 +33,7 @@ kotlin {
             languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
             languageSettings.optIn("kotlin.time.ExperimentalTime")
             languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+            languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
         }
         commonMain.dependencies {
             api(projects.komeliaDomain.komgaApi)

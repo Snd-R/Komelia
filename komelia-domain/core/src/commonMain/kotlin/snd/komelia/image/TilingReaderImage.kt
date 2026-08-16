@@ -322,7 +322,7 @@ abstract class TilingReaderImage(
                             renderImage = renderImage
                         )
                     ),
-                    delay = resizedImage.delays?.getOrNull(i)?.toLong() ?: defaultFrameDelay
+                    delay = resizedImage.delays?.getOrNull(i) ?: defaultFrameDelay
                 )
             }
             frameData.value = FrameData(

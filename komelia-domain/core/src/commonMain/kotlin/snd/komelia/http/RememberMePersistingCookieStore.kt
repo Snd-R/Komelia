@@ -5,8 +5,6 @@ import io.ktor.http.*
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.settings.SecretsRepository
 
-@Deprecated("changed to komga-remember-me since komga 1.21.0")
-private const val deprecatedRememberMeCookie = "remember-me"
 private const val rememberMeCookie = "komga-remember-me"
 private const val sessionCookie = "KOMGA-SESSION"
 
@@ -38,7 +36,7 @@ class RememberMePersistingCookieStore(
 
         delegate.addCookie(requestUrl, cookie)
         if (
-            (cookie.name == rememberMeCookie || cookie.name == deprecatedRememberMeCookie)
+            (cookie.name == rememberMeCookie)
             && cookie.value.isNotBlank()
             && komgaUrl.value.host == requestUrl.host
         ) {

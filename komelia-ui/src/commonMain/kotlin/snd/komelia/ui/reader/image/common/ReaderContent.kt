@@ -40,8 +40,8 @@ import snd.komelia.AppNotification
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
 import snd.komelia.settings.model.ReaderType.PANELS
+import snd.komelia.ui.LocalNotifications
 import snd.komelia.ui.LocalPlatform
-import snd.komelia.ui.LocalToaster
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
 import snd.komelia.ui.platform.BackPressHandler
@@ -57,7 +57,6 @@ import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.reader.image.settings.SettingsOverlay
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import snd.komelia.ui.strings.AppStrings
-import snd.komelia.ui.toToast
 
 @Composable
 fun ReaderContent(
@@ -256,7 +255,7 @@ private fun ReaderTypeNotification(
     continuousReaderState: ContinuousReaderState,
     panelsReaderState: PanelsReaderState?,
 ) {
-    val notifications = LocalToaster.current
+    val notifications = LocalNotifications.current
     val environment = rememberResourceEnvironment()
 
     LaunchedEffect(Unit) {
@@ -295,6 +294,6 @@ private fun ReaderTypeNotification(
             }
         }
 
-        notifications.show(AppNotification.Normal(str).toToast())
+        notifications.add(AppNotification.Normal(str))
     }
 }

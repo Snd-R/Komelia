@@ -29,6 +29,9 @@ kotlin {
     }
 
     sourceSets {
+        wasmJsMain {
+            languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
+        }
         commonMain.dependencies {
             implementation(projects.komeliaApp.shared)
             implementation(projects.komeliaUi)

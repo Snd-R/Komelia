@@ -1,5 +1,6 @@
 package snd.komelia.updates
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,6 +9,7 @@ import android.content.pm.PackageInstaller
 import android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION
 import android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL
 import android.os.Build
+import androidx.core.content.IntentCompat
 import io.ktor.client.statement.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.Flow
@@ -98,7 +100,9 @@ class PackageInstallerStatusReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -1)) {
             STATUS_PENDING_USER_ACTION -> {
-                val confirmationIntent = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+                val confirmationIntent = IntentCompat.getParcelableExtra(
+                    intent, Intent.EXTRA_INTENT, Intent::class.java
+                )
                 if (confirmationIntent != null) {
                     context.startActivity(confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 }

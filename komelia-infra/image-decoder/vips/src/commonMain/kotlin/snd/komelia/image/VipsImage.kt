@@ -30,11 +30,11 @@ class VipsImage private constructor(
         external fun getDimensions(encoded: ByteArray): ImageDimensions
 
         @JvmStatic
-        external fun decode(encoded: ByteArray, nPages: Integer? = null): VipsImage
+        external fun decode(encoded: ByteArray, nPages: Int? = null): VipsImage
 
 
         @JvmStatic
-        external fun decodeFromFile(path: String, nPages: Integer? = null): VipsImage
+        external fun decodeFromFile(path: String, nPages: Int? = null): VipsImage
 
         @JvmStatic
         external fun thumbnail(

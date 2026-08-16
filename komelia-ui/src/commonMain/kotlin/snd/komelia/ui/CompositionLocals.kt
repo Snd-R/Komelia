@@ -3,10 +3,10 @@ package snd.komelia.ui
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.input.key.KeyEvent
-import com.dokar.sonner.ToasterState
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+import snd.komelia.AppNotifications
 import snd.komelia.AppWindowState
 import snd.komelia.KomgaAuthenticationState
 import snd.komelia.offline.sync.model.DownloadEvent
@@ -17,7 +17,7 @@ import snd.komga.client.sse.KomgaEvent
 
 val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewModel factory is not set") }
 
-val LocalToaster = compositionLocalOf<ToasterState> { error("Toaster is not set") }
+val LocalNotifications = compositionLocalOf<AppNotifications> { error("Toaster is not set") }
 val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
 val LocalKomfIntegration = compositionLocalOf { flowOf(false) }
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key events are not set") }

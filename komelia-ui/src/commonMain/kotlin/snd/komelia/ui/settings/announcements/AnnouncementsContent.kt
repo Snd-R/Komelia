@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import kotlinx.datetime.TimeZone
@@ -36,6 +37,7 @@ fun AnnouncementsContent(announcements: List<KomgaAnnouncement>) {
     }
 }
 
+@OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun Announcement(announcement: KomgaAnnouncement) {
     Column {

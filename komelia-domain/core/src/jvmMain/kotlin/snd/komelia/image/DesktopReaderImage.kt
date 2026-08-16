@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.skiaCanvas
 import androidx.compose.ui.graphics.toSkiaRect
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -48,7 +48,7 @@ class DesktopReaderImage(
 
     init {
         upscaler?.upscaleMode?.drop(1)?.onEach {
-            lastUpdateRequest?.let { lastRequest ->
+            lastUpdateRequest?.let {
                 this.painter.value = null
                 reloadLastRequest()
             }
@@ -245,7 +245,7 @@ class DesktopReaderImage(
             tiles.forEach { tile ->
                 if (tile.renderImage != null && !tile.renderImage.isClosed && tile.isVisible) {
                     val bitmap = tile.renderImage
-                    drawContext.canvas.nativeCanvas.drawImageRect(
+                    drawContext.canvas.skiaCanvas.drawImageRect(
                         image = bitmap,
                         src = Rect.makeWH(
                             tile.size.width.toFloat(),

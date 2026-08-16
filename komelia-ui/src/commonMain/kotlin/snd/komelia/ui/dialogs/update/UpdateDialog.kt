@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
@@ -60,6 +61,7 @@ private fun HeaderContent() {
     }
 }
 
+@OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun DialogContent(release: AppRelease) {
     Column(

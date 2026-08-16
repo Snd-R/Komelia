@@ -29,7 +29,6 @@ class EpubReaderViewModel(
     private val bookApi: KomgaBookApi,
     private val seriesApi: KomgaSeriesApi,
     private val readListApi: KomgaReadListApi,
-//    private val ktor: HttpClient,
     private val settingsRepository: CommonSettingsRepository,
     private val epubSettingsRepository: EpubReaderSettingsRepository,
     private val fontsRepository: UserFontsRepository,
@@ -55,7 +54,6 @@ class EpubReaderViewModel(
                             readListApi = readListApi,
                             settingsRepository = settingsRepository,
                             notifications = notifications,
-//                            ktor = ktor,
                             markReadProgress = markReadProgress,
                             epubSettingsRepository = epubSettingsRepository,
                             windowState = windowState,
@@ -67,7 +65,7 @@ class EpubReaderViewModel(
                         when (val res = komgaState.state.value) {
                             is LoadState.Error -> mutableState.value = LoadState.Error(res.exception)
                             is LoadState.Success<Unit> -> mutableState.value = LoadState.Success(komgaState)
-                            LoadState.Loading, LoadState.Uninitialized -> LoadState.Loading
+                            LoadState.Loading, LoadState.Uninitialized -> error("Unreachable. failed to initialize komga epub reader")
                         }
                     }
 
@@ -77,7 +75,6 @@ class EpubReaderViewModel(
                             book = book,
                             bookApi = bookApi,
                             notifications = notifications,
-//                            ktor = ktor,
                             markReadProgress = markReadProgress,
                             settingsRepository = settingsRepository,
                             epubSettingsRepository = epubSettingsRepository,
@@ -91,7 +88,7 @@ class EpubReaderViewModel(
                         when (val res = ttsuState.state.value) {
                             is LoadState.Error -> mutableState.value = LoadState.Error(res.exception)
                             is LoadState.Success<Unit> -> mutableState.value = LoadState.Success(ttsuState)
-                            LoadState.Loading, LoadState.Uninitialized -> LoadState.Loading
+                            LoadState.Loading, LoadState.Uninitialized -> error("Unreachable. failed to initialize ttsu epub reader")
                         }
                     }
                 }

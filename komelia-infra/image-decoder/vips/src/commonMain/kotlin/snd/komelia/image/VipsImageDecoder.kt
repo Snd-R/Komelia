@@ -9,7 +9,7 @@ class VipsImageDecoder : KomeliaImageDecoder {
             VipsBackedImage(
                 VipsImage.decode(
                     encoded,
-                    nPages?.let { Integer.valueOf(it) } as Integer?
+                    nPages?.let { Integer.valueOf(it) }
                 )
             )
         }
@@ -20,7 +20,7 @@ class VipsImageDecoder : KomeliaImageDecoder {
             VipsBackedImage(
                 VipsImage.decodeFromFile(
                     path,
-                    nPages?.let { Integer.valueOf(it) } as Integer?
+                    nPages?.let { Integer.valueOf(it) }
                 )
             )
         }

@@ -7,7 +7,6 @@ import org.jetbrains.skia.Image
 import snd.komelia.image.ReaderImage.PageId
 import snd.komelia.image.processing.ImageProcessingPipeline
 
-@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual typealias RenderImage = Image
 
 class WasmReaderImage(

@@ -46,7 +46,7 @@ if you already cloned repository without recurse command run\
 
 Requires jdk 17 or higher\
 Android and JVM targets require C and C++ compiler for native libraries and Node.js for epub readers build.\
-Recommended way to build  is by using docker images that contain all required build dependencies.\
+Recommended way to build is by using docker images that contain all required build dependencies.\
 If you want to build with system toolchain and dependencies try running:\
 `./gradlew komeliaBuildNonJvmDependencies` (Linux Only)
 

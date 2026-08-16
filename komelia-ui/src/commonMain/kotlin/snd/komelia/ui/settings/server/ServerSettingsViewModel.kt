@@ -93,7 +93,7 @@ class ServerSettingsViewModel(
 
     fun updateSettings() {
         screenModelScope.launch {
-            val currentSettings = currentSettings.value ?: return@launch
+            val currentSettings = currentSettings.value
             val request = KomgaSettingsUpdateRequest(
                 deleteEmptyCollections = patch(currentSettings.deleteEmptyCollections, deleteEmptyCollections.value),
                 deleteEmptyReadLists = patch(currentSettings.deleteEmptyReadLists, deleteEmptyReadLists.value),

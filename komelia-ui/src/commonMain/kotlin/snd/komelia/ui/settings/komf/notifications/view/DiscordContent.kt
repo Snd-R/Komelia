@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
@@ -572,6 +573,7 @@ private fun TemplatesPreview(
     }
 }
 
+@OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun PreviewContent(
     titlePreview: String,
