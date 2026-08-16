@@ -38,52 +38,51 @@
    <img src="/screenshots/5.jpg" alt="Komelia" width="1280">  
 </details>
 
-[//]: # (![screenshots]&#40;./screenshots/screenshot.jpg&#41;)
+## Build instructions
+Make sure you download all git submodules `git clone --recurse-submodules https://github.com/Snd-R/Komelia` \
+if you already cloned repository without recurse command run`git submodule update --init --recursive`
 
-## Native libraries build instructions
-
-Android and JVM targets require C and C++ compiler for native libraries as well nodeJs for epub reader build
-
-The recommended way to build native libraries is by using docker images that contain all required build dependencies\
+Requires jdk 17 or higher\
+Android and JVM targets require C and C++ compiler for native libraries as well as Node.js for epub readers build.\
+Recommended way to build native libraries is by using docker images that contain all required build dependencies.\
 If you want to build with system toolchain and dependencies try running:\
 `./gradlew komeliaBuildNonJvmDependencies` (Linux Only)
 
-## Desktop App Build
-
-Requires jdk 17 or higher
-
-To build with docker container, replace <*platform*> placeholder with your target platform\
+## Desktop App
+Replace <*platform*> placeholder with your target platform. \
 Available platforms include: `linux-x86_64`, `windows-x86_64`
 
-- `docker build -t komelia-build-<platfrom> . -f ./cmake/<paltform>.Dockerfile `
+- `docker build -t komelia-build-<platfrom> . -f ./cmake/<paltform>.Dockerfile ` \
 - `docker run -v .:/build komelia-build-<paltform>`
 - `./gradlew <platform>_copyJniLibs` - copy built shared libraries to resource directory that will be bundled with the
   app
-- `./gradlew buildWebui` - build and copy epub reader webui (npm is required for build)
+- `./gradlew buildEpubReaders` - build and copy epub readers (Node.js is required for build)
 
 Then choose your packaging option:
-- `./gradlew :komelia-app:run` to launch desktop app
-- `./gradlew :komelia-app:packageReleaseUberJarForCurrentOS` package jar file (output in `komelia-app/build/compose/jars`)
-- `./gradlew :komelia-app:packageReleaseDeb` package Linux deb file (output in `komelia-app/build/compose/binaries`)
-- `./gradlew :komelia-app:packageReleaseMsi` package Windows msi installer (output in `komelia-app/build/compose/binaries`)
+- `./gradlew :desktopRun` to launch desktop app
+- `./gradlew :desktopJar` package jar file (output in `komelia-app/desktopApp/build/compose/jars`)
+- `./gradlew :desktopDeb` package Linux deb file (output in `komelia-app/desktopApp/build/compose/binaries`)
+- `./gradlew :desktopMsi` package Windows msi installer (output in `komelia-app/desktopApp/build/compose/binaries`)
 
-## Android App Build
-
-To build with docker container, replace <*arch*> placeholder with your target architecture\
+## Android App
+Replace <*arch*> placeholder with your target architecture.\
 Available architectures include:  `aarch64`, `armv7a`, `x86_64`, `x86`
 
 - `docker build -t komelia-build-android . -f ./cmake/android.Dockerfile `
 - `docker run -v .:/build komelia-build-android <arch>`
 - `./gradlew <arch>_copyJniLibs` - copy built shared libraries to resource directory that will be bundled with the app
-- `./gradlew buildWebui` - build and copy epub reader webui (npm is required for build)
+- `./gradlew buildEpubReaders` - build and copy epub readers (Node.js is required for build)
 
 Then choose app build option:
 
-- `./gradlew :komelia-app:assembleDebug` debug apk build (output in `komelia-app/build/outputs/apk/debug`)
-- `./gradlew :komelia-app:assembleRelease` unsigned release apk build (output in
-  `komelia-app/build/outputs/apk/release`)
+- `./gradlew :androidDebug` debug apk (output in `komelia-app/androidApp/build/outputs/apk/debug`)
+- `./gradlew :androidRelease` unsigned release apk (output in`komelia-app/androidApp/build/outputs/apk/release`)
 
-## Komf Extension Build
 
-run`./gradlew :komelia-komf-extension:app:packageExtension` \
+## Komf Wasm WebUI
+run `./gradlew :komfWebUI` output will be in `./build/komf-webui`
+
+## Komf Wasm Extension
+for chrome`./gradlew :komfExtensionChrome` \
+for firefox`./gradlew :komfExtensionFirefox` \
 output archive will be in `./komelia-komf-extension/app/build/distributions`
