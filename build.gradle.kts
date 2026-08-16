@@ -135,6 +135,11 @@ val windowsLibs = setOf(
     "libkomelia_webview.dll",
 )
 
+interface Injected {
+    @get:Inject
+    val objectFactory: ObjectFactory
+}
+
 tasks.register<Sync>("linux-x86_64_copyJniLibs") {
     group = "komelia-build"
     from("$linuxBuildDir/sysroot/lib/")
@@ -435,46 +440,49 @@ tasks.register<DefaultTask>("komfWebUI") {
     inputs.dir(appResourcesInput)
     inputs.dir(webWorkerInput)
     outputs.dir(output)
+    val injected = project.objects.newInstance<Injected>()
 
-    fun gzipFiles(files: FileCollection, outputDir: String) {
-        files.forEach { file ->
-            val input = file.inputStream()
-            val output = FileOutputStream("$outputDir/${file.name}.gz")
-            val gzip = GZIPOutputStream(output)
-            IOUtils.copyLarge(input, gzip)
-            gzip.close()
-            output.close()
-            input.close()
+    doLast {
+        fun gzipFiles(files: FileCollection, outputDir: String) {
+            files.forEach { file ->
+                val input = file.inputStream()
+                val output = FileOutputStream("$outputDir/${file.name}.gz")
+                val gzip = GZIPOutputStream(output)
+                IOUtils.copyLarge(input, gzip)
+                gzip.close()
+                output.close()
+                input.close()
+            }
         }
+
+        gzipFiles(
+            injected.objectFactory.fileTree().from(appInput).matching {
+                include("*.wasm")
+                include("*.js")
+                include("*.html")
+                include("*.css")
+            },
+            output
+        )
+        gzipFiles(
+            injected.objectFactory.fileTree().from(webWorkerInput).matching {
+                include("*.wasm")
+                include("*.js")
+            },
+            output
+        )
+
+        gzipFiles(
+            injected.objectFactory.fileTree().from("$appResourcesInput/files").matching {
+                include("*.html")
+            },
+            "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/files"
+        )
+        gzipFiles(
+            injected.objectFactory.fileTree().from("$appResourcesInput/values").matching {
+                include("*.cvr")
+            },
+            "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/values"
+        )
     }
-
-    gzipFiles(
-        fileTree(appInput) {
-            include("*.wasm")
-            include("*.js")
-            include("*.html")
-            include("*.css")
-        },
-        output
-    )
-    gzipFiles(
-        fileTree(webWorkerInput) {
-            include("*.wasm")
-            include("*.js")
-        },
-        output
-    )
-
-    gzipFiles(
-        fileTree("$appResourcesInput/files") {
-            include("*.html")
-        },
-        "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/files"
-    )
-    gzipFiles(
-        fileTree("$appResourcesInput/values") {
-            include("*.cvr")
-        },
-        "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/values"
-    )
 }
