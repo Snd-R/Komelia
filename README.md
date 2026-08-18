@@ -38,6 +38,11 @@
    <img src="/screenshots/5.jpg" alt="Komelia" width="1280">  
 </details>
 
+## Translations
+You can help translate this project to your language by using service provided by [Weblate](https://hosted.weblate.org/engage/komelia/)
+
+[![Translation status](https://hosted.weblate.org/widget/komelia/horizontal-auto.svg)](https://hosted.weblate.org/engage/komelia/)
+
 ## Build instructions
 Make sure you download all git submodules\
 `git clone --recurse-submodules https://github.com/Snd-R/Komelia` \
