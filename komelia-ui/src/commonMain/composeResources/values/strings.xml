@@ -168,7 +168,7 @@
     <string name="series_mark_unread">Mark unread</string>
     <string name="series_add_to_collection">Add to collection</string>
     <string name="series_download">Download</string>
-    <string name="series_download_confirm">Download series "%s"?</string>
+    <string name="series_download_confirm">Download series "%1$s"?</string>
     <string name="series_delete_downloaded">Delete downloaded</string>
     <string name="series_auto_identify">Auto-identify</string>
     <string name="series_identify">Identify (Komf)</string>
@@ -188,10 +188,10 @@
     <string name="series_links">Links</string>
     <string name="series_author_writers">Writers</string>
     <string name="series_author_penciller">Pencillers</string>
-    <string name="series_release_year">Release Year %s</string>
+    <string name="series_release_year">Release Year %1$s</string>
     <string name="series_unavailable">Unavailable</string>
     <string name="series_alternative_titles">Alternative titles</string>
-    <string name="series_summary_from_book">Summary from book %s: %s</string>
+    <string name="series_summary_from_book">Summary from book %1$s: %2$s</string>
     <string name="series_tab_books">Books</string>
     <string name="series_tab_collections">Collections</string>
     <string name="series_no_books">No books</string>
