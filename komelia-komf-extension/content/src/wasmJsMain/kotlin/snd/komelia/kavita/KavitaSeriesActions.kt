@@ -5,6 +5,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.asList
 import snd.komelia.KomfActiveDialog
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
@@ -12,42 +13,35 @@ import snd.komf.api.KomfServerSeriesId
 class KavitaSeriesActions(
     private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) {
-    val element: HTMLDivElement
+    val element: HTMLDivElement = document.createElement("div") as HTMLDivElement
     private val dropdown = KavitaDropdown(
-        listOf(
+        parent = element,
+        items = listOf(
             KavitaDropdown.DropdownItem("Identify", this::onIdentifyClick),
             KavitaDropdown.DropdownItem("Reset Metadata", this::onResetMetadataClick),
         )
     )
 
     init {
-        element = document.createElement("div") as HTMLDivElement
         element.classList.value = "col-auto ms-2"
         element.innerHTML =
             """<button title="Komf Identify" class="btn btn-actions"><span><i aria-hidden="true" class="fa fa-pen-to-square"></i></span></button>"""
         element.addEventListener("focus") { event -> (event.target as HTMLElement).blur() }
+    }
 
-        element.addEventListener("click") { event ->
-            val rect = element.getBoundingClientRect()
-            if (dropdown.isShown) {
-                dropdown.hide()
-            } else {
-                dropdown.show(
-                    rect.bottom.toInt(),
-                    rect.left.toInt()
-                )
-            }
+    fun tryMount(parent: HTMLElement): Boolean {
+        if (parent.contains(element)) return true
+
+        val editSeriesButton = parent.getElementsByTagName("button").asList().find {
+            it.getAttribute("id") == "edit-btn--komf"
         }
-        document.addEventListener("click") { event ->
-            val target = event.target
-            if (target is HTMLElement
-                && !dropdown.element.contains(target)
-                && !element.contains(target) && element != target
-            ) {
-                dropdown.hide()
-            }
+        if (editSeriesButton != null) {
+            editSeriesButton.parentElement?.insertAdjacentElement("afterend", element)
+            dropdown.tryMount()
+            return true
         }
 
+        return false
     }
 
     private fun onIdentifyClick() {
@@ -78,11 +72,6 @@ class KavitaSeriesActions(
             )
         }
 
-    }
-
-
-    fun onMount() {
-        document.body?.appendChild(dropdown.element)
     }
 
     fun getSeriesTitle(): String? {

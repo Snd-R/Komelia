@@ -1,4 +1,4 @@
-package snd.komelia.komga
+package snd.komelia.komga.next
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -8,38 +8,65 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLButtonElement
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.asList
-import org.w3c.dom.get
 import snd.komelia.KomfActiveDialog
+import snd.komelia.komga.changeTheme
 import snd.komelia.ui.Theme
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 
-class KomgaSeriesActions(
-    private val theme: StateFlow<Theme>,
+class KomgaSeriesActionsNext(
+    theme: StateFlow<Theme>,
     private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) {
-    private val element: HTMLButtonElement = document.createElement("button") as HTMLButtonElement
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
-    private val dropdown = KomgaDropdown(
+    private val element: HTMLButtonElement = document.createElement("button") as HTMLButtonElement
+    private val dropdown = KomgaDropdownNext(
         parent = element,
         items = listOf(
-            KomgaDropdown.DropdownItem("Identify", this::onIdentifyClick),
-            KomgaDropdown.DropdownItem("Reset Metadata", this::onResetMetadataClick),
+            KomgaDropdownNext.DropdownItem("Identify", this::onIdentifyClick),
+            KomgaDropdownNext.DropdownItem("Reset Metadata", this::onResetMetadataClick),
         ),
         theme = theme
     )
 
     init {
         element.type = "button"
-        element.classList.value = "v-btn v-btn--icon v-btn--round theme--dark v-size--default"
+        element.classList.value = "v-icon-btn v-icon-btn--default v-theme--dark v-icon-btn--variant-flat"
+        element.setAttribute("tabindex", "0")
+        element.setAttribute("title", "Komf")
+        element.setAttribute("style", "--v-icon-btn-height: 40px; --v-icon-btn-width: 40px;")
+        element.setAttribute("aria-describedby", "v-tooltip-v-0")
+        element.setAttribute("aria-haspopup", "dialog")
         element.innerHTML =
-            "<span class=\"v-btn__content\"><i aria-hidden=\"true\" class=\"v-icon notranslate mdi mdi-puzzle theme--dark\"></i></span>"
-        element.addEventListener("focus") { event -> (event.target as HTMLElement).blur() }
+            """
+                <span class="v-icon-btn__overlay"></span>
+                <span class="v-icon-btn__underlay"></span>
+                <div class="v-icon-btn__content" data-no-activator="">
+                    <i class="i-mdi:pencil mdi v-icon notranslate v-theme--dark" aria-hidden="true" style="font-size: 24px; height: 24px; width: 24px;"></i>
+                </div>
+            """.trimIndent()
 
         theme.onEach { element.changeTheme(it) }.launchIn(coroutineScope)
+    }
+
+    fun tryMount(parent: HTMLElement): Boolean {
+        if (parent.contains(element)) return true
+
+        val seriesEditButton =
+            parent.querySelectorAll("[action=\"EDIT_SERIES\"]").asList().firstOrNull() as? HTMLButtonElement
+
+        if (seriesEditButton != null) {
+            seriesEditButton.insertAdjacentElement("afterend", element)
+            dropdown.tryMount()
+            return true
+        }
+
+        return false
     }
 
     private fun onIdentifyClick() {
@@ -69,43 +96,12 @@ class KomgaSeriesActions(
                 libraryId = libraryId,
             )
         }
-    }
 
-    fun tryMount(parent: HTMLElement): Boolean {
-        if (parent.contains(element)) return true
-
-        val toolbar = parent.querySelector(".v-main__wrap .v-toolbar__content")
-        val toolbarParent = toolbar?.parentElement
-
-        if (toolbar != null && toolbarParent != null && !toolbarParent.classList.contains("hidden-sm-and-up")) {
-            val path = window.location.pathname.split("/").dropLast(1).reversed()
-            if (path.any { it == "series" }) {
-                toolbar.children[4]?.insertAdjacentElement("afterend", element)
-                dropdown.tryMount()
-                return true
-            } else if (path.any { it == "oneshot" }) {
-                toolbar.children.asList()
-                    .find { it.tagName == "BUTTON" }
-                    ?.insertAdjacentElement("afterend", element)
-                dropdown.tryMount()
-
-                return true
-            }
-        }
-
-        return false
     }
 
     fun getSeriesTitle(): String? {
-        val seriesTitle = document.querySelector(
-            ".v-main__wrap .v-toolbar__content .v-toolbar__title span"
-        ) as? HTMLElement
+        val seriesTitle = document.querySelector(".text-headline-small") as? HTMLDivElement
         if (seriesTitle != null) return seriesTitle.innerText
-
-        val oneshotTitle = document.querySelector(
-            ".v-main__wrap .container--fluid .container span.text-h6"
-        ) as? HTMLElement
-        if (oneshotTitle != null) return oneshotTitle.innerText
 
         return null
     }
@@ -120,14 +116,17 @@ class KomgaSeriesActions(
 
 
     fun getLibraryId(): KomfServerLibraryId? {
-        val toolbar = document.querySelector(".v-main__wrap .v-toolbar__content") ?: return null
-        val libraryHref = toolbar.children.asList().find {
-            val href = it.getAttribute("href") ?: return@find false
-            href.contains("libraries")
-        }?.getAttribute("href") ?: return null
+        val toolbar = document.querySelectorAll(".v-toolbar__content").asList()
+            .firstOrNull { it.parentNode?.parentNode?.parentNode?.nodeName == "MAIN" } as? HTMLDivElement
+            ?: return null
 
-        return libraryHref.split("/")
-            .getOrNull(libraryHref.indexOf("libraries") + 1)
-            ?.let { KomfServerLibraryId(it) }
+        val libraryAnchor = toolbar.firstElementChild?.firstElementChild?.firstElementChild as? HTMLAnchorElement
+            ?: return null
+
+        val libraryPath = libraryAnchor.href.split("/")
+        val libraryPathIdx = libraryPath.indexOf("libraries")
+        if (libraryPathIdx == -1) return null
+
+        return libraryPath.getOrNull(libraryPathIdx + 1)?.let { KomfServerLibraryId(it) }
     }
 }

@@ -2,17 +2,19 @@ package snd.komelia.kavita
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
 
 class KavitaDropdown(
+    parent: Element,
     items: List<DropdownItem>,
 ) {
-    val element: HTMLDivElement
+    val element: HTMLDivElement = document.createElement("div") as HTMLDivElement
     var isShown = false
 
     init {
-        element = document.createElement("div") as HTMLDivElement
         element.setAttribute("role", "menu")
         element.classList.value = "dropdown"
         element.style.position = "absolute"
@@ -28,6 +30,34 @@ class KavitaDropdown(
             listContainer.appendChild(createMenuItem(item.name, item.onClick))
         }
         element.appendChild(listContainer)
+
+        parent.addEventListener("click") { event ->
+            val rect = parent.getBoundingClientRect()
+            if (this.isShown) {
+                this.hide()
+            } else {
+                this.show(
+                    rect.bottom.toInt(),
+                    rect.left.toInt()
+                )
+            }
+        }
+
+        document.addEventListener("click") { event ->
+            val target = event.target
+            if (target is HTMLElement
+                && !element.contains(target)
+                && !parent.contains(target) && parent != target
+            ) {
+                hide()
+            }
+        }
+    }
+
+    fun tryMount(): Boolean {
+        if (document.contains(element)) return true
+        document.body?.appendChild(element)
+        return true
     }
 
     fun show(top: Int, left: Int) {

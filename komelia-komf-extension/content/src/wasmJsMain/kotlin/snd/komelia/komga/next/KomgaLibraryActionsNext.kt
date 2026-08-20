@@ -1,4 +1,4 @@
-package snd.komelia.komga
+package snd.komelia.komga.next
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -9,33 +9,46 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.w3c.dom.HTMLButtonElement
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.get
+import org.w3c.dom.asList
 import snd.komelia.KomfActiveDialog
+import snd.komelia.komga.changeTheme
+import snd.komelia.logger
 import snd.komelia.ui.Theme
 import snd.komf.api.KomfServerLibraryId
 
-class KomgaLibraryActions(
-    private val theme: StateFlow<Theme>,
+class KomgaLibraryActionsNext(
+    theme: StateFlow<Theme>,
     private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val element: HTMLButtonElement = document.createElement("button") as HTMLButtonElement
-    private val dropdown = KomgaDropdown(
+    private val dropdown = KomgaDropdownNext(
         parent = element,
         items = listOf(
-            KomgaDropdown.DropdownItem("Auto-Identify", this::onIdentifyClick),
-            KomgaDropdown.DropdownItem("Reset Metadata", this::onResetClick),
+            KomgaDropdownNext.DropdownItem("Auto-Identify", this::onIdentifyClick),
+            KomgaDropdownNext.DropdownItem("Reset Metadata", this::onResetClick),
         ),
         theme = theme
     )
 
     init {
         element.type = "button"
-        element.classList.value = "v-btn v-btn--icon v-btn--round theme--dark v-size--default"
+        element.classList.value = "v-icon-btn v-icon-btn--default v-theme--dark v-icon-btn--variant-flat"
+        element.setAttribute("tabindex", "0")
+        element.setAttribute("title", "Komf")
+        element.setAttribute("style", "--v-icon-btn-height: 40px; --v-icon-btn-width: 40px;")
+        element.setAttribute("aria-describedby", "v-tooltip-v-0")
+        element.setAttribute("aria-haspopup", "dialog")
         element.innerHTML =
-            "<span class=\"v-btn__content\"><i aria-hidden=\"true\" class=\"v-icon notranslate mdi mdi-puzzle theme--dark\"></i></span>"
-        element.addEventListener("focus") { event -> (event.target as HTMLElement).blur() }
+            """
+                <span class="v-icon-btn__overlay"></span>
+                <span class="v-icon-btn__underlay"></span>
+                <div class="v-icon-btn__content" data-no-activator="">
+                    <i class="i-mdi:pencil mdi v-icon notranslate v-theme--dark" aria-hidden="true" style="font-size: 24px; height: 24px; width: 24px;"></i>
+                </div>
+            """.trimIndent()
 
         theme.onEach { element.changeTheme(it) }.launchIn(coroutineScope)
     }
@@ -43,13 +56,21 @@ class KomgaLibraryActions(
     fun tryMount(parent: HTMLElement): Boolean {
         if (parent.contains(element)) return true
 
-        val toolbar = parent.querySelector(".v-main__wrap .v-toolbar__content")
-        val toolbarParent = toolbar?.parentElement
-        if (toolbar != null && toolbarParent != null && !toolbarParent.classList.contains("hidden-sm-and-up")) {
-            val path = window.location.pathname.split("/").reversed()
-            if (path.any { it == "libraries" }) {
-                toolbar.children[4]?.insertAdjacentElement("afterend", element)
+        val mount = parent.querySelectorAll(".v-toolbar__append").asList()
+            .firstOrNull { it.parentNode?.parentNode?.parentNode?.parentNode?.nodeName == "MAIN" } as? HTMLDivElement
 
+        if (mount != null) {
+            val path = window.location.pathname.split("/")
+            val libraries = path.indexOf("libraries")
+            if (libraries == -1) return false
+
+            val pinned = path.size > libraries + 1 && path[libraries + 1] == "pinned"
+            if (pinned) {
+                logger.info { "library actions pinned" }
+            }
+            if (!pinned) {
+                logger.info { "mount library actions" }
+                mount.appendChild(element)
                 dropdown.tryMount()
                 return true
             }
@@ -78,3 +99,5 @@ class KomgaLibraryActions(
         return libraryId
     }
 }
+
+private fun logJs(x: JsAny): Unit = js("{console.log(x);}")

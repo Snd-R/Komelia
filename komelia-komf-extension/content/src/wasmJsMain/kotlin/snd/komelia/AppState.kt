@@ -89,14 +89,14 @@ class AppState(
         komfAppMountElement.style.overflowY = "hidden"
 
         when (document.title.split(' ')[0]) {
-            "Kavita" -> {
-                mediaServer.value = MediaServer.KAVITA
-                mediaServerComponent = KavitaComponent(theme, currentDialog)
+            "Komga" -> {
+                mediaServer.value = MediaServer.KOMGA
+                mediaServerComponent = KomgaComponent(theme, currentDialog)
             }
 
             else -> {
-                mediaServer.value = MediaServer.KOMGA
-                mediaServerComponent = KomgaComponent(theme, currentDialog)
+                mediaServer.value = MediaServer.KAVITA
+                mediaServerComponent = KavitaComponent(theme, currentDialog)
             }
         }
         observer = MutationObserver { mutations, observer ->
