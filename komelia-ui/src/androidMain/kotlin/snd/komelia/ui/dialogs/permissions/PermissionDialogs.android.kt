@@ -41,3 +41,18 @@ actual fun StoragePermissionRequestDialog(onComplete: (directory: PlatformFile?)
         launcher.launch(null)
     }
 }
+
+@Composable
+actual fun AccessLocalNetworkRequestDialog(onComplete: (granted: Boolean) -> Unit) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+        val permissionRequester = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { granted -> onComplete(granted) }
+        )
+        LaunchedEffect(Unit) {
+            permissionRequester.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
+        }
+    } else {
+        LaunchedEffect(Unit) { onComplete(true) }
+    }
+}

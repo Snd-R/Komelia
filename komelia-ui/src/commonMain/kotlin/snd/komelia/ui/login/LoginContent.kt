@@ -23,14 +23,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalUriHandler
@@ -53,15 +49,16 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_url
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_username
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_with_another_account
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.common.components.OutlinedHttpTextField
 import snd.komelia.ui.common.components.withTextFieldNavigation
+import snd.komelia.ui.dialogs.permissions.AccessLocalNetworkRequestDialog
 import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.PlatformType.DESKTOP
 import snd.komelia.ui.platform.PlatformType.MOBILE
 import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.platform.hasLanPermission
 
 
 @Composable
@@ -181,7 +178,8 @@ fun ColumnScope.LoginForm(
     textFieldsModifier: Modifier
 ) {
 
-    val coroutineScope = rememberCoroutineScope()
+    val hasLanPermission = hasLanPermission()
+    var showLanPermissionRequest by remember { mutableStateOf(false) }
     val (first, second, third) = remember { FocusRequester.createRefs() }
 
     OutlinedHttpTextField(
@@ -212,7 +210,10 @@ fun ColumnScope.LoginForm(
         label = { Text(stringResource(Res.string.login_password)) },
         modifier = textFieldsModifier
             .withTextFieldNavigation(
-                onEnterPress = { coroutineScope.launch { onLogin() } }
+                onEnterPress = {
+                    if (hasLanPermission) onLogin()
+                    else showLanPermissionRequest = true
+                }
             )
             .focusRequester(third),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -226,7 +227,17 @@ fun ColumnScope.LoginForm(
         if (offlineIsAvailable) {
             TextButton(onClick = onOfflineSelect) { Text(stringResource(Res.string.login_offline_mode)) }
         }
-        Button(onClick = { onLogin() }) { Text(stringResource(Res.string.login_login)) }
+        Button(onClick = {
+            if (hasLanPermission) onLogin()
+            else showLanPermissionRequest = true
+        }) { Text(stringResource(Res.string.login_login)) }
+    }
+
+    if (showLanPermissionRequest) {
+        AccessLocalNetworkRequestDialog {
+            showLanPermissionRequest = false
+            onLogin()
+        }
     }
 
     Spacer(Modifier.imePadding())
@@ -234,6 +245,14 @@ fun ColumnScope.LoginForm(
 
 @Composable
 fun LoginLoadingContent(onCancel: () -> Unit) {
+    val hasLanPermission = hasLanPermission()
+    var lanPermissionRequested by remember { mutableStateOf(false) }
+    if (!hasLanPermission && !lanPermissionRequested) {
+        AccessLocalNetworkRequestDialog {
+            lanPermissionRequested = true
+        }
+    }
+
     var showCancelButton by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(5000)

@@ -1,12 +1,10 @@
 package snd.komelia.ui.login
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.*
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.utils.io.*
@@ -53,31 +51,40 @@ class LoginViewModel(
     private val offlineLibraryApi: OfflineLibraryApi?,
 ) : StateScreenModel<LoadState<Unit>>(Uninitialized) {
 
-    var url by mutableStateOf("")
-    var user by mutableStateOf("")
-    var password by mutableStateOf("")
-    var userLoginError by mutableStateOf<String?>(null)
-    var autoLoginError by mutableStateOf<String?>(null)
+    var url = MutableStateFlow("")
+    var user = MutableStateFlow("")
+    var password = MutableStateFlow("")
+    var userLoginError = MutableStateFlow<String?>(null)
+    var autoLoginError = MutableStateFlow<String?>(null)
     val offlineIsAvailable = MutableStateFlow(false)
     private val offlineUser = MutableStateFlow<OfflineUser?>(null)
     val canGoOfflineAsCurrentUser = offlineUser.map { it != null }
 
-    fun initialize() {
+    private val hasLanPermission = MutableStateFlow(false)
+
+    fun initialize(hasLanPermission: Boolean) {
+        this.hasLanPermission.value = hasLanPermission
+
         if (state.value !is Uninitialized) return
 
         screenModelScope.launch {
-            url = settingsRepository.getServerUrl().first()
-            user = settingsRepository.getCurrentUser().first()
-            val offlineUsers = offlineUserRepository?.findAll() ?: emptyList()
-            val offlineServer = offlineServerRepository?.findByUrl(url)
+            url.value = settingsRepository.getServerUrl().first()
+            user.value = settingsRepository.getCurrentUser().first()
+            val cookie = secretsRepository.getCookie(url.value)
+            if (cookie == null) {
+                user.value = ""
+                url.value = ""
+            }
 
+            val offlineUsers = offlineUserRepository?.findAll() ?: emptyList()
+            val offlineServer = offlineServerRepository?.findByUrl(url.value)
             offlineIsAvailable.value = offlineUsers.any { it.id != OfflineUser.ROOT }
             offlineUser.value = offlineServer?.let { server -> offlineUsers.firstOrNull { it.serverId == server.id } }
             val isOffline = offlineSettingsRepository?.getOfflineMode()?.first() ?: false
 
             when (platform) {
                 MOBILE, DESKTOP -> {
-                    if (isOffline || secretsRepository.getCookie(url) != null) {
+                    if (isOffline || cookie != null) {
                         tryAutologin()
                     } else {
                         mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
@@ -99,15 +106,15 @@ class LoginViewModel(
     fun cancel() {
         screenModelScope.coroutineContext.cancelChildren()
         mutableState.value = LoadState.Error(RuntimeException("Cancelled login attempt"))
-        userLoginError = "Cancelled login attempt"
+        userLoginError.value = "Cancelled login attempt"
     }
 
     fun loginWithCredentials() {
         screenModelScope.launch {
-            userLoginError = null
-            settingsRepository.putServerUrl(url)
-            settingsRepository.putCurrentUser(user)
-            tryUserLogin(user, password)
+            userLoginError.value = null
+            settingsRepository.putServerUrl(url.value)
+            settingsRepository.putCurrentUser(user.value)
+            tryUserLogin(user.value, password.value)
         }
     }
 
@@ -129,14 +136,14 @@ class LoginViewModel(
             throw e
         } catch (e: NoTransformationFoundException) {
             val message = "Unexpected response for url $url"
-            autoLoginError = message
+            autoLoginError.value = message
             notifications.add(AppNotification.Error(message))
             mutableState.value = LoadState.Error(e)
         } catch (e: ClientRequestException) {
             if (e.response.status == Unauthorized) {
-                autoLoginError = null
+                autoLoginError.value = null
             } else {
-                autoLoginError = "Login error: ${e::class.simpleName} ${e.message}"
+                autoLoginError.value = "Login error: ${e::class.simpleName} ${e.message}"
                 notifications.add(AppNotification.Error(e.message))
             }
             mutableState.value = LoadState.Error(e)
@@ -144,9 +151,22 @@ class LoginViewModel(
             val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
             mutableState.value = LoadState.Error(e)
             notifications.add(AppNotification.Error(errorMessage))
+        } catch (e: ConnectTimeoutException) {
+            logger.catching(e)
+            if (!hasLanPermission.value) {
+                val message = formatExceptionMessage(e, false)
+                userLoginError.value = buildString {
+                    append(message)
+                    append("\n")
+                    append("If you're connecting to LAN address you'll need to grant nearby devices permission")
+                }
+            } else {
+                userLoginError.value = formatExceptionMessage(e, false)
+            }
+            mutableState.value = LoadState.Error(e)
         } catch (e: Throwable) {
             val errorMessage = "Login error: ${e::class.simpleName} ${e.message}"
-            autoLoginError = errorMessage
+            autoLoginError.value = errorMessage
             mutableState.value = LoadState.Error(e)
             notifications.add(AppNotification.Error(errorMessage))
         }
@@ -159,15 +179,28 @@ class LoginViewModel(
             throw e
         } catch (e: NoTransformationFoundException) {
             val message = "Unexpected response for url $url"
-            userLoginError = message
+            userLoginError.value = message
             mutableState.value = LoadState.Error(e)
         } catch (e: ClientRequestException) {
-            userLoginError = if (e.response.status == Unauthorized) "Invalid credentials"
+            userLoginError.value = if (e.response.status == Unauthorized) "Invalid credentials"
             else "Login error ${e::class.simpleName}: ${e.message}"
+            mutableState.value = LoadState.Error(e)
+        } catch (e: ConnectTimeoutException) {
+            logger.catching(e)
+            if (!hasLanPermission.value) {
+                val message = formatExceptionMessage(e, false)
+                userLoginError.value = buildString {
+                    append(message)
+                    append("\n")
+                    append("If you're connecting to LAN address you'll need to grant nearby devices permission")
+                }
+            } else {
+                userLoginError.value = formatExceptionMessage(e, false)
+            }
             mutableState.value = LoadState.Error(e)
         } catch (e: Throwable) {
             logger.catching(e)
-            userLoginError = formatExceptionMessage(e)
+            userLoginError.value = formatExceptionMessage(e, false)
             mutableState.value = LoadState.Error(e)
         }
     }

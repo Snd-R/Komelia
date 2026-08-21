@@ -10,3 +10,6 @@ expect fun DownloadNotificationRequestDialog(onComplete: (granted: Boolean) -> U
 @Composable
 expect fun StoragePermissionRequestDialog(onComplete: (directory: PlatformFile?) -> Unit)
 
+@Composable
+expect fun AccessLocalNetworkRequestDialog(onComplete: (granted: Boolean) -> Unit)
+

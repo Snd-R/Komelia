@@ -17,3 +17,8 @@ actual fun StoragePermissionRequestDialog(onComplete: (directory: PlatformFile?)
         launcher.launch()
     }
 }
+
+@Composable
+actual fun AccessLocalNetworkRequestDialog(onComplete: (granted: Boolean) -> Unit) {
+    LaunchedEffect(Unit) { onComplete(true) }
+}

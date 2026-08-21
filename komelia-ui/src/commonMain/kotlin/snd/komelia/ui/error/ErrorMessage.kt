@@ -1,6 +1,6 @@
 package snd.komelia.ui.error
 
-fun formatExceptionMessage(exception: Throwable): String {
+fun formatExceptionMessage(exception: Throwable, addCause: Boolean = true): String {
     // wasmJs ktor returns error on fetch failure and most of the time without any useful information
     if (exception is Error && exception.message == "Fail to fetch") {
         var jsCause = exception.cause
@@ -11,20 +11,22 @@ fun formatExceptionMessage(exception: Throwable): String {
             }
             jsCause = jsCause.cause
         }
-        if (jsCause != null) return buildErrorMessage(BrowserConnectionError(null, jsCause))
+        if (jsCause != null) return buildErrorMessage(BrowserConnectionError(null, jsCause), addCause)
     }
 
-    return buildErrorMessage(exception)
+    return buildErrorMessage(exception, addCause)
 }
 
-private fun buildErrorMessage(exception: Throwable): String {
+private fun buildErrorMessage(exception: Throwable, addCause: Boolean): String {
     return buildString {
         exception::class.simpleName?.let { append("$it: ") }
         exception.message?.let { append("$it; ") }
-        var cause = exception.cause
-        while (cause != null) {
-            cause.message?.let { append("$it;") }
-            cause = cause.cause
+        if (addCause) {
+            var cause = exception.cause
+            while (cause != null) {
+                cause.message?.let { append("$it;") }
+                cause = cause.cause
+            }
         }
     }
 }
