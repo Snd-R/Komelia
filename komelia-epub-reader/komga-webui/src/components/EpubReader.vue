@@ -313,6 +313,49 @@
       </p>
     </v-snackbar>
 
+    <div
+        v-if="dictionaryLookup"
+        class="dictionary-popup"
+        :class="appearanceClass()"
+        :style="{left: `${dictionaryLookup.x}px`, top: `${dictionaryLookup.y}px`}"
+        @click.stop
+    >
+      <div class="dictionary-popup-header">
+        <div>
+          <div class="dictionary-popup-word">{{ dictionaryLookup.word }}</div>
+          <div v-if="dictionaryLookup.entries[0]?.phonetic" class="dictionary-popup-phonetic">
+            {{ dictionaryLookup.entries[0].phonetic }}
+          </div>
+        </div>
+        <button class="dictionary-popup-close" @click="closeDictionary">×</button>
+      </div>
+
+      <div v-if="dictionaryLookup.loading" class="dictionary-popup-muted">Loading...</div>
+      <div v-else-if="dictionaryLookup.error" class="dictionary-popup-muted">
+        {{ dictionaryLookup.error }}
+      </div>
+      <div v-else class="dictionary-popup-definitions">
+        <template v-for="entry in dictionaryLookup.entries" :key="entry.word">
+          <template v-for="meaning in entry.meanings" :key="`${entry.word}-${meaning.partOfSpeech}`">
+            <div v-if="meaning.partOfSpeech" class="dictionary-popup-part">
+              {{ meaning.partOfSpeech }}
+            </div>
+            <ol>
+              <li
+                  v-for="definition in meaning.definitions?.slice(0, 3)"
+                  :key="definition.definition"
+              >
+                {{ definition.definition }}
+                <div v-if="definition.example" class="dictionary-popup-example">
+                  {{ definition.example }}
+                </div>
+              </li>
+            </ol>
+          </template>
+        </template>
+      </div>
+    </div>
+
     <shortcut-help-dialog
         v-model="showHelp"
         :shortcuts="shortcutsHelp"
@@ -464,6 +507,36 @@ const notification = reactive({
   timeout: 4000,
 })
 const clickTimer: Ref<number | undefined> = ref(undefined)
+type DictionaryDefinition = {
+  definition?: string
+  example?: string
+}
+type DictionaryMeaning = {
+  partOfSpeech?: string
+  definitions?: DictionaryDefinition[]
+}
+type DictionaryEntry = {
+  word?: string
+  phonetic?: string
+  meanings?: DictionaryMeaning[]
+}
+type DictionaryLookup = {
+  word: string
+  x: number
+  y: number
+  loading: boolean
+  error?: string
+  entries: DictionaryEntry[]
+}
+type DictionaryFetchWindow = Window & {
+  originalFetch?: typeof fetch
+}
+const dictionaryLookup: Ref<DictionaryLookup | undefined> = ref(undefined)
+let dictionaryLookupRequest = 0
+let lastDictionaryTap: {time: number; x: number; y: number; document: Document} | undefined
+const dictionaryPopupMargin = 12
+const dictionaryPopupWidth = 340
+const dictionaryPopupMaxHeight = 420
 // const forceUpdate = ref(false)
 const progressionTitle: Ref<undefined | string> = ref(undefined)
 const progressionPage: Ref<undefined | number> = ref(undefined)
@@ -783,6 +856,7 @@ function keyPressed(e: KeyboardEvent) {
 function clickThrough(e: MouseEvent) {
   let x = e.x
   let y = e.y
+  const sourceDocument = (e.target as Node | null)?.ownerDocument ?? document
   if ((e.target as Node)?.ownerDocument != document) {
     const iframe = e.view?.frameElement
     if (iframe == null) return
@@ -794,14 +868,265 @@ function clickThrough(e: MouseEvent) {
     y = rect.top + (e.y * scaleComputed)
   }
 
-  if (e.detail === 1) {
-    clickTimer.value = setTimeout(() => {
-      singleClick(x, y)
-    }, 200)
-  }
-  if (e.detail === 2) {
+  if (e.detail <= 1) {
+    if (isDictionaryDoubleTap(e, x, y, sourceDocument)) {
+      clearTimeout(clickTimer.value)
+      lastDictionaryTap = undefined
+      if (openDictionaryFromSelection(e, x, y) || openDictionaryFromPoint(e, x, y)) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      return
+    }
+
     clearTimeout(clickTimer.value)
+    clickTimer.value = setTimeout(() => {
+      if (!openDictionaryFromSelection(e, x, y)) {
+        singleClick(x, y)
+      }
+    }, 280)
+    return
   }
+
+  if (e.detail >= 2) {
+    clearTimeout(clickTimer.value)
+    lastDictionaryTap = undefined
+    if (openDictionaryFromSelection(e, x, y) || openDictionaryFromPoint(e, x, y)) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+}
+
+function isDictionaryDoubleTap(e: MouseEvent, x: number, y: number, sourceDocument: Document): boolean {
+  const now = e.timeStamp || Date.now()
+  const previousTap = lastDictionaryTap
+  lastDictionaryTap = {time: now, x, y, document: sourceDocument}
+
+  if (!previousTap || previousTap.document !== sourceDocument || now - previousTap.time > 500) {
+    return false
+  }
+
+  return Math.hypot(x - previousTap.x, y - previousTap.y) < 32
+}
+
+function openDictionaryFromSelection(e: MouseEvent, fallbackX: number, fallbackY: number): boolean {
+  const selection = e.view?.getSelection()
+  const selectedText = selection?.toString().trim() ?? ''
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed || !isSingleDictionaryWord(selectedText)) {
+    return false
+  }
+
+  const range = selection.getRangeAt(0)
+  const rangeDocument = range.commonAncestorContainer.ownerDocument
+  const rangeElement = getContainerElement(range.commonAncestorContainer)
+  if (rangeDocument && (!rangeElement || !rangeDocument.body?.contains(rangeElement))) {
+    return false
+  }
+
+  const rect = getRangeRect(range)
+  const position = rect
+      ? translateReaderPoint(e.view, rect.left + rect.width / 2, rect.bottom)
+      : {x: fallbackX, y: fallbackY}
+
+  openDictionaryLookup(selectedText, position.x, position.y)
+  return true
+}
+
+function openDictionaryFromPoint(e: MouseEvent, fallbackX: number, fallbackY: number): boolean {
+  const sourceDocument = (e.target as Node | null)?.ownerDocument ?? document
+  const target = sourceDocument.elementFromPoint(e.clientX, e.clientY)
+  if (!canOpenDictionaryForTarget(target)) {
+    return false
+  }
+
+  const caretRange = getCaretRangeFromPoint(sourceDocument, e.clientX, e.clientY)
+  if (!caretRange) {
+    return false
+  }
+
+  const textNode = getTextNode(caretRange.startContainer, caretRange.startOffset)
+  if (!textNode) {
+    return false
+  }
+
+  const text = textNode.textContent ?? ''
+  const wordBounds = getWordBounds(text, caretRange.startOffset)
+  if (!wordBounds) {
+    return false
+  }
+
+  const range = sourceDocument.createRange()
+  range.setStart(textNode, wordBounds.start)
+  range.setEnd(textNode, wordBounds.end)
+
+  const selection = sourceDocument.defaultView?.getSelection()
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+
+  const rect = getRangeRect(range)
+  const position = rect
+      ? translateReaderPoint(sourceDocument.defaultView, rect.left + rect.width / 2, rect.bottom)
+      : {x: fallbackX, y: fallbackY}
+
+  openDictionaryLookup(text.slice(wordBounds.start, wordBounds.end), position.x, position.y)
+  return true
+}
+
+function canOpenDictionaryForTarget(target: Element | null): boolean {
+  return !!target && !target.closest('a, button, input, textarea, select, img, svg, image')
+}
+
+function getCaretRangeFromPoint(sourceDocument: Document, x: number, y: number): Range | undefined {
+  const range = sourceDocument.caretRangeFromPoint?.(x, y)
+  if (range) {
+    return range
+  }
+
+  const caretDocument = sourceDocument as Document & {
+    caretPositionFromPoint?: (x: number, y: number) => {offsetNode: Node; offset: number} | null
+  }
+  const position = caretDocument.caretPositionFromPoint?.(x, y)
+  if (!position) {
+    return undefined
+  }
+
+  const positionRange = sourceDocument.createRange()
+  positionRange.setStart(position.offsetNode, position.offset)
+  positionRange.collapse(true)
+  return positionRange
+}
+
+function getTextNode(node: Node, offset: number): Text | undefined {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node as Text
+  }
+
+  const childNode = node.childNodes.item(Math.max(0, offset - 1)) || node.childNodes.item(offset)
+  if (childNode?.nodeType === Node.TEXT_NODE) {
+    return childNode as Text
+  }
+
+  return undefined
+}
+
+function getWordBounds(text: string, offset: number): {start: number; end: number} | undefined {
+  const wordRegex = /[\p{L}\p{M}\p{N}'-]+/gu
+  const clampedOffset = Math.max(0, Math.min(offset, text.length))
+
+  for (const match of text.matchAll(wordRegex)) {
+    const start = match.index || 0
+    const end = start + match[0].length
+    if (
+        (clampedOffset >= start && clampedOffset <= end) ||
+        (clampedOffset - 1 >= start && clampedOffset - 1 < end)
+    ) {
+      return {start, end}
+    }
+  }
+
+  return undefined
+}
+
+function getRangeRect(range: Range): DOMRect | undefined {
+  const rects = range.getClientRects()
+  if (rects.length > 0) {
+    return rects[0]
+  }
+
+  const rect = range.getBoundingClientRect()
+  return rect.width || rect.height ? rect : undefined
+}
+
+function getContainerElement(node: Node): HTMLElement | undefined {
+  return (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement) as HTMLElement | undefined
+}
+
+function translateReaderPoint(view: Window | null | undefined, x: number, y: number): {x: number; y: number} {
+  const iframe = view?.frameElement as HTMLElement | null | undefined
+  if (!iframe) {
+    return {x, y}
+  }
+
+  const iframeWrapper = iframe.parentElement?.parentElement
+  const scale = iframeWrapper ? iframeWrapper.getBoundingClientRect().width / iframeWrapper.offsetWidth : 1
+  const rect = iframe.getBoundingClientRect()
+  return {
+    x: rect.left + (x * scale),
+    y: rect.top + (y * scale)
+  }
+}
+
+function isSingleDictionaryWord(value: string): boolean {
+  const matches = [...value.matchAll(/[\p{L}\p{M}\p{N}'-]+/gu)]
+  return matches.length === 1 && matches[0][0] === value
+}
+
+async function openDictionaryLookup(rawWord: string, x: number, y: number) {
+  const word = rawWord.trim()
+  if (!isSingleDictionaryWord(word)) {
+    return
+  }
+
+  const requestId = ++dictionaryLookupRequest
+  const position = getDictionaryPopupPosition(x, y)
+  dictionaryLookup.value = {
+    word,
+    x: position.x,
+    y: position.y,
+    loading: true,
+    entries: [],
+  }
+
+  try {
+    const response = await fetchDictionary(word)
+    if (!response.ok) {
+      throw new Error(response.status === 404 ? `No definition found for "${word}".` : 'Dictionary lookup failed.')
+    }
+
+    const entries = await response.json() as DictionaryEntry[]
+    if (requestId === dictionaryLookupRequest && dictionaryLookup.value) {
+      dictionaryLookup.value = {...dictionaryLookup.value, loading: false, entries}
+    }
+  } catch (error: any) {
+    if (requestId === dictionaryLookupRequest && dictionaryLookup.value) {
+      dictionaryLookup.value = {
+        ...dictionaryLookup.value,
+        loading: false,
+        error: error?.message ?? 'Dictionary lookup failed.',
+      }
+    }
+  }
+}
+
+function getDictionaryPopupPosition(x: number, y: number): {x: number; y: number} {
+  const popupWidth = Math.min(dictionaryPopupWidth, window.innerWidth - (dictionaryPopupMargin * 2))
+  const popupHeight = Math.min(dictionaryPopupMaxHeight, window.innerHeight - (dictionaryPopupMargin * 2))
+  const minTop = showToolbars.value ? 56 : dictionaryPopupMargin
+  const maxLeft = Math.max(dictionaryPopupMargin, window.innerWidth - popupWidth - dictionaryPopupMargin)
+  const left = Math.max(dictionaryPopupMargin, Math.min(x - (popupWidth / 2), maxLeft))
+  const belowTop = y + 8
+  const aboveTop = y - popupHeight - 8
+  const top = belowTop + popupHeight + dictionaryPopupMargin > window.innerHeight
+      ? Math.max(minTop, aboveTop)
+      : Math.max(minTop, belowTop)
+
+  return {
+    x: left,
+    y: Math.min(top, Math.max(minTop, window.innerHeight - popupHeight - dictionaryPopupMargin))
+  }
+}
+
+function fetchDictionary(word: string): Promise<Response> {
+  const dictionaryWindow = window as DictionaryFetchWindow
+  const fetchFunction = dictionaryWindow.originalFetch ?? window.fetch
+  const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`
+
+  return fetchFunction.call(window, url, {cache: 'no-store'})
+}
+
+function closeDictionary() {
+  dictionaryLookup.value = undefined
 }
 
 function singleClick(x: number, y: number) {
@@ -1107,5 +1432,82 @@ function markProgress(location: Locator) {
 
 .hidden {
   display: none !important;
+}
+
+.dictionary-popup {
+  position: fixed;
+  z-index: 30;
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 72px));
+  overflow: auto;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(127, 127, 127, .35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  font-size: .92rem;
+  line-height: 1.35;
+}
+
+.dictionary-popup.day {
+  background-color: #fff;
+  color: #1f1f1f;
+}
+
+.dictionary-popup.sepia {
+  background-color: #faf4e8;
+  color: #2d2820;
+}
+
+.dictionary-popup.night {
+  background-color: #1f1f1f;
+  color: #f2f2f2;
+}
+
+.dictionary-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dictionary-popup-word {
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+.dictionary-popup-phonetic,
+.dictionary-popup-muted,
+.dictionary-popup-example {
+  opacity: .72;
+}
+
+.dictionary-popup-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.dictionary-popup-part {
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.dictionary-popup ol {
+  margin: 4px 0 8px 20px;
+  padding: 0;
+}
+
+.dictionary-popup li {
+  margin-bottom: 6px;
+}
+
+.dictionary-popup-example {
+  margin-top: 2px;
+  font-style: italic;
 }
 </style>
