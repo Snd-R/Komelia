@@ -872,8 +872,8 @@
     <string name="komf_providers_mangabaka_database">MangaBaka Offline Database</string>
     <string name="komf_providers_mangabaka_database_download_date">Download date %1$s</string>
     <string name="komf_providers_mangabaka_database_checksum">Checksum %1$s</string>
-    <string name="komf_providers_mangabaka_database_update">Update ManghaBaka database</string>
-    <string name="komf_providers_mangabaka_database_download">Download ManghaBaka database</string>
+    <string name="komf_providers_mangabaka_database_update">Update MangaBaka database</string>
+    <string name="komf_providers_mangabaka_database_download">Download MangaBaka database</string>
     <string name="komf_providers_mangabaka_database_download_done">Done</string>
     <string name="komf_providers_mangabaka_database_download_close">Close</string>
     <string name="komf_providers_edit">Edit %1$s</string>
