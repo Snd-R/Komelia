@@ -21,7 +21,8 @@ class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepositor
                     EpubReaderSettings(
                         readerType = EpubReaderType.valueOf(it[EpubReaderSettingsTable.readerType]),
                         komgaReaderSettings = it[EpubReaderSettingsTable.komgaSettingsJson],
-                        ttsuReaderSettings = it[EpubReaderSettingsTable.ttsuSettingsJson]
+                        ttsuReaderSettings = it[EpubReaderSettingsTable.ttsuSettingsJson],
+                        fullscreenEnabled = it[EpubReaderSettingsTable.fullscreenEnabled],
                     )
                 }
         }
@@ -34,6 +35,7 @@ class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepositor
                 it[readerType] = settings.readerType.name
                 it[komgaSettingsJson] = settings.komgaReaderSettings
                 it[ttsuSettingsJson] = settings.ttsuReaderSettings
+                it[fullscreenEnabled] = settings.fullscreenEnabled
             }
         }
     }

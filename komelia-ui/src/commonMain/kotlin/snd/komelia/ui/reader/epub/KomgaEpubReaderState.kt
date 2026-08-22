@@ -64,7 +64,7 @@ class KomgaEpubReaderState(
 
     override suspend fun initialize(navigator: Navigator) {
         this.navigator.value = navigator
-        if (platformType == PlatformType.MOBILE) windowState.setFullscreen(true)
+        if (platformType == PlatformType.MOBILE && epubSettingsRepository.getFullscreenEnabled().first()) windowState.setFullscreen(true)
         if (state.value !is Uninitialized) return
 
         state.value = LoadState.Loading

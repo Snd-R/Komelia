@@ -35,4 +35,12 @@ class EpubReaderSettingsRepositoryWrapper(
     override suspend fun putTtsuReaderSettings(settings: TtsuReaderSettings) {
         return wrapper.transform { it.copy(ttsuReaderSettings = settings) }
     }
+
+    override fun getFullscreenEnabled(): Flow<Boolean> {
+        return wrapper.mapState { it.fullscreenEnabled }
+    }
+
+    override fun putFullscreenEnabled(enabled: Boolean) {
+        wrapper.update { it.copy(fullscreenEnabled = enabled) }
+    }
 }
