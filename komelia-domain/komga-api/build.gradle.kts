@@ -11,7 +11,6 @@ group = "io.github.snd-r.komelia.komga.api"
 version = "unspecified"
 
 kotlin {
-    jvmToolchain(17)
 
     android {
         namespace = "io.github.snd_r.komelia.komga.api"
