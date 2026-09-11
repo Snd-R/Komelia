@@ -266,7 +266,7 @@ fun BookInfoRow(
                 val pagesCount = book.media.pagesCount
                 if (readProgress != null) {
                     if (!readProgress.completed) {
-                        val (percentage, pagesLeft) = remember(pagesCount, readProgress) {
+                        val (pagesLeft, percentage) = remember(pagesCount, readProgress) {
                             val pagesLeft = pagesCount - readProgress.page
                             val percentage = (readProgress.page.toFloat() / pagesCount * 100).roundToInt()
                             pagesLeft to percentage
