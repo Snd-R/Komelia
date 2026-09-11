@@ -181,6 +181,7 @@
     <string name="series_status_abandoned">Abandoned</string>
     <string name="series_status_hiatus">Hiatus</string>
     <string name="series_reading_direction_left_to_right">Left to right</string>
+    <string name="series_reading_direction_right_to_left">Right to left</string>
     <string name="series_reading_direction_vertical">Vertical</string>
     <string name="series_reading_direction_webtoon">Webtoon</string>
     <string name="series_publisher">Publisher</string>

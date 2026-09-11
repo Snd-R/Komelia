@@ -90,7 +90,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_re
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_fit_height
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_fit_width
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_original
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_type
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_screen
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
@@ -115,6 +115,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_s
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_updated_asc
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_sort_updated_desc
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_left_to_right
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_right_to_left
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_vertical
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reading_direction_webtoon
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_status_abandoned
@@ -239,7 +240,7 @@ data object AppStrings {
     fun forReadingDirection(direction: KomgaReadingDirection): StringResource {
         return when (direction) {
             LEFT_TO_RIGHT -> Res.string.series_reading_direction_left_to_right
-            RIGHT_TO_LEFT -> Res.string.series_reading_direction_left_to_right
+            RIGHT_TO_LEFT -> Res.string.series_reading_direction_right_to_left
             VERTICAL -> Res.string.series_reading_direction_vertical
             WEBTOON -> Res.string.series_reading_direction_webtoon
         }
@@ -323,7 +324,7 @@ data object AppStrings {
 
     fun forScaleType(type: LayoutScaleType): StringResource {
         return when (type) {
-            LayoutScaleType.SCREEN -> Res.string.reader_paged_scale_type
+            LayoutScaleType.SCREEN -> Res.string.reader_paged_scale_screen
             LayoutScaleType.FIT_WIDTH -> Res.string.reader_paged_scale_fit_width
             LayoutScaleType.FIT_HEIGHT -> Res.string.reader_paged_scale_fit_height
             LayoutScaleType.ORIGINAL -> Res.string.reader_paged_scale_original
