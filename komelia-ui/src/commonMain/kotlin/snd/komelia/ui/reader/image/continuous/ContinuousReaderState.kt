@@ -84,6 +84,8 @@ class ContinuousReaderState(
     val sidePaddingFraction = MutableStateFlow(.3f)
     val sidePaddingPx = MutableStateFlow(0)
     val pageSpacing = MutableStateFlow(0)
+    val scrollStep = MutableStateFlow(100f)
+    val keyBindings = MutableStateFlow(ContinuousKeyBindings())
     val imageStretchToFit = readerState.imageStretchToFit.asStateFlow()
 
     val pageIntervals = MutableStateFlow<List<BookPagesInterval>>(emptyList())
@@ -122,6 +124,8 @@ class ContinuousReaderState(
         }
         sidePaddingFraction.value = settingsRepository.getContinuousReaderPadding().first()
         pageSpacing.value = settingsRepository.getContinuousReaderPageSpacing().first().coerceAtMost(99999)
+        scrollStep.value = settingsRepository.getContinuousScrollStep().first()
+        keyBindings.value = fromJsonToJson(settingsRepository.getContinuousShortcuts().first())
 
         screenScaleState.setScrollState(lazyListState)
         when (readingDirection.value) {
@@ -701,6 +705,16 @@ class ContinuousReaderState(
         val newDistance = distance.coerceAtMost(99999)
         this.pageSpacing.value = newDistance
         stateScope.launch { settingsRepository.putContinuousReaderPageSpacing(newDistance) }
+    }
+
+    fun onScrollStepChange(step: Float) {
+        this.scrollStep.value = step
+        stateScope.launch { settingsRepository.putContinuousScrollStep(step) }
+    }
+
+    fun onKeyBindingsChange(bindings: ContinuousKeyBindings) {
+        this.keyBindings.value = bindings
+        stateScope.launch { settingsRepository.putContinuousShortcuts(bindings.toJson()) }
     }
 
     fun onPageDisplay(page: PageMetadata, image: ReaderImage) {

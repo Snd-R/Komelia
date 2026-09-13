@@ -73,6 +73,7 @@ fun BoxScope.ContinuousReaderContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val readingDirection = continuousReaderState.readingDirection.collectAsState().value
+    var showShortcutsDialog by remember { mutableStateOf(false) }
 
     val layoutDirection = remember(readingDirection) {
         when (readingDirection) {
@@ -89,11 +90,22 @@ fun BoxScope.ContinuousReaderContent(
         )
     }
 
+    if (showShortcutsDialog) {
+        ContinuousShortcutsDialog(
+            keyBindings = continuousReaderState.keyBindings.collectAsState().value,
+            onKeyBindingsChange = continuousReaderState::onKeyBindingsChange,
+            onDismissRequest = { showShortcutsDialog = false }
+        )
+    }
+
     val areaSize = screenScaleState.areaSize.collectAsState().value
-    val keysState = remember(readingDirection, volumeKeysNavigation) {
+    val scrollStep by continuousReaderState.scrollStep.collectAsState()
+    val keyBindings by continuousReaderState.keyBindings.collectAsState()
+    val keysState = remember(readingDirection, volumeKeysNavigation, scrollStep) {
         KeyMapState(
             readingDirection = readingDirection,
             volumeKeysNavigation = volumeKeysNavigation,
+            scrollStep = scrollStep,
             scrollBy = continuousReaderState::scrollBy,
             scrollForward = { coroutineScope.launch { continuousReaderState.scrollScreenForward() } },
             scrollBackward = { coroutineScope.launch { continuousReaderState.scrollScreenBackward() } },
@@ -110,6 +122,22 @@ fun BoxScope.ContinuousReaderContent(
         isSettingsMenuOpen = showSettingsMenu,
         onSettingsMenuToggle = { onShowSettingsMenuChange(!showSettingsMenu) },
         modifier = Modifier.onKeyEvent { event ->
+            // Check rebindable shortcuts first
+            if (event.type == KeyDown) {
+                keyBindings.actionFor(event.key)?.let { action ->
+                    when (action) {
+                        ContinuousShortcutAction.SCROLL_UP -> {
+                            continuousReaderState.scrollBy(scrollStep)
+                            return@onKeyEvent true
+                        }
+                        ContinuousShortcutAction.SCROLL_DOWN -> {
+                            continuousReaderState.scrollBy(-scrollStep)
+                            return@onKeyEvent true
+                        }
+                    }
+                }
+            }
+
             var consumed = true
 
             when (event.type) {

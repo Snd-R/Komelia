@@ -201,7 +201,10 @@ fun SettingsSideMenuOverlay(
                         }
                     }
 
-                    CONTINUOUS -> ContinuousReaderSettingsContent(continuousReaderState)
+                    CONTINUOUS -> ContinuousReaderSettingsContent(
+                        continuousReaderState = continuousReaderState,
+                        onShowShortcutsDialogChange = { showShortcutsDialog = true }
+                    )
                 }
             }
 
@@ -350,23 +353,26 @@ fun SettingsSideMenuOverlay(
 
 
 @Composable
-private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderState) {
+private fun ColumnScope.ContinuousReaderSettingsContent(
+    continuousReaderState: ContinuousReaderState,
+    onShowShortcutsDialogChange: () -> Unit
+) {
 
-    val readingDirection = state.readingDirection.collectAsState()
+    val readingDirection = continuousReaderState.readingDirection.collectAsState()
     DropdownChoiceMenu(
         selectedOption = LabeledEntry(
             readingDirection.value,
             stringResource(AppStrings.forReadingDirection(readingDirection.value))
         ),
         options = stringLabels(ContinuousReadingDirection.entries) { AppStrings.forReadingDirection(it) },
-        onOptionChange = { state.onReadingDirectionChange(it.value) },
+        onOptionChange = { continuousReaderState.onReadingDirectionChange(it.value) },
         inputFieldModifier = Modifier.fillMaxWidth(),
         label = { Text(stringResource(Res.string.reader_continuous_reading_direction)) },
         inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-        val padding = state.sidePaddingFraction.collectAsState().value
+        val padding = continuousReaderState.sidePaddingFraction.collectAsState().value
         NumberFieldWithIncrements(
             value = padding * 200,
             label = {
@@ -375,14 +381,14 @@ private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderS
                     style = MaterialTheme.typography.labelMedium
                 )
             },
-            onvValueChange = { state.onSidePaddingChange(it / 200) },
+            onvValueChange = { continuousReaderState.onSidePaddingChange(it / 200) },
             stepSize = 5f,
             minValue = 0f,
             maxValue = 80f,
             digitsAfterDecimal = 1,
             modifier = Modifier.weight(1f)
         )
-        val spacing = state.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
+        val spacing = continuousReaderState.pageSpacing.collectAsState(Dispatchers.Main.immediate).value
         NumberFieldWithIncrements(
             value = spacing.toFloat(),
             label = {
@@ -391,14 +397,48 @@ private fun ColumnScope.ContinuousReaderSettingsContent(state: ContinuousReaderS
                     style = MaterialTheme.typography.labelMedium
                 )
             },
-            onvValueChange = { state.onPageSpacingChange(it.roundToInt()) },
+            onvValueChange = { continuousReaderState.onPageSpacingChange(it.roundToInt()) },
             stepSize = 1f,
             minValue = 0f,
             maxValue = 9999f,
             digitsAfterDecimal = 0,
-            modifier = Modifier.weight(1f).padding(end = 10.dp)
+            modifier = Modifier.weight(1f)
+        )
+        val scrollStep = continuousReaderState.scrollStep.collectAsState().value
+        NumberFieldWithIncrements(
+            value = scrollStep,
+            label = {
+                Text(
+                    "Scroll step",
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
+            onvValueChange = { continuousReaderState.onScrollStepChange(it) },
+            stepSize = 10f,
+            minValue = 10f,
+            maxValue = 2000f,
+            digitsAfterDecimal = 0,
+            modifier = Modifier.weight(1f)
         )
     }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Keyboard shortcuts",
+            style = MaterialTheme.typography.labelMedium
+        )
+        Button(
+            onClick = onShowShortcutsDialogChange,
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Text("Configure", style = MaterialTheme.typography.labelMedium)
+        }
+    }
+
     Spacer(Modifier.height(10.dp))
 }
 

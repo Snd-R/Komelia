@@ -1,0 +1,76 @@
+name: Build Windows MSI Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: false
+        default: 'snapshot'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-msi:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="v${{ github.event.inputs.version }}"
+          else
+            VERSION="v$(date +%Y%m%d)-$(git rev-parse --short HEAD)"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Build Windows native binaries with Docker
+        run: |
+          docker build -t komelia-build-windows-x86_64 . -f ./cmake/windows-x86_64.Dockerfile
+          docker run -v $(pwd):/build komelia-build-windows-x86_64
+
+      - name: Copy JNI libs
+        run: ./gradlew windows-x86_64_copyJniLibs
+
+      - name: Build Windows MSI
+        run: ./gradlew :desktopMsi
+
+      - name: Find MSI file
+        id: find_msi
+        run: |
+          MSI_FILE=$(find komelia-app/desktopApp/build/compose/binaries -name "*.msi" -type f | head -n 1)
+          echo "MSI_FILE=$MSI_FILE" >> $GITHUB_OUTPUT
+          echo "Found MSI: $MSI_FILE"
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_msi.outputs.MSI_FILE }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      - name: Upload MSI as artifact
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: komelia-windows-installer-${{ steps.version.outputs.VERSION }}
+          path: ${{ steps.find_msi.outputs.MSI_FILE }}
+          retention-days: 30
