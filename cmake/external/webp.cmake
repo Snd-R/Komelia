@@ -2,7 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(ep_webp
         SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/libwebp
-        PATCH_COMMAND git clean -dfx
+        PATCH_COMMAND git clean -dfx && git apply ${CMAKE_CURRENT_LIST_DIR}/../../third_party/libwebp/sharpyuv_risk_thresholds.patch
         CMAKE_ARGS
             ${EP_CMAKE_ARGS}
             -DWEBP_BUILD_VWEBP=OFF
