@@ -1,99 +1,70 @@
 ```
-# Build artifacts
-build/
-target/
-dist/
-
 # Dependencies
-.gradle/
 node_modules/
-vendor/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
 .venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-*.pot
-*.po
-*~
-.pytest_cache/
+venv/
+__pycache__/
 .mypy_cache/
-.hypothesis/
-
-# Java
-*.class
-*.jar
-*.war
-*.ear
-hs_err_pid*
-
-# Kotlin Multiplatform
-.konan/
-*gradle.log
+.pytest_cache/
+target/
 .gradle/
-build/
 
-# IDE
-.vscode/
-.idea/
+# Build artifacts
+dist/
+build/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Logs and temp files
+*.log
+*.tmp
 *.swp
 *.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
 
 # Environment
 .env
 .env.local
 .env.*
 
-# Logs
-*.log
+# Editors
+.vscode/
+.idea/
 
-# Temporary files
-*.tmp
-*.temp
-*.bak
+# System files
+.DS_Store
+Thumbs.db
 
-# Archives
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Compressed files
 *.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
 *.tar.gz
 *.tar.bz2
 *.tar.xz
-*.7z
-*.rar
-*.gz
-*.bz2
-*.xz
-*.zst
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Third party libraries (based on modified files showing third_party changes)
-third_party/
-
-# Coverage reports
-coverage/
-htmlcov/
-*.coverage
+*.tar.zst
 ```

@@ -43,8 +43,11 @@ RUN mkdir /cuda_download && mkdir /cuda \
     && cd / \
     && rm -rf /cuda_download
 
+# Create build directory with proper permissions before switching user
+RUN mkdir -p /build && chown -R 1000:1000 /build
+
 USER 1000:1000
-WORKDIR build
+WORKDIR /build
 
 ENV CUDA_CUSTOM_PATH=/cuda/
 ENV JAVA_HOME=/jdk/
