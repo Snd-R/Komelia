@@ -67,6 +67,11 @@ interface ImageReaderSettingsRepository {
     fun getVolumeKeysNavigation(): Flow<Boolean>
     suspend fun putVolumeKeysNavigation(enable: Boolean)
 
+    fun getContinuousScrollStep(): Flow<Float>
+    suspend fun putContinuousScrollStep(step: Float)
+    fun getContinuousShortcuts(): Flow<String>
+    suspend fun putContinuousShortcuts(json: String)
+
     fun getUpscalerMode(): Flow<UpscaleMode>
     suspend fun putUpscalerMode(mode: UpscaleMode)
 

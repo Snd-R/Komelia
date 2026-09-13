@@ -1,6 +1,6 @@
 [submodule "third_party/secret-service"]
 	path = third_party/secret-service
-	url = https://github.com/Snd-R/secret-service
+	url = https://github.com/gnome/libsecret.git
 [submodule "third_party/compose-sonner"]
 	path = third_party/compose-sonner
 	url = https://github.com/Snd-R/compose-sonner
@@ -18,7 +18,7 @@
 	url = https://code.videolan.org/videolan/dav1d.git
 [submodule "third_party/dav1d"]
 	path = third_party/dav1d
-	url = https://code.videolan.org/videolan/dav1d.git
+	url = https://github.com/videolan/dav1d.git
 [submodule "third_party/libde265"]
 	path = third_party/libde265
 	url = https://github.com/strukturag/libde265.git
@@ -60,7 +60,7 @@
 	url = https://github.com/zlib-ng/zlib-ng.git
 [submodule "third_party/onnxruntime"]
 	path = third_party/onnxruntime
-	url = https://github.com/microsoft/onnxruntime
+	url = https://github.com/microsoft/onnxruntime.git
 [submodule "third_party/libspng"]
 	path = third_party/libspng
 	url = https://github.com/randy408/libspng

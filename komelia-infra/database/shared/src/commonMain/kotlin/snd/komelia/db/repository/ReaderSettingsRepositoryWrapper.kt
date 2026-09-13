@@ -163,6 +163,22 @@ class ReaderSettingsRepositoryWrapper(
         wrapper.transform { it.copy(volumeKeysNavigation = enable) }
     }
 
+    override fun getContinuousScrollStep(): Flow<Float> {
+        return wrapper.mapState { it.continuousScrollStep }
+    }
+
+    override suspend fun putContinuousScrollStep(step: Float) {
+        wrapper.transform { it.copy(continuousScrollStep = step) }
+    }
+
+    override fun getContinuousShortcuts(): Flow<String> {
+        return wrapper.mapState { it.continuousShortcuts }
+    }
+
+    override suspend fun putContinuousShortcuts(json: String) {
+        wrapper.transform { it.copy(continuousShortcuts = json) }
+    }
+
     override fun getUpscalerMode(): Flow<UpscaleMode> {
         return wrapper.mapState { it.ortUpscalerMode }
     }

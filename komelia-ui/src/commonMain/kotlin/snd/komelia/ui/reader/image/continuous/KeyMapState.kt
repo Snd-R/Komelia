@@ -9,6 +9,7 @@ import snd.komelia.settings.model.ContinuousReadingDirection.TOP_TO_BOTTOM
 class KeyMapState(
     readingDirection: ContinuousReadingDirection,
     private val volumeKeysNavigation: Boolean,
+    private val scrollStep: Float,
     private val scrollBy: (Float) -> Unit,
     private val scrollForward: () -> Unit,
     private val scrollBackward: () -> Unit,
@@ -31,8 +32,8 @@ class KeyMapState(
     init {
         when (readingDirection) {
             TOP_TO_BOTTOM -> {
-                upKeyAction = { scrollBy(100f) }
-                downKeyAction = { scrollBy(-100f) }
+                upKeyAction = { scrollBy(scrollStep) }
+                downKeyAction = { scrollBy(-scrollStep) }
                 leftKeyAction = { if (!leftKeyPressed) scrollBackward() }
                 rightKeyAction = { if (!rightKeyPressed) scrollForward() }
             }
@@ -40,15 +41,15 @@ class KeyMapState(
             LEFT_TO_RIGHT -> {
                 upKeyAction = { if (!upKeyPressed) scrollBackward() }
                 downKeyAction = { if (!downKeyPressed) scrollForward() }
-                leftKeyAction = { scrollBy(100f) }
-                rightKeyAction = { scrollBy(-100f) }
+                leftKeyAction = { scrollBy(scrollStep) }
+                rightKeyAction = { scrollBy(-scrollStep) }
             }
 
             RIGHT_TO_LEFT -> {
                 upKeyAction = { if (!upKeyPressed) scrollBackward() }
                 downKeyAction = { if (!downKeyPressed) scrollForward() }
-                leftKeyAction = { scrollBy(100f) }
-                rightKeyAction = { scrollBy(-100f) }
+                leftKeyAction = { scrollBy(scrollStep) }
+                rightKeyAction = { scrollBy(-scrollStep) }
             }
         }
     }

@@ -34,6 +34,8 @@ data class ImageReaderSettings(
     val upsamplingMode: UpsamplingMode = UpsamplingMode.CATMULL_ROM,
     val loadThumbnailPreviews: Boolean = true,
     val volumeKeysNavigation: Boolean = false,
+    val continuousScrollStep: Float = 100f,
+    val continuousShortcuts: String = "{}",
 
     val ortUpscalerMode: UpscaleMode = UpscaleMode.NONE,
     val ortUpscalerUserModelPath: PlatformFile? = null,
