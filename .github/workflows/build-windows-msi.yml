@@ -44,7 +44,7 @@ jobs:
       - name: Build Windows native binaries with Docker
         run: |
           docker build -t komelia-build-windows-x86_64 . -f ./cmake/windows-x86_64.Dockerfile
-          docker run -v $(pwd):/build komelia-build-windows-x86_64
+          docker run --user $(id -u):$(id -g) -v $(pwd):/build komelia-build-windows-x86_64
 
       - name: Copy JNI libs
         run: ./gradlew windows-x86_64_copyJniLibs
