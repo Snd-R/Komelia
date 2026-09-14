@@ -11,4 +11,5 @@ data class EpubReaderSettings(
     val readerType: EpubReaderType = EpubReaderType.TTSU_EPUB,
     val komgaReaderSettings: JsonObject = buildJsonObject { },
     val ttsuReaderSettings: TtsuReaderSettings = TtsuReaderSettings(),
+    val fullscreenEnabled: Boolean = true,
 )

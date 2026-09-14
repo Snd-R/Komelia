@@ -88,3 +88,15 @@ tasks.register<Sync>("android-x86-ExtractSqliteLib") {
     from(file)
     into("$projectDir/src/androidMain/jniLibs/x86")
 }
+
+afterEvaluate {
+    val extractTasks = listOf(
+        "android-arm64-ExtractSqliteLib",
+        "android-armv7a-ExtractSqliteLib",
+        "android-x86_64-ExtractSqliteLib",
+        "android-x86-ExtractSqliteLib"
+    )
+    tasks.named("preBuild") {
+        dependsOn(extractTasks)
+    }
+}

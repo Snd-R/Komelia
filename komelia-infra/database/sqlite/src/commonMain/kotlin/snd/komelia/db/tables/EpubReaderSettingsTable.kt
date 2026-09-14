@@ -11,6 +11,7 @@ object EpubReaderSettingsTable : Table("EpubReaderSettings") {
     val readerType = text("reader_type")
     val komgaSettingsJson = json<JsonObject>("komga_settings_json", JsonDbDefault)
     val ttsuSettingsJson = json<TtsuReaderSettings>("ttsu_settings_json", JsonDbDefault)
+    val fullscreenEnabled = bool("fullscreen_enabled").default(true)
 
     override val primaryKey = PrimaryKey(bookId)
 }

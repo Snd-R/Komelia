@@ -14,15 +14,22 @@ class EpubReaderSettingsViewModel(
     private val settingsRepository: EpubReaderSettingsRepository
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
     val selectedEpubReader = MutableStateFlow(TTSU_EPUB)
+    val fullscreenEnabled = MutableStateFlow(true)
 
     suspend fun initialize() {
         if (state.value !is LoadState.Uninitialized) return
         selectedEpubReader.value = settingsRepository.getReaderType().first()
+        fullscreenEnabled.value = settingsRepository.getFullscreenEnabled().first()
         mutableState.value = LoadState.Success(Unit)
     }
 
     fun onSelectedTypeChange(type: EpubReaderType) {
         selectedEpubReader.value = type
         screenModelScope.launch { settingsRepository.putReaderType(type) }
+    }
+
+    fun onFullscreenEnabledChange(enabled: Boolean) {
+        fullscreenEnabled.value = enabled
+        settingsRepository.putFullscreenEnabled(enabled)
     }
 }

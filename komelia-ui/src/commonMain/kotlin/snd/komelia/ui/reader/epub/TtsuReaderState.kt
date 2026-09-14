@@ -89,7 +89,6 @@ class TtsuReaderState(
     @OptIn(ExperimentalResourceApi::class)
     override suspend fun initialize(navigator: Navigator) {
         this.navigator.value = navigator
-        if (platformType == PlatformType.MOBILE) windowState.setFullscreen(true)
         if (state.value !is LoadState.Uninitialized) return
 
         state.value = LoadState.Loading
@@ -123,8 +122,6 @@ class TtsuReaderState(
 
     override fun closeWebview() {
         webview.value?.close()
-        if (platformType == PlatformType.MOBILE) windowState.setFullscreen(false)
-
         navigator.value?.let { nav ->
             if (nav.canPop) nav.pop()
             else {

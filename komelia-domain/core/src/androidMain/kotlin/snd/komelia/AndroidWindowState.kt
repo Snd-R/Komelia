@@ -25,7 +25,6 @@ class AndroidWindowState(
             insetsController.show(statusBars() or navigationBars())
             insetsController.systemBarsBehavior = BEHAVIOR_DEFAULT
             isFullscreen.value = false
-
         }
     }
 }

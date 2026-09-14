@@ -14,4 +14,7 @@ interface EpubReaderSettingsRepository {
 
     suspend fun getTtsuReaderSettings(): TtsuReaderSettings
     suspend fun putTtsuReaderSettings(settings: TtsuReaderSettings)
+
+    fun getFullscreenEnabled(): Flow<Boolean>
+    fun putFullscreenEnabled(enabled: Boolean)
 }
