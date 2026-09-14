@@ -249,6 +249,7 @@ tasks.register<Exec>("komgaNpmInstall") {
     workingDir(epubReaderKomga)
     inputs.file("$epubReaderKomga/package.json")
     outputs.dir("$epubReaderKomga/node_modules")
+    environment("NPM_CONFIG_ALLOW_GIT", "all")
     commandLine(
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             "npm.cmd"
