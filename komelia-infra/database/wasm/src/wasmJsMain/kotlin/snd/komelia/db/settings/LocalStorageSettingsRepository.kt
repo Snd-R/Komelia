@@ -1,7 +1,7 @@
 package snd.komelia.db.settings
 
 import kotlinx.browser.localStorage
-import kotlinx.serialization.json.Json
+import kotlinx.browser.window
 import org.w3c.dom.set
 import snd.komelia.db.AppSettings
 import snd.komelia.db.EpubReaderSettings
@@ -51,7 +51,7 @@ class LocalStorageSettingsRepository {
     fun getKomfSettings(): KomfSettings {
         return localStorage.getItem(komfSettingsKey)
             ?.let { json.decodeFromString<KomfSettings>(it) }
-            ?: KomfSettings()
+            ?: KomfSettings(remoteUrl = window.location.origin)
     }
 
     fun saveKomfSettings(settings: KomfSettings) {
