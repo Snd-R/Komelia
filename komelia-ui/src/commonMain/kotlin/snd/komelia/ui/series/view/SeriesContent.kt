@@ -149,9 +149,8 @@ fun SeriesContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        when (windowWidth) {
-            COMPACT, MEDIUM -> {}
-            EXPANDED, FULL -> if (booksData.selectionMode) {
+        if (series?.mangaBakaMetadata == null || windowWidth == EXPANDED || windowWidth == FULL) {
+            if (booksData.selectionMode) {
                 BooksBulkActionsToolbar(
                     onCancel = { booksState.setSelectionMode(false) },
                     books = booksData.books,

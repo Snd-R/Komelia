@@ -230,6 +230,7 @@ fun MangaBakaSeriesCompactToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
+            Spacer(Modifier.weight(1f))
             SeriesEditDialogButton(series)
             KomfSeriesActionsButton(series)
             SeriesActionMenuButton(series, actions)
