@@ -51,7 +51,7 @@ class LocalStorageSettingsRepository {
     fun getKomfSettings(): KomfSettings {
         return localStorage.getItem(komfSettingsKey)
             ?.let { json.decodeFromString<KomfSettings>(it) }
-            ?: KomfSettings(remoteUrl = window.location.origin)
+            ?: KomfSettings(remoteUrl = window.location.href)
     }
 
     fun saveKomfSettings(settings: KomfSettings) {
