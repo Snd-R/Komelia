@@ -33,15 +33,15 @@ data class OfflineBookMetadata(
     val lastModified: Instant,
 )
 
-fun KomgaBookMetadata.toOfflineBookMetadata(bookId: KomgaBookId) =
-    OfflineBookMetadata(
+fun KomgaBookMetadata.toOfflineBookMetadata(bookId: KomgaBookId): OfflineBookMetadata {
+    return OfflineBookMetadata(
         bookId = bookId,
         title = this.title,
         summary = this.summary,
         number = this.number,
         numberSort = this.numberSort,
         releaseDate = this.releaseDate,
-        authors = this.authors,
+        authors = this.authors.distinctBy { it.name to it.role },
         tags = this.tags,
         isbn = this.isbn,
         links = this.links,
@@ -57,3 +57,4 @@ fun KomgaBookMetadata.toOfflineBookMetadata(bookId: KomgaBookId) =
         created = this.created,
         lastModified = this.lastModified
     )
+}
