@@ -22,6 +22,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_remo
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_reset_series_warning
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.components.SwitchWithLabel
 import snd.komelia.ui.dialogs.AppDialog
@@ -30,11 +31,10 @@ import snd.komelia.ui.dialogs.DialogSimpleHeader
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun KomfResetSeriesMetadataDialog(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onDismissRequest: () -> Unit,
 ) {
     KomfResetSeriesMetadataDialog(

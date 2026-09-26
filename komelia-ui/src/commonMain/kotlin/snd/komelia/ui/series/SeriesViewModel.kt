@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -25,8 +26,10 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
+import snd.komelia.settings.KomfSettingsRepository
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
@@ -35,19 +38,23 @@ import snd.komelia.ui.LoadState.Uninitialized
 import snd.komelia.ui.collection.SeriesCollectionsState
 import snd.komelia.ui.common.cards.defaultCardWidth
 import snd.komelia.ui.common.menus.SeriesMenuActions
+import snd.komelia.ui.series.mangabaka.state.MangaBakaMetadataState
+import snd.komf.api.mangabaka.KomfMangaBakaTag
+import snd.komf.client.KomfMangaBakaClient
 import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 
 class SeriesViewModel(
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
     private val libraries: StateFlow<List<KomgaLibrary>>,
     private val seriesId: KomgaSeriesId,
     private val notifications: AppNotifications,
     private val events: SharedFlow<KomgaEvent>,
     private val seriesApi: KomgaSeriesApi,
     private val taskEmitter: OfflineTaskEmitter?,
+    private val komfMangaBakaClient: KomfMangaBakaClient,
+    private val komfSettingsRepository: KomfSettingsRepository,
     bookApi: KomgaBookApi,
     collectionApi: KomgaCollectionsApi,
     referentialApi: KomgaReferentialApi,
@@ -59,6 +66,17 @@ class SeriesViewModel(
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
     val series = MutableStateFlow(series?.withSortedTags())
+    private val mangaBakaTags = MutableStateFlow<List<KomfMangaBakaTag>?>(null)
+    val mangaBakaState = this.series.map { series ->
+        series?.mangaBakaMetadata?.let {
+            MangaBakaMetadataState(
+                metadata = it,
+                allTags = mangaBakaTags,
+                coroutineScope = screenModelScope
+            )
+        }
+    }.stateIn(screenModelScope, SharingStarted.Lazily, null)
+
     val library = MutableStateFlow<KomgaLibrary?>(null)
     var currentTab by mutableStateOf(defaultTab)
     val cardWidth = settingsRepository.getCardWidth().map { it.dp }
@@ -97,6 +115,14 @@ class SeriesViewModel(
             }.onFailure { mutableState.value = Error(it) }
         }
 
+        notifications.runCatchingToNotifications {
+            val komfEnabled = komfSettingsRepository.getKomfEnabled().first()
+            val mangaBakaEnabled = komfSettingsRepository.getMangaBakaEnabled().first()
+            if (komfEnabled && mangaBakaEnabled) {
+                mangaBakaTags.value = komfMangaBakaClient.getTags()
+            }
+        }.onFailure { mutableState.value = Error(it) }
+
         series.filterNotNull()
             .combine(libraries) { series, libraries ->
                 val newLibrary = libraries.firstOrNull { it.id == series.libraryId }
@@ -127,11 +153,6 @@ class SeriesViewModel(
         this.currentTab = tab
     }
 
-    fun onDownload() {
-        screenModelScope.launch {
-            series.value?.let { checkNotNull(taskEmitter).downloadSeries(it.id) }
-        }
-    }
 
     private suspend fun loadSeries() {
         notifications.runCatchingToNotifications {
@@ -145,7 +166,7 @@ class SeriesViewModel(
         }.onFailure { mutableState.value = Error(it) }
     }
 
-    private fun getLibraryOrThrow(series: KomgaSeries): KomgaLibrary {
+    private fun getLibraryOrThrow(series: KomeliaSeries): KomgaLibrary {
         val library = this.libraries.value.firstOrNull { it.id == series.libraryId }
         if (library == null) {
             throw IllegalStateException("Failed to find library for series ${series.metadata.title}")
@@ -180,7 +201,7 @@ class SeriesViewModel(
         COLLECTIONS
     }
 
-    private fun KomgaSeries.withSortedTags() = this.copy(
+    private fun KomeliaSeries.withSortedTags() = this.copy(
         metadata = this.metadata.copy(
             tags = this.metadata.tags.sorted(),
             genres = this.metadata.genres.sorted()

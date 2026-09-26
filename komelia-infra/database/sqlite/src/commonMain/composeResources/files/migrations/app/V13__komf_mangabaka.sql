@@ -1,0 +1,1 @@
+ALTER TABLE KomfSettings ADD COLUMN manga_baka_enabled BOOLEAN NOT NULL DEFAULT FALSE;

@@ -6,15 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komga.client.common.KomgaWebLink
 import snd.komga.client.common.patch
 import snd.komga.client.common.patchLists
 import snd.komga.client.series.KomgaAlternativeTitle
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 
 class SeriesEditMetadataState(
-    val series: KomgaSeries,
+    val series: KomeliaSeries,
     val allTags: StateFlow<List<String>>,
     val allGenres: StateFlow<List<String>>,
     private val seriesApi: KomgaSeriesApi,

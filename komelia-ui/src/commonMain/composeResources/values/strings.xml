@@ -441,7 +441,7 @@
     <string name="reader_image_linear_light_downsampling">Linear light downsampling</string>
     <string name="reader_image_linear_light_downsampling_desc">slower but potentially more accurate</string>
     <string name="reader_image_stretch_small_images">Stretch small images</string>
-    <string name="reader_image_crop_borders">crop borders</string>
+    <string name="reader_image_crop_borders">Crop borders</string>
     <string name="reader_image_color_correction">Color correction</string>
     <string name="reader_image_color_correction_active">active</string>
     <string name="reader_image_flash_on_page_change">Flash on page change</string>
@@ -895,7 +895,7 @@
     <string name="komf_providers_series_status">Status</string>
     <string name="komf_providers_series_summary">Summary</string>
     <string name="komf_providers_series_tags">Tags</string>
-    <string name="komf_providers_series_title">Tags</string>
+    <string name="komf_providers_series_title">Title</string>
     <string name="komf_providers_book_enabled">Enabled</string>
     <string name="komf_providers_book_authors">Authors</string>
     <string name="komf_providers_book_cover">Cover</string>

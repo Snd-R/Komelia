@@ -11,7 +11,7 @@ group = "io.github.snd-r.komelia.db.shared"
 version = "unspecified"
 
 kotlin {
-    jvm {}
+    jvm { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 
     android {
         namespace = "io.github.snd_r.komelia.infra.database.shared"

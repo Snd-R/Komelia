@@ -10,6 +10,7 @@ import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.BookSiblingsContext
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LocalReloadEvents
@@ -26,23 +27,22 @@ import snd.komelia.ui.reader.readerScreen
 import snd.komelia.ui.series.SeriesViewModel.SeriesTab
 import snd.komelia.ui.series.view.SeriesContent
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
 
-fun seriesScreen(series: KomgaSeries): Screen =
+fun seriesScreen(series: KomeliaSeries): Screen =
     if (series.oneshot) OneshotScreen(series, BookSiblingsContext.Series)
     else SeriesScreen(series)
 
 class SeriesScreen(
     val seriesId: KomgaSeriesId,
     @Transient
-    private val series: KomgaSeries? = null,
+    private val series: KomeliaSeries? = null,
     @Transient
     private val startingTab: SeriesTab? = SeriesTab.BOOKS,
 ) : ReloadableScreen {
 
-    constructor(series: KomgaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(
+    constructor(series: KomeliaSeries, startingTab: SeriesTab = SeriesTab.BOOKS) : this(
         series.id,
         series,
         startingTab
@@ -83,6 +83,7 @@ class SeriesScreen(
                 else -> {
                     SeriesContent(
                         series = vm.series.collectAsState().value,
+                        mangaBaka = vm.mangaBakaState.collectAsState().value,
                         library = vm.library.collectAsState().value,
                         onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
                         seriesMenuActions = vm.seriesMenuActions(),
@@ -108,7 +109,6 @@ class SeriesScreen(
                                 else SeriesScreen(series, vm.currentTab)
                             )
                         },
-                        onDownload = vm::onDownload
                     )
                 }
             }

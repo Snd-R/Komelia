@@ -54,6 +54,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_s
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_identify_title
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.common.cards.KomfResultCard
@@ -70,11 +71,10 @@ import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.Identify
 import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel.SearchResultsState
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.strings.AppStrings
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun KomfIdentifyDialog(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalViewModelFactory.current

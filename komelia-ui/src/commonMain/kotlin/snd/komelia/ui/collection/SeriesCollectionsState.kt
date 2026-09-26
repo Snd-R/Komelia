@@ -19,15 +19,15 @@ import kotlinx.coroutines.launch
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.common.KomgaPageRequest
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.CollectionEvent
 
 class SeriesCollectionsState(
-    val series: StateFlow<KomgaSeries?>,
+    val series: StateFlow<KomeliaSeries?>,
     private val notifications: AppNotifications,
     private val seriesApi: KomgaSeriesApi,
     private val collectionApi: KomgaCollectionsApi,
@@ -38,7 +38,7 @@ class SeriesCollectionsState(
     private val mutableState = MutableStateFlow<LoadState<Unit>>(LoadState.Uninitialized)
     val state = mutableState.asStateFlow()
 
-    var collections by mutableStateOf<Map<KomgaCollection, List<KomgaSeries>>>(emptyMap())
+    var collections by mutableStateOf<Map<KomgaCollection, List<KomeliaSeries>>>(emptyMap())
         private set
 
     private val reloadEventsEnabled = MutableStateFlow(true)

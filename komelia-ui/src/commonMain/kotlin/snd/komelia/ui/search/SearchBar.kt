@@ -55,13 +55,13 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_search_i
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_series_tab
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.common.cards.BookSimpleImageCard
 import snd.komelia.ui.common.cards.SeriesSimpleImageCard
 import snd.komelia.ui.common.components.NoPaddingTextField
 import snd.komelia.ui.platform.cursorForHand
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +74,7 @@ fun SearchBar(
     onSearchAllClick: (String) -> Unit,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onBookClick: (KomeliaBook) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
@@ -140,7 +140,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
     isLoading: Boolean,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onSearchAllClick: (String) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     onBookClick: (KomeliaBook) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -223,7 +223,7 @@ private fun EntryContainer(
 
 @Composable
 private fun SeriesSearchEntry(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     library: KomgaLibrary?,
     onSeriesClick: () -> Unit,
 ) {

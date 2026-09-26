@@ -27,6 +27,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_no_resul
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_series_tab
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.cards.BookDetailedListCard
 import snd.komelia.ui.common.cards.SeriesDetailedListCard
@@ -34,7 +35,6 @@ import snd.komelia.ui.common.components.Pagination
 import snd.komelia.ui.platform.VerticalScrollbar
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.ui.search.SearchViewModel.SearchResultsTab
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SearchContent(
@@ -48,11 +48,11 @@ fun SearchContent(
     onBookPageChange: (Int) -> Unit,
     onBookClick: (KomeliaBook) -> Unit,
 
-    seriesResults: List<KomgaSeries>,
+    seriesResults: List<KomeliaSeries>,
     seriesCurrentPage: Int,
     seriesTotalPages: Int,
     onSeriesPageChange: (Int) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 ) {
     if (query.isNotBlank() && bookResults.isEmpty() && seriesResults.isEmpty()) {
         EmptySearchResults()

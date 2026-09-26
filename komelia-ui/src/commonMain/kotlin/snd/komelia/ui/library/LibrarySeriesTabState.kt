@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.ui.LoadState
@@ -33,7 +34,6 @@ import snd.komga.client.common.KomgaSort.KomgaSeriesSort
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.search.allOfSeries
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.sse.KomgaEvent
 
 class LibrarySeriesTabState(
@@ -47,7 +47,7 @@ class LibrarySeriesTabState(
     val cardWidth: StateFlow<Dp>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
     val pageLoadSize = MutableStateFlow(50)
-    var series by mutableStateOf<List<KomgaSeries>>(emptyList())
+    var series by mutableStateOf<List<KomeliaSeries>>(emptyList())
         private set
     var totalSeriesPages by mutableStateOf(1)
         private set
@@ -57,7 +57,7 @@ class LibrarySeriesTabState(
         private set
 
     val isInEditMode = MutableStateFlow(false)
-    var selectedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
+    var selectedSeries by mutableStateOf<List<KomeliaSeries>>(emptyList())
         private set
 
     val filterState: SeriesFilterState = SeriesFilterState(
@@ -129,7 +129,7 @@ class LibrarySeriesTabState(
 
     }
 
-    fun onSeriesSelect(series: KomgaSeries) {
+    fun onSeriesSelect(series: KomeliaSeries) {
         if (selectedSeries.any { it.id == series.id }) {
             selectedSeries = selectedSeries.filter { it.id != series.id }
         } else this.selectedSeries += series
@@ -156,7 +156,7 @@ class LibrarySeriesTabState(
     private suspend fun getAllSeries(
         page: Int,
         filter: SeriesFilter
-    ): Page<KomgaSeries> {
+    ): Page<KomeliaSeries> {
         val condition = allOfSeries {
             library.value?.let { library { isEqualTo(it.id) } }
             filter.addConditionTo(this)

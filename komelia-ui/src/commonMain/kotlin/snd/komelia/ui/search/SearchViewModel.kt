@@ -18,12 +18,12 @@ import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState
 import snd.komga.client.book.KomgaBookSearch
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaSort
 import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesSearch
 
 @OptIn(FlowPreview::class)
@@ -34,7 +34,7 @@ class SearchViewModel(
     private val libraries: StateFlow<List<KomgaLibrary>>,
 ) : StateScreenModel<LoadState<Unit>>(LoadState.Uninitialized) {
 
-    var seriesResults by mutableStateOf<List<KomgaSeries>>(emptyList())
+    var seriesResults by mutableStateOf<List<KomeliaSeries>>(emptyList())
         private set
     var seriesCurrentPage by mutableStateOf(1)
         private set
@@ -151,6 +151,6 @@ class SearchViewModel(
 }
 
 data class SearchResults(
-    val series: List<KomgaSeries>,
+    val series: List<KomeliaSeries>,
     val books: List<KomeliaBook>
 )

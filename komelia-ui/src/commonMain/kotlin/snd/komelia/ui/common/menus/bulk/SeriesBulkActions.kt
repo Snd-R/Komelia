@@ -35,6 +35,7 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
@@ -49,12 +50,10 @@ import snd.komelia.ui.dialogs.series.editbulk.SeriesBulkEditDialog
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 import snd.komf.client.KomfMetadataClient
-import snd.komga.client.series.KomgaSeries
-
 
 @Composable
 fun SeriesBulkActionsContent(
-    series: List<KomgaSeries>,
+    series: List<KomeliaSeries>,
     compact: Boolean
 ) {
     val state = rememberSeriesBulkActionsState(series)
@@ -138,7 +137,7 @@ fun SeriesBulkActionDialogs(
 
 @Composable
 fun rememberSeriesBulkActionsState(
-    series: List<KomgaSeries>,
+    series: List<KomeliaSeries>,
 ): SeriesBulkActionsState {
     val coroutineScope = rememberCoroutineScope()
     val factory = LocalViewModelFactory.current
@@ -161,7 +160,7 @@ fun rememberSeriesBulkActionsState(
 }
 
 data class SeriesBulkActionsState(
-    val series: List<KomgaSeries>,
+    val series: List<KomeliaSeries>,
     val actions: SeriesBulkActions,
     private val coroutineScope: CoroutineScope,
     private val isOffline: Boolean,
@@ -241,12 +240,12 @@ data class SeriesBulkActionsState(
 }
 
 data class SeriesBulkActions(
-    val markAsRead: suspend (List<KomgaSeries>) -> Unit,
-    val markAsUnread: suspend (List<KomgaSeries>) -> Unit,
-    val delete: suspend (List<KomgaSeries>) -> Unit,
-    val download: suspend (List<KomgaSeries>) -> Unit,
-    val deleteDownloaded: suspend (List<KomgaSeries>) -> Unit,
-    val komfIdentify: suspend (List<KomgaSeries>) -> Unit,
+    val markAsRead: suspend (List<KomeliaSeries>) -> Unit,
+    val markAsUnread: suspend (List<KomeliaSeries>) -> Unit,
+    val delete: suspend (List<KomeliaSeries>) -> Unit,
+    val download: suspend (List<KomeliaSeries>) -> Unit,
+    val deleteDownloaded: suspend (List<KomeliaSeries>) -> Unit,
+    val komfIdentify: suspend (List<KomeliaSeries>) -> Unit,
 ) {
 
     constructor(

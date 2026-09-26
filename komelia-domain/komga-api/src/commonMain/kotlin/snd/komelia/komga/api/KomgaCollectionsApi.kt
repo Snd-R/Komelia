@@ -1,5 +1,6 @@
 package snd.komelia.komga.api
 
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionCreateRequest
 import snd.komga.client.collection.KomgaCollectionId
@@ -10,7 +11,6 @@ import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 
 interface KomgaCollectionsApi {
     suspend fun getAll(
@@ -31,7 +31,7 @@ interface KomgaCollectionsApi {
         id: KomgaCollectionId,
         query: KomgaCollectionQuery? = null,
         pageRequest: KomgaPageRequest? = null,
-    ): Page<KomgaSeries>
+    ): Page<KomeliaSeries>
 
     suspend fun getDefaultThumbnail(collectionId: KomgaCollectionId): ByteArray?
     suspend fun getThumbnail(collectionId: KomgaCollectionId, thumbnailId: KomgaThumbnailId): ByteArray

@@ -48,10 +48,12 @@ fun LibraryReadListsContent(
             SuggestionChip(
                 onClick = {},
                 label = {
-                    pluralStringResource(
-                        Res.plurals.library_tab_collections_count,
-                        readListsTotalCount,
-                        readListsTotalCount
+                    Text(
+                        pluralStringResource(
+                            Res.plurals.library_tab_collections_count,
+                            readListsTotalCount,
+                            readListsTotalCount
+                        )
                     )
                 },
                 modifier = Modifier.padding(end = 10.dp)

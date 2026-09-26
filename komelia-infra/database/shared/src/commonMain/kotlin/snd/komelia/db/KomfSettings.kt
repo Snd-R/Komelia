@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class KomfSettings(
     val enabled: Boolean = false,
     val remoteUrl: String = "http://localhost:8085",
+    val mangaBakaEnabled: Boolean = false
 )

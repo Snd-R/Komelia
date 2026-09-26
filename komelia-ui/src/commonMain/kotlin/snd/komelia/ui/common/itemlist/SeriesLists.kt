@@ -1,6 +1,5 @@
 package snd.komelia.ui.common.itemlist
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableLazyGridState
 import sh.calvin.reorderable.rememberReorderableLazyGridState
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.common.cards.DraggableImageCard
 import snd.komelia.ui.common.cards.SeriesImageCard
@@ -40,16 +40,15 @@ import snd.komelia.ui.common.components.Pagination
 import snd.komelia.ui.common.menus.SeriesMenuActions
 import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.VerticalScrollbarWithFullSpans
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesLazyCardGrid(
-    series: List<KomgaSeries>,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    series: List<KomeliaSeries>,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions?,
 
-    selectedSeries: List<KomgaSeries> = emptyList(),
-    onSeriesSelect: ((KomgaSeries) -> Unit)? = null,
+    selectedSeries: List<KomeliaSeries> = emptyList(),
+    onSeriesSelect: ((KomeliaSeries) -> Unit)? = null,
 
     reorderable: Boolean = false,
     onReorder: (fromIndex: Int, toIndex: Int) -> Unit = { _, _ -> },
@@ -124,14 +123,13 @@ fun SeriesLazyCardGrid(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LazyGridItemScope.DraggableSeriesCard(
-    series: KomgaSeries,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    series: KomeliaSeries,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     seriesMenuActions: SeriesMenuActions?,
     isSelected: Boolean = false,
-    onSeriesSelect: ((KomgaSeries) -> Unit)?,
+    onSeriesSelect: ((KomeliaSeries) -> Unit)?,
     reorderableState: ReorderableLazyGridState
 ) {
     val platform = LocalPlatform.current

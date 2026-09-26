@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaCollectionsApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalViewModelFactory
@@ -23,12 +24,11 @@ import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionUpdateRequest
 import snd.komga.client.common.PatchValue
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun CollectionBulkActionsContent(
     collection: KomgaCollection,
-    series: List<KomgaSeries>,
+    series: List<KomeliaSeries>,
     compact: Boolean,
 ) {
     val collectionsState = rememberCollectionBulkActionsState(collection, series)
@@ -61,7 +61,7 @@ fun CollectionBulkActionsDialogs(
 @Composable
 fun rememberCollectionBulkActionsState(
     collection: KomgaCollection,
-    series: List<KomgaSeries>,
+    series: List<KomeliaSeries>,
 ): CollectionBulkActionsState {
     val factory = LocalViewModelFactory.current
     val isOffline = LocalOfflineMode.current.collectAsState().value
@@ -79,7 +79,7 @@ fun rememberCollectionBulkActionsState(
 }
 
 data class CollectionBulkActions(
-    val removeFromCollection: suspend (KomgaCollection, List<KomgaSeries>) -> Unit
+    val removeFromCollection: suspend (KomgaCollection, List<KomeliaSeries>) -> Unit
 ) {
     constructor(
         collectionApi: KomgaCollectionsApi,
@@ -104,7 +104,7 @@ data class CollectionBulkActions(
 
 data class CollectionBulkActionsState(
     val collection: KomgaCollection,
-    val series: List<KomgaSeries>,
+    val series: List<KomeliaSeries>,
     val actions: CollectionBulkActions,
     private val isOffline: Boolean,
     private val isAdmin: Boolean,

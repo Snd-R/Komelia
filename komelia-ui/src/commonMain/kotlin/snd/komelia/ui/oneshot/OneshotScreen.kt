@@ -11,6 +11,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.BookSiblingsContext
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LocalReloadEvents
@@ -27,17 +28,16 @@ import snd.komelia.ui.reader.readerScreen
 import snd.komelia.ui.readlist.ReadListScreen
 import snd.komelia.ui.series.seriesScreen
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.jvm.Transient
 
 class OneshotScreen(
     val seriesId: KomgaSeriesId,
     private val bookSiblingsContext: BookSiblingsContext,
-    @Transient private val series: KomgaSeries? = null,
+    @Transient private val series: KomeliaSeries? = null,
     @Transient private val book: KomeliaBook? = null,
 ) : ReloadableScreen {
-    constructor(series: KomgaSeries, bookSiblingsContext: BookSiblingsContext) : this(
+    constructor(series: KomeliaSeries, bookSiblingsContext: BookSiblingsContext) : this(
         seriesId = series.id,
         bookSiblingsContext = bookSiblingsContext,
         series = series,

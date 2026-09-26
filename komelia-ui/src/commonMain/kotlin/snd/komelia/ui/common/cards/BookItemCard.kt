@@ -425,7 +425,7 @@ private fun BookDetailedListDetails(
             items(book.metadata.tags) {
                 NoPaddingChip(
                     borderColor = MaterialTheme.colorScheme.surface,
-                    color = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     Text(
                         it,

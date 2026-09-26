@@ -39,17 +39,18 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_unavailable
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalLibraries
 import snd.komelia.ui.common.components.NoPaddingChip
 import snd.komelia.ui.common.images.SeriesThumbnail
 import snd.komelia.ui.common.menus.SeriesActionsMenu
 import snd.komelia.ui.common.menus.SeriesMenuActions
 import snd.komelia.ui.platform.cursorForHand
-import snd.komga.client.series.KomgaSeries
+import snd.komelia.ui.series.mangabaka.state.MangaBakaTitlesState
 
 @Composable
 fun SeriesImageCard(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onSeriesClick: (() -> Unit)? = null,
     isSelected: Boolean = false,
     onSeriesSelect: (() -> Unit)? = null,
@@ -85,7 +86,7 @@ fun SeriesImageCard(
 
 @Composable
 fun SeriesSimpleImageCard(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onSeriesClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -110,7 +111,7 @@ fun SeriesSimpleImageCard(
 
 @Composable
 private fun SeriesCardHoverOverlay(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     isSelected: Boolean,
     onSeriesSelect: (() -> Unit)?,
     seriesActions: SeriesMenuActions?,
@@ -174,7 +175,7 @@ private fun SeriesCardHoverOverlay(
 
 @Composable
 private fun SeriesImageOverlay(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     libraryIsDeleted: Boolean,
     showTitle: Boolean = true,
     content: @Composable () -> Unit
@@ -211,8 +212,13 @@ private fun SeriesImageOverlay(
             verticalArrangement = Arrangement.Bottom
         ) {
             if (showTitle) {
-
-                CardOutlinedText(text = series.metadata.title, maxLines = 4)
+                val mangaBaka = series.mangaBakaMetadata
+                val title = if (mangaBaka != null) {
+                    remember(series) { MangaBakaTitlesState(mangaBaka).mainTitle.title }
+                } else {
+                    series.metadata.title
+                }
+                CardOutlinedText(text = title, maxLines = 4)
                 if (series.deleted || libraryIsDeleted) {
                     CardOutlinedText(
                         stringResource(Res.string.series_unavailable),
@@ -226,7 +232,7 @@ private fun SeriesImageOverlay(
 
 @Composable
 fun SeriesDetailedListCard(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -247,7 +253,7 @@ fun SeriesDetailedListCard(
 }
 
 @Composable
-private fun SeriesDetails(series: KomgaSeries) {
+private fun SeriesDetails(series: KomeliaSeries) {
     Column(Modifier.padding(start = 10.dp)) {
         Row {
             Text(series.metadata.title, fontWeight = FontWeight.Bold)
@@ -259,7 +265,7 @@ private fun SeriesDetails(series: KomgaSeries) {
             items(series.metadata.genres) {
                 NoPaddingChip(
                     borderColor = MaterialTheme.colorScheme.surface,
-                    color = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }

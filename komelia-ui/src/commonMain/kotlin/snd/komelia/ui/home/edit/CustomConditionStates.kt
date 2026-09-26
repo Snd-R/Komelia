@@ -18,6 +18,7 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReadListApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.home.BooleanOpState
 import snd.komelia.ui.home.DateOpState
 import snd.komelia.ui.home.EqualityNullableOpState
@@ -41,11 +42,9 @@ import snd.komga.client.search.KomgaSearchCondition.BookCondition
 import snd.komga.client.search.KomgaSearchCondition.PosterMatch
 import snd.komga.client.search.KomgaSearchCondition.SeriesCondition
 import snd.komga.client.search.KomgaSearchOperator
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.series.KomgaSeriesSearch
 import snd.komga.client.series.KomgaSeriesStatus
-
 
 sealed interface BookConditionState {
     val bookChangeFlow: Flow<BookCondition?>
@@ -214,8 +213,8 @@ class SeriesIdConditionState(
 ) : EqualityOpState<KomgaSeriesId>(initial?.operator),
     BookConditionState {
     override val bookChangeFlow = combine(this.operator, this.value) { this.toBookCondition() }
-    private val currentSeries = MutableStateFlow<KomgaSeries?>(null)
-    val seriesSuggestions = MutableStateFlow<List<KomgaSeries>>(emptyList())
+    private val currentSeries = MutableStateFlow<KomeliaSeries?>(null)
+    val seriesSuggestions = MutableStateFlow<List<KomeliaSeries>>(emptyList())
     val isLoading = MutableStateFlow(false)
     val searchText = MutableStateFlow("")
 
@@ -245,7 +244,7 @@ class SeriesIdConditionState(
         searchText.value = text
     }
 
-    fun onSeriesSelect(series: KomgaSeries) {
+    fun onSeriesSelect(series: KomeliaSeries) {
         this.currentSeries.value = series
         this.searchText.value = series.name
         this.value.value = series.id

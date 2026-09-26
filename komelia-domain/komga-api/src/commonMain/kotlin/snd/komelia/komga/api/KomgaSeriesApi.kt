@@ -1,12 +1,12 @@
 package snd.komelia.komga.api
 
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.search.SeriesConditionBuilder
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 import snd.komga.client.series.KomgaSeriesSearch
@@ -14,32 +14,32 @@ import snd.komga.client.series.KomgaSeriesThumbnail
 
 
 interface KomgaSeriesApi {
-    suspend fun getOneSeries(seriesId: KomgaSeriesId): KomgaSeries
+    suspend fun getOneSeries(seriesId: KomgaSeriesId): KomeliaSeries
 
     suspend fun getSeriesList(
         conditionBuilder: SeriesConditionBuilder,
         fulltextSearch: String?,
         pageRequest: KomgaPageRequest? = null,
-    ): Page<KomgaSeries>
+    ): Page<KomeliaSeries>
 
     suspend fun getSeriesList(
         search: KomgaSeriesSearch,
         pageRequest: KomgaPageRequest? = null,
-    ): Page<KomgaSeries>
+    ): Page<KomeliaSeries>
 
     suspend fun getNewSeries(
         libraryIds: List<KomgaLibraryId>? = null,
         oneshot: Boolean? = null,
         deleted: Boolean? = null,
         pageRequest: KomgaPageRequest? = null,
-    ): Page<KomgaSeries>
+    ): Page<KomeliaSeries>
 
     suspend fun getUpdatedSeries(
         libraryIds: List<KomgaLibraryId>? = null,
         oneshot: Boolean? = null,
         deleted: Boolean? = null,
         pageRequest: KomgaPageRequest? = null,
-    ): Page<KomgaSeries>
+    ): Page<KomeliaSeries>
 
     suspend fun analyze(seriesId: KomgaSeriesId)
     suspend fun refreshMetadata(seriesId: KomgaSeriesId)

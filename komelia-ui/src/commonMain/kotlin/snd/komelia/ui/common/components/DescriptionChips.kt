@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -43,7 +42,6 @@ fun <T> DescriptionChips(
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T> DescriptionChips(
     label: String,
@@ -89,7 +87,7 @@ fun <T> DescriptionChips(
 @Composable
 fun NoPaddingChip(
     borderColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    color: Color = Color.Unspecified,
+    containerColor: Color = Color.Unspecified,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
@@ -98,7 +96,7 @@ fun NoPaddingChip(
         modifier = modifier
             .border(Dp.Hairline, borderColor, RoundedCornerShape(10.dp))
             .clip(RoundedCornerShape(10.dp))
-            .background(color)
+            .background(containerColor)
             .clickable { onClick() }
             .padding(10.dp, 5.dp)
             .pointerHoverIcon(PointerIcon.Hand),

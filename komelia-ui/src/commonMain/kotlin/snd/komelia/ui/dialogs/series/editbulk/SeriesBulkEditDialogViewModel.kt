@@ -7,16 +7,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komga.client.common.patch
 import snd.komga.client.common.patchLists
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesMetadataUpdateRequest
 
 private val logger = KotlinLogging.logger { }
 
 class SeriesBulkEditDialogViewModel(
-    val series: List<KomgaSeries>,
+    val series: List<KomeliaSeries>,
     val onDialogDismiss: () -> Unit,
     private val seriesApi: KomgaSeriesApi,
     private val referentialApi: KomgaReferentialApi,

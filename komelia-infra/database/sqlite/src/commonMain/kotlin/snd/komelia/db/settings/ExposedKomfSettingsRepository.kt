@@ -24,14 +24,16 @@ class ExposedKomfSettingsRepository(database: Database) : ExposedRepository(data
                 it[version] = 1
                 it[KomfSettingsTable.enabled] = settings.enabled
                 it[KomfSettingsTable.remoteUrl] = settings.remoteUrl
+                it[KomfSettingsTable.mangaBakaEnabled] = settings.mangaBakaEnabled
             }
         }
     }
 
     private fun ResultRow.toKomfSettings(): KomfSettings {
         return KomfSettings(
-            enabled = get(KomfSettingsTable.enabled),
-            remoteUrl = get(KomfSettingsTable.remoteUrl),
+            enabled = this[KomfSettingsTable.enabled],
+            remoteUrl = this[KomfSettingsTable.remoteUrl],
+            mangaBakaEnabled = this[KomfSettingsTable.mangaBakaEnabled]
         )
     }
 

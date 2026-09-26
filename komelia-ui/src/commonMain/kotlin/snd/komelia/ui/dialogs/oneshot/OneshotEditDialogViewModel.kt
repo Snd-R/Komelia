@@ -12,6 +12,7 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
@@ -26,11 +27,10 @@ import snd.komelia.ui.dialogs.series.edit.SeriesEditMetadataState
 import snd.komelia.ui.dialogs.series.edit.SharingTab
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komga.client.search.allOfBooks
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 
 class OneshotEditDialogViewModel(
-    private val series: KomgaSeries?,
+    private val series: KomeliaSeries?,
     private val book: KomeliaBook?,
     private val seriesId: KomgaSeriesId,
     private val onDialogDismiss: () -> Unit,

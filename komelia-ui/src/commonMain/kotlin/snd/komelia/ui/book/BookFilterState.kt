@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaReferentialApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.book.BooksFilterState.BooksSort
 import snd.komelia.ui.series.SeriesFilter.Companion.DEFAULT
 import snd.komelia.ui.series.SeriesFilterState.TagExclusionMode
@@ -21,8 +22,6 @@ import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaSort.KomgaBooksSort
 import snd.komga.client.search.BookConditionBuilder
 import snd.komga.client.search.KomgaSearchCondition
-import snd.komga.client.series.KomgaSeries
-
 data class BookFilter(
     val sortOrder: BooksSort = BooksSort.NUMBER_ASC,
     val readStatus: List<KomgaReadStatus> = emptyList(),
@@ -74,7 +73,7 @@ data class BookFilter(
 }
 
 class BooksFilterState(
-    private val series: StateFlow<KomgaSeries?>,
+    private val series: StateFlow<KomeliaSeries?>,
     private val referentialApi: KomgaReferentialApi,
     private val appNotifications: AppNotifications,
 ) {

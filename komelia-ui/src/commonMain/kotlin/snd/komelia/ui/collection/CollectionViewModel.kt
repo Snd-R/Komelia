@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LoadState.Loading
@@ -35,7 +36,6 @@ import snd.komga.client.collection.KomgaCollectionId
 import snd.komga.client.collection.KomgaCollectionUpdateRequest
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.PatchValue.Some
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.CollectionChanged
 import snd.komga.client.sse.KomgaEvent.ReadProgressSeriesChanged
@@ -56,7 +56,7 @@ class CollectionViewModel(
 
     var collection by mutableStateOf<KomgaCollection?>(null)
     val cardWidth = cardWidthFlow.stateIn(screenModelScope, SharingStarted.Eagerly, defaultCardWidth.dp)
-    var series by mutableStateOf<List<KomgaSeries>>(emptyList())
+    var series by mutableStateOf<List<KomeliaSeries>>(emptyList())
         private set
     var totalSeriesPages by mutableStateOf(1)
         private set
@@ -68,7 +68,7 @@ class CollectionViewModel(
         private set
     var isInEditMode by mutableStateOf(false)
         private set
-    var selectedSeries by mutableStateOf<List<KomgaSeries>>(emptyList())
+    var selectedSeries by mutableStateOf<List<KomeliaSeries>>(emptyList())
         private set
 
     private var isAnyItemDragging = MutableStateFlow(false)
@@ -146,7 +146,7 @@ class CollectionViewModel(
 
     }
 
-    fun onSeriesSelect(series: KomgaSeries) {
+    fun onSeriesSelect(series: KomeliaSeries) {
         if (selectedSeries.any { it.id == series.id }) {
             selectedSeries = selectedSeries.filter { it.id != series.id }
         } else this.selectedSeries += series

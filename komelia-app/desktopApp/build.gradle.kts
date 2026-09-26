@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -9,6 +10,14 @@ plugins {
 
 group = "io.github.snd-r.komelia"
 version = libs.versions.app.version.get()
+
+kotlin {
+    compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+}
+java {
+    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
+}
 
 dependencies {
 
@@ -23,6 +32,7 @@ dependencies {
     implementation(projects.komeliaInfra.imageDecoder.vips)
     implementation(projects.komeliaInfra.onnxruntime.jvm)
     implementation(libs.kotlin.logging)
+    implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.jbr.api)
     implementation(libs.filekit.core)

@@ -1,6 +1,7 @@
 package snd.komelia.offline.api
 
 import snd.komelia.komga.api.KomgaCollectionsApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionCreateRequest
 import snd.komga.client.collection.KomgaCollectionId
@@ -11,7 +12,6 @@ import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 
 class OfflineCollectionsApi : KomgaCollectionsApi {
     override suspend fun getAll(
@@ -43,7 +43,7 @@ class OfflineCollectionsApi : KomgaCollectionsApi {
         id: KomgaCollectionId,
         query: KomgaCollectionQuery?,
         pageRequest: KomgaPageRequest?
-    ): Page<KomgaSeries> {
+    ): Page<KomeliaSeries> {
         return Page.empty()
     }
 

@@ -20,6 +20,7 @@ val LocalViewModelFactory = compositionLocalOf<ViewModelFactory> { error("ViewMo
 val LocalNotifications = compositionLocalOf<AppNotifications> { error("Toaster is not set") }
 val LocalKomgaEvents = compositionLocalOf<SharedFlow<KomgaEvent>> { error("Komga events are not set") }
 val LocalKomfIntegration = compositionLocalOf { flowOf(false) }
+val LocalKomfMangaBakaIntegration = compositionLocalOf { flowOf(false) }
 val LocalKeyEvents = compositionLocalOf<SharedFlow<KeyEvent>> { error("Key events are not set") }
 val LocalWindowWidth = compositionLocalOf<WindowSizeClass> { error("Window size is not set") }
 val LocalWindowHeight = compositionLocalOf<WindowSizeClass> { error("Window size is not set") }

@@ -23,6 +23,7 @@ import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReadListApi
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.ui.LoadState
@@ -36,7 +37,6 @@ import snd.komelia.ui.common.menus.BookMenuActions
 import snd.komelia.ui.readlist.BookReadListsState
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.search.allOfBooks
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.sse.KomgaEvent.BookAdded
@@ -47,7 +47,7 @@ import snd.komga.client.sse.KomgaEvent.SeriesAdded
 import snd.komga.client.sse.KomgaEvent.SeriesChanged
 
 class OneshotViewModel(
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
     book: KomeliaBook?,
     private val seriesId: KomgaSeriesId,
     private val seriesApi: KomgaSeriesApi,

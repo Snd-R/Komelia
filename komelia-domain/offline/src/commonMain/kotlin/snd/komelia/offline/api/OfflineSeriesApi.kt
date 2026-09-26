@@ -2,6 +2,7 @@ package snd.komelia.offline.api
 
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.action.OfflineActions
 import snd.komelia.offline.api.repository.OfflineSeriesDtoRepository
 import snd.komelia.offline.book.repository.OfflineBookRepository
@@ -49,27 +50,27 @@ class OfflineSeriesApi(
     private val userId
         get() = offlineUserId.value
 
-    override suspend fun getOneSeries(seriesId: KomgaSeriesId): KomgaSeries {
-        return seriesDtoRepository.get(seriesId, userId)
+    override suspend fun getOneSeries(seriesId: KomgaSeriesId): KomeliaSeries {
+        return KomeliaSeries(seriesDtoRepository.get(seriesId, userId), null)
     }
 
     override suspend fun getSeriesList(
         conditionBuilder: SeriesConditionBuilder,
         fulltextSearch: String?,
         pageRequest: KomgaPageRequest?
-    ): Page<KomgaSeries> {
+    ): Page<KomeliaSeries> {
         return getSeriesList(KomgaSeriesSearch(conditionBuilder.toSeriesCondition(), fulltextSearch), pageRequest)
     }
 
     override suspend fun getSeriesList(
         search: KomgaSeriesSearch,
         pageRequest: KomgaPageRequest?
-    ): Page<KomgaSeries> {
+    ): Page<KomeliaSeries> {
         return seriesDtoRepository.findAll(
             search = search,
             userId = userId,
             pageRequest = pageRequest ?: KomgaPageRequest()
-        )
+        ).toKomeliaPage()
     }
 
     override suspend fun getNewSeries(
@@ -77,7 +78,7 @@ class OfflineSeriesApi(
         oneshot: Boolean?,
         deleted: Boolean?,
         pageRequest: KomgaPageRequest?
-    ): Page<KomgaSeries> {
+    ): Page<KomeliaSeries> {
         val sort = KomgaSort.KomgaSeriesSort.byCreatedDateDesc()
         val pageable = (pageRequest ?: KomgaPageRequest()).copy(sort = sort)
 
@@ -91,7 +92,7 @@ class OfflineSeriesApi(
             search = KomgaSeriesSearch(condition),
             userId = userId,
             pageRequest = pageable
-        )
+        ).toKomeliaPage()
     }
 
     override suspend fun getUpdatedSeries(
@@ -99,7 +100,7 @@ class OfflineSeriesApi(
         oneshot: Boolean?,
         deleted: Boolean?,
         pageRequest: KomgaPageRequest?
-    ): Page<KomgaSeries> {
+    ): Page<KomeliaSeries> {
         val condition = allOfSeries {
             if (!libraryIds.isNullOrEmpty()) anyOfSeries { libraryIds.forEach { library { isEqualTo(it) } } }
             deleted?.let { if (it) isDeleted() else isNotDeleted() }
@@ -110,7 +111,7 @@ class OfflineSeriesApi(
             search = KomgaSeriesSearch(condition),
             userId = userId,
             pageRequest = pageRequest ?: KomgaPageRequest.DEFAULT
-        )
+        ).toKomeliaPage()
     }
 
     override suspend fun analyze(seriesId: KomgaSeriesId) {
@@ -229,4 +230,20 @@ class OfflineSeriesApi(
         height = this.height
     )
 
+
+    internal fun Page<KomgaSeries>.toKomeliaPage(): Page<KomeliaSeries> {
+        return Page(
+            content = this.content.map { KomeliaSeries(it, null) },
+            pageable = this.pageable,
+            totalElements = this.totalElements,
+            totalPages = this.totalPages,
+            last = this.last,
+            number = this.number,
+            sort = this.sort,
+            first = this.first,
+            numberOfElements = this.numberOfElements,
+            size = this.size,
+            empty = this.empty
+        )
+    }
 }

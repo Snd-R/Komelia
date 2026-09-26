@@ -31,6 +31,7 @@ kotlin {
         }
         commonMain.dependencies {
             api(libs.komga.client)
+            api(libs.komf.client)
             implementation(libs.kotlinx.serialization.core)
         }
 

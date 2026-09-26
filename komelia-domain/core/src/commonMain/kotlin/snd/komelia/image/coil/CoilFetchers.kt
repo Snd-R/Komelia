@@ -10,6 +10,8 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReadListApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komf.api.mangabaka.MangaBakaSeriesId
+import snd.komf.client.KomfMangaBakaClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.collection.KomgaCollectionId
 import snd.komga.client.common.KomgaThumbnailId
@@ -120,4 +122,22 @@ class KomgaBookPageThumbnailFetcher(
     options: Options,
 ) : CoilFetcher(decoder, options) {
     override suspend fun fetchBytes() = bookApi.getPageThumbnail(bookId, pageNumber)
+}
+
+class KomfFaviconFetcher(
+    private val komf: KomfMangaBakaClient,
+    private val url: String,
+    decoder: CoilAwareDecoder,
+    options: Options,
+) : CoilFetcher(decoder, options) {
+    override suspend fun fetchBytes() = komf.getFavicon(url)
+}
+
+class KomfMangaBakaSeriesFetcher(
+    private val komf: KomfMangaBakaClient,
+    private val id: MangaBakaSeriesId,
+    decoder: CoilAwareDecoder,
+    options: Options,
+) : CoilFetcher(decoder, options) {
+    override suspend fun fetchBytes() = komf.getCover(id)
 }

@@ -64,6 +64,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.format
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.DefaultDateTimeFormats.dateTimeFormat
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.common.cards.SeriesImageCard
 import snd.komelia.ui.common.components.AppFilterChipDefaults
 import snd.komelia.ui.common.components.Pagination
@@ -74,7 +75,6 @@ import snd.komf.api.job.KomfMetadataJobStatus
 import snd.komf.api.job.KomfMetadataJobStatus.COMPLETED
 import snd.komf.api.job.KomfMetadataJobStatus.FAILED
 import snd.komf.api.job.KomfMetadataJobStatus.RUNNING
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -87,8 +87,8 @@ fun KomfJobsContent(
     onPageChange: (Int) -> Unit,
     selectedStatus: KomfMetadataJobStatus?,
     onStatusSelect: (KomfMetadataJobStatus?) -> Unit,
-    getSeries: (suspend (KomgaSeriesId) -> KomgaSeries?)?,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    getSeries: (suspend (KomgaSeriesId) -> KomeliaSeries?)?,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     onDeleteAll: () -> Unit,
     isLoading: Boolean,
 ) {
@@ -145,11 +145,11 @@ fun KomfJobsContent(
 @Composable
 private fun JobCard(
     job: KomfMetadataJob,
-    getSeries: (suspend (KomgaSeriesId) -> KomgaSeries?)?,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    getSeries: (suspend (KomgaSeriesId) -> KomeliaSeries?)?,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 ) {
     var loading by remember { mutableStateOf(true) }
-    var series by remember { mutableStateOf<KomgaSeries?>(null) }
+    var series by remember { mutableStateOf<KomeliaSeries?>(null) }
     var seriesTitle by remember { mutableStateOf("") }
     LaunchedEffect(job, getSeries) {
         if (getSeries == null) {
@@ -319,7 +319,7 @@ private fun StatusFilters(
 
 @Composable
 private fun SeriesTooltip(
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
     loading: Boolean
 ) {
     if (series == null)

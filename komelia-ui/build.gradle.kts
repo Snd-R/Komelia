@@ -82,6 +82,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ksoup)
             implementation(libs.markdown)
+            implementation(libs.markdown.renderer.m3)
             implementation(libs.reorderable)
             implementation(libs.richEditor.compose.get().toString()){
                 exclude(group = "org.jetbrains.compose.material", module = "material")

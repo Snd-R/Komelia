@@ -6,7 +6,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
@@ -41,6 +40,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_delete_downloaded
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.book.BookInfoColumn
@@ -65,20 +65,19 @@ import snd.komelia.ui.series.view.SeriesDescriptionRow
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.readlist.KomgaReadList
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun OneshotScreenContent(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     book: KomeliaBook,
     library: KomgaLibrary,
     onLibraryClick: (KomgaLibrary) -> Unit,
     onBookReadClick: (markReadProgress: Boolean) -> Unit,
     oneshotMenuActions: BookMenuActions,
 
-    collections: Map<KomgaCollection, List<KomgaSeries>>,
+    collections: Map<KomgaCollection, List<KomeliaSeries>>,
     onCollectionClick: (KomgaCollection) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 
     readLists: Map<KomgaReadList, List<KomeliaBook>>,
     onReadListClick: (KomgaReadList) -> Unit,
@@ -160,7 +159,7 @@ fun OneshotScreenContent(
 
 @Composable
 fun OneshotToolBar(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     book: KomeliaBook,
     bookMenuActions: BookMenuActions,
 ) {
@@ -180,7 +179,7 @@ fun OneshotToolBar(
 
 @Composable
 private fun ToolbarOneshotActions(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     book: KomeliaBook,
     bookMenuActions: BookMenuActions,
 ) {
@@ -218,7 +217,7 @@ private fun ToolbarOneshotActions(
 
 @Composable
 private fun FlowRowScope.OneshotMainInfo(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     book: KomeliaBook,
     library: KomgaLibrary,
     onLibraryClick: (KomgaLibrary) -> Unit,

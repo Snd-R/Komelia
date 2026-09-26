@@ -11,16 +11,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.dialogs.PosterEditState
 import snd.komelia.ui.dialogs.PosterEditState.KomgaThumbnail.SeriesThumbnail
 import snd.komelia.ui.dialogs.PosterTab
 import snd.komelia.ui.dialogs.tabs.DialogTab
-import snd.komga.client.series.KomgaSeries
 
 private val logger = KotlinLogging.logger { }
 
 class SeriesEditDialogViewModel(
-    val series: KomgaSeries,
+    val series: KomeliaSeries,
     val onDialogDismiss: () -> Unit,
     private val seriesApi: KomgaSeriesApi,
     private val referentialApi: KomgaReferentialApi,

@@ -10,11 +10,11 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState
 import snd.komf.api.job.KomfMetadataJob
 import snd.komf.api.job.KomfMetadataJobStatus
 import snd.komf.client.KomfJobClient
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 
 class KomfJobsViewModel(
@@ -28,14 +28,14 @@ class KomfJobsViewModel(
     var currentPage by mutableStateOf(1)
     var status by mutableStateOf<KomfMetadataJobStatus?>(null)
 
-    private val seriesCache = Cache.Builder<KomgaSeriesId, KomgaSeries>().build()
+    private val seriesCache = Cache.Builder<KomgaSeriesId, KomeliaSeries>().build()
 
     fun initialize() {
         if (state.value !is LoadState.Uninitialized) return
         loadPage(1)
     }
 
-    suspend fun getSeries(seriesId: KomgaSeriesId): KomgaSeries? {
+    suspend fun getSeries(seriesId: KomgaSeriesId): KomeliaSeries? {
         return appNotifications.runCatchingToNotifications {
             try {
                 seriesApi?.let { seriesCache.get(seriesId) { seriesApi.getOneSeries(seriesId) } }

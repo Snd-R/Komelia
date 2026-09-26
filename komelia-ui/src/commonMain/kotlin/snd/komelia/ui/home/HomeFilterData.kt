@@ -4,14 +4,14 @@ import snd.komelia.homefilters.BooksHomeScreenFilter
 import snd.komelia.homefilters.HomeScreenFilter
 import snd.komelia.homefilters.SeriesHomeScreenFilter
 import snd.komelia.komga.api.model.KomeliaBook
-import snd.komga.client.series.KomgaSeries
+import snd.komelia.komga.api.model.KomeliaSeries
 
 sealed interface HomeFilterData {
     val filter: HomeScreenFilter
 }
 
 data class SeriesFilterData(
-    val series: List<KomgaSeries>,
+    val series: List<KomeliaSeries>,
     override val filter: SeriesHomeScreenFilter,
 ) : HomeFilterData
 

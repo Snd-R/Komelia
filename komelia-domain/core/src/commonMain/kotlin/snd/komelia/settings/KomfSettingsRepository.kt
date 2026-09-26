@@ -8,4 +8,7 @@ interface KomfSettingsRepository {
 
     fun getKomfUrl(): Flow<String>
     suspend fun putKomfUrl(url: String)
+
+    fun getMangaBakaEnabled(): Flow<Boolean>
+    suspend fun putMangaBakaEnabled(enabled: Boolean)
 }

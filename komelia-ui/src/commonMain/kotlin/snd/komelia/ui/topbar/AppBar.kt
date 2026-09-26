@@ -43,6 +43,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalKeyEvents
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.LocalWindowWidth
@@ -54,7 +55,6 @@ import snd.komelia.ui.search.SearchBar
 import snd.komelia.ui.search.SearchResults
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun AppBar(
@@ -66,7 +66,7 @@ fun AppBar(
     searchResults: SearchResults,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onBookClick: (KomeliaBook) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     onRefreshClick: () -> Unit,
     notificationsState: NotificationsState,
     isOffline: Boolean,

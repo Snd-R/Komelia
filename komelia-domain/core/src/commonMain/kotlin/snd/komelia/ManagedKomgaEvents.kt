@@ -98,6 +98,10 @@ class ManagedKomgaEvents(
         }.launchIn(broadcastScope)
     }
 
+    fun emitEvent(event: KomgaEvent) {
+        broadcastScope.launch { _events.emit(event) }
+    }
+
     private fun updateLibraries() {
         manageScope.launch {
             komgaSharedState.updateLibraries(libraryApi.first().getLibraries())

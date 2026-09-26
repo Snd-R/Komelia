@@ -13,6 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -63,6 +64,7 @@ import snd.komelia.updates.OnnxModelDownloader
 import snd.komelia.updates.OnnxRuntimeInstaller
 import snd.komelia.updates.UpdateClient
 import snd.komf.client.KomfClientFactory
+import snd.komf.client.KomfMangaBakaClient
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUser
@@ -92,6 +94,8 @@ abstract class AppModule {
 
         val baseUrl = appRepositories.settingsRepository.getServerUrl().stateIn(initScope)
         val komfUrl = appRepositories.komfSettingsRepository.getKomfUrl().stateIn(initScope)
+        val komfEnabled = appRepositories.komfSettingsRepository.getKomfEnabled()
+        val mangaBakaEnabled = appRepositories.komfSettingsRepository.getMangaBakaEnabled()
 
         val cookiesStorage = RememberMePersistingCookieStore(
             baseUrl.map { Url(it) }.stateIn(initScope),
@@ -108,20 +112,22 @@ abstract class AppModule {
             .ktor(ktor)
             .baseUrl { baseUrl.value }
             .cookieStorage(cookiesStorage)
-            .apiKey { apiKeyStore.apiKey  }
+            .apiKey { apiKeyStore.apiKey }
             .build()
 
         val komgaClientFactoryNoCache = KomgaClientFactory.Builder()
             .ktor(ktorWithoutCache)
             .baseUrl { baseUrl.value }
             .cookieStorage(cookiesStorage)
-            .apiKey { apiKeyStore.apiKey  }
+            .apiKey { apiKeyStore.apiKey }
             .build()
 
         val komfClientFactory = KomfClientFactory.Builder()
             .baseUrl { komfUrl.value }
             .ktor(ktor)
             .build()
+        val komfMangaBaka = komfEnabled.combine(mangaBakaEnabled) { komf, mangabaka -> komf && mangabaka }
+            .map { enabled -> if (enabled) komfClientFactory.mangaBaka() else null }
 
         val imageDecoder = createImageDecoder()
 
@@ -148,7 +154,8 @@ abstract class AppModule {
             else createRemoteApi(
                 komgaClientFactory = komgaClientFactory,
                 offlineRepositories = offlineRepositories,
-                offlineEvents = offlineModule?.komgaEvents
+                offlineEvents = offlineModule?.komgaEvents,
+                komfMangaBaka = komfMangaBaka
             )
         }.stateIn(initScope)
 
@@ -157,7 +164,8 @@ abstract class AppModule {
             else createRemoteApi(
                 komgaClientFactory = komgaClientFactoryNoCache,
                 offlineRepositories = offlineRepositories,
-                offlineEvents = offlineModule?.komgaEvents
+                offlineEvents = offlineModule?.komgaEvents,
+                komfMangaBaka = komfMangaBaka
             )
         }.stateIn(initScope)
 
@@ -196,6 +204,7 @@ abstract class AppModule {
 
         val coil = createCoil(
             komgaApi = komgaApi,
+            komfMangaBaka = komfClientFactory.mangaBaka(),
             context = androidContext,
             decoder = imageDecoder,
         )
@@ -256,6 +265,7 @@ abstract class AppModule {
         komgaClientFactory: KomgaClientFactory,
         offlineRepositories: OfflineRepositories?,
         offlineEvents: SharedFlow<KomgaEvent>?,
+        komfMangaBaka: Flow<KomfMangaBakaClient?>,
     ) = RemoteApi(
         actuatorApi = RemoteActuatorApi(komgaClientFactory.actuatorClient()),
         announcementsApi = RemoteAnnouncementsApi(komgaClientFactory.announcementClient()),
@@ -263,7 +273,7 @@ abstract class AppModule {
             bookClient = komgaClientFactory.bookClient(),
             offlineBookRepository = offlineRepositories?.bookRepository
         ),
-        collectionsApi = RemoteCollectionsApi(komgaClientFactory.collectionClient()),
+        collectionsApi = RemoteCollectionsApi(komgaClientFactory.collectionClient(), komfMangaBaka),
         fileSystemApi = RemoteFileSystemApi(komgaClientFactory.fileSystemClient()),
         libraryApi = RemoteLibraryApi(komgaClientFactory.libraryClient()),
         readListApi = RemoteReadListApi(
@@ -271,7 +281,7 @@ abstract class AppModule {
             offlineBookRepository = offlineRepositories?.bookRepository
         ),
         referentialApi = RemoteReferentialApi(komgaClientFactory.referentialClient()),
-        seriesApi = RemoteSeriesApi(komgaClientFactory.seriesClient()),
+        seriesApi = RemoteSeriesApi(komgaClientFactory.seriesClient(), komfMangaBaka),
         settingsApi = RemoteSettingsApi(komgaClientFactory.settingsClient()),
         tasksApi = RemoteTaskApi(komgaClientFactory.taskClient()),
         userApi = RemoteUserApi(komgaClientFactory.userClient()),
@@ -281,6 +291,7 @@ abstract class AppModule {
 
     protected fun createCoil(
         komgaApi: StateFlow<KomgaApi>,
+        komfMangaBaka: KomfMangaBakaClient,
         context: PlatformContext,
         decoder: KomeliaImageDecoder,
     ): ImageLoader {
@@ -299,7 +310,7 @@ abstract class AppModule {
                 .components {
                     add(FileMapper())
                     add(CoilDecoder.Factory(coilAwareDecoder))
-                    add(KomeliaFetcherFactory(komgaApi, coilAwareDecoder))
+                    add(KomeliaFetcherFactory(komgaApi, komfMangaBaka, coilAwareDecoder))
                 }
                 .memoryCache(createCoilMemoryCache())
                 .diskCache { diskCache }

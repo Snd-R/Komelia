@@ -32,6 +32,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_edit
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.collection_series_count
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.components.PageSizeSelectionDropdown
@@ -46,25 +47,24 @@ import snd.komelia.ui.platform.WindowSizeClass.EXPANDED
 import snd.komelia.ui.platform.WindowSizeClass.FULL
 import snd.komelia.ui.platform.WindowSizeClass.MEDIUM
 import snd.komga.client.collection.KomgaCollection
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun CollectionContent(
     collection: KomgaCollection,
     onCollectionDelete: () -> Unit,
 
-    series: List<KomgaSeries>,
+    series: List<KomeliaSeries>,
     totalSeriesCount: Int,
 
     editMode: Boolean,
     onEditModeChange: (Boolean) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     seriesActions: SeriesMenuActions,
     onReorder: (fromIndex: Int, toIndex: Int) -> Unit,
     onReorderDragStateChange: (dragging: Boolean) -> Unit = {},
 
-    selectedSeries: List<KomgaSeries>,
-    onSeriesSelect: (KomgaSeries) -> Unit,
+    selectedSeries: List<KomeliaSeries>,
+    onSeriesSelect: (KomeliaSeries) -> Unit,
 
     totalPages: Int,
     currentPage: Int,
@@ -188,9 +188,9 @@ private fun CollectionToolbar(
 private fun BulkActionsToolbar(
     onCancel: () -> Unit,
     collection: KomgaCollection,
-    series: List<KomgaSeries>,
-    selectedSeries: List<KomgaSeries>,
-    onSeriesSelect: (KomgaSeries) -> Unit,
+    series: List<KomeliaSeries>,
+    selectedSeries: List<KomeliaSeries>,
+    onSeriesSelect: (KomeliaSeries) -> Unit,
 ) {
     BulkActionsContainer(
         onCancel = onCancel,

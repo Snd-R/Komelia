@@ -417,7 +417,7 @@ private fun CommonSettingsContent(
 }
 
 @Composable
-private fun DatabaseDownloadContent(
+fun DatabaseDownloadContent(
     onDownloadRequest: () -> Flow<DownloadProgress>,
     onDismiss: () -> Unit,
 ) {
@@ -440,6 +440,7 @@ private fun DatabaseDownloadContent(
                 }
 
                 DownloadProgress.FinishedEvent -> completed = true
+                DownloadProgress.HeartbeatEvent -> {}
             }
         }
     }
@@ -569,7 +570,7 @@ private class SeriesMetadataTab(private val state: ProviderConfigState) : Dialog
             SwitchWithLabel(
                 checked = state.seriesAuthors,
                 onCheckedChange = state::onSeriesAuthorsChange,
-                label = { Text(stringResource(Res.string.komf_providers_series_authors)) }
+                label = { Text(stringResource(Res.string.komf_providers_series_age_rating)) }
             )
             HorizontalDivider()
 

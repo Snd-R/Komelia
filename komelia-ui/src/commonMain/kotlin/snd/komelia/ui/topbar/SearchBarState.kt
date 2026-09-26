@@ -15,12 +15,12 @@ import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.search.SearchResults
 import snd.komga.client.book.KomgaBookSearch
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesSearch
 
 @OptIn(FlowPreview::class)
@@ -33,7 +33,7 @@ class SearchBarState(
 
     private var currentQuery by mutableStateOf("")
 
-    var series by mutableStateOf<List<KomgaSeries>>(emptyList())
+    var series by mutableStateOf<List<KomeliaSeries>>(emptyList())
     var books by mutableStateOf<List<KomeliaBook>>(emptyList())
     var isLoading by mutableStateOf(false)
 

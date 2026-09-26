@@ -25,6 +25,7 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaReadListApi
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.settings.model.ReaderFlashColor
 import snd.komelia.settings.model.ReaderType
@@ -39,7 +40,6 @@ import snd.komelia.ui.series.SeriesScreen
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.common.KomgaReadingDirection
-import snd.komga.client.series.KomgaSeries
 
 typealias SpreadIndex = Int
 
@@ -62,7 +62,7 @@ class ReaderState(
     val expandImageSettings = MutableStateFlow(false)
 
     val booksState = MutableStateFlow<BookState?>(null)
-    val series = MutableStateFlow<KomgaSeries?>(null)
+    val series = MutableStateFlow<KomeliaSeries?>(null)
 
     val readerType = MutableStateFlow(ReaderType.PAGED)
     val imageStretchToFit = MutableStateFlow(true)

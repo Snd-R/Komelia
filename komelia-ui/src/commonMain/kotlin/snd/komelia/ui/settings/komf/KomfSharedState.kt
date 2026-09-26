@@ -32,12 +32,12 @@ class KomfSharedState(
 
     fun getKomgaLibraries(): Flow<List<KomfMediaServerLibrary>> {
         coroutineScope.launch { loadKomgaLibraries() }
-        return komgaLibraries.filterNotNull()
+        return komgaLibraries
     }
 
     fun getKavitaLibraries(): Flow<List<KomfMediaServerLibrary>> {
         coroutineScope.launch { loadKavitaLibraries() }
-        return kavitaLibraries.filterNotNull()
+        return kavitaLibraries
     }
 
     suspend fun loadConfig() {

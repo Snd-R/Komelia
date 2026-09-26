@@ -264,8 +264,8 @@ data object AppStrings {
             LibrarySeriesTabState.SeriesSort.DATE_ADDED_DESC -> Res.string.series_filter_sort_date_added_desc
             LibrarySeriesTabState.SeriesSort.RELEASE_DATE_ASC -> Res.string.series_filter_sort_release_date_asc
             LibrarySeriesTabState.SeriesSort.RELEASE_DATE_DESC -> Res.string.series_filter_sort_release_date_desc
-            LibrarySeriesTabState.SeriesSort.UPDATED_DESC -> Res.string.series_filter_sort_updated_asc
-            LibrarySeriesTabState.SeriesSort.UPDATED_ASC -> Res.string.series_filter_sort_updated_desc
+            LibrarySeriesTabState.SeriesSort.UPDATED_DESC -> Res.string.series_filter_sort_updated_desc
+            LibrarySeriesTabState.SeriesSort.UPDATED_ASC -> Res.string.series_filter_sort_updated_asc
         }
     }
 

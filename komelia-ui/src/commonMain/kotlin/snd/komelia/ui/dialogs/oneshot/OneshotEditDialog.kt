@@ -11,6 +11,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_save
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -18,13 +19,12 @@ import snd.komelia.ui.LoadState.Uninitialized
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.DialogLoadIndicator
 import snd.komelia.ui.dialogs.tabs.TabDialog
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 
 @Composable
 fun OneshotEditDialog(
     seriesId: KomgaSeriesId,
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
     book: KomeliaBook?,
     onDismissRequest: () -> Unit,
 ) {

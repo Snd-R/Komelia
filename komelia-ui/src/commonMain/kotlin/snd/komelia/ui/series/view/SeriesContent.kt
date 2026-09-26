@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,21 +17,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalUriHandler
@@ -48,7 +60,7 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_author_penciller
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_author_writers
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_download_confirm
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_genres
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_links
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_publisher
@@ -56,10 +68,12 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_tab_book
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_tab_collections
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.settings.model.BooksLayout
 import snd.komelia.ui.LoadState
+import snd.komelia.ui.LocalKomfIntegration
+import snd.komelia.ui.LocalKomfMangaBakaIntegration
 import snd.komelia.ui.LocalKomgaState
-import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.collection.SeriesCollectionsContent
@@ -74,9 +88,15 @@ import snd.komelia.ui.common.menus.SeriesActionsMenu
 import snd.komelia.ui.common.menus.SeriesMenuActions
 import snd.komelia.ui.common.menus.bulk.BooksBulkActionsContent
 import snd.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
-import snd.komelia.ui.dialogs.ConfirmationDialog
-import snd.komelia.ui.dialogs.permissions.DownloadNotificationRequestDialog
+import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
+import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaLinkDialog
+import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaUnlinkDialog
+import snd.komelia.ui.dialogs.komf.reset.KomfResetSeriesMetadataDialog
 import snd.komelia.ui.dialogs.series.edit.SeriesEditDialog
+import snd.komelia.ui.icons.AppIcons
+import snd.komelia.ui.icons.outlined.ChevronForward
+import snd.komelia.ui.icons.outlined.LinkedServices
+import snd.komelia.ui.icons.outlined.NewsStand
 import snd.komelia.ui.library.SeriesScreenFilter
 import snd.komelia.ui.platform.VerticalScrollbarWithFullSpans
 import snd.komelia.ui.platform.WindowSizeClass.COMPACT
@@ -87,14 +107,16 @@ import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.series.SeriesBooksState
 import snd.komelia.ui.series.SeriesBooksState.BooksData
 import snd.komelia.ui.series.SeriesViewModel.SeriesTab
+import snd.komelia.ui.series.mangabaka.MangaBakaSeriesContent
+import snd.komelia.ui.series.mangabaka.state.MangaBakaMetadataState
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.library.KomgaLibrary
-import snd.komga.client.series.KomgaSeries
 import kotlin.math.max
 
 @Composable
 fun SeriesContent(
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
+    mangaBaka: MangaBakaMetadataState?,
     library: KomgaLibrary?,
     onLibraryClick: (KomgaLibrary) -> Unit,
     seriesMenuActions: SeriesMenuActions,
@@ -108,9 +130,7 @@ fun SeriesContent(
 
     collectionsState: SeriesCollectionsState,
     onCollectionClick: (KomgaCollection) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
-
-    onDownload: () -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 ) {
     val windowWidth = LocalWindowWidth.current
     val contentPadding = when (windowWidth) {
@@ -129,19 +149,24 @@ fun SeriesContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (booksData.selectionMode) {
-            BooksBulkActionsToolbar(
-                onCancel = { booksState.setSelectionMode(false) },
-                books = booksData.books,
-                actions = booksState.bookBulkMenuActions(),
-                selectedBooks = booksData.selectedBooks,
-                onBookSelect = booksState::onBookSelect
+        when (windowWidth) {
+            COMPACT, MEDIUM -> {}
+            EXPANDED, FULL -> if (booksData.selectionMode) {
+                BooksBulkActionsToolbar(
+                    onCancel = { booksState.setSelectionMode(false) },
+                    books = booksData.books,
+                    actions = booksState.bookBulkMenuActions(),
+                    selectedBooks = booksData.selectedBooks,
+                    onBookSelect = booksState::onBookSelect
+                )
+            } else SeriesToolBar(
+                series = series,
+                library = library,
+                onLibraryClick = onLibraryClick,
+                mangaBaka = mangaBaka,
+                seriesMenuActions = seriesMenuActions,
             )
-        } else SeriesToolBar(
-            series = series,
-            seriesMenuActions = seriesMenuActions,
-            onDownload = onDownload,
-        )
+        }
 
         val scrollState = rememberLazyGridState()
 
@@ -155,12 +180,22 @@ fun SeriesContent(
 
                 if (series != null && library != null) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Series(
-                            series = series,
-                            library = library,
-                            onLibraryClick = onLibraryClick,
-                            onFilterClick = onFilterClick,
-                        )
+                        if (mangaBaka != null) {
+                            MangaBakaSeriesContent(
+                                series = series,
+                                actions = seriesMenuActions,
+                                library = library,
+                                mangaBakaState = mangaBaka,
+                                onLibraryClick = onLibraryClick
+                            )
+                        } else {
+                            Series(
+                                series = series,
+                                library = library,
+                                onLibraryClick = onLibraryClick,
+                                onFilterClick = onFilterClick,
+                            )
+                        }
                     }
 
                     item(span = { GridItemSpan(maxLineSpan) }) {
@@ -234,79 +269,212 @@ fun SeriesContent(
 
 @Composable
 fun SeriesToolBar(
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
+    library: KomgaLibrary?,
+    onLibraryClick: (KomgaLibrary) -> Unit,
+    mangaBaka: MangaBakaMetadataState?,
     seriesMenuActions: SeriesMenuActions,
-    onDownload: () -> Unit,
 ) {
-    Row(
+    if (series == null || library == null) return
+    FlowRow(
         modifier = Modifier.padding(start = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-
-        if (series != null) {
-            Text(
-                series.metadata.title,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, false)
-            )
-
-            Box {
-                var expandActions by remember { mutableStateOf(false) }
-                IconButton(onClick = { expandActions = true }) {
-                    Icon(Icons.Rounded.MoreVert, contentDescription = null)
-                }
-
-                SeriesActionsMenu(
-                    series = series,
-                    actions = seriesMenuActions,
-                    expanded = expandActions,
-                    showEditOption = false,
-                    showDownloadOption = false,
-                    onDismissRequest = { expandActions = false },
+        val mangaBaka = mangaBaka?.titleState
+        if (mangaBaka != null) {
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = { onLibraryClick(library) })
+                    .pointerHoverIcon(PointerIcon.Hand),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                val tintColor = MaterialTheme.colorScheme.primary.copy(alpha = .6f)
+                Icon(
+                    imageVector = AppIcons.Outlined.NewsStand,
+                    contentDescription = null,
+                    tint = tintColor
+                )
+                Text(
+                    library.name,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = tintColor
+                )
+                Icon(
+                    imageVector = AppIcons.Outlined.ChevronForward,
+                    contentDescription = null,
+                    tint = tintColor,
+                    modifier = Modifier.size(16.dp),
                 )
             }
+            Spacer(Modifier.widthIn(5.dp))
 
-            val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
-            val isOffline = LocalOfflineMode.current.collectAsState().value
-            var showEditDialog by remember { mutableStateOf(false) }
-            if (isAdmin && !isOffline) {
-                IconButton(onClick = { showEditDialog = true }) {
-                    Icon(Icons.Rounded.Edit, contentDescription = null)
-                }
+            SelectionContainer {
+                Text(
+                    mangaBaka.mainTitle.title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, false)
+                )
             }
-            var showDownloadConfirmationDialog by remember { mutableStateOf(false) }
-            val offlineAvailable = LocalOfflineAvailable.current
-            if (!isOffline && offlineAvailable) {
-                IconButton(
-                    onClick = { showDownloadConfirmationDialog = true },
-                ) {
-                    Icon(Icons.Default.Download, null)
-                }
+        } else {
+            SelectionContainer {
+                Text(
+                    series.metadata.title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, false)
+                )
             }
-            if (showDownloadConfirmationDialog) {
-                var permissionRequested by remember { mutableStateOf(false) }
-                DownloadNotificationRequestDialog { permissionRequested = true }
+        }
 
-                if (permissionRequested) {
-                    ConfirmationDialog(
-                        stringResource(Res.string.series_download_confirm, series.metadata.title),
-                        onDialogConfirm = onDownload,
-                        onDialogDismiss = { showDownloadConfirmationDialog = false }
+        SeriesActionMenuButton(series, seriesMenuActions)
+        SeriesEditDialogButton(series)
+        KomfSeriesActionsButton(series)
+    }
+}
+
+@Composable
+fun SeriesActionMenuButton(
+    series: KomeliaSeries,
+    seriesMenuActions: SeriesMenuActions
+) {
+    Box {
+        var expandActions by remember { mutableStateOf(false) }
+        IconButton(onClick = { expandActions = true }) {
+            Icon(Icons.Rounded.MoreVert, contentDescription = null)
+        }
+
+        SeriesActionsMenu(
+            series = series,
+            actions = seriesMenuActions,
+            expanded = expandActions,
+            showEditOption = false,
+            showDownloadOption = true,
+            onDismissRequest = { expandActions = false },
+        )
+    }
+}
+
+@Composable
+fun SeriesEditDialogButton(series: KomeliaSeries) {
+    val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
+    val isOffline = LocalOfflineMode.current.collectAsState().value
+    var showEditDialog by remember { mutableStateOf(false) }
+    if (isAdmin && !isOffline) {
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+            state = rememberTooltipState(),
+            tooltip = { PlainTooltip { Text(stringResource(Res.string.series_edit)) } }
+        ) {
+            IconButton(onClick = { showEditDialog = true }) {
+                Icon(Icons.Rounded.Edit, contentDescription = null)
+            }
+        }
+    }
+    if (showEditDialog)
+        SeriesEditDialog(series = series, onDismissRequest = { showEditDialog = false })
+
+}
+
+@Composable
+fun KomfSeriesActionsButton(series: KomeliaSeries) {
+    val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
+    if (!komfIntegration.value) return
+
+    var showDropdown by remember { mutableStateOf(false) }
+    var showKomfDialog by remember { mutableStateOf(false) }
+    if (showKomfDialog) {
+        KomfIdentifyDialog(
+            series = series,
+            onDismissRequest = {
+                showKomfDialog = false
+                showDropdown = false
+            }
+        )
+    }
+
+    var showKomfResetDialog by remember { mutableStateOf(false) }
+    if (showKomfResetDialog) {
+        KomfResetSeriesMetadataDialog(
+            series = series,
+            onDismissRequest = {
+                showKomfResetDialog = false
+                showDropdown = false
+            }
+        )
+    }
+
+    var showMangaBakaLinkDialog by remember { mutableStateOf(false) }
+    if (showMangaBakaLinkDialog) {
+        KomfMangaBakaLinkDialog(
+            series = series,
+            onDismissRequest = {
+                showMangaBakaLinkDialog = false
+                showDropdown = false
+            }
+        )
+    }
+    var showMangaBakaUnlinkDialog by remember { mutableStateOf(false) }
+    if (showMangaBakaUnlinkDialog) {
+        KomfMangaBakaUnlinkDialog(
+            series = series,
+            onDismissRequest = {
+                showMangaBakaUnlinkDialog = false
+                showDropdown = false
+            }
+        )
+    }
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+        state = rememberTooltipState(),
+        tooltip = { PlainTooltip { Text("Komf Actions") } }
+    ) {
+        IconButton(onClick = { showDropdown = true }) {
+            Icon(AppIcons.Outlined.LinkedServices, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = showDropdown,
+            onDismissRequest = { showDropdown = false }
+        ) {
+            val komfMangaBakaIntegration = LocalKomfMangaBakaIntegration.current.collectAsState(false).value
+
+            if (series.mangaBakaMetadata == null) {
+                DropdownMenuItem(
+                    text = { Text("Identify") },
+                    onClick = { showKomfDialog = true },
+                )
+
+                if (komfMangaBakaIntegration) {
+                    DropdownMenuItem(
+                        text = { Text("Link MangaBaka series") },
+                        onClick = { showMangaBakaLinkDialog = true },
                     )
                 }
+
+                DropdownMenuItem(
+                    text = { Text("Reset Metadata") },
+                    onClick = { showKomfResetDialog = true },
+                )
+            } else if (komfMangaBakaIntegration) {
+                DropdownMenuItem(
+                    text = { Text("Link MangaBaka series") },
+                    onClick = { showMangaBakaLinkDialog = true },
+                )
+
+                DropdownMenuItem(
+                    text = { Text("Unlink MangaBaka Series") },
+                    onClick = { showMangaBakaUnlinkDialog = true },
+                )
             }
-
-            if (showEditDialog)
-                SeriesEditDialog(series = series, onDismissRequest = { showEditDialog = false })
-
         }
     }
 }
 
 @Composable
 fun Series(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     library: KomgaLibrary,
     onLibraryClick: (KomgaLibrary) -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
@@ -395,7 +563,7 @@ fun Series(
 
 @Composable
 fun SeriesChipTags(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onFilterClick: (SeriesScreenFilter) -> Unit,
 ) {
     Column(

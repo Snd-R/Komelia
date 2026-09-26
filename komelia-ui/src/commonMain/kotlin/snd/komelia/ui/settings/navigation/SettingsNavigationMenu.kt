@@ -71,6 +71,7 @@ import snd.komelia.ui.settings.epub.EpubReaderSettingsScreen
 import snd.komelia.ui.settings.imagereader.ImageReaderSettingsScreen
 import snd.komelia.ui.settings.komf.general.KomfSettingsScreen
 import snd.komelia.ui.settings.komf.jobs.KomfJobsScreen
+import snd.komelia.ui.settings.komf.mangabaka.KomfMangaBakaSettingsScreen
 import snd.komelia.ui.settings.komf.notifications.KomfNotificationSettingsScreen
 import snd.komelia.ui.settings.komf.processing.KomfProcessingSettingsScreen
 import snd.komelia.ui.settings.komf.providers.KomfProvidersSettingsScreen
@@ -220,6 +221,12 @@ fun SettingsNavigationMenu(
                 )
                 AnimatedVisibility(komfEnabled) {
                     Column {
+                        NavigationButton(
+                            label = "MangaBaka (Beta)",
+                            onClick = { onNavigation(KomfMangaBakaSettingsScreen()) },
+                            isSelected = currentScreen is KomfMangaBakaSettingsScreen,
+                            color = contentColor,
+                        )
                         NavigationButton(
                             label = stringResource(Res.string.settings_navigation_komf_processing),
                             onClick = { onNavigation(KomfProcessingSettingsScreen(KOMGA)) },

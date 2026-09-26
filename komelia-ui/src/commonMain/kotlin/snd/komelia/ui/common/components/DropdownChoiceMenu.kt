@@ -290,7 +290,7 @@ fun <T> DropdownChoiceMenuWithSearch(
             ) {
                 selectedOptions.forEach {
                     NoPaddingChip(
-                        color = MaterialTheme.colorScheme.surface,
+                        containerColor = MaterialTheme.colorScheme.surface,
                         onClick = { onOptionSelect(it) }
                     ) {
                         Icon(Icons.Default.Close, null)
@@ -683,7 +683,7 @@ private fun TagFilterChip(
 
     NoPaddingChip(
         onClick = { onSelect(tag) },
-        color = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         borderColor = borderColor
     ) {
         Text(

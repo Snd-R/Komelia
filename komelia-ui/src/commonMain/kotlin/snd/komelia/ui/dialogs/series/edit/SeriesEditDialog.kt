@@ -9,14 +9,14 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_edit
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_save
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.oneshot.OneshotEditDialog
 import snd.komelia.ui.dialogs.tabs.TabDialog
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesEditDialog(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onDismissRequest: () -> Unit
 ) {
     val viewModelFactory = LocalViewModelFactory.current

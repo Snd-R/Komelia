@@ -5,15 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaCollectionsApi
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionCreateRequest
 import snd.komga.client.collection.KomgaCollectionUpdateRequest
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.PatchValue
-import snd.komga.client.series.KomgaSeries
 
 class AddToCollectionDialogViewModel(
-    private val series: List<KomgaSeries>,
+    private val series: List<KomeliaSeries>,
     private val onDismissRequest: () -> Unit,
     private val collectionApi: KomgaCollectionsApi,
     private val appNotifications: AppNotifications,

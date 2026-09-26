@@ -1,6 +1,11 @@
 package snd.komelia.api
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import snd.komelia.komga.api.KomgaCollectionsApi
+import snd.komelia.komga.api.model.KomeliaSeries
+import snd.komf.api.KomfServerSeriesId
+import snd.komf.client.KomfMangaBakaClient
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionClient
 import snd.komga.client.collection.KomgaCollectionCreateRequest
@@ -12,7 +17,10 @@ import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
 import snd.komga.client.library.KomgaLibraryId
 
-class RemoteCollectionsApi(private val collectionsClient: KomgaCollectionClient) : KomgaCollectionsApi {
+class RemoteCollectionsApi(
+    private val collectionsClient: KomgaCollectionClient,
+    private val komfMangaBakaClient: Flow<KomfMangaBakaClient?>,
+) : KomgaCollectionsApi {
     override suspend fun getAll(
         search: String?,
         libraryIds: List<KomgaLibraryId>?,
@@ -34,7 +42,12 @@ class RemoteCollectionsApi(private val collectionsClient: KomgaCollectionClient)
         id: KomgaCollectionId,
         query: KomgaCollectionQuery?,
         pageRequest: KomgaPageRequest?
-    ) = collectionsClient.getSeriesForCollection(id, query, pageRequest)
+    ): Page<KomeliaSeries> {
+        val seriesPage = collectionsClient.getSeriesForCollection(id, query, pageRequest)
+        val komfIds = seriesPage.content.map { KomfServerSeriesId(it.id.value) }
+        val mangaBaka = komfMangaBakaClient.first()?.getAllLinked(komfIds).orEmpty()
+        return seriesPage.toKomeliaPage(mangaBaka)
+    }
 
     override suspend fun getDefaultThumbnail(collectionId: KomgaCollectionId) =
         collectionsClient.getDefaultThumbnail(collectionId)
