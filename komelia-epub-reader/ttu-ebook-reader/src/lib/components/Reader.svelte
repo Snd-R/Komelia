@@ -68,6 +68,7 @@
   } from '$lib/components/book-reader/book-reader-image-gallery/book-reader-image-gallery';
   import BookReaderImageGallery
     from '$lib/components/book-reader/book-reader-image-gallery/book-reader-image-gallery.svelte';
+  import DictionaryPopup from '$lib/components/book-reader/dictionary-popup.svelte';
   import {
     getChapterData,
     nextChapter$,
@@ -99,6 +100,11 @@
     pulseElement
   } from '$lib/functions/range-util';
   import {externalFunctions} from "$lib/external";
+  import {
+    getDictionaryLookupFromPoint,
+    getDictionaryLookupFromSelection,
+    type DictionaryLookup
+  } from '$lib/functions/dictionary-lookup';
 
   interface Props {
     onSettingsClick: () => void;
@@ -124,6 +130,8 @@
   let customReadingPointRange: Range | undefined = $state();
   let lastSelectedRange: Range | undefined = $state();
   let lastSelectedRangeWasEmpty = $state(true);
+  let lastDictionaryTap: {time: number; x: number; y: number} | undefined = $state();
+  let dictionaryLookup: DictionaryLookup | undefined = $state();
   let isSelectingCustomReadingPoint = $state(false);
   let showCustomReadingPoint = $state(false);
   let storedExploredCharacter = $state(0);
@@ -270,13 +278,15 @@
   const textSelector$ = fromEvent(document, 'selectionchange').pipe(
     debounceTime(200),
     tap(() => {
-      const currentSelected = window.getSelection()?.toString() || '';
+      const selection = window.getSelection();
+      const currentSelected = selection?.toString() || '';
 
       if (!currentSelected && lastSelectedRangeWasEmpty) {
         lastSelectedRange = undefined;
       } else if (currentSelected) {
-        lastSelectedRange = window.getSelection()?.getRangeAt(0);
+        lastSelectedRange = selection?.getRangeAt(0);
         lastSelectedRangeWasEmpty = false;
+        openDictionaryFromSelection(selection);
       } else {
         lastSelectedRangeWasEmpty = true;
       }
@@ -343,6 +353,9 @@
   onMount(() => {
     // settings = await SettingsStore.getSettingsStore();
     document.addEventListener('ttu-action', handleAction, false)
+    document.addEventListener('dblclick', handleDictionaryDoubleClick, true);
+    document.addEventListener('pointerup', handleDictionaryPointerUp, true);
+    document.addEventListener('touchend', handleDictionaryTouchEnd, true);
   });
 
   function handleAction({detail}: any) {
@@ -358,6 +371,9 @@
 
   onDestroy(() => {
     document.removeEventListener('ttu-action', handleAction, false);
+    document.removeEventListener('dblclick', handleDictionaryDoubleClick, true);
+    document.removeEventListener('pointerup', handleDictionaryPointerUp, true);
+    document.removeEventListener('touchend', handleDictionaryTouchEnd, true);
 
     readerImageGalleryPictures$.next([]);
   });
@@ -435,6 +451,98 @@
     } catch (error: any) {
       logger.error(`Error writing Progress to Clipboard: ${error.message}`);
     }
+  }
+
+  function handleDictionaryDoubleClick(event: MouseEvent) {
+    if (event.button !== 0) {
+      return;
+    }
+
+    openDictionaryAtPoint(event, event.clientX, event.clientY);
+  }
+
+  function handleDictionaryPointerUp(event: PointerEvent) {
+    if (event.pointerType === 'mouse' || !event.isPrimary) {
+      return;
+    }
+
+    handleDictionaryTap(event, event.clientX, event.clientY);
+  }
+
+  function handleDictionaryTouchEnd(event: TouchEvent) {
+    if ('PointerEvent' in window) {
+      return;
+    }
+
+    if (event.changedTouches.length !== 1) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    handleDictionaryTap(event, touch.clientX, touch.clientY);
+  }
+
+  function handleDictionaryTap(event: Event, x: number, y: number) {
+    const now = performance.now();
+    const maxDelay = 350;
+    const maxDistance = 28;
+    const isDoubleTap = lastDictionaryTap &&
+      now - lastDictionaryTap.time <= maxDelay &&
+      Math.hypot(x - lastDictionaryTap.x, y - lastDictionaryTap.y) <=
+      maxDistance;
+
+    if (isDoubleTap) {
+      openDictionaryAtPoint(event, x, y);
+      lastDictionaryTap = undefined;
+    } else {
+      lastDictionaryTap = {
+        time: now,
+        x,
+        y
+      };
+    }
+  }
+
+  function openDictionaryFromSelection(selection: Selection | null | undefined) {
+    const contentEl = document.querySelector<HTMLElement>('.book-content');
+    if (!contentEl) {
+      return;
+    }
+
+    const lookup = getDictionaryLookupFromSelection(document, contentEl, selection);
+    if (lookup) {
+      dictionaryLookup = lookup;
+    }
+  }
+
+  function openDictionaryAtPoint(event: Event, x: number, y: number) {
+    const contentEl = document.querySelector<HTMLElement>('.book-content');
+    if (!contentEl || !canOpenDictionary(event.target, contentEl)) {
+      return;
+    }
+
+    const lookup = getDictionaryLookupFromPoint(document, contentEl, x, y);
+    if (!lookup) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    dictionaryLookup = lookup;
+
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(lookup.range);
+  }
+
+  function canOpenDictionary(target: EventTarget | null, contentEl: HTMLElement) {
+    if (!(target instanceof Element) || !contentEl.contains(target)) {
+      return false;
+    }
+
+    return !target.closest(
+      'a, button, input, textarea, select, img, svg, image, [data-popover], [data-ttu-spoiler-img]'
+    );
   }
 
   function onKeydown(ev: KeyboardEvent) {
@@ -831,6 +939,19 @@
         bind:showCustomReadingPoint
         on:bookmark={bookmarkPage}
     />
+    {#if dictionaryLookup}
+      <DictionaryPopup
+          word={dictionaryLookup.word}
+          x={dictionaryLookup.x}
+          y={dictionaryLookup.y}
+          fontColor={$themeOption$?.fontColor}
+          backgroundColor={$backgroundColor$}
+          onClose={() => {
+            dictionaryLookup = undefined;
+            window.getSelection()?.removeAllRanges();
+          }}
+      />
+    {/if}
     {$initBookmarkData$ ?? ''}
     {$setWritingMode$ ?? ''}
     {$textSelector$ ?? ''}
