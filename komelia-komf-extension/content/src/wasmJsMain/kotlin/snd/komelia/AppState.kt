@@ -31,8 +31,6 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.MutationObserver
 import org.w3c.dom.MutationObserverInit
-import org.w3c.dom.Node
-import org.w3c.dom.asList
 import snd.komelia.dialogs.ErrorDialog
 import snd.komelia.dialogs.IdentifyDialog
 import snd.komelia.dialogs.LibraryAutoIdentifyDialog
@@ -73,6 +71,7 @@ class AppState(
     private val observer: MutationObserver
 
     var mountEvent = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
+    private var mountScheduled = false
 
     init {
         komfAppMountElement.id = "komf-canvas"
@@ -99,16 +98,30 @@ class AppState(
                 mediaServerComponent = KavitaComponent(theme, currentDialog)
             }
         }
-        observer = MutationObserver { mutations, observer ->
-            mutations.toList().forEach { mutation ->
-                if (mutation.removedNodes.length == 0 && mutation.addedNodes.length == 0) return@forEach
-                for (node in mutation.addedNodes.asList()) {
-                    if (node.nodeType != Node.ELEMENT_NODE || node.childNodes.length == 0) continue
-                    val mounted = mediaServerComponent.tryMount(node as HTMLElement)
-                    if (mounted) mountEvent.tryEmit(Unit)
-                }
-            }
+        // Media server UIs (Angular for Kavita, Vue for Komga) re-create parts of the DOM on navigation,
+        // login or when the reader hides the navbar. Instead of inspecting individual added nodes
+        // (which misses cases where the added node itself is the mount target) re-check the whole document,
+        // coalescing bursts of mutations into a single check per animation frame
+        observer = MutationObserver { mutations, _ ->
+            val hasChildChanges = mutations.toList()
+                .any { it.addedNodes.length != 0 || it.removedNodes.length != 0 }
+            if (hasChildChanges) scheduleMount()
         }
+    }
+
+    private fun scheduleMount() {
+        if (mountScheduled) return
+        mountScheduled = true
+        window.requestAnimationFrame {
+            mountScheduled = false
+            mount()
+        }
+    }
+
+    private fun mount() {
+        val body = document.body ?: return
+        val mounted = mediaServerComponent.tryMount(body)
+        if (mounted) mountEvent.tryEmit(Unit)
     }
 
     fun launch() {
@@ -142,12 +155,10 @@ class AppState(
             options = AddEventListenerOptions(passive = false)
         )
 
+        window.addEventListener("popstate") { scheduleMount() }
+
         observer.observe(document, mutationObserverConfig())
-        val body = document.body
-        if (body != null) {
-            val mounted = mediaServerComponent.tryMount(body)
-            if (mounted) mountEvent.tryEmit(Unit)
-        }
+        mount()
     }
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class)
