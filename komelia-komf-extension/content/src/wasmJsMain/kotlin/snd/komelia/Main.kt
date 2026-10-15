@@ -12,14 +12,17 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import kotlinx.browser.localStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komelia.db.KomfSettings
 import snd.komelia.db.SettingsStateWrapper
 import snd.komelia.db.repository.KomfSettingsRepositoryWrapper
 import snd.komelia.db.settings.LocalStorageSettingsRepository
+import snd.komelia.db.settings.komfSettingsKey
 import snd.komf.client.KomfClientFactory
 import kotlin.coroutines.CoroutineContext
 
@@ -27,6 +30,11 @@ import kotlin.coroutines.CoroutineContext
 val logger = KotlinLogging.logger("Komf")
 
 fun main() {
+    // content script can be injected both by registered content scripts and by the background script
+    // into already open tabs after origin permission is granted. Make sure that only one instance is running
+    if (isAlreadyLoaded()) return
+    markLoaded()
+
     val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     coroutineScope.launch {
         val app = initApplication(coroutineScope)
@@ -36,9 +44,14 @@ fun main() {
 
 private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
     val localStorageRepository = LocalStorageSettingsRepository()
+    // default value of LocalStorageSettingsRepository is the current page address (used by komf hosted webui).
+    // Content script runs on media server pages, use default komf address if user hasn't saved it yet
+    val komfSettings = localStorage.getItem(komfSettingsKey)
+        ?.let { localStorageRepository.getKomfSettings() }
+        ?: KomfSettings()
     val komfSettingsRepository = KomfSettingsRepositoryWrapper(
         SettingsStateWrapper(
-            localStorageRepository.getKomfSettings(),
+            komfSettings,
             localStorageRepository::saveKomfSettings
         )
     )
@@ -56,6 +69,9 @@ private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
     return AppState(vmFactory)
 
 }
+
+private fun isAlreadyLoaded(): Boolean = js("globalThis.__komfExtensionLoaded === true")
+private fun markLoaded(): Unit = js("{ globalThis.__komfExtensionLoaded = true; }")
 
 private val sseRequestAttr = AttributeKey<Boolean>("SSERequestFlag")
 private val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
