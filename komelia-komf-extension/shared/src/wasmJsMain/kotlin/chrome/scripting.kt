@@ -21,3 +21,6 @@ external fun registerContentScripts(scripts: JsArray<RegisteredContentScript>): 
 external fun updateContentScripts(scripts: JsArray<RegisteredContentScript>): Promise<JsAny> = definedExternally
 external fun unregisterContentScripts(scripts: JsArray<RegisteredContentScript> = definedExternally): Promise<JsAny> =
     definedExternally
+external fun executeScript(injection: ScriptInjection): Promise<JsAny> = definedExternally
+
+external interface ScriptInjection : JsAny

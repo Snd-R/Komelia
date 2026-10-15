@@ -85,6 +85,7 @@ EnvType.entries.forEach { env ->
 
         inputs.dir("$resourceFolder/icons")
         inputs.dir("$resourceFolder/html")
+        inputs.file("$resourceFolder/${env.manifest}")
         inputs.dir(contentInput)
         inputs.dir(contentStringsInput)
         inputs.dir(popupInput)

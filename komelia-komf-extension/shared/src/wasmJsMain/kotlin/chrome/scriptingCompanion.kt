@@ -29,3 +29,7 @@ fun RegisteredContentScript(
         """
     )
 }
+
+fun ScriptInjection(tabId: Int, files: JsArray<JsString>): ScriptInjection {
+    js("return { target: { tabId: tabId }, files: files };")
+}
