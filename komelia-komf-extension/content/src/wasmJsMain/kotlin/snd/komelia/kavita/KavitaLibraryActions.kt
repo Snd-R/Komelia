@@ -5,7 +5,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.asList
 import snd.komelia.KomfActiveDialog
 import snd.komf.api.KomfServerLibraryId
 
@@ -30,29 +29,37 @@ class KavitaLibraryActions(
 
     private fun onIdentifyClick() {
         val libraryId = getLibraryId()
-        if (libraryId == null) currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to fine libraryId")
+        if (libraryId == null) currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find libraryId")
         else currentDialog.value = KomfActiveDialog.LibraryIdentify(libraryId)
     }
 
     private fun onResetClick() {
         val libraryId = getLibraryId()
-        if (libraryId == null) currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to fine libraryId")
+        if (libraryId == null) currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find libraryId")
         else currentDialog.value = KomfActiveDialog.LibraryReset(libraryId)
     }
 
     fun tryMount(parent: HTMLElement): Boolean {
-        if (parent.contains(element)) return true
-        val libraryFilterButton = parent.getElementsByTagName("button").asList().find {
-            it.getAttribute("id") == "filter-btn--komf"
-        }
-        if (libraryFilterButton != null) {
-            libraryFilterButton.parentElement?.append(element)
-            dropdown.tryMount()
-            return true
+        // filter button is also shown on pages that are not tied to a library (all series, want to read etc.)
+        val filterButtonContainer = if (getLibraryId() != null && !isSeriesPage()) {
+            parent.querySelector("#filter-btn--komf")?.parentElement
+        } else null
+
+        if (filterButtonContainer == null) {
+            element.remove()
+            dropdown.hide()
+            return false
         }
 
-        return false
+        if (element.parentElement != filterButtonContainer || filterButtonContainer.lastElementChild != element) {
+            filterButtonContainer.append(element)
+            dropdown.hide()
+        }
+        dropdown.tryMount()
+        return true
     }
+
+    private fun isSeriesPage() = window.location.pathname.split('/').any { it == "series" }
 
     fun getLibraryId(): KomfServerLibraryId? {
         val urlPath = window.location.pathname.split('/')

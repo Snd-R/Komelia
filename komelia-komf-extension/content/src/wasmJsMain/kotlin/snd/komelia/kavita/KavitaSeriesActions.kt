@@ -5,6 +5,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.Node
 import org.w3c.dom.asList
 import snd.komelia.KomfActiveDialog
 import snd.komf.api.KomfServerLibraryId
@@ -30,18 +31,20 @@ class KavitaSeriesActions(
     }
 
     fun tryMount(parent: HTMLElement): Boolean {
-        if (parent.contains(element)) return true
-
-        val editSeriesButton = parent.getElementsByTagName("button").asList().find {
-            it.getAttribute("id") == "edit-btn--komf"
-        }
-        if (editSeriesButton != null) {
-            editSeriesButton.parentElement?.insertAdjacentElement("afterend", element)
-            dropdown.tryMount()
-            return true
+        // Kavita only renders the edit button for admins on the series detail page
+        val editButtonContainer = parent.querySelector("#edit-btn--komf")?.parentElement
+        if (editButtonContainer == null) {
+            element.remove()
+            dropdown.hide()
+            return false
         }
 
-        return false
+        if (editButtonContainer.nextElementSibling != element) {
+            editButtonContainer.insertAdjacentElement("afterend", element)
+            dropdown.hide()
+        }
+        dropdown.tryMount()
+        return true
     }
 
     private fun onIdentifyClick() {
@@ -49,7 +52,7 @@ class KavitaSeriesActions(
         val libraryId = getLibraryId()
         val seriesTitle = getSeriesTitle()
         when {
-            seriesId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to fine seriesId")
+            seriesId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find seriesId")
             libraryId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find libraryId")
             seriesTitle == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find series title")
             else -> currentDialog.value = KomfActiveDialog.SeriesIdentify(
@@ -64,7 +67,7 @@ class KavitaSeriesActions(
         val seriesId = getSeriesId()
         val libraryId = getLibraryId()
         when {
-            seriesId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to fine seriesId")
+            seriesId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find seriesId")
             libraryId == null -> currentDialog.value = KomfActiveDialog.ErrorDialog("Failed to find libraryId")
             else -> currentDialog.value = KomfActiveDialog.SeriesReset(
                 seriesId = seriesId,
@@ -75,7 +78,14 @@ class KavitaSeriesActions(
     }
 
     fun getSeriesTitle(): String? {
-        return (document.querySelector("app-series-detail .info-container div h4 span") as HTMLElement).innerText
+        val titleElement = document.querySelector("app-series-detail .info-container h4 span") ?: return null
+        // only take direct text, title span can also contain a loading spinner with hidden text
+        val title = titleElement.childNodes.asList()
+            .filter { it.nodeType == Node.TEXT_NODE }
+            .joinToString("") { it.textContent ?: "" }
+            .trim()
+            .ifBlank { (titleElement as? HTMLElement)?.innerText?.trim() }
+        return title?.ifBlank { null }
     }
 
     fun getSeriesId(): KomfServerSeriesId? {
