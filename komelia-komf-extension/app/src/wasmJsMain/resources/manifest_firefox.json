@@ -35,9 +35,6 @@
     "storage",
     "scripting"
   ],
-  "optional_permissions": [
-    "scripting"
-  ],
   "optional_host_permissions": [
     "*://*/*"
   ]

@@ -3,9 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>Komf Settings</title>
-    <script type="application/javascript" src="popup.js"></script>
+    <style>
+        /* fixed size so the browser opens the popup at its final size right away.
+           Without it the popup starts tiny and is resized after wasm is loaded which
+           Chromium based browsers often don't repaint until the pointer moves over the popup */
+        html, body {
+            width: 400px;
+            height: 400px;
+            margin: 0;
+            overflow: hidden;
+            background-color: #FEF7FF;
+        }
+
+        body {
+            position: relative;
+        }
+
+        #komf-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif;
+            font-size: 14px;
+            color: #49454F;
+        }
+
+        /* Compose surface is opaque and covers the loading text once rendered */
+        #ComposeTarget {
+            position: relative;
+            z-index: 1;
+            width: 400px;
+            height: 400px;
+        }
+    </style>
+    <script type="application/javascript" src="popup.js" defer></script>
 </head>
 <body>
-<div id="ComposeTarget" style="width: 400px; max-width: 400px; height: 400px; max-height: 400px"></div>
+<div id="komf-loading">Loading Komf...</div>
+<div id="ComposeTarget"></div>
 </body>
 </html>

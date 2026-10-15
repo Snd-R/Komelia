@@ -57,6 +57,6 @@ class OriginSettingsViewModel {
 }
 
 private fun scriptingPermissionObject(origin: String): Permissions {
-    js("return { permissions: ['scripting'], origins: [origin]};")
+    js("return { origins: [origin] };")
 }
 
