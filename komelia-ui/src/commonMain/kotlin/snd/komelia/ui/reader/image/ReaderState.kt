@@ -189,6 +189,7 @@ class ReaderState(
             val nextBook = getNextBook(booksState.nextBook.id)
             val nextBookPages = if (nextBook != null) loadBookPages(nextBook.id) else emptyList()
 
+            readProgressPage.value = 1
             this.booksState.value = BookState(
                 currentBook = booksState.nextBook,
                 currentBookPages = booksState.nextBookPages,
