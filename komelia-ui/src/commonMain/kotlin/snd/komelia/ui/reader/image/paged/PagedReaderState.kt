@@ -215,7 +215,7 @@ class PagedReaderState(
 
         val newSpreadIndex = pageSpreads.indexOfFirst { spread ->
             spread.any { it.pageNumber == readerState.readProgressPage.value }
-        }
+        }.coerceAtLeast(0)
 
         currentSpread.value = PageSpread(
             pages = pageSpreads[newSpreadIndex].map { Page(it, null) },
