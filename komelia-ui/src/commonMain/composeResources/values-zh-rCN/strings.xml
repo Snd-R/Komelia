@@ -844,7 +844,7 @@
     <string name="komf_providers_series_status">状态</string>
     <string name="komf_providers_series_summary">简介</string>
     <string name="komf_providers_series_tags">标签</string>
-    <string name="komf_providers_series_title">标签</string>
+    <string name="komf_providers_series_title">标题</string>
     <string name="komf_providers_book_enabled">启用</string>
     <string name="komf_providers_book_authors">作者</string>
     <string name="komf_providers_book_cover">封面</string>
