@@ -13,6 +13,8 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.BookSiblingsContext
 import snd.komelia.ui.LoadState.Error
+import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalReloadEvents
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.ReloadableScreen
@@ -54,7 +56,9 @@ class SeriesScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(seriesId.value) {
+        val isOffline = LocalOfflineMode.current.value
+        val serverUrl = LocalKomgaState.current.serverUrl.value
+        val vm = rememberScreenModel("${seriesId.value}_${serverUrl}_$isOffline") {
             viewModelFactory.getSeriesViewModel(seriesId, series, startingTab)
         }
         val reloadEvents = LocalReloadEvents.current

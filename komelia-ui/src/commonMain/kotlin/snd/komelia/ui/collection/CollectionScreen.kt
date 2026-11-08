@@ -12,6 +12,8 @@ import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
 import snd.komelia.ui.LoadState.Uninitialized
+import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalReloadEvents
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.ReloadableScreen
@@ -25,7 +27,9 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : ReloadableScreen {
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(collectionId.value) { viewModelFactory.getCollectionViewModel(collectionId) }
+        val isOffline = LocalOfflineMode.current.value
+        val serverUrl = LocalKomgaState.current.serverUrl.value
+        val vm = rememberScreenModel("${collectionId.value}_${serverUrl}_$isOffline") { viewModelFactory.getCollectionViewModel(collectionId) }
         val reloadEvents = LocalReloadEvents.current
         LaunchedEffect(collectionId) {
             vm.initialize()

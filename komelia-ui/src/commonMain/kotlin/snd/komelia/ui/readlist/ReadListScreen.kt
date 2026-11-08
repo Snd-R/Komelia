@@ -13,6 +13,8 @@ import snd.komelia.ui.LoadState
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Uninitialized
+import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalReloadEvents
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.ReloadableScreen
@@ -31,7 +33,9 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(readListId.value) { viewModelFactory.getReadListViewModel(readListId) }
+        val isOffline = LocalOfflineMode.current.value
+        val serverUrl = LocalKomgaState.current.serverUrl.value
+        val vm = rememberScreenModel("${readListId.value}_${serverUrl}_$isOffline") { viewModelFactory.getReadListViewModel(readListId) }
         val reloadEvents = LocalReloadEvents.current
         LaunchedEffect(readListId) {
             vm.initialize()
