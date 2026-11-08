@@ -76,7 +76,9 @@ class LibraryScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getLibraryViewModel(libraryId) }
+        val isOffline = LocalOfflineMode.current.value
+        val serverUrl = LocalKomgaState.current.serverUrl.value
+        val vm = rememberScreenModel("${libraryId?.value}_${serverUrl}_$isOffline") { viewModelFactory.getLibraryViewModel(libraryId) }
         val reloadEvents = LocalReloadEvents.current
 
         LaunchedEffect(libraryId) {

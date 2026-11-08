@@ -12,6 +12,8 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.BookSiblingsContext
+import snd.komelia.ui.LocalKomgaState
+import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalReloadEvents
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.ReloadableScreen
@@ -52,7 +54,9 @@ class BookScreen(
     @Composable
     override fun Content() {
         val viewModelFactory = LocalViewModelFactory.current
-        val vm = rememberScreenModel(bookId.value) { viewModelFactory.getBookViewModel(bookId, book) }
+        val isOffline = LocalOfflineMode.current.value
+        val serverUrl = LocalKomgaState.current.serverUrl.value
+        val vm = rememberScreenModel("${bookId.value}_${serverUrl}_$isOffline") { viewModelFactory.getBookViewModel(bookId, book) }
         val navigator = LocalNavigator.currentOrThrow
         val reloadEvents = LocalReloadEvents.current
 
