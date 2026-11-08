@@ -10,10 +10,14 @@ import io.github.vinceglb.filekit.delete
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.io.Sink
+import kotlinx.io.asOutputStream
 import kotlinx.io.asSink
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import java.util.zip.Deflater
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 
 internal actual suspend fun prepareOutput(
@@ -44,6 +48,18 @@ internal actual suspend fun prepareOutput(
 
 internal actual suspend fun deleteFile(file: PlatformFile) {
     file.delete(false)
+}
+
+internal actual class ZipWriter actual constructor(output: Sink) {
+    private val zip = ZipOutputStream(output.asOutputStream()).apply { setLevel(Deflater.NO_COMPRESSION) }
+
+    actual fun putEntry(name: String, bytes: ByteArray) {
+        zip.putNextEntry(ZipEntry(name))
+        zip.write(bytes)
+        zip.closeEntry()
+    }
+
+    actual fun finish() = zip.finish()
 }
 
 private fun prepareFileSink(

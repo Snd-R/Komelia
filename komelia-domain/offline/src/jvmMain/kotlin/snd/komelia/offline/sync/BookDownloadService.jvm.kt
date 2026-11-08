@@ -3,9 +3,13 @@ package snd.komelia.offline.sync
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.delete
 import kotlinx.io.Sink
+import kotlinx.io.asOutputStream
 import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import snd.jni.DesktopPlatform
+import java.util.zip.Deflater
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.io.path.createDirectories
 
 internal actual suspend fun prepareOutput(
@@ -45,4 +49,16 @@ private fun String.removeIllegalWindowsPathChars(): String {
 
 internal actual suspend fun deleteFile(file: PlatformFile) {
     file.delete(false)
+}
+
+internal actual class ZipWriter actual constructor(output: Sink) {
+    private val zip = ZipOutputStream(output.asOutputStream()).apply { setLevel(Deflater.NO_COMPRESSION) }
+
+    actual fun putEntry(name: String, bytes: ByteArray) {
+        zip.putNextEntry(ZipEntry(name))
+        zip.write(bytes)
+        zip.closeEntry()
+    }
+
+    actual fun finish() = zip.finish()
 }
