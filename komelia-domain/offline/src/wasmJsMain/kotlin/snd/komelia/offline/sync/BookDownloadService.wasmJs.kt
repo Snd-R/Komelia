@@ -15,3 +15,13 @@ internal actual suspend fun prepareOutput(
 
 internal actual suspend fun deleteFile(file: PlatformFile) {
 }
+
+internal actual class ZipWriter actual constructor(output: Sink) {
+    actual fun putEntry(name: String, bytes: ByteArray) {
+        TODO("Not yet implemented")
+    }
+
+    actual fun finish() {
+        TODO("Not yet implemented")
+    }
+}

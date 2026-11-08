@@ -95,6 +95,7 @@ class BookDownloadService(
         book: KomgaBook,
     ): PlatformFile {
         val url = URLBuilder(onlineServerUrl.value).build()
+        val fileName = Path(book.url).name
         val (file, output) = prepareOutput(
             downloadRoot = libraryDownloadPath.first(),
             serverName = buildString {
@@ -104,11 +105,12 @@ class BookDownloadService(
             },
             libraryName = library.name,
             seriesName = series.name,
-            bookFileName = Path(book.url).name,
+            bookFileName = if (book.isRar()) "${fileName.substringBeforeLast('.')}.cbz" else fileName,
         )
 
         try {
-            bookClient.getBookFile(book.id) { response ->
+            if (book.isRar()) downloadPagesAsZip(book, output)
+            else bookClient.getBookFile(book.id) { response ->
                 val length = response.headers["Content-Length"]?.toLong() ?: 0L
                 emit(BookDownloadProgress(book, length, 0))
                 val channel = response.bodyAsChannel().counted()
@@ -130,6 +132,23 @@ class BookDownloadService(
 
         return file
     }
+
+    // rar can't be read offline. Download pages extracted by the server and store them as zip
+    private suspend fun FlowCollector<DownloadEvent>.downloadPagesAsZip(book: KomgaBook, output: Sink) {
+        val pages = bookClient.getBookPages(book.id)
+        val length = pages.sumOf { it.sizeBytes ?: 0L }
+        var completed = 0L
+        emit(BookDownloadProgress(book, length, 0))
+
+        val zip = ZipWriter(output)
+        for (page in pages) {
+            val bytes = bookClient.getPage(book.id, page.number)
+            zip.putEntry(page.fileName, bytes)
+            completed += bytes.size
+            emit(BookDownloadProgress(book, length, completed))
+        }
+        zip.finish()
+    }
 }
 
 internal expect suspend fun prepareOutput(
@@ -141,3 +160,10 @@ internal expect suspend fun prepareOutput(
 ): Pair<PlatformFile, Sink>
 
 internal expect suspend fun deleteFile(file: PlatformFile)
+
+internal expect class ZipWriter(output: Sink) {
+    fun putEntry(name: String, bytes: ByteArray)
+    fun finish()
+}
+
+internal fun KomgaBook.isRar() = media.mediaType?.startsWith("application/x-rar-compressed") == true

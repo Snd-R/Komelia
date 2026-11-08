@@ -19,6 +19,7 @@ import snd.komelia.offline.media.model.OfflineMedia
 import snd.komelia.offline.media.repository.OfflineMediaRepository
 import snd.komelia.offline.readprogress.OfflineReadProgress
 import snd.komelia.offline.readprogress.OfflineReadProgressRepository
+import snd.komelia.offline.sync.isRar
 import snd.komelia.offline.sync.model.OfflineLogEntry.Companion.logError
 import snd.komelia.offline.sync.model.OfflineLogEntry.Companion.logInfo
 import snd.komelia.offline.sync.repository.LogJournalRepository
@@ -118,7 +119,7 @@ class BookKomgaImportAction(
         return OfflineMedia(
             bookId = book.id,
             status = book.media.status,
-            mediaType = book.media.mediaType,
+            mediaType = if (book.isRar()) "application/zip" else book.media.mediaType,
             mediaProfile = book.media.mediaProfile,
             comment = book.media.comment,
             epubDivinaCompatible = book.media.epubDivinaCompatible,
