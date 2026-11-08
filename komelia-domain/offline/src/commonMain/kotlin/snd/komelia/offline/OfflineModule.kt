@@ -472,6 +472,7 @@ abstract class OfflineModule(
                 ),
                 UserKomgaImportAction(
                     userRepository = repositories.userRepository,
+                    libraryRepository = repositories.libraryRepository,
                     transactionTemplate = repositories.transactionTemplate
                 ),
             )
